@@ -54,16 +54,16 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d7dce5;bord
 </div>
 <aside class="card add-card">
 <h2>Dodaj do planera</h2>
-<form id="form">
+<form id="form" onsubmit="event.preventDefault(); var title=document.getElementById('title').value.trim(); var date=document.getElementById('date').value; var time=document.getElementById('time').value; var category=document.getElementById('category').value; if(!title){alert('Wpisz nazwę zadania');return false;} var key='moj-planer-tasks-v1'; var arr=[]; try{arr=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){} arr.push({id:Date.now(),title:title,date:date,time:time,category:category,done:false}); localStorage.setItem(key,JSON.stringify(arr)); alert('Dodano zadanie: '+title); location.reload(); return false;">
 <div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="np. fizjoterapia" required></div>
 <div class="field"><label>Data</label><input id="date" type="date" required></div>
 <div class="field"><label>Godzina</label><input id="time" type="time"></div>
 <div class="field"><label>Kategoria</label><select id="category"><option>Praca</option><option>Zdrowie</option><option>Dom</option><option>Sprawy</option><option>Osobiste</option></select></div>
 <button class="add" type="submit">＋ Dodaj zadanie</button>
 </form>
-<button class="voice" id="voice"><span class="mic">🎙️</span> Dodaj głosem</button>
+<button class="voice" id="voice" type="button" onclick="var i=document.getElementById('title'); i.focus(); i.scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('voiceHint').textContent='Pole aktywne — użyj mikrofonu 🎙️ na klawiaturze iPada.';"><span class="mic">🎙️</span> Dodaj głosem</button>
 <div class="hint" id="voiceHint">Powiedz np. „fizjoterapia jutro o 10”.</div><button type="button" id="testBtn" onclick="document.getElementById('testResult').textContent='✅ TEST DZIAŁA — przycisk działa.';" style="width:100%;margin-top:8px;background:#e9edf4;color:#172033">TEST — sprawdź przycisk</button><div id="testResult" class="hint"></div>
-<div class="timer"><div><div class="muted">Minutnik</div><strong id="clock">05:00</strong></div><button class="icon-btn" id="timerBtn">▶</button></div>
+<div class="timer"><div><div class="muted">Minutnik</div><strong id="clock">05:00</strong></div><button class="icon-btn" id="timerBtn" type="button" onclick="var m=window.prompt('Ile minut?','5'); if(m!==null){var n=parseInt(m,10); if(n>0){var end=Date.now()+n*60000; var b=this; b.textContent='Ⅱ'; if(window._timer)clearInterval(window._timer); window._timer=setInterval(function(){var s=Math.max(0,Math.ceil((end-Date.now())/1000)); document.getElementById('clock').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); if(s===0){clearInterval(window._timer);b.textContent='▶';alert('Minutnik zakończony')}},250);}}">▶</button></div>
 <div class="thoughts" id="thoughts"><div class="muted">Wolne myśli</div><textarea id="note" placeholder="Zapisz coś, czego nie chcesz teraz planować…"></textarea><button class="save-note" id="saveNote">Zapisz</button></div>
 </aside>
 </div>
