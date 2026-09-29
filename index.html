@@ -199,7 +199,7 @@ if($("form"))$("form").onsubmit=e=>{
   e.preventDefault();
   const title=$("title").value.trim();
   const date=$("date").value || iso(selected);
-  const time=$("time").value || "";
+ const time=$("time").value || "";
   const category=$("category").value || "Osobiste";
   if(!title){toast("Wpisz nazwę zadania");$("title").focus();return}
   const task={id:Date.now(),title:title,date:date,time:time,category:category,done:false};
@@ -214,83 +214,118 @@ if($("form"))$("form").onsubmit=e=>{
   toast("✓ Dodano: "+title);
 };
 
-let mediaRecorder=null;
-let recordedChunks=[];
- async function activateVoice(){
-  if(mediaRecorder && mediaRecorder.state==="recording"){
+let mediaRecorder = null;
+let recordedChunks = [];
+
+async function activateVoice() {
+
+  // Drugie naciśnięcie = zatrzymanie
+  if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
     return;
   }
 
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    recordedChunks=[];
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
 
-    mediaRecorder=new MediaRecorder(stream);
+    recordedChunks = [];
 
-    mediaRecorder.ondataavailable=e=>{
-      if(e.data && e.data.size) recordedChunks.push(e.data);
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) {
+        recordedChunks.push(e.data);
+      }
     };
 
-    mediaRecorder.onstart=()=>{
-      $("voice").innerHTML="⏹ Zatrzymaj nagranie";
-      $("voiceHint").textContent="🔴 NAGRYWANIE — powiedz zadanie i naciśnij ponownie.";
+    mediaRecorder.onstart = () => {
+      $("#voice").innerHTML = "⏹ Zatrzymaj nagranie";
+      $("#voiceHint").textContent =
+        "🔴 NAGRYWANIE — powiedz zadanie i naciśnij ponownie.";
     };
 
-    mediaRecorder.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
+    mediaRecorder.onstop = async () => {
 
-      $("voice").innerHTML="🎙 Dodaj głosem";
-      $("voiceHint").textContent="⏳ Rozpoznaję mowę...";
+      stream.getTracks().forEach(track => track.stop());
 
-      try{
-        const blob=new Blob(recordedChunks,{
-          type:mediaRecorder.mimeType || "audio/mp4"
+      $("#voice").innerHTML = "🎙 Dodaj głosem";
+      $("#voiceHint").textContent = "⏳ Rozpoznaję mowę...";
+
+      try {
+
+        const blob = new Blob(recordedChunks, {
+          type: mediaRecorder.mimeType || "audio/mp4"
         });
 
-        const response=await fetch(
+        const response = await fetch(
           "https://moj-planer-api.yd7ynvj864.workers.dev",
           {
-            method:"POST",
-            headers:{
-              "Content-Type":blob.type
+            method: "POST",
+            headers: {
+              "Content-Type": blob.type
             },
-            body:blob
+            body: blob
           }
         );
 
-        const result=await response.json();
+        const result = await response.json();
 
-        if(!response.ok){
-          throw new Error(result.error?.message || "Błąd API");
+        if (!response.ok) {
+          throw new Error(
+            result?.error?.message ||
+            result?.error ||
+            "Błąd rozpoznawania mowy"
+          );
         }
 
-        const text=(result.text || "").trim();
+        const text = (result.text || "").trim();
 
-        $("title").value=text;
-        $("voiceHint").textContent="✓ Rozpoznano: "+text;
+        if (!text) {
+          throw new Error("Nie otrzymano tekstu");
+        }
+
+        $("#title").value = text;
+
+        $("#voiceHint").textContent =
+          "✓ Rozpoznano: " + text;
+
         toast("✓ Rozpoznano głos");
 
-      }catch(e){
-        console.error(e);
-        $("voiceHint").textContent="Nie udało się rozpoznać nagrania.";
+      } catch (error) {
+
+        console.error("Błąd rozpoznawania:", error);
+
+        $("#voiceHint").textContent =
+          "❌ Nie udało się rozpoznać nagrania.";
+
         toast("Błąd rozpoznawania głosu");
       }
 
-      mediaRecorder=null;
+      mediaRecorder = null;
     };
 
     mediaRecorder.start();
 
-  }catch(e){
-    console.error(e);
-    $("voiceHint").textContent="Nie udało się uruchomić mikrofonu.";
+  } catch (error) {
+
+    console.error("Błąd mikrofonu:", error);
+
+    $("#voiceHint").textContent =
+      "❌ Nie udało się uruchomić mikrofonu.";
+
     toast("Brak dostępu do mikrofonu");
   }
-}if($("voice"))$("voice").onclick=activateVoice;
-if($("fab"))$("fab").onclick=activateVoice;
+}
 
-if($("notesBtn"))$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center");$("note").focus()};
+if ($("#voice")) {
+  $("#voice").onclick = activateVoice;
+}
+
+if ($("#fab")) {
+  $("#fab").onclick = activateVoice;
+}if($("notesBtn"))$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center");$("note").focus()};
 if($("saveNote"))$("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
 
 function tick(){
