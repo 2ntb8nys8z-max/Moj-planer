@@ -216,49 +216,78 @@ if($("form"))$("form").onsubmit=e=>{
 
 let mediaRecorder=null;
 let recordedChunks=[];
-async function activateVoice(){
+ async function activateVoice(){
   if(mediaRecorder && mediaRecorder.state==="recording"){
     mediaRecorder.stop();
     return;
   }
-  if(!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    const input=$("title");
-    if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"})}
-    $("voiceHint").textContent="Użyj mikrofonu 🎙️ na klawiaturze iPada.";
-    toast("Mikrofon strony niedostępny — użyj mikrofonu klawiatury");
-    return;
-  }
+
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     recordedChunks=[];
+
     mediaRecorder=new MediaRecorder(stream);
-    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
-    mediaRecorder.onstart=()=>{
-      $("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';
-      $("voiceHint").textContent="🔴 NAGRYWANIE — mów teraz. Naciśnij ponownie, aby zakończyć.";
-      toast("Nagrywanie rozpoczęte");
+
+    mediaRecorder.ondataavailable=e=>{
+      if(e.data && e.data.size) recordedChunks.push(e.data);
     };
-    mediaRecorder.onstop=()=>{
+
+    mediaRecorder.onstart=()=>{
+      $("voice").innerHTML="⏹ Zatrzymaj nagranie";
+      $("voiceHint").textContent="🔴 NAGRYWANIE — powiedz zadanie i naciśnij ponownie.";
+    };
+
+    mediaRecorder.onstop=async()=>{
       stream.getTracks().forEach(t=>t.stop());
-      $("voice").innerHTML='<span class="mic">🎙️</span> Dodaj głosem';
-      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/mp4"});
-      let old=$("voicePreview");if(old)old.remove();
-      const audio=document.createElement("audio");
-      audio.id="voicePreview";audio.controls=true;audio.src=URL.createObjectURL(blob);
-      audio.style.width="100%";audio.style.marginTop="8px";
-      $("voiceHint").after(audio);
-      $("voiceHint").textContent="Nagranie gotowe. Odsłuchaj je poniżej.";
-      toast("✓ Nagranie zakończone");
+
+      $("voice").innerHTML="🎙 Dodaj głosem";
+      $("voiceHint").textContent="⏳ Rozpoznaję mowę...";
+
+      try{
+        const blob=new Blob(recordedChunks,{
+          type:mediaRecorder.mimeType || "audio/mp4"
+        });
+
+        const response=await fetch(
+          "https://moj-planer-api.yd7ynvj864.workers.dev",
+          {
+            method:"POST",
+            headers:{
+              "Content-Type":blob.type
+            },
+            body:blob
+          }
+        );
+
+        const result=await response.json();
+
+        if(!response.ok){
+          throw new Error(result.error?.message || "Błąd API");
+        }
+
+        const text=(result.text || "").trim();
+
+        $("title").value=text;
+        $("voiceHint").textContent="✓ Rozpoznano: "+text;
+        toast("✓ Rozpoznano głos");
+
+      }catch(e){
+        console.error(e);
+        $("voiceHint").textContent="Nie udało się rozpoznać nagrania.";
+        toast("Błąd rozpoznawania głosu");
+      }
+
       mediaRecorder=null;
     };
+
     mediaRecorder.start();
+
   }catch(e){
     console.error(e);
     $("voiceHint").textContent="Nie udało się uruchomić mikrofonu.";
-    toast(e.name==="NotAllowedError"?"Safari nie ma zgody na mikrofon.":"Błąd mikrofonu: "+e.name);
+    toast("Brak dostępu do mikrofonu");
   }
-}
-if($("voice"))$("voice").onclick=activateVoice;
+}if($("voice"))$("voice").onclick=activateVoice;
 if($("fab"))$("fab").onclick=activateVoice;
 
 if($("notesBtn"))$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center");$("note").focus()};
