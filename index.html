@@ -92,30 +92,30 @@ $("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);rende
 $("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()};
 $("form").onsubmit=e=>{e.preventDefault();tasks.push({id:Date.now(),title:$("title").value.trim(),date:$("date").value,time:$("time").value,category:$("category").value,done:false});save();$("title").value="";$("time").value="";renderDay();renderWeek();renderMonth();toast("Dodano zadanie")};
 let mediaRecorder=null,recordedChunks=[];
+function setVoice(text){$("voiceHint").textContent=text}
 async function startVoice(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast("Ta przeglądarka nie udostępnia nagrywania audio.");return}
   if(mediaRecorder&&mediaRecorder.state==="recording"){mediaRecorder.stop();return}
+  if(!window.isSecureContext){toast("Mikrofon wymaga bezpiecznego połączenia HTTPS.");return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("Ta przeglądarka nie udostępnia mikrofonu na tej stronie.");return}
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     recordedChunks=[];
-    const types=["audio/mp4","audio/webm;codecs=opus","audio/webm"];
-    const mime=types.find(x=>MediaRecorder.isTypeSupported(x))||"";
-    mediaRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
-    mediaRecorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data)};
-    mediaRecorder.onstart=()=>{$("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';$("voiceHint").textContent="Nagrywam… powiedz całe polecenie.";toast("Nagrywanie rozpoczęte")};
+    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
+    mediaRecorder.onstart=()=>{$("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';setVoice("🔴 NAGRYWANIE — mów teraz");toast("Mikrofon działa — nagrywam")};
     mediaRecorder.onstop=()=>{
       stream.getTracks().forEach(t=>t.stop());
       $("voice").innerHTML='<span class="mic">🎙️</span> Dodaj głosem';
-      $("voiceHint").textContent="Nagranie gotowe. Następny krok: zamiana nagrania na tekst.";
-      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/webm"}),url=URL.createObjectURL(blob);
-      const audio=document.createElement("audio");audio.controls=true;audio.src=url;audio.style.width="100%";audio.style.marginTop="8px";audio.id="voicePreview";
+      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/webm"});
       const oldAudio=document.getElementById("voicePreview");if(oldAudio)oldAudio.remove();
-      $("voiceHint").after(audio);toast("Nagranie gotowe");
+      const audio=document.createElement("audio");audio.id="voicePreview";audio.controls=true;audio.src=URL.createObjectURL(blob);audio.style.width="100%";audio.style.marginTop="8px";
+      $("voiceHint").after(audio);setVoice("Nagranie gotowe — możesz je odsłuchać.");toast("Nagranie zakończone");
     };
     mediaRecorder.start();
   }catch(e){
-    const msg=e.name==="NotAllowedError"?"Brak dostępu do mikrofonu. Zezwól stronie na mikrofon w Safari.":"Nie udało się uruchomić mikrofonu.";
-    $("voiceHint").textContent=msg;toast(msg);
+    console.error(e);
+    setVoice("Nie udało się uruchomić mikrofonu.");
+    toast(e.name==="NotAllowedError"?"Safari zablokował mikrofon.":"Błąd mikrofonu: "+e.name);
   }
 }
 $("voice").onclick=startVoice;$("fab").onclick=startVoice;
