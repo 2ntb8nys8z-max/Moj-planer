@@ -125,7 +125,8 @@ function useIPadDictation(){
   setVoice("Pole tekstowe jest aktywne. Naciśnij 🎙️ na klawiaturze i podyktuj zadanie.");
   toast("Użyj mikrofonu na klawiaturze iPada");
 }
-$("testBtn").onclick=()=>{ $("testResult").textContent="✅ TEST DZIAŁA — JavaScript działa."; toast("TEST DZIAŁA"); };\n$("voice").onclick=useIPadDictation;
+$("testBtn").onclick=()=>{ $("testResult").textContent="✅ TEST DZIAŁA — JavaScript działa."; toast("TEST DZIAŁA"); };
+$("voice").onclick=useIPadDictation;
 $("fab").onclick=useIPadDictation;
 $("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
 $("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
