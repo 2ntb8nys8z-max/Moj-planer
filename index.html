@@ -62,7 +62,7 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d7dce5;bord
 <button class="add" type="submit">＋ Dodaj zadanie</button>
 </form>
 <button class="voice" id="voice"><span class="mic">🎙️</span> Dodaj głosem</button>
-<div class="hint" id="voiceHint">Powiedz np. „fizjoterapia jutro o 10”.</div>
+<div class="hint" id="voiceHint">Powiedz np. „fizjoterapia jutro o 10”.</div><button type="button" id="testBtn" style="width:100%;margin-top:8px;background:#e9edf4;color:#172033">TEST — sprawdź przycisk</button><div id="testResult" class="hint"></div>
 <div class="timer"><div><div class="muted">Minutnik</div><strong id="clock">05:00</strong></div><button class="icon-btn" id="timerBtn">▶</button></div>
 <div class="thoughts" id="thoughts"><div class="muted">Wolne myśli</div><textarea id="note" placeholder="Zapisz coś, czego nie chcesz teraz planować…"></textarea><button class="save-note" id="saveNote">Zapisz</button></div>
 </aside>
@@ -125,7 +125,7 @@ function useIPadDictation(){
   setVoice("Pole tekstowe jest aktywne. Naciśnij 🎙️ na klawiaturze i podyktuj zadanie.");
   toast("Użyj mikrofonu na klawiaturze iPada");
 }
-$("voice").onclick=useIPadDictation;
+$("testBtn").onclick=()=>{ $("testResult").textContent="✅ TEST DZIAŁA — JavaScript działa."; toast("TEST DZIAŁA"); };\n$("voice").onclick=useIPadDictation;
 $("fab").onclick=useIPadDictation;
 $("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
 $("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
