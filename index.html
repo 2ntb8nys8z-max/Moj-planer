@@ -76,64 +76,161 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d7dce5;bord
 <div class="toast" id="toast"></div>
 
 <script>
-(()=>{const KEY="moj-planer-tasks-v1",NOTE="moj-planer-note-v1";let tasks=[];try{tasks=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){};let selected=new Date(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1),timer=300,interval=null;
-const $=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0"),iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),today=()=>new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()),save=()=>localStorage.setItem(KEY,JSON.stringify(tasks));
-$("date").value=iso(selected);$("note").value=localStorage.getItem(NOTE)||"";
-const plDate=d=>new Intl.DateTimeFormat("pl-PL",{weekday:"long",day:"numeric",month:"long"}).format(d);
-function renderDay(){let key=iso(selected),list=tasks.filter(t=>t.date===key).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));$("dayTitle").textContent=plDate(selected);$("dayCount").textContent=list.length+" "+(list.length===1?"zadanie":"zadań");$("timeline").innerHTML="";for(let h=0;h<24;h++){let ev=list.filter(t=>(t.time||"").startsWith(pad(h)+":"));let slot=document.createElement("div");slot.className="slot";slot.innerHTML='<div class="hour">'+pad(h)+":00</div><div class="events"></div>';let box=slot.querySelector(".events");ev.forEach(t=>{let row=document.createElement("div");row.className="task"+(t.done?" done":"");row.innerHTML='<input type="checkbox" '+(t.done?"checked":"")+'><div class="task-main"><div class="task-title"></div><div class="meta">'+(t.time||"bez godziny")+'<span class="tag">'+t.category+"</span></div></div>";row.querySelector(".task-title").textContent=t.title;row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay();renderWeek();renderMonth()};box.append(row)});if(ev.length)box.insertAdjacentHTML("afterbegin","");$("timeline").append(slot)}let noTime=list.filter(t=>!t.time);if(noTime.length){let slot=document.createElement("div");slot.className="slot";slot.innerHTML='<div class="hour">—</div><div class="events"></div>';noTime.forEach(t=>{let row=document.createElement("div");row.className="task"+(t.done?" done":"");row.innerHTML='<input type="checkbox" '+(t.done?"checked":"")+'><div class="task-main"><div class="task-title"></div><div class="meta">bez godziny<span class="tag">'+t.category+"</span></div></div>";row.querySelector(".task-title").textContent=t.title;row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay()};slot.querySelector(".events").append(row)});$("timeline").append(slot)}}
-function renderWeek(){let start=new Date(selected);start.setDate(start.getDate()-((start.getDay()+6)%7));$("weekList").innerHTML="";for(let i=0;i<7;i++){let d=new Date(start);d.setDate(start.getDate()+i);let list=tasks.filter(t=>t.date===iso(d));let el=document.createElement("div");el.className="task";el.style.marginBottom="7px";el.innerHTML='<div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';el.querySelector(".task-title").textContent=plDate(d);el.querySelector(".meta").textContent=list.length?list.map(t=>(t.time?t.time+" ":"")+t.title).join(" · "):"Brak zadań";el.onclick=()=>{selected=d;showView("day")};$("weekList").append(el)}}
-function renderMonth(){let y=monthCursor.getFullYear(),m=monthCursor.getMonth();$("monthTitle").textContent=new Intl.DateTimeFormat("pl-PL",{month:"long",year:"numeric"}).format(monthCursor);let names=["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];$("monthGrid").innerHTML=names.map(n=>'<div class="name">'+n+"</div>").join("");let first=new Date(y,m,1),offset=(first.getDay()+6)%7,total=new Date(y,m+1,0).getDate();for(let i=0;i<offset;i++)$("monthGrid").insertAdjacentHTML("beforeend","<div></div>");for(let d=1;d<=total;d++){let key=y+"-"+pad(m+1)+"-"+pad(d),list=tasks.filter(t=>t.date===key),el=document.createElement("div");el.className=list.length?"has":"";el.innerHTML="<strong>"+d+"</strong>"+list.slice(0,2).map(t=>'<span class="dot">• '+t.title+"</span>").join("");el.onclick=()=>{selected=new Date(y,m,d);$("date").value=key;showView("day")};$("monthGrid").append(el)}}
-function showView(v){$("dayView").style.display=v==="day"?"block":"none";$("weekView").classList.toggle("active",v==="week");$("monthView").classList.toggle("active",v==="month");document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));renderDay();renderWeek();renderMonth()}
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
-$("prev").onclick=()=>{selected.setDate(selected.getDate()-1);$("date").value=iso(selected);renderDay()};$("next").onclick=()=>{selected.setDate(selected.getDate()+1);$("date").value=iso(selected);renderDay()};
-$("today").onclick=()=>{selected=today();monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=iso(selected);showView("day")};
-$("weekPrev").onclick=()=>{selected.setDate(selected.getDate()-7);renderWeek()};$("weekNext").onclick=()=>{selected.setDate(selected.getDate()+7);renderWeek()};
-$("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
-$("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()};
-$("form").onsubmit=e=>{e.preventDefault();tasks.push({id:Date.now(),title:$("title").value.trim(),date:$("date").value,time:$("time").value,category:$("category").value,done:false});save();$("title").value="";$("time").value="";renderDay();renderWeek();renderMonth();toast("Dodano zadanie")};
-let mediaRecorder=null,recordedChunks=[];
-function setVoice(text){$("voiceHint").textContent=text}
-async function startVoice(){
-  if(mediaRecorder&&mediaRecorder.state==="recording"){mediaRecorder.stop();return}
-  if(!window.isSecureContext){toast("Mikrofon wymaga bezpiecznego połączenia HTTPS.");return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("Ta przeglądarka nie udostępnia mikrofonu na tej stronie.");return}
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    recordedChunks=[];
-    mediaRecorder=new MediaRecorder(stream);
-    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
-    mediaRecorder.onstart=()=>{$("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';setVoice("🔴 NAGRYWANIE — mów teraz");toast("Mikrofon działa — nagrywam")};
-    mediaRecorder.onstop=()=>{
-      stream.getTracks().forEach(t=>t.stop());
-      $("voice").innerHTML='<span class="mic">🎙️</span> Dodaj głosem';
-      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/webm"});
-      const oldAudio=document.getElementById("voicePreview");if(oldAudio)oldAudio.remove();
-      const audio=document.createElement("audio");audio.id="voicePreview";audio.controls=true;audio.src=URL.createObjectURL(blob);audio.style.width="100%";audio.style.marginTop="8px";
-      $("voiceHint").after(audio);setVoice("Nagranie gotowe — możesz je odsłuchać.");toast("Nagranie zakończone");
-    };
-    mediaRecorder.start();
-  }catch(e){
-    console.error(e);
-    setVoice("Nie udało się uruchomić mikrofonu.");
-    toast(e.name==="NotAllowedError"?"Safari zablokował mikrofon.":"Błąd mikrofonu: "+e.name);
+const KEY="moj-planer-tasks-v1";
+const NOTE="moj-planer-note-v1";
+let tasks=[];
+try{tasks=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){tasks=[]}
+let selected=new Date();
+let monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
+let timer=300;
+let interval=null;
+
+function $(id){return document.getElementById(id)}
+function pad(n){return String(n).padStart(2,"0")}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function save(){localStorage.setItem(KEY,JSON.stringify(tasks))}
+function toast(t){const el=$("toast");if(el){el.textContent=t;el.style.display="block";setTimeout(()=>el.style.display="none",2200)}}
+function plDate(d){return new Intl.DateTimeFormat("pl-PL",{weekday:"long",day:"numeric",month:"long"}).format(d)}
+
+function renderDay(){
+  const timeline=$("timeline");
+  if(!timeline)return;
+  const key=iso(selected);
+  const list=tasks.filter(t=>t.date===key).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
+  if($("dayTitle"))$("dayTitle").textContent=plDate(selected);
+  if($("dayCount"))$("dayCount").textContent=list.length+" "+(list.length===1?"zadanie":"zadań");
+  timeline.innerHTML="";
+  for(let h=0;h<24;h++){
+    const ev=list.filter(t=>(t.time||"").startsWith(pad(h)+":"));
+    const slot=document.createElement("div");
+    slot.className="slot";
+    slot.innerHTML='<div class="hour">'+pad(h)+':00</div><div class="events"></div>';
+    const box=slot.querySelector(".events");
+    ev.forEach(t=>{
+      const row=document.createElement("div");
+      row.className="task"+(t.done?" done":"");
+      row.innerHTML='<input type="checkbox"><div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
+      row.querySelector("input").checked=!!t.done;
+      row.querySelector(".task-title").textContent=t.title;
+      row.querySelector(".meta").textContent=(t.time||"bez godziny");
+      const tag=document.createElement("span");tag.className="tag";tag.textContent=t.category;
+      row.querySelector(".meta").appendChild(tag);
+      row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay();renderWeek();renderMonth()};
+      box.appendChild(row);
+    });
+    timeline.appendChild(slot);
+  }
+  const noTime=list.filter(t=>!t.time);
+  if(noTime.length){
+    const slot=document.createElement("div");slot.className="slot";
+    slot.innerHTML='<div class="hour">—</div><div class="events"></div>';
+    noTime.forEach(t=>{
+      const row=document.createElement("div");row.className="task"+(t.done?" done":"");
+      row.innerHTML='<input type="checkbox"><div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
+      row.querySelector("input").checked=!!t.done;
+      row.querySelector(".task-title").textContent=t.title;
+      row.querySelector(".meta").textContent="bez godziny";
+      const tag=document.createElement("span");tag.className="tag";tag.textContent=t.category;
+      row.querySelector(".meta").appendChild(tag);
+      row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay();};
+      slot.querySelector(".events").appendChild(row);
+    });
+    timeline.appendChild(slot);
   }
 }
-function useIPadDictation(){
-  const input=$("title");
-  input.focus();
-  input.scrollIntoView({behavior:"smooth",block:"center"});
-  setVoice("Pole tekstowe jest aktywne. Naciśnij 🎙️ na klawiaturze i podyktuj zadanie.");
-  toast("Użyj mikrofonu na klawiaturze iPada");
+
+function renderWeek(){
+  const box=$("weekList");if(!box)return;
+  const start=new Date(selected);
+  start.setDate(start.getDate()-((start.getDay()+6)%7));
+  box.innerHTML="";
+  for(let i=0;i<7;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const list=tasks.filter(t=>t.date===iso(d));
+    const el=document.createElement("div");el.className="task";el.style.marginBottom="7px";
+    el.innerHTML='<div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
+    el.querySelector(".task-title").textContent=plDate(d);
+    el.querySelector(".meta").textContent=list.length?list.map(t=>(t.time?t.time+" ":"")+t.title).join(" · "):"Brak zadań";
+    el.onclick=()=>{selected=new Date(d);$("date").value=iso(selected);showView("day")};
+    box.appendChild(el);
+  }
 }
-$("testBtn").onclick=()=>{ $("testResult").textContent="✅ TEST DZIAŁA — JavaScript działa."; toast("TEST DZIAŁA"); };
-$("voice").onclick=useIPadDictation;
-$("fab").onclick=useIPadDictation;
-$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
-$("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
-function tick(){timer--;if(timer<=0){clearInterval(interval);interval=null;timer=300;toast("Minutnik zakończony")}$("clock").textContent=pad(Math.floor(timer/60))+":"+pad(timer%60)}
-$("timerBtn").onclick=()=>{if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶"}else{interval=setInterval(tick,1000);$("timerBtn").textContent="Ⅱ"}};
-function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2200)}
+
+function renderMonth(){
+  const grid=$("monthGrid");if(!grid)return;
+  const y=monthCursor.getFullYear(),m=monthCursor.getMonth();
+  if($("monthTitle"))$("monthTitle").textContent=new Intl.DateTimeFormat("pl-PL",{month:"long",year:"numeric"}).format(monthCursor);
+  const names=["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
+  grid.innerHTML=names.map(n=>'<div class="name">'+n+"</div>").join("");
+  const first=new Date(y,m,1),offset=(first.getDay()+6)%7,total=new Date(y,m+1,0).getDate();
+  for(let i=0;i<offset;i++)grid.insertAdjacentHTML("beforeend","<div></div>");
+  for(let d=1;d<=total;d++){
+    const key=y+"-"+pad(m+1)+"-"+pad(d),list=tasks.filter(t=>t.date===key);
+    const el=document.createElement("div");el.className=list.length?"has":"";
+    el.innerHTML="<strong>"+d+"</strong>"+list.slice(0,2).map(t=>'<span class="dot">• '+t.title+"</span>").join("");
+    el.onclick=()=>{selected=new Date(y,m,d);$("date").value=key;showView("day")};
+    grid.appendChild(el);
+  }
+}
+
+function showView(v){
+  if($("dayView"))$("dayView").style.display=v==="day"?"block":"none";
+  if($("weekView"))$("weekView").classList.toggle("active",v==="week");
+  if($("monthView"))$("monthView").classList.toggle("active",v==="month");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
+  renderDay();renderWeek();renderMonth();
+}
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+if($("date")){$("date").value=iso(selected);$("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()}}
+if($("note"))$("note").value=localStorage.getItem(NOTE)||"";
+
+if($("prev"))$("prev").onclick=()=>{selected.setDate(selected.getDate()-1);$("date").value=iso(selected);renderDay()};
+if($("next"))$("next").onclick=()=>{selected.setDate(selected.getDate()+1);$("date").value=iso(selected);renderDay()};
+if($("today"))$("today").onclick=()=>{selected=today();monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=iso(selected);showView("day")};
+if($("weekPrev"))$("weekPrev").onclick=()=>{selected.setDate(selected.getDate()-7);renderWeek()};
+if($("weekNext"))$("weekNext").onclick=()=>{selected.setDate(selected.getDate()+7);renderWeek()};
+if($("monthPrev"))$("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};
+if($("monthNext"))$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
+
+if($("form"))$("form").onsubmit=e=>{
+  e.preventDefault();
+  const title=$("title").value.trim();
+  if(!title)return;
+  tasks.push({id:Date.now(),title:title,date:$("date").value,time:$("time").value,category:$("category").value,done:false});
+  save();$("title").value="";$("time").value="";
+  renderDay();renderWeek();renderMonth();toast("Dodano zadanie");
+};
+
+function activateVoice(){
+  const input=$("title");
+  if(input){
+    input.focus();
+    input.scrollIntoView({behavior:"smooth",block:"center"});
+    $("voiceHint").textContent="Pole tekstowe jest aktywne. Naciśnij mikrofon 🎙️ na klawiaturze iPada.";
+    toast("Naciśnij mikrofon na klawiaturze iPada");
+  }
+}
+if($("voice"))$("voice").onclick=activateVoice;
+if($("fab"))$("fab").onclick=activateVoice;
+
+if($("notesBtn"))$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center");$("note").focus()};
+if($("saveNote"))$("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
+
+function tick(){
+  timer--;
+  if(timer<=0){clearInterval(interval);interval=null;timer=300;toast("Minutnik zakończony")}
+  if($("clock"))$("clock").textContent=pad(Math.floor(timer/60))+":"+pad(timer%60);
+}
+if($("timerBtn"))$("timerBtn").onclick=()=>{
+  if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶"}
+  else{interval=setInterval(tick,1000);$("timerBtn").textContent="Ⅱ"}
+};
+
+if($("testResult"))$("testResult").textContent="Skrypt planera uruchomiony ✓";
 renderDay();renderWeek();renderMonth();
-})();</script>
+</script>
 </body>
 </html>
