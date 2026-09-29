@@ -198,19 +198,64 @@ if($("monthNext"))$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.g
 if($("form"))$("form").onsubmit=e=>{
   e.preventDefault();
   const title=$("title").value.trim();
-  if(!title)return;
-  tasks.push({id:Date.now(),title:title,date:$("date").value,time:$("time").value,category:$("category").value,done:false});
-  save();$("title").value="";$("time").value="";
-  renderDay();renderWeek();renderMonth();toast("Dodano zadanie");
+  const date=$("date").value || iso(selected);
+  const time=$("time").value || "";
+  const category=$("category").value || "Osobiste";
+  if(!title){toast("Wpisz nazwę zadania");$("title").focus();return}
+  const task={id:Date.now(),title:title,date:date,time:time,category:category,done:false};
+  tasks.push(task);
+  save();
+  selected=new Date(date+"T12:00:00");
+  monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
+  $("date").value=date;
+  $("title").value="";
+  $("time").value="";
+  renderDay();renderWeek();renderMonth();
+  toast("✓ Dodano: "+title);
 };
 
-function activateVoice(){
-  const input=$("title");
-  if(input){
-    input.focus();
-    input.scrollIntoView({behavior:"smooth",block:"center"});
-    $("voiceHint").textContent="Pole tekstowe jest aktywne. Naciśnij mikrofon 🎙️ na klawiaturze iPada.";
-    toast("Naciśnij mikrofon na klawiaturze iPada");
+let mediaRecorder=null;
+let recordedChunks=[];
+async function activateVoice(){
+  if(mediaRecorder && mediaRecorder.state==="recording"){
+    mediaRecorder.stop();
+    return;
+  }
+  if(!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    const input=$("title");
+    if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"})}
+    $("voiceHint").textContent="Użyj mikrofonu 🎙️ na klawiaturze iPada.";
+    toast("Mikrofon strony niedostępny — użyj mikrofonu klawiatury");
+    return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recordedChunks=[];
+    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
+    mediaRecorder.onstart=()=>{
+      $("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';
+      $("voiceHint").textContent="🔴 NAGRYWANIE — mów teraz. Naciśnij ponownie, aby zakończyć.";
+      toast("Nagrywanie rozpoczęte");
+    };
+    mediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      $("voice").innerHTML='<span class="mic">🎙️</span> Dodaj głosem';
+      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/mp4"});
+      let old=$("voicePreview");if(old)old.remove();
+      const audio=document.createElement("audio");
+      audio.id="voicePreview";audio.controls=true;audio.src=URL.createObjectURL(blob);
+      audio.style.width="100%";audio.style.marginTop="8px";
+      $("voiceHint").after(audio);
+      $("voiceHint").textContent="Nagranie gotowe. Odsłuchaj je poniżej.";
+      toast("✓ Nagranie zakończone");
+      mediaRecorder=null;
+    };
+    mediaRecorder.start();
+  }catch(e){
+    console.error(e);
+    $("voiceHint").textContent="Nie udało się uruchomić mikrofonu.";
+    toast(e.name==="NotAllowedError"?"Safari nie ma zgody na mikrofon.":"Błąd mikrofonu: "+e.name);
   }
 }
 if($("voice"))$("voice").onclick=activateVoice;
@@ -225,8 +270,15 @@ function tick(){
   if($("clock"))$("clock").textContent=pad(Math.floor(timer/60))+":"+pad(timer%60);
 }
 if($("timerBtn"))$("timerBtn").onclick=()=>{
-  if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶"}
-  else{interval=setInterval(tick,1000);$("timerBtn").textContent="Ⅱ"}
+  if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶";return}
+  const value=prompt("Ustaw minutnik (minuty):","5");
+  if(value===null)return;
+  const minutes=parseInt(value,10);
+  if(!Number.isFinite(minutes)||minutes<1||minutes>180){toast("Podaj liczbę od 1 do 180");return}
+  timer=minutes*60;
+  $("clock").textContent=pad(minutes)+":00";
+  interval=setInterval(tick,1000);
+  $("timerBtn").textContent="Ⅱ";
 };
 
 if($("testResult"))$("testResult").textContent="Skrypt planera uruchomiony ✓";
