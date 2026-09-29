@@ -5,348 +5,949 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7f8fc">
 <title>Mój Planer</title>
+
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f7f8fc;line-height:1.4}
-*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}
-button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:650}
-.app{max-width:1180px;margin:auto;padding:18px 16px 90px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-h1{margin:0;font-size:28px}.sub{margin:3px 0;color:#748096}
-.top-actions{display:flex;gap:8px}.icon-btn{background:white;border:1px solid #e0e4ec;color:#253047}
-.tabs{display:flex;gap:6px;background:#eef1f6;padding:5px;border-radius:14px;margin-bottom:14px;width:max-content}
-.tabs button{background:transparent;color:#667085}.tabs button.active{background:white;color:#172033;box-shadow:0 1px 4px #00000012}
-.layout{display:grid;grid-template-columns:1fr 300px;gap:16px}
-.card{background:white;border:1px solid #e1e5ec;border-radius:18px;padding:16px}
-.daybar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.daybar h2{margin:0;font-size:19px}.muted{color:#7b8496;font-size:13px}
-.nav{display:flex;gap:6px}.nav button{padding:8px 11px;background:white;border:1px solid #e0e4ec;color:#334057}
-.timeline{display:grid;gap:0}.slot{display:grid;grid-template-columns:62px 1fr;min-height:62px;border-top:1px solid #edf0f4}.slot:first-child{border-top:0}.hour{padding:12px 8px 0 0;color:#98a1b2;font-size:12px;text-align:right}.events{padding:7px 0}
-.task{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:3px 0;background:#f5f7fb;border-radius:12px}.task input{width:19px;height:19px}.task-main{flex:1;min-width:0}.task-title{font-weight:650}.done .task-title{text-decoration:line-through;color:#929aaa}.meta{font-size:12px;color:#7c8799}.tag{font-size:11px;background:#e9edf4;border-radius:99px;padding:3px 7px;margin-left:6px}
-.add-card{position:sticky;top:12px}.add-card h2{margin:0 0 12px;font-size:17px}.field{margin-bottom:10px}.field label{display:block;font-size:12px;color:#697386;margin-bottom:5px}
-input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d7dce5;border-radius:10px;background:white}
-.add{width:100%;background:#1f6feb;color:white}.voice{width:100%;margin-top:8px;background:#172033;color:white;font-size:15px}
-.mic{font-size:18px}.hint{font-size:11px;color:#7b8496;margin-top:7px}
-.thoughts{margin-top:12px}.thoughts textarea{min-height:90px;resize:vertical}.save-note{margin-top:7px;background:#eef1f6;color:#27344b;width:100%}
-.fab{position:fixed;right:20px;bottom:20px;width:62px;height:62px;border-radius:50%;background:#1f6feb;color:white;font-size:25px;box-shadow:0 8px 24px #0002;z-index:5}
-.timer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:12px;background:#f5f7fb;border-radius:13px}.timer strong{font-size:20px;font-variant-numeric:tabular-nums}
-.notes{display:none}.notes.open{display:block}
-.week,.month{display:none}.week.active,.month.active{display:block}
-.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.month-grid>div{min-height:72px;border:1px solid #edf0f4;border-radius:10px;padding:6px;font-size:12px}.month-grid .name{min-height:auto;border:0;text-align:center;color:#7c8799;font-weight:650}.has{background:#f4f7ff}.dot{display:block;margin-top:5px;color:#1f6feb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#172033;color:white;padding:10px 14px;border-radius:12px;display:none;z-index:10}
-@media(max-width:800px){.layout{grid-template-columns:1fr}.add-card{position:static}.app{padding-top:12px}.sub{display:none}}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f7f8fc;
+  color:#172033
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+
+.app{
+  max-width:1000px;
+  margin:auto;
+  padding:20px 16px 100px
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px
+}
+
+h1{margin:0;font-size:28px}
+
+.card{
+  background:white;
+  border:1px solid #e1e5ec;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  background:#eef1f6;
+  padding:5px;
+  border-radius:14px;
+  margin-bottom:16px
+}
+
+.tabs button{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:10px;
+  border-radius:10px
+}
+
+.tabs button.active{
+  background:white;
+  font-weight:700
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap
+}
+
+input,select,textarea{
+  width:100%;
+  border:1px solid #d8dde6;
+  border-radius:12px;
+  padding:12px;
+  background:white
+}
+
+.field{
+  flex:1;
+  min-width:150px
+}
+
+label{
+  display:block;
+  font-size:13px;
+  margin:0 0 5px 3px;
+  color:#667085
+}
+
+.primary{
+  border:0;
+  border-radius:12px;
+  padding:13px 18px;
+  background:#172033;
+  color:white;
+  font-weight:700
+}
+
+.voice{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:16px;
+  background:#172033;
+  color:white;
+  font-size:18px;
+  font-weight:700;
+  margin-top:12px
+}
+
+#voiceHint{
+  text-align:center;
+  margin-top:10px;
+  color:#667085;
+  min-height:22px
+}
+
+.daybar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px
+}
+
+.navbutton{
+  border:1px solid #dfe3ea;
+  background:white;
+  border-radius:10px;
+  padding:8px 12px
+}
+
+.task{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #eee;
+  padding:13px 2px
+}
+
+.task:last-child{border-bottom:0}
+
+.task-time{
+  width:55px;
+  font-weight:700
+}
+
+.task-title{flex:1}
+
+.task.done .task-title{
+  text-decoration:line-through;
+  opacity:.5
+}
+
+.delete{
+  border:0;
+  background:transparent;
+  font-size:18px
+}
+
+.empty{
+  padding:30px 5px;
+  text-align:center;
+  color:#98a2b3
+}
+
+.week-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px
+}
+
+.week-day{
+  border:1px solid #e1e5ec;
+  border-radius:12px;
+  padding:8px;
+  min-height:100px;
+  font-size:12px
+}
+
+.month-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px
+}
+
+.month-day{
+  border:1px solid #e1e5ec;
+  border-radius:10px;
+  min-height:80px;
+  padding:7px;
+  font-size:12px
+}
+
+.today{
+  border:2px solid #172033
+}
+
+.hidden{display:none}
+
+.timer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+
+#clock{
+  font-size:30px;
+  font-weight:700
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:30px;
+  transform:translateX(-50%);
+  background:#172033;
+  color:white;
+  padding:12px 18px;
+  border-radius:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+  z-index:999
+}
+
+.toast.show{opacity:1}
+
+@media(max-width:700px){
+  .week-grid{grid-template-columns:1fr}
+  .month-day{min-height:55px}
+}
 </style>
 </head>
+
 <body>
-<main class="app">
+
+<div class="app">
+
 <header>
-<div><h1>📅 Mój Planer</h1><p class="sub">Dzień, tydzień, miesiąc — wszystko w jednym miejscu.</p></div>
-<div class="top-actions"><button class="icon-btn" id="today">Dzisiaj</button><button class="icon-btn" id="notesBtn">💡</button></div>
+  <div>
+    <h1>Mój Planer</h1>
+    <div style="color:#667085">Twój dzień pod kontrolą</div>
+  </div>
 </header>
 
 <div class="tabs">
-<button class="active" data-view="day">Dzień</button><button data-view="week">Tydzień</button><button data-view="month">Miesiąc</button>
+  <button id="tabDay" class="active">Dzień</button>
+  <button id="tabWeek">Tydzień</button>
+  <button id="tabMonth">Miesiąc</button>
 </div>
 
-<section id="dayView">
-<div class="layout">
 <div class="card">
-<div class="daybar"><div><h2 id="dayTitle"></h2><div class="muted" id="dayCount"></div></div><div class="nav"><button id="prev">‹</button><button id="next">›</button></div></div>
-<div id="timeline" class="timeline"></div>
-</div>
-<aside class="card add-card">
-<h2>Dodaj do planera</h2>
-<form id="form" onsubmit="event.preventDefault(); var title=document.getElementById('title').value.trim(); var date=document.getElementById('date').value; var time=document.getElementById('time').value; var category=document.getElementById('category').value; if(!title){alert('Wpisz nazwę zadania');return false;} var key='moj-planer-tasks-v1'; var arr=[]; try{arr=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){} arr.push({id:Date.now(),title:title,date:date,time:time,category:category,done:false}); localStorage.setItem(key,JSON.stringify(arr)); alert('Dodano zadanie: '+title); location.reload(); return false;">
-<div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="np. fizjoterapia" required></div>
-<div class="field"><label>Data</label><input id="date" type="date" required></div>
-<div class="field"><label>Godzina</label><input id="time" type="time"></div>
-<div class="field"><label>Kategoria</label><select id="category"><option>Praca</option><option>Zdrowie</option><option>Dom</option><option>Sprawy</option><option>Osobiste</option></select></div>
-<button class="add" type="submit">＋ Dodaj zadanie</button>
-</form>
-<button class="voice" id="voice" type="button" onclick="var i=document.getElementById('title'); i.focus(); i.scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('voiceHint').textContent='Pole aktywne — użyj mikrofonu 🎙️ na klawiaturze iPada.';"><span class="mic">🎙️</span> Dodaj głosem</button>
-<div class="hint" id="voiceHint">Powiedz np. „fizjoterapia jutro o 10”.</div><button type="button" id="testBtn" onclick="document.getElementById('testResult').textContent='✅ TEST DZIAŁA — przycisk działa.';" style="width:100%;margin-top:8px;background:#e9edf4;color:#172033">TEST — sprawdź przycisk</button><div id="testResult" class="hint"></div>
-<div class="timer"><div><div class="muted">Minutnik</div><strong id="clock">05:00</strong></div><button class="icon-btn" id="timerBtn" type="button" onclick="var m=window.prompt('Ile minut?','5'); if(m!==null){var n=parseInt(m,10); if(n>0){var end=Date.now()+n*60000; var b=this; b.textContent='Ⅱ'; if(window._timer)clearInterval(window._timer); window._timer=setInterval(function(){var s=Math.max(0,Math.ceil((end-Date.now())/1000)); document.getElementById('clock').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); if(s===0){clearInterval(window._timer);b.textContent='▶';alert('Minutnik zakończony')}},250);}}">▶</button></div>
-<div class="thoughts" id="thoughts"><div class="muted">Wolne myśli</div><textarea id="note" placeholder="Zapisz coś, czego nie chcesz teraz planować…"></textarea><button class="save-note" id="saveNote">Zapisz</button></div>
-</aside>
-</div>
-</section>
 
-<section id="weekView" class="week"><div class="card"><div class="daybar"><h2>Tydzień</h2><div class="nav"><button id="weekPrev">‹</button><button id="weekNext">›</button></div></div><div id="weekList"></div></div></section>
-<section id="monthView" class="month"><div class="card"><div class="daybar"><h2 id="monthTitle"></h2><div class="nav"><button id="monthPrev">‹</button><button id="monthNext">›</button></div></div><div id="monthGrid" class="month-grid"></div></div></section>
-</main>
-<button class="fab" id="fab" aria-label="Dodaj głosem">🎙️</button>
-<div class="toast" id="toast"></div>
+<h2>Dodaj zadanie</h2>
+
+<form id="form">
+
+<div class="row">
+
+<div class="field">
+<label>Co chcesz zrobić?</label>
+<input id="title" placeholder="Np. fizjoterapia">
+</div>
+
+<div class="field">
+<label>Data</label>
+<input id="date" type="date">
+</div>
+
+<div class="field">
+<label>Godzina</label>
+<input id="time" type="time">
+</div>
+
+<div class="field">
+<label>Kategoria</label>
+<select id="category">
+<option>Osobiste</option>
+<option>Praca</option>
+<option>Zdrowie</option>
+<option>Zakupy</option>
+<option>Inne</option>
+</select>
+</div>
+
+</div>
+
+<button class="primary" type="submit" style="margin-top:12px">
+Dodaj zadanie
+</button>
+
+</form>
+
+<button id="voice" class="voice" type="button">
+🎙️ Dodaj głosem
+</button>
+
+<div id="voiceHint">
+Naciśnij i powiedz swoje zadanie
+</div>
+
+</div>
+
+
+<div id="dayView" class="card">
+
+<div class="daybar">
+<button id="prev" class="navbutton">←</button>
+<h2 id="dayTitle"></h2>
+<button id="next" class="navbutton">→</button>
+</div>
+
+<div style="text-align:center;margin:10px">
+<button id="today" class="navbutton">Dzisiaj</button>
+</div>
+
+<div id="taskList"></div>
+
+</div>
+
+
+<div id="weekView" class="card hidden">
+
+<div class="daybar">
+<button id="weekPrev" class="navbutton">←</button>
+<h2>Tydzień</h2>
+<button id="weekNext" class="navbutton">→</button>
+</div>
+
+<div id="weekGrid" class="week-grid"></div>
+
+</div>
+
+
+<div id="monthView" class="card hidden">
+
+<div class="daybar">
+<button id="monthPrev" class="navbutton">←</button>
+<h2 id="monthTitle"></h2>
+<button id="monthNext" class="navbutton">→</button>
+</div>
+
+<div id="monthGrid" class="month-grid"></div>
+
+</div>
+
+
+<div class="card timer">
+
+<div>
+<div style="color:#667085">Minutnik</div>
+<div id="clock">05:00</div>
+</div>
+
+<button id="timerBtn" class="primary">
+▶
+</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Wolne myśli</h2>
+
+<textarea id="note"
+placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea>
+
+<button id="saveNote"
+class="primary"
+style="margin-top:10px">
+Zapisz
+</button>
+
+</div>
+
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script>
-const KEY="moj-planer-tasks-v1";
-const NOTE="moj-planer-note-v1";
-let tasks=[];
-try{tasks=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){tasks=[]}
-let selected=new Date();
-let monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
-let timer=300;
-let interval=null;
 
-function $(id){return document.getElementById(id)}
-function pad(n){return String(n).padStart(2,"0")}
-function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
-function today(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
-function save(){localStorage.setItem(KEY,JSON.stringify(tasks))}
-function toast(t){const el=$("toast");if(el){el.textContent=t;el.style.display="block";setTimeout(()=>el.style.display="none",2200)}}
-function plDate(d){return new Intl.DateTimeFormat("pl-PL",{weekday:"long",day:"numeric",month:"long"}).format(d)}
+const $ = id => document.getElementById(id);
+
+const TASK_KEY = "moj-planer-tasks";
+const NOTE_KEY = "moj-planer-note";
+
+let tasks = JSON.parse(localStorage.getItem(TASK_KEY) || "[]");
+
+function today(){
+  const d=new Date();
+  d.setHours(12,0,0,0);
+  return d;
+}
+
+let selected=today();
+let monthCursor=new Date(
+  selected.getFullYear(),
+  selected.getMonth(),
+  1
+);
+
+function iso(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function toast(text){
+  $("toast").textContent=text;
+  $("toast").classList.add("show");
+
+  setTimeout(()=>{
+    $("toast").classList.remove("show");
+  },2200);
+}
+
+function save(){
+  localStorage.setItem(TASK_KEY,JSON.stringify(tasks));
+}
+
+function formatDate(d){
+  return d.toLocaleDateString(
+    "pl-PL",
+    {
+      weekday:"long",
+      day:"numeric",
+      month:"long"
+    }
+  );
+}
 
 function renderDay(){
-  const timeline=$("timeline");
-  if(!timeline)return;
-  const key=iso(selected);
-  const list=tasks.filter(t=>t.date===key).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
-  if($("dayTitle"))$("dayTitle").textContent=plDate(selected);
-  if($("dayCount"))$("dayCount").textContent=list.length+" "+(list.length===1?"zadanie":"zadań");
-  timeline.innerHTML="";
-  for(let h=0;h<24;h++){
-    const ev=list.filter(t=>(t.time||"").startsWith(pad(h)+":"));
-    const slot=document.createElement("div");
-    slot.className="slot";
-    slot.innerHTML='<div class="hour">'+pad(h)+':00</div><div class="events"></div>';
-    const box=slot.querySelector(".events");
-    ev.forEach(t=>{
-      const row=document.createElement("div");
-      row.className="task"+(t.done?" done":"");
-      row.innerHTML='<input type="checkbox"><div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
-      row.querySelector("input").checked=!!t.done;
-      row.querySelector(".task-title").textContent=t.title;
-      row.querySelector(".meta").textContent=(t.time||"bez godziny");
-      const tag=document.createElement("span");tag.className="tag";tag.textContent=t.category;
-      row.querySelector(".meta").appendChild(tag);
-      row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay();renderWeek();renderMonth()};
-      box.appendChild(row);
-    });
-    timeline.appendChild(slot);
+
+  $("dayTitle").textContent=formatDate(selected);
+
+  const date=iso(selected);
+
+  const list=tasks
+    .filter(t=>t.date===date)
+    .sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
+
+  $("taskList").innerHTML="";
+
+  if(!list.length){
+    $("taskList").innerHTML=
+      '<div class="empty">Brak zadań na ten dzień</div>';
+    return;
   }
-  const noTime=list.filter(t=>!t.time);
-  if(noTime.length){
-    const slot=document.createElement("div");slot.className="slot";
-    slot.innerHTML='<div class="hour">—</div><div class="events"></div>';
-    noTime.forEach(t=>{
-      const row=document.createElement("div");row.className="task"+(t.done?" done":"");
-      row.innerHTML='<input type="checkbox"><div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
-      row.querySelector("input").checked=!!t.done;
-      row.querySelector(".task-title").textContent=t.title;
-      row.querySelector(".meta").textContent="bez godziny";
-      const tag=document.createElement("span");tag.className="tag";tag.textContent=t.category;
-      row.querySelector(".meta").appendChild(tag);
-      row.querySelector("input").onchange=e=>{t.done=e.target.checked;save();renderDay();};
-      slot.querySelector(".events").appendChild(row);
-    });
-    timeline.appendChild(slot);
-  }
+
+  list.forEach(task=>{
+
+    const div=document.createElement("div");
+
+    div.className="task"+(task.done?" done":"");
+
+    div.innerHTML=`
+      <input type="checkbox"
+      ${task.done?"checked":""}
+      style="width:auto">
+
+      <div class="task-time">
+      ${task.time||"—"}
+      </div>
+
+      <div class="task-title">
+      ${escapeHtml(task.title)}
+      </div>
+
+      <button class="delete">×</button>
+    `;
+
+    div.querySelector("input").onchange=e=>{
+      task.done=e.target.checked;
+      save();
+      renderDay();
+      renderWeek();
+      renderMonth();
+    };
+
+    div.querySelector(".delete").onclick=()=>{
+      tasks=tasks.filter(t=>t.id!==task.id);
+      save();
+      renderDay();
+      renderWeek();
+      renderMonth();
+    };
+
+    $("taskList").appendChild(div);
+  });
+}
+
+function escapeHtml(text){
+  const div=document.createElement("div");
+  div.textContent=text;
+  return div.innerHTML;
 }
 
 function renderWeek(){
-  const box=$("weekList");if(!box)return;
+
+  $("weekGrid").innerHTML="";
+
   const start=new Date(selected);
-  start.setDate(start.getDate()-((start.getDay()+6)%7));
-  box.innerHTML="";
+
+  const day=start.getDay()||7;
+
+  start.setDate(start.getDate()-day+1);
+
   for(let i=0;i<7;i++){
-    const d=new Date(start);d.setDate(start.getDate()+i);
-    const list=tasks.filter(t=>t.date===iso(d));
-    const el=document.createElement("div");el.className="task";el.style.marginBottom="7px";
-    el.innerHTML='<div class="task-main"><div class="task-title"></div><div class="meta"></div></div>';
-    el.querySelector(".task-title").textContent=plDate(d);
-    el.querySelector(".meta").textContent=list.length?list.map(t=>(t.time?t.time+" ":"")+t.title).join(" · "):"Brak zadań";
-    el.onclick=()=>{selected=new Date(d);$("date").value=iso(selected);showView("day")};
-    box.appendChild(el);
+
+    const d=new Date(start);
+    d.setDate(start.getDate()+i);
+
+    const date=iso(d);
+
+    const dayTasks=tasks.filter(t=>t.date===date);
+
+    const div=document.createElement("div");
+
+    div.className="week-day";
+
+    div.innerHTML=
+      `<strong>${d.toLocaleDateString("pl-PL",{
+        weekday:"short",
+        day:"numeric"
+      })}</strong><br><br>`+
+      dayTasks.map(t=>
+        `${t.time||""} ${escapeHtml(t.title)}`
+      ).join("<br>");
+
+    $("weekGrid").appendChild(div);
   }
 }
 
 function renderMonth(){
-  const grid=$("monthGrid");if(!grid)return;
-  const y=monthCursor.getFullYear(),m=monthCursor.getMonth();
-  if($("monthTitle"))$("monthTitle").textContent=new Intl.DateTimeFormat("pl-PL",{month:"long",year:"numeric"}).format(monthCursor);
-  const names=["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
-  grid.innerHTML=names.map(n=>'<div class="name">'+n+"</div>").join("");
-  const first=new Date(y,m,1),offset=(first.getDay()+6)%7,total=new Date(y,m+1,0).getDate();
-  for(let i=0;i<offset;i++)grid.insertAdjacentHTML("beforeend","<div></div>");
-  for(let d=1;d<=total;d++){
-    const key=y+"-"+pad(m+1)+"-"+pad(d),list=tasks.filter(t=>t.date===key);
-    const el=document.createElement("div");el.className=list.length?"has":"";
-    el.innerHTML="<strong>"+d+"</strong>"+list.slice(0,2).map(t=>'<span class="dot">• '+t.title+"</span>").join("");
-    el.onclick=()=>{selected=new Date(y,m,d);$("date").value=key;showView("day")};
-    grid.appendChild(el);
+
+  $("monthGrid").innerHTML="";
+
+  $("monthTitle").textContent=
+    monthCursor.toLocaleDateString(
+      "pl-PL",
+      {
+        month:"long",
+        year:"numeric"
+      }
+    );
+
+  const first=new Date(
+    monthCursor.getFullYear(),
+    monthCursor.getMonth(),
+    1
+  );
+
+  let offset=first.getDay();
+  if(offset===0)offset=7;
+
+  for(let i=1;i<offset;i++){
+    $("monthGrid").appendChild(
+      document.createElement("div")
+    );
+  }
+
+  const days=new Date(
+    monthCursor.getFullYear(),
+    monthCursor.getMonth()+1,
+    0
+  ).getDate();
+
+  for(let day=1;day<=days;day++){
+
+    const d=new Date(
+      monthCursor.getFullYear(),
+      monthCursor.getMonth(),
+      day
+    );
+
+    const date=iso(d);
+
+    const count=tasks.filter(t=>t.date===date).length;
+
+    const div=document.createElement("div");
+
+    div.className=
+      "month-day"+
+      (date===iso(today())?" today":"");
+
+    div.innerHTML=
+      `<strong>${day}</strong>`+
+      (count?
+        `<div style="margin-top:8px">${count} zad.</div>`
+        :""
+      );
+
+    div.onclick=()=>{
+      selected=d;
+      $("date").value=date;
+      showView("day");
+    };
+
+    $("monthGrid").appendChild(div);
   }
 }
 
-function showView(v){
-  if($("dayView"))$("dayView").style.display=v==="day"?"block":"none";
-  if($("weekView"))$("weekView").classList.toggle("active",v==="week");
-  if($("monthView"))$("monthView").classList.toggle("active",v==="month");
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
-  renderDay();renderWeek();renderMonth();
+function showView(view){
+
+  $("dayView").classList.toggle("hidden",view!=="day");
+  $("weekView").classList.toggle("hidden",view!=="week");
+  $("monthView").classList.toggle("hidden",view!=="month");
+
+  $("tabDay").classList.toggle("active",view==="day");
+  $("tabWeek").classList.toggle("active",view==="week");
+  $("tabMonth").classList.toggle("active",view==="month");
+
+  renderDay();
+  renderWeek();
+  renderMonth();
 }
 
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$("tabDay").onclick=()=>showView("day");
+$("tabWeek").onclick=()=>showView("week");
+$("tabMonth").onclick=()=>showView("month");
 
-if($("date")){$("date").value=iso(selected);$("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()}}
-if($("note"))$("note").value=localStorage.getItem(NOTE)||"";
-
-if($("prev"))$("prev").onclick=()=>{selected.setDate(selected.getDate()-1);$("date").value=iso(selected);renderDay()};
-if($("next"))$("next").onclick=()=>{selected.setDate(selected.getDate()+1);$("date").value=iso(selected);renderDay()};
-if($("today"))$("today").onclick=()=>{selected=today();monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=iso(selected);showView("day")};
-if($("weekPrev"))$("weekPrev").onclick=()=>{selected.setDate(selected.getDate()-7);renderWeek()};
-if($("weekNext"))$("weekNext").onclick=()=>{selected.setDate(selected.getDate()+7);renderWeek()};
-if($("monthPrev"))$("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};
-if($("monthNext"))$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
-
-if($("form"))$("form").onsubmit=e=>{
-  e.preventDefault();
-  const title=$("title").value.trim();
-  const date=$("date").value || iso(selected);
- const time=$("time").value || "";
-  const category=$("category").value || "Osobiste";
-  if(!title){toast("Wpisz nazwę zadania");$("title").focus();return}
-  const task={id:Date.now(),title:title,date:date,time:time,category:category,done:false};
-  tasks.push(task);
-  save();
-  selected=new Date(date+"T12:00:00");
-  monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
-  $("date").value=date;
-  $("title").value="";
-  $("time").value="";
-  renderDay();renderWeek();renderMonth();
-  toast("✓ Dodano: "+title);
+$("prev").onclick=()=>{
+  selected.setDate(selected.getDate()-1);
+  $("date").value=iso(selected);
+  renderDay();
 };
 
-let mediaRecorder = null;
-let recordedChunks = [];
+$("next").onclick=()=>{
+  selected.setDate(selected.getDate()+1);
+  $("date").value=iso(selected);
+  renderDay();
+};
 
-async function activateVoice() {
+$("today").onclick=()=>{
+  selected=today();
+  $("date").value=iso(selected);
+  renderDay();
+};
 
-  // Drugie naciśnięcie = zatrzymanie
-  if (mediaRecorder && mediaRecorder.state === "recording") {
+$("weekPrev").onclick=()=>{
+  selected.setDate(selected.getDate()-7);
+  renderWeek();
+};
+
+$("weekNext").onclick=()=>{
+  selected.setDate(selected.getDate()+7);
+  renderWeek();
+};
+
+$("monthPrev").onclick=()=>{
+  monthCursor.setMonth(monthCursor.getMonth()-1);
+  renderMonth();
+};
+
+$("monthNext").onclick=()=>{
+  monthCursor.setMonth(monthCursor.getMonth()+1);
+  renderMonth();
+};
+
+
+$("form").onsubmit=e=>{
+
+  e.preventDefault();
+
+  const title=$("title").value.trim();
+
+  if(!title){
+    toast("Wpisz nazwę zadania");
+    return;
+  }
+
+  const date=$("date").value || iso(selected);
+
+  const task={
+    id:Date.now(),
+    title,
+    date,
+    time:$("time").value || "",
+    category:$("category").value,
+    done:false
+  };
+
+  tasks.push(task);
+
+  save();
+
+  selected=new Date(date+"T12:00:00");
+
+  monthCursor=new Date(
+    selected.getFullYear(),
+    selected.getMonth(),
+    1
+  );
+
+  $("title").value="";
+  $("time").value="";
+
+  renderDay();
+  renderWeek();
+  renderMonth();
+
+  toast("✓ Zadanie dodane");
+};
+
+
+/* ==============================
+   MIKROFON
+================================ */
+
+let mediaRecorder=null;
+let recordedChunks=[];
+let microphoneStream=null;
+
+$("voice").onclick=async()=>{
+
+  if(
+    mediaRecorder &&
+    mediaRecorder.state==="recording"
+  ){
     mediaRecorder.stop();
     return;
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true
-    });
+  try{
 
-    recordedChunks = [];
+    $("voiceHint").textContent=
+      "Proszę o dostęp do mikrofonu…";
 
-    mediaRecorder = new MediaRecorder(stream);
+    microphoneStream=
+      await navigator.mediaDevices.getUserMedia({
+        audio:true
+      });
 
-    mediaRecorder.ondataavailable = e => {
-      if (e.data && e.data.size > 0) {
+    recordedChunks=[];
+
+    mediaRecorder=
+      new MediaRecorder(microphoneStream);
+
+    mediaRecorder.ondataavailable=e=>{
+      if(e.data && e.data.size){
         recordedChunks.push(e.data);
       }
     };
 
-    mediaRecorder.onstart = () => {
-      $("#voice").innerHTML = "⏹ Zatrzymaj nagranie";
-      $("#voiceHint").textContent =
-        "🔴 NAGRYWANIE — powiedz zadanie i naciśnij ponownie.";
+    mediaRecorder.onstart=()=>{
+
+      $("voice").textContent=
+        "⏹ Zatrzymaj nagranie";
+
+      $("voiceHint").textContent=
+        "🔴 NAGRYWANIE — mów teraz";
     };
 
-    mediaRecorder.onstop = async () => {
+    mediaRecorder.onstop=async()=>{
 
-      stream.getTracks().forEach(track => track.stop());
+      microphoneStream
+        .getTracks()
+        .forEach(track=>track.stop());
 
-      $("#voice").innerHTML = "🎙 Dodaj głosem";
-      $("#voiceHint").textContent = "⏳ Rozpoznaję mowę...";
+      $("voice").textContent=
+        "🎙️ Dodaj głosem";
 
-      try {
+      $("voiceHint").textContent=
+        "⏳ Rozpoznaję mowę…";
 
-        const blob = new Blob(recordedChunks, {
-          type: mediaRecorder.mimeType || "audio/mp4"
-        });
+      try{
 
-        const response = await fetch(
-          "https://moj-planer-api.yd7ynvj864.workers.dev",
+        const blob=new Blob(
+          recordedChunks,
           {
-            method: "POST",
-            headers: {
-              "Content-Type": blob.type
-            },
-            body: blob
+            type:
+              mediaRecorder.mimeType ||
+              "audio/mp4"
           }
         );
 
-        const result = await response.json();
+        const response=await fetch(
+          "https://moj-planer-api.yd7ynvj864.workers.dev",
+          {
+            method:"POST",
+            headers:{
+              "Content-Type":blob.type
+            },
+            body:blob
+          }
+        );
 
-        if (!response.ok) {
+        const result=await response.json();
+
+        if(!response.ok){
           throw new Error(
             result?.error?.message ||
             result?.error ||
-            "Błąd rozpoznawania mowy"
+            "Błąd API"
           );
         }
 
-        const text = (result.text || "").trim();
+        const text=(result.text||"").trim();
 
-        if (!text) {
-          throw new Error("Nie otrzymano tekstu");
+        if(!text){
+          throw new Error("Brak tekstu");
         }
 
-        $("#title").value = text;
+        $("title").value=text;
 
-        $("#voiceHint").textContent =
-          "✓ Rozpoznano: " + text;
+        $("voiceHint").textContent=
+          "✓ Rozpoznano: "+text;
 
         toast("✓ Rozpoznano głos");
 
-      } catch (error) {
+      }catch(error){
 
-        console.error("Błąd rozpoznawania:", error);
+        console.error(error);
 
-        $("#voiceHint").textContent =
-          "❌ Nie udało się rozpoznać nagrania.";
+        $("voiceHint").textContent=
+          "❌ Nie udało się rozpoznać nagrania";
 
         toast("Błąd rozpoznawania głosu");
       }
 
-      mediaRecorder = null;
+      mediaRecorder=null;
     };
 
     mediaRecorder.start();
 
-  } catch (error) {
+  }catch(error){
 
-    console.error("Błąd mikrofonu:", error);
+    console.error(error);
 
-    $("#voiceHint").textContent =
-      "❌ Nie udało się uruchomić mikrofonu.";
+    $("voiceHint").textContent=
+      "❌ Nie udało się uruchomić mikrofonu";
 
     toast("Brak dostępu do mikrofonu");
   }
-}
-
-if ($("#voice")) {
-  $("#voice").onclick = activateVoice;
-}
-
-if ($("#fab")) {
-  $("#fab").onclick = activateVoice;
-}if($("notesBtn"))$("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center");$("note").focus()};
-if($("saveNote"))$("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
-
-function tick(){
-  timer--;
-  if(timer<=0){clearInterval(interval);interval=null;timer=300;toast("Minutnik zakończony")}
-  if($("clock"))$("clock").textContent=pad(Math.floor(timer/60))+":"+pad(timer%60);
-}
-if($("timerBtn"))$("timerBtn").onclick=()=>{
-  if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶";return}
-  const value=prompt("Ustaw minutnik (minuty):","5");
-  if(value===null)return;
-  const minutes=parseInt(value,10);
-  if(!Number.isFinite(minutes)||minutes<1||minutes>180){toast("Podaj liczbę od 1 do 180");return}
-  timer=minutes*60;
-  $("clock").textContent=pad(minutes)+":00";
-  interval=setInterval(tick,1000);
-  $("timerBtn").textContent="Ⅱ";
 };
 
-if($("testResult"))$("testResult").textContent="Skrypt planera uruchomiony ✓";
-renderDay();renderWeek();renderMonth();
+
+/* ==============================
+   MINUTNIK
+================================ */
+
+let timer=300;
+let interval=null;
+
+function displayTimer(){
+  const min=Math.floor(timer/60);
+  const sec=timer%60;
+
+  $("clock").textContent=
+    String(min).padStart(2,"0")+
+    ":"+
+    String(sec).padStart(2,"0");
+}
+
+$("timerBtn").onclick=()=>{
+
+  if(interval){
+
+    clearInterval(interval);
+    interval=null;
+
+    $("timerBtn").textContent="▶";
+
+    return;
+  }
+
+  const value=prompt(
+    "Ustaw minutnik (minuty):",
+    "5"
+  );
+
+  if(value===null)return;
+
+  const minutes=parseInt(value,10);
+
+  if(
+    !Number.isFinite(minutes) ||
+    minutes<1 ||
+    minutes>180
+  ){
+    toast("Podaj liczbę od 1 do 180");
+    return;
+  }
+
+  timer=minutes*60;
+
+  displayTimer();
+
+  $("timerBtn").textContent="Ⅱ";
+
+  interval=setInterval(()=>{
+
+    timer--;
+
+    displayTimer();
+
+    if(timer<=0){
+
+      clearInterval(interval);
+
+      interval=null;
+
+      $("timerBtn").textContent="▶";
+
+      toast("⏰ Minutnik zakończony");
+
+      timer=300;
+
+      displayTimer();
+    }
+
+  },1000);
+};
+
+
+/* ==============================
+   NOTATKI
+================================ */
+
+$("note").value=
+  localStorage.getItem(NOTE_KEY) || "";
+
+$("saveNote").onclick=()=>{
+
+  localStorage.setItem(
+    NOTE_KEY,
+    $("note").value
+  );
+
+  toast("✓ Zapisano wolną myśl");
+};
+
+
+/* START */
+
+$("date").value=iso(selected);
+
+renderDay();
+renderWeek();
+renderMonth();
+
 </script>
+
 </body>
 </html>
