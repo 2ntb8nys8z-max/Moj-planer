@@ -91,7 +91,33 @@ $("weekPrev").onclick=()=>{selected.setDate(selected.getDate()-7);renderWeek()};
 $("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
 $("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()};
 $("form").onsubmit=e=>{e.preventDefault();tasks.push({id:Date.now(),title:$("title").value.trim(),date:$("date").value,time:$("time").value,category:$("category").value,done:false});save();$("title").value="";$("time").value="";renderDay();renderWeek();renderMonth();toast("Dodano zadanie")};
-function startVoice(){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast("Ta przeglądarka nie udostępnia rozpoznawania mowy.");return}let r=new SR();r.lang="pl-PL";r.interimResults=false;r.onstart=()=>{$("voiceHint").textContent="Słucham… powiedz zadanie.";};r.onresult=e=>{let text=e.results[0][0].transcript.trim();$("title").value=text;$("voiceHint").textContent="Rozpoznano: "+text;toast("Rozpoznano głos");};r.onerror=()=>{$("voiceHint").textContent="Nie udało się rozpoznać mowy.";};r.onend=()=>{if($("voiceHint").textContent==="Słucham… powiedz zadanie.")$("voiceHint").textContent="Powiedz np. „fizjoterapia jutro o 10”."};r.start()}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast("Safari na tym urządzeniu nie udostępnia tej funkcji. Otwórz planer w Chrome."); return; }
+  const r=new SR();
+  r.lang="pl-PL";
+  r.continuous=false;
+  r.interimResults=true;
+  r.maxAlternatives=1;
+  $("voiceHint").textContent="Słucham… mów teraz.";
+  $("voice").disabled=true;
+  $("fab").disabled=true;
+  r.onresult=e=>{
+    let text="";
+    for(let i=e.resultIndex;i<e.results.length;i++) text+=e.results[i][0].transcript;
+    if(text) $("title").value=text.trim();
+  };
+  r.onerror=e=>{
+    const msg=e.error==="not-allowed"?"Brak dostępu do mikrofonu. Zezwól Safari na używanie mikrofonu.":e.error==="no-speech"?"Nie usłyszałem mowy. Spróbuj jeszcze raz.":"Błąd mikrofonu: "+e.error;
+    $("voiceHint").textContent=msg; toast(msg);
+  };
+  r.onend=()=>{
+    $("voice").disabled=false;
+    $("fab").disabled=false;
+    if($("voiceHint").textContent==="Słucham… mów teraz.") $("voiceHint").textContent="Powiedz np. „fizjoterapia jutro o 10”.";
+  };
+  try{r.start()}catch(e){$("voiceHint").textContent="Nie udało się uruchomić mikrofonu.";toast("Nie udało się uruchomić mikrofonu.")}
+}
 $("voice").onclick=startVoice;$("fab").onclick=startVoice;
 $("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
 $("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
