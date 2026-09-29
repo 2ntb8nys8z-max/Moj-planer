@@ -118,7 +118,15 @@ async function startVoice(){
     toast(e.name==="NotAllowedError"?"Safari zablokował mikrofon.":"Błąd mikrofonu: "+e.name);
   }
 }
-$("voice").onclick=startVoice;$("fab").onclick=startVoice;
+function useIPadDictation(){
+  const input=$("title");
+  input.focus();
+  input.scrollIntoView({behavior:"smooth",block:"center"});
+  setVoice("Pole tekstowe jest aktywne. Naciśnij 🎙️ na klawiaturze i podyktuj zadanie.");
+  toast("Użyj mikrofonu na klawiaturze iPada");
+}
+$("voice").onclick=useIPadDictation;
+$("fab").onclick=useIPadDictation;
 $("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
 $("saveNote").onclick=()=>{localStorage.setItem(NOTE,$("note").value);toast("Zapisano wolną myśl")};
 function tick(){timer--;if(timer<=0){clearInterval(interval);interval=null;timer=300;toast("Minutnik zakończony")}$("clock").textContent=pad(Math.floor(timer/60))+":"+pad(timer%60)}
