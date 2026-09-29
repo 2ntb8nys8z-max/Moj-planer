@@ -91,32 +91,32 @@ $("weekPrev").onclick=()=>{selected.setDate(selected.getDate()-7);renderWeek()};
 $("monthPrev").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMonth()};$("monthNext").onclick=()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMonth()};
 $("date").onchange=e=>{selected=new Date(e.target.value+"T12:00:00");renderDay()};
 $("form").onsubmit=e=>{e.preventDefault();tasks.push({id:Date.now(),title:$("title").value.trim(),date:$("date").value,time:$("time").value,category:$("category").value,done:false});save();$("title").value="";$("time").value="";renderDay();renderWeek();renderMonth();toast("Dodano zadanie")};
-function startVoice(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ toast("Safari na tym urządzeniu nie udostępnia tej funkcji. Otwórz planer w Chrome."); return; }
-  const r=new SR();
-  r.lang="pl-PL";
-  r.continuous=false;
-  r.interimResults=true;
-  r.maxAlternatives=1;
-  $("voiceHint").textContent="Słucham… mów teraz.";
-  $("voice").disabled=true;
-  $("fab").disabled=true;
-  r.onresult=e=>{
-    let text="";
-    for(let i=e.resultIndex;i<e.results.length;i++) text+=e.results[i][0].transcript;
-    if(text) $("title").value=text.trim();
-  };
-  r.onerror=e=>{
-    const msg=e.error==="not-allowed"?"Brak dostępu do mikrofonu. Zezwól Safari na używanie mikrofonu.":e.error==="no-speech"?"Nie usłyszałem mowy. Spróbuj jeszcze raz.":"Błąd mikrofonu: "+e.error;
-    $("voiceHint").textContent=msg; toast(msg);
-  };
-  r.onend=()=>{
-    $("voice").disabled=false;
-    $("fab").disabled=false;
-    if($("voiceHint").textContent==="Słucham… mów teraz.") $("voiceHint").textContent="Powiedz np. „fizjoterapia jutro o 10”.";
-  };
-  try{r.start()}catch(e){$("voiceHint").textContent="Nie udało się uruchomić mikrofonu.";toast("Nie udało się uruchomić mikrofonu.")}
+let mediaRecorder=null,recordedChunks=[];
+async function startVoice(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast("Ta przeglądarka nie udostępnia nagrywania audio.");return}
+  if(mediaRecorder&&mediaRecorder.state==="recording"){mediaRecorder.stop();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recordedChunks=[];
+    const types=["audio/mp4","audio/webm;codecs=opus","audio/webm"];
+    const mime=types.find(x=>MediaRecorder.isTypeSupported(x))||"";
+    mediaRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+    mediaRecorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data)};
+    mediaRecorder.onstart=()=>{$("voice").innerHTML='<span class="mic">⏹️</span> Zatrzymaj nagranie';$("voiceHint").textContent="Nagrywam… powiedz całe polecenie.";toast("Nagrywanie rozpoczęte")};
+    mediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      $("voice").innerHTML='<span class="mic">🎙️</span> Dodaj głosem';
+      $("voiceHint").textContent="Nagranie gotowe. Następny krok: zamiana nagrania na tekst.";
+      const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||"audio/webm"}),url=URL.createObjectURL(blob);
+      const audio=document.createElement("audio");audio.controls=true;audio.src=url;audio.style.width="100%";audio.style.marginTop="8px";audio.id="voicePreview";
+      const oldAudio=document.getElementById("voicePreview");if(oldAudio)oldAudio.remove();
+      $("voiceHint").after(audio);toast("Nagranie gotowe");
+    };
+    mediaRecorder.start();
+  }catch(e){
+    const msg=e.name==="NotAllowedError"?"Brak dostępu do mikrofonu. Zezwól stronie na mikrofon w Safari.":"Nie udało się uruchomić mikrofonu.";
+    $("voiceHint").textContent=msg;toast(msg);
+  }
 }
 $("voice").onclick=startVoice;$("fab").onclick=startVoice;
 $("notesBtn").onclick=()=>{$("thoughts").scrollIntoView({behavior:"smooth",block:"center"});$("note").focus()};
