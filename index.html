@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mój Planer</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f5f6f8;line-height:1.4}
+*{box-sizing:border-box}body{margin:0}.app{max-width:1100px;margin:auto;padding:24px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+h1{margin:0;font-size:30px}.sub{color:#697386;margin:4px 0 0}
+button,input,select{font:inherit}button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;background:#1f6feb;color:white;font-weight:600}
+button.secondary{background:white;color:#263248;border:1px solid #d8dde6}
+.grid{display:grid;grid-template-columns:280px 1fr;gap:18px}
+.panel,.day{background:white;border:1px solid #e0e4eb;border-radius:16px;padding:16px}
+.panel h2,.day h2{font-size:17px;margin:0 0 12px}.field{margin-bottom:12px}.field label{display:block;font-size:13px;color:#697386;margin-bottom:5px}
+input,select{width:100%;padding:10px 11px;border:1px solid #d5dae3;border-radius:9px;background:white}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar button{background:white;color:#263248;border:1px solid #d8dde6}.toolbar button.active{background:#1f6feb;color:white;border-color:#1f6feb}
+.days{display:grid;gap:10px}.dayhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.date{color:#697386;font-size:13px}
+.task{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #edf0f4}.task:first-of-type{border-top:0}
+.task input[type=checkbox]{width:19px;height:19px;flex:0 0 auto}.task-main{min-width:0;flex:1}.task-title{font-weight:600}.done .task-title{text-decoration:line-through;color:#8992a3}.meta{font-size:12px;color:#788296;margin-top:2px}
+.tag{display:inline-block;border-radius:999px;background:#eef1f6;padding:3px 8px;margin-left:6px;font-size:11px}
+.empty{color:#8992a3;padding:10px 0}.count{font-size:12px;color:#697386}
+.form-actions{display:flex;gap:8px;margin-top:14px}.form-actions button{flex:1}
+@media(max-width:760px){.grid{grid-template-columns:1fr}header{align-items:flex-start}.app{padding-top:16px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div><h1>📅 Mój Planer</h1><p class="sub">Prosty planer dnia, zadań i terminów.</p></div>
+  <button id="todayBtn" type="button">Dzisiaj</button>
+</header>
+<div class="grid">
+  <section class="panel">
+    <h2>Dodaj zadanie</h2>
+    <form id="taskForm">
+      <div class="field"><label for="title">Zadanie</label><input id="title" required placeholder="Np. fizjoterapia"></div>
+      <div class="field"><label for="date">Data</label><input id="date" type="date" required></div>
+      <div class="field"><label for="time">Godzina</label><input id="time" type="time"></div>
+      <div class="field"><label for="category">Kategoria</label>
+        <select id="category"><option>Praca</option><option>Zdrowie</option><option>Dom</option><option>Sprawy</option><option>Osobiste</option></select>
+      </div>
+      <div class="form-actions"><button type="submit">Dodaj</button><button class="secondary" id="clearBtn" type="button">Wyczyść</button></div>
+    </form>
+    <hr style="border:0;border-top:1px solid #edf0f4;margin:20px 0">
+    <div class="count" id="summary"></div>
+  </section>
+  <section>
+    <div class="toolbar" aria-label="Filtry">
+      <button type="button" class="active" data-filter="all">Wszystkie</button>
+      <button type="button" data-filter="open">Niezakończone</button>
+      <button type="button" data-filter="done">Zakończone</button>
+    </div>
+    <div id="days" class="days"></div>
+  </section>
+</div>
+</main>
+<script>
+(function(){
+  const KEY="moj-planer-tasks-v1";
+  const $=id=>document.getElementById(id);
+  const today=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+  const iso=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
+  const formatDate=s=>new Intl.DateTimeFormat("pl-PL",{weekday:"long",day:"numeric",month:"long"}).format(new Date(s+"T12:00:00"));
+  let tasks=[];
+  try{tasks=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){tasks=[]}
+  let filter="all";
+  const save=()=>localStorage.setItem(KEY,JSON.stringify(tasks));
+  $("date").value=iso(today());
+
+  function render(){
+    const visible=tasks.filter(t=>filter==="all"||(filter==="open"&&!t.done)||(filter==="done"&&t.done))
+      .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    const grouped={};
+    visible.forEach(t=>(grouped[t.date]??=[]).push(t));
+    const dates=Object.keys(grouped);
+    $("days").innerHTML="";
+    if(!dates.length){$("days").innerHTML='<div class="day empty">Brak zadań w tym widoku.</div>'}
+    dates.forEach(date=>{
+      const section=document.createElement("section");section.className="day";
+      const h=document.createElement("div");h.className="dayhead";
+      const title=document.createElement("h2");title.textContent=formatDate(date);
+      const c=document.createElement("span");c.className="date";c.textContent=grouped[date].length+" "+(grouped[date].length===1?"zadanie":"zadań");
+      h.append(title,c);section.append(h);
+      grouped[date].forEach(t=>{
+        const row=document.createElement("div");row.className="task"+(t.done?" done":"");
+        const cb=document.createElement("input");cb.type="checkbox";cb.checked=t.done;cb.setAttribute("aria-label","Zakończ zadanie");cb.addEventListener("change",()=>{t.done=cb.checked;save();render()});
+        const main=document.createElement("div");main.className="task-main";
+        const tt=document.createElement("div");tt.className="task-title";tt.textContent=t.title;
+        const tag=document.createElement("span");tag.className="tag";tag.textContent=t.category;tt.append(tag);
+        const meta=document.createElement("div");meta.className="meta";meta.textContent=t.time||"bez godziny";
+        main.append(tt,meta);row.append(cb,main);section.append(row);
+      });
+      $("days").append(section);
+    });
+    const open=tasks.filter(t=>!t.done).length;
+    $("summary").textContent=tasks.length+" wszystkich · "+open+" niezakończonych";
+  }
+  $("taskForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const title=$("title").value.trim(),date=$("date").value;
+    if(!title||!date)return;
+    tasks.push({id:Date.now(),title,date,time:$("time").value,category:$("category").value,done:false});
+    save();e.target.reset();$("date").value=iso(today());render();
+  });
+  $("clearBtn").addEventListener("click",()=>{$("taskForm").reset();$("date").value=iso(today())});
+  $("todayBtn").addEventListener("click",()=>{$("date").value=iso(today());window.scrollTo({top:0,behavior:"smooth"})});
+  document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{
+    filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));render();
+  }));
+  render();
+})();
+</script>
+</body>
+</html>
