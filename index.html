@@ -3,269 +3,71 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f8fc">
 <title>Mój Planer</title>
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:#f7f8fc;
-  color:#172033
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f8fc;color:#172033}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
-
-.app{
-  max-width:1000px;
-  margin:auto;
-  padding:20px 16px 100px
-}
-
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:18px
-}
-
+.app{max-width:1000px;margin:auto;padding:20px 16px 100px}
 h1{margin:0;font-size:28px}
-
-.card{
-  background:white;
-  border:1px solid #e1e5ec;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:16px
-}
-
-.tabs{
-  display:flex;
-  gap:6px;
-  background:#eef1f6;
-  padding:5px;
-  border-radius:14px;
-  margin-bottom:16px
-}
-
-.tabs button{
-  flex:1;
-  border:0;
-  background:transparent;
-  padding:10px;
-  border-radius:10px
-}
-
-.tabs button.active{
-  background:white;
-  font-weight:700
-}
-
-.row{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap
-}
-
-input,select,textarea{
-  width:100%;
-  border:1px solid #d8dde6;
-  border-radius:12px;
-  padding:12px;
-  background:white
-}
-
-.field{
-  flex:1;
-  min-width:150px
-}
-
-label{
-  display:block;
-  font-size:13px;
-  margin:0 0 5px 3px;
-  color:#667085
-}
-
-.primary{
-  border:0;
-  border-radius:12px;
-  padding:13px 18px;
-  background:#172033;
-  color:white;
-  font-weight:700
-}
-
-.voice{
-  width:100%;
-  border:0;
-  border-radius:14px;
-  padding:16px;
-  background:#172033;
-  color:white;
-  font-size:18px;
-  font-weight:700;
-  margin-top:12px
-}
-
-#voiceHint{
-  text-align:center;
-  margin-top:10px;
-  color:#667085;
-  min-height:22px
-}
-
-.daybar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:8px
-}
-
-.navbutton{
-  border:1px solid #dfe3ea;
-  background:white;
-  border-radius:10px;
-  padding:8px 12px
-}
-
-.task{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border-bottom:1px solid #eee;
-  padding:13px 2px
-}
-
+.card{background:#fff;border:1px solid #e1e5ec;border-radius:18px;padding:16px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;background:#eef1f6;padding:5px;border-radius:14px;margin:18px 0 16px}
+.tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:10px}
+.tabs button.active{background:#fff;font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{flex:1;min-width:150px}
+label{display:block;font-size:13px;margin:0 0 5px 3px;color:#667085}
+input,select,textarea{width:100%;border:1px solid #d8dde6;border-radius:12px;padding:12px;background:#fff}
+.primary{border:0;border-radius:12px;padding:13px 18px;background:#172033;color:#fff;font-weight:700}
+.voice{width:100%;border:0;border-radius:14px;padding:16px;background:#172033;color:#fff;font-size:18px;font-weight:700;margin-top:12px}
+#voiceHint{text-align:center;margin-top:10px;color:#667085;min-height:22px}
+.daybar{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.navbutton{border:1px solid #dfe3ea;background:#fff;border-radius:10px;padding:8px 12px}
+.task{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:13px 2px}
 .task:last-child{border-bottom:0}
-
-.task-time{
-  width:55px;
-  font-weight:700
-}
-
+.task-time{width:110px;font-weight:700}
 .task-title{flex:1}
-
-.task.done .task-title{
-  text-decoration:line-through;
-  opacity:.5
-}
-
-.delete{
-  border:0;
-  background:transparent;
-  font-size:18px
-}
-
-.empty{
-  padding:30px 5px;
-  text-align:center;
-  color:#98a2b3
-}
-
-.week-grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px
-}
-
-.week-day{
-  border:1px solid #e1e5ec;
-  border-radius:12px;
-  padding:8px;
-  min-height:100px;
-  font-size:12px
-}
-
-.month-grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:5px
-}
-
-.month-day{
-  border:1px solid #e1e5ec;
-  border-radius:10px;
-  min-height:80px;
-  padding:7px;
-  font-size:12px
-}
-
-.today{
-  border:2px solid #172033
-}
-
+.task.done .task-title{text-decoration:line-through;opacity:.5}
+.delete{border:0;background:transparent;font-size:18px}
+.empty{padding:30px 5px;text-align:center;color:#98a2b3}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.week-day{border:1px solid #e1e5ec;border-radius:12px;padding:8px;min-height:100px;font-size:12px}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.month-day{border:1px solid #e1e5ec;border-radius:10px;min-height:80px;padding:7px;font-size:12px}
+.today{border:2px solid #172033}
 .hidden{display:none}
-
-.timer{
-  display:flex;
-  align-items:center;
-  justify-content:space-between
-}
-
-#clock{
-  font-size:30px;
-  font-weight:700
-}
-
-textarea{
-  min-height:120px;
-  resize:vertical
-}
-
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:30px;
-  transform:translateX(-50%);
-  background:#172033;
-  color:white;
-  padding:12px 18px;
-  border-radius:12px;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s;
-  z-index:999
-}
-
+.timer{display:flex;align-items:center;justify-content:space-between}
+#clock{font-size:30px;font-weight:700}
+textarea{min-height:120px;resize:vertical}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#172033;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:999}
 .toast.show{opacity:1}
-
-@media(max-width:700px){
-  .week-grid{grid-template-columns:1fr}
-  .month-day{min-height:55px}
-}
+@media(max-width:700px){.week-grid{grid-template-columns:1fr}.month-day{min-height:55px}}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
-<header>
-  <div>
-    <h1>Mój Planer</h1>
-    <div style="color:#667085">Twój dzień pod kontrolą</div>
-  </div>
-</header>
+<h1>Mój Planer</h1>
+<div style="color:#667085">Twój dzień pod kontrolą</div>
 
 <div class="tabs">
-  <button id="tabDay" class="active">Dzień</button>
-  <button id="tabWeek">Tydzień</button>
-  <button id="tabMonth">Miesiąc</button>
+<button id="tabDay" class="active">Dzień</button>
+<button id="tabWeek">Tydzień</button>
+<button id="tabMonth">Miesiąc</button>
 </div>
 
 <div class="card">
-
 <h2>Dodaj zadanie</h2>
 
 <form id="form">
-
 <div class="row">
 
 <div class="field">
 <label>Co chcesz zrobić?</label>
-<input id="title" placeholder="Np. fizjoterapia">
+<input id="title" placeholder="Np. dentysta">
 </div>
 
 <div class="field">
@@ -274,8 +76,13 @@ textarea{
 </div>
 
 <div class="field">
-<label>Godzina</label>
+<label>Od</label>
 <input id="time" type="time">
+</div>
+
+<div class="field">
+<label>Do</label>
+<input id="endTime" type="time">
 </div>
 
 <div class="field">
@@ -294,22 +101,16 @@ textarea{
 <button class="primary" type="submit" style="margin-top:12px">
 Dodaj zadanie
 </button>
-
 </form>
 
 <button id="voice" class="voice" type="button">
 🎙️ Dodaj głosem
 </button>
 
-<div id="voiceHint">
-Naciśnij i powiedz swoje zadanie
+<div id="voiceHint">Naciśnij i powiedz swoje zadanie</div>
 </div>
-
-</div>
-
 
 <div id="dayView" class="card">
-
 <div class="daybar">
 <button id="prev" class="navbutton">←</button>
 <h2 id="dayTitle"></h2>
@@ -317,67 +118,42 @@ Naciśnij i powiedz swoje zadanie
 </div>
 
 <div style="text-align:center;margin:10px">
-<button id="today" class="navbutton">Dzisiaj</button>
+<button id="todayBtn" class="navbutton">Dzisiaj</button>
 </div>
 
 <div id="taskList"></div>
-
 </div>
 
-
 <div id="weekView" class="card hidden">
-
 <div class="daybar">
 <button id="weekPrev" class="navbutton">←</button>
 <h2>Tydzień</h2>
 <button id="weekNext" class="navbutton">→</button>
 </div>
-
 <div id="weekGrid" class="week-grid"></div>
-
 </div>
 
-
 <div id="monthView" class="card hidden">
-
 <div class="daybar">
 <button id="monthPrev" class="navbutton">←</button>
 <h2 id="monthTitle"></h2>
 <button id="monthNext" class="navbutton">→</button>
 </div>
-
 <div id="monthGrid" class="month-grid"></div>
-
 </div>
 
-
 <div class="card timer">
-
 <div>
 <div style="color:#667085">Minutnik</div>
 <div id="clock">05:00</div>
 </div>
-
-<button id="timerBtn" class="primary">
-▶
-</button>
-
+<button id="timerBtn" class="primary">▶</button>
 </div>
 
-
 <div class="card">
-
 <h2>Wolne myśli</h2>
-
-<textarea id="note"
-placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea>
-
-<button id="saveNote"
-class="primary"
-style="margin-top:10px">
-Zapisz
-</button>
-
+<textarea id="note" placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea>
+<button id="saveNote" class="primary" style="margin-top:10px">Zapisz</button>
 </div>
 
 </div>
@@ -385,242 +161,167 @@ Zapisz
 <div id="toast" class="toast"></div>
 
 <script>
-
 const $ = id => document.getElementById(id);
 
-const TASK_KEY = "moj-planer-tasks";
-const NOTE_KEY = "moj-planer-note";
+const TASK_KEY="moj-planer-tasks";
+const NOTE_KEY="moj-planer-note";
+const API_URL="https://moj-planer-api.yd7ynvj864.workers.dev";
 
-let tasks = JSON.parse(localStorage.getItem(TASK_KEY) || "[]");
+let tasks=JSON.parse(localStorage.getItem(TASK_KEY)||"[]");
 
 function today(){
-  const d=new Date();
-  d.setHours(12,0,0,0);
-  return d;
+ const d=new Date();
+ d.setHours(12,0,0,0);
+ return d;
 }
 
 let selected=today();
-let monthCursor=new Date(
-  selected.getFullYear(),
-  selected.getMonth(),
-  1
-);
+let monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
 
 function iso(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,"0");
-  const day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-
-function toast(text){
-  $("toast").textContent=text;
-  $("toast").classList.add("show");
-
-  setTimeout(()=>{
-    $("toast").classList.remove("show");
-  },2200);
-}
-
-function save(){
-  localStorage.setItem(TASK_KEY,JSON.stringify(tasks));
-}
-
-function formatDate(d){
-  return d.toLocaleDateString(
-    "pl-PL",
-    {
-      weekday:"long",
-      day:"numeric",
-      month:"long"
-    }
-  );
-}
-
-function renderDay(){
-
-  $("dayTitle").textContent=formatDate(selected);
-
-  const date=iso(selected);
-
-  const list=tasks
-    .filter(t=>t.date===date)
-    .sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
-
-  $("taskList").innerHTML="";
-
-  if(!list.length){
-    $("taskList").innerHTML=
-      '<div class="empty">Brak zadań na ten dzień</div>';
-    return;
-  }
-
-  list.forEach(task=>{
-
-    const div=document.createElement("div");
-
-    div.className="task"+(task.done?" done":"");
-
-    div.innerHTML=`
-      <input type="checkbox"
-      ${task.done?"checked":""}
-      style="width:auto">
-
-      <div class="task-time">
-      ${task.time||"—"}
-      </div>
-
-      <div class="task-title">
-      ${escapeHtml(task.title)}
-      </div>
-
-      <button class="delete">×</button>
-    `;
-
-    div.querySelector("input").onchange=e=>{
-      task.done=e.target.checked;
-      save();
-      renderDay();
-      renderWeek();
-      renderMonth();
-    };
-
-    div.querySelector(".delete").onclick=()=>{
-      tasks=tasks.filter(t=>t.id!==task.id);
-      save();
-      renderDay();
-      renderWeek();
-      renderMonth();
-    };
-
-    $("taskList").appendChild(div);
-  });
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
 function escapeHtml(text){
-  const div=document.createElement("div");
-  div.textContent=text;
-  return div.innerHTML;
+ const div=document.createElement("div");
+ div.textContent=text;
+ return div.innerHTML;
+}
+
+function toast(text){
+ $("toast").textContent=text;
+ $("toast").classList.add("show");
+ setTimeout(()=>$("toast").classList.remove("show"),2200);
+}
+
+function save(){
+ localStorage.setItem(TASK_KEY,JSON.stringify(tasks));
+}
+
+function formatDate(d){
+ return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"});
+}
+
+function renderDay(){
+ $("dayTitle").textContent=formatDate(selected);
+
+ const list=tasks
+   .filter(t=>t.date===iso(selected))
+   .sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
+
+ $("taskList").innerHTML="";
+
+ if(!list.length){
+   $("taskList").innerHTML='<div class="empty">Brak zadań na ten dzień</div>';
+   return;
+ }
+
+ list.forEach(task=>{
+   const div=document.createElement("div");
+   div.className="task"+(task.done?" done":"");
+
+   let timeText=task.time||"—";
+   if(task.time && task.endTime) timeText=`${task.time}–${task.endTime}`;
+
+   div.innerHTML=`
+     <input type="checkbox" ${task.done?"checked":""} style="width:auto">
+     <div class="task-time">${timeText}</div>
+     <div class="task-title">${escapeHtml(task.title)}</div>
+     <button class="delete">×</button>
+   `;
+
+   div.querySelector("input").onchange=e=>{
+     task.done=e.target.checked;
+     save(); renderAll();
+   };
+
+   div.querySelector(".delete").onclick=()=>{
+     tasks=tasks.filter(t=>t.id!==task.id);
+     save(); renderAll();
+   };
+
+   $("taskList").appendChild(div);
+ });
 }
 
 function renderWeek(){
+ $("weekGrid").innerHTML="";
+ const start=new Date(selected);
+ const weekday=start.getDay()||7;
+ start.setDate(start.getDate()-weekday+1);
 
-  $("weekGrid").innerHTML="";
+ for(let i=0;i<7;i++){
+   const d=new Date(start);
+   d.setDate(start.getDate()+i);
+   const date=iso(d);
+   const dayTasks=tasks.filter(t=>t.date===date);
 
-  const start=new Date(selected);
+   const div=document.createElement("div");
+   div.className="week-day";
 
-  const day=start.getDay()||7;
+   div.innerHTML=
+     `<strong>${d.toLocaleDateString("pl-PL",{weekday:"short",day:"numeric"})}</strong><br><br>`+
+     dayTasks.map(t=>{
+       const tm=t.endTime?`${t.time}–${t.endTime}`:(t.time||"");
+       return `${tm} ${escapeHtml(t.title)}`;
+     }).join("<br>");
 
-  start.setDate(start.getDate()-day+1);
-
-  for(let i=0;i<7;i++){
-
-    const d=new Date(start);
-    d.setDate(start.getDate()+i);
-
-    const date=iso(d);
-
-    const dayTasks=tasks.filter(t=>t.date===date);
-
-    const div=document.createElement("div");
-
-    div.className="week-day";
-
-    div.innerHTML=
-      `<strong>${d.toLocaleDateString("pl-PL",{
-        weekday:"short",
-        day:"numeric"
-      })}</strong><br><br>`+
-      dayTasks.map(t=>
-        `${t.time||""} ${escapeHtml(t.title)}`
-      ).join("<br>");
-
-    $("weekGrid").appendChild(div);
-  }
+   $("weekGrid").appendChild(div);
+ }
 }
 
 function renderMonth(){
+ $("monthGrid").innerHTML="";
 
-  $("monthGrid").innerHTML="";
+ $("monthTitle").textContent=monthCursor.toLocaleDateString(
+   "pl-PL",{month:"long",year:"numeric"}
+ );
 
-  $("monthTitle").textContent=
-    monthCursor.toLocaleDateString(
-      "pl-PL",
-      {
-        month:"long",
-        year:"numeric"
-      }
-    );
+ const first=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),1);
+ let offset=first.getDay();
+ if(offset===0)offset=7;
 
-  const first=new Date(
-    monthCursor.getFullYear(),
-    monthCursor.getMonth(),
-    1
-  );
+ for(let i=1;i<offset;i++){
+   $("monthGrid").appendChild(document.createElement("div"));
+ }
 
-  let offset=first.getDay();
-  if(offset===0)offset=7;
+ const days=new Date(monthCursor.getFullYear(),monthCursor.getMonth()+1,0).getDate();
 
-  for(let i=1;i<offset;i++){
-    $("monthGrid").appendChild(
-      document.createElement("div")
-    );
-  }
+ for(let day=1;day<=days;day++){
+   const d=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),day);
+   const date=iso(d);
+   const count=tasks.filter(t=>t.date===date).length;
 
-  const days=new Date(
-    monthCursor.getFullYear(),
-    monthCursor.getMonth()+1,
-    0
-  ).getDate();
+   const div=document.createElement("div");
+   div.className="month-day"+(date===iso(today())?" today":"");
+   div.innerHTML=`<strong>${day}</strong>${count?`<div style="margin-top:8px">${count} zad.</div>`:""}`;
 
-  for(let day=1;day<=days;day++){
+   div.onclick=()=>{
+     selected=d;
+     $("date").value=date;
+     showView("day");
+   };
 
-    const d=new Date(
-      monthCursor.getFullYear(),
-      monthCursor.getMonth(),
-      day
-    );
+   $("monthGrid").appendChild(div);
+ }
+}
 
-    const date=iso(d);
-
-    const count=tasks.filter(t=>t.date===date).length;
-
-    const div=document.createElement("div");
-
-    div.className=
-      "month-day"+
-      (date===iso(today())?" today":"");
-
-    div.innerHTML=
-      `<strong>${day}</strong>`+
-      (count?
-        `<div style="margin-top:8px">${count} zad.</div>`
-        :""
-      );
-
-    div.onclick=()=>{
-      selected=d;
-      $("date").value=date;
-      showView("day");
-    };
-
-    $("monthGrid").appendChild(div);
-  }
+function renderAll(){
+ renderDay();
+ renderWeek();
+ renderMonth();
 }
 
 function showView(view){
+ $("dayView").classList.toggle("hidden",view!=="day");
+ $("weekView").classList.toggle("hidden",view!=="week");
+ $("monthView").classList.toggle("hidden",view!=="month");
 
-  $("dayView").classList.toggle("hidden",view!=="day");
-  $("weekView").classList.toggle("hidden",view!=="week");
-  $("monthView").classList.toggle("hidden",view!=="month");
+ $("tabDay").classList.toggle("active",view==="day");
+ $("tabWeek").classList.toggle("active",view==="week");
+ $("tabMonth").classList.toggle("active",view==="month");
 
-  $("tabDay").classList.toggle("active",view==="day");
-  $("tabWeek").classList.toggle("active",view==="week");
-  $("tabMonth").classList.toggle("active",view==="month");
-
-  renderDay();
-  renderWeek();
-  renderMonth();
+ renderAll();
 }
 
 $("tabDay").onclick=()=>showView("day");
@@ -628,92 +329,93 @@ $("tabWeek").onclick=()=>showView("week");
 $("tabMonth").onclick=()=>showView("month");
 
 $("prev").onclick=()=>{
-  selected.setDate(selected.getDate()-1);
-  $("date").value=iso(selected);
-  renderDay();
+ selected.setDate(selected.getDate()-1);
+ $("date").value=iso(selected);
+ renderDay();
 };
 
 $("next").onclick=()=>{
-  selected.setDate(selected.getDate()+1);
-  $("date").value=iso(selected);
-  renderDay();
+ selected.setDate(selected.getDate()+1);
+ $("date").value=iso(selected);
+ renderDay();
 };
 
-$("today").onclick=()=>{
-  selected=today();
-  $("date").value=iso(selected);
-  renderDay();
+$("todayBtn").onclick=()=>{
+ selected=today();
+ $("date").value=iso(selected);
+ renderDay();
 };
 
 $("weekPrev").onclick=()=>{
-  selected.setDate(selected.getDate()-7);
-  renderWeek();
+ selected.setDate(selected.getDate()-7);
+ renderWeek();
 };
 
 $("weekNext").onclick=()=>{
-  selected.setDate(selected.getDate()+7);
-  renderWeek();
+ selected.setDate(selected.getDate()+7);
+ renderWeek();
 };
 
 $("monthPrev").onclick=()=>{
-  monthCursor.setMonth(monthCursor.getMonth()-1);
-  renderMonth();
+ monthCursor.setMonth(monthCursor.getMonth()-1);
+ renderMonth();
 };
 
 $("monthNext").onclick=()=>{
-  monthCursor.setMonth(monthCursor.getMonth()+1);
-  renderMonth();
+ monthCursor.setMonth(monthCursor.getMonth()+1);
+ renderMonth();
 };
 
+function addTask(title,date,time="",endTime="",category="Osobiste"){
+ tasks.push({
+   id:Date.now(),
+   title,
+   date,
+   time,
+   endTime,
+   category,
+   done:false
+ });
+
+ save();
+
+ selected=new Date(date+"T12:00:00");
+ monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
+
+ $("date").value=date;
+
+ showView("day");
+}
 
 $("form").onsubmit=e=>{
+ e.preventDefault();
 
-  e.preventDefault();
+ const title=$("title").value.trim();
 
-  const title=$("title").value.trim();
+ if(!title){
+   toast("Wpisz nazwę zadania");
+   return;
+ }
 
-  if(!title){
-    toast("Wpisz nazwę zadania");
-    return;
-  }
+ const date=$("date").value||iso(selected);
 
-  const date=$("date").value || iso(selected);
+ addTask(
+   title,
+   date,
+   $("time").value||"",
+   $("endTime").value||"",
+   $("category").value
+ );
 
-  const task={
-    id:Date.now(),
-    title,
-    date,
-    time:$("time").value || "",
-    category:$("category").value,
-    done:false
-  };
+ $("title").value="";
+ $("time").value="";
+ $("endTime").value="";
 
-  tasks.push(task);
-
-  save();
-
-  selected=new Date(date+"T12:00:00");
-
-  monthCursor=new Date(
-    selected.getFullYear(),
-    selected.getMonth(),
-    1
-  );
-
-  $("title").value="";
-  $("time").value="";
-
-  renderDay();
-  renderWeek();
-  renderMonth();
-
-  toast("✓ Zadanie dodane");
+ toast("✓ Zadanie dodane");
 };
 
 
-/* ==============================
-   MIKROFON
-================================ */
+/* ===== GŁOS ===== */
 
 let mediaRecorder=null;
 let recordedChunks=[];
@@ -721,233 +423,155 @@ let microphoneStream=null;
 
 $("voice").onclick=async()=>{
 
-  if(
-    mediaRecorder &&
-    mediaRecorder.state==="recording"
-  ){
-    mediaRecorder.stop();
-    return;
-  }
+ if(mediaRecorder && mediaRecorder.state==="recording"){
+   mediaRecorder.stop();
+   return;
+ }
 
-  try{
+ try{
+   $("voiceHint").textContent="Proszę o dostęp do mikrofonu…";
 
-    $("voiceHint").textContent=
-      "Proszę o dostęp do mikrofonu…";
+   microphoneStream=await navigator.mediaDevices.getUserMedia({audio:true});
+   recordedChunks=[];
 
-    microphoneStream=
-      await navigator.mediaDevices.getUserMedia({
-        audio:true
-      });
+   mediaRecorder=new MediaRecorder(microphoneStream);
 
-    recordedChunks=[];
+   mediaRecorder.ondataavailable=e=>{
+     if(e.data && e.data.size) recordedChunks.push(e.data);
+   };
 
-    mediaRecorder=
-      new MediaRecorder(microphoneStream);
+   mediaRecorder.onstart=()=>{
+     $("voice").textContent="⏹ Zatrzymaj nagranie";
+     $("voiceHint").textContent="🔴 NAGRYWANIE — mów teraz";
+   };
 
-    mediaRecorder.ondataavailable=e=>{
-      if(e.data && e.data.size){
-        recordedChunks.push(e.data);
-      }
-    };
+   mediaRecorder.onstop=async()=>{
 
-    mediaRecorder.onstart=()=>{
+     microphoneStream.getTracks().forEach(track=>track.stop());
 
-      $("voice").textContent=
-        "⏹ Zatrzymaj nagranie";
+     $("voice").textContent="🎙️ Dodaj głosem";
+     $("voiceHint").textContent="⏳ Rozpoznaję i dodaję zadanie…";
 
-      $("voiceHint").textContent=
-        "🔴 NAGRYWANIE — mów teraz";
-    };
+     try{
+       const blob=new Blob(recordedChunks,{
+         type:mediaRecorder.mimeType||"audio/mp4"
+       });
 
-    mediaRecorder.onstop=async()=>{
+       const response=await fetch(API_URL,{
+         method:"POST",
+         headers:{"Content-Type":blob.type},
+         body:blob
+       });
 
-      microphoneStream
-        .getTracks()
-        .forEach(track=>track.stop());
+       const result=await response.json();
 
-      $("voice").textContent=
-        "🎙️ Dodaj głosem";
+       if(!response.ok || !result.success){
+         throw new Error(result.error||"Błąd API");
+       }
 
-      $("voiceHint").textContent=
-        "⏳ Rozpoznaję mowę…";
+       const task=result.task;
 
-      try{
+       if(!task || !task.title || !task.date){
+         throw new Error("Nie udało się ustalić zadania lub daty");
+       }
 
-        const blob=new Blob(
-          recordedChunks,
-          {
-            type:
-              mediaRecorder.mimeType ||
-              "audio/mp4"
-          }
-        );
+       addTask(
+         task.title,
+         task.date,
+         task.startTime||"",
+         task.endTime||"",
+         "Osobiste"
+       );
 
-        const response=await fetch(
-          "https://moj-planer-api.yd7ynvj864.workers.dev",
-          {
-            method:"POST",
-            headers:{
-              "Content-Type":blob.type
-            },
-            body:blob
-          }
-        );
+       $("voiceHint").textContent=
+         `✓ ${task.title} — ${task.date}`+
+         (task.startTime?` ${task.startTime}`:"")+
+         (task.endTime?`–${task.endTime}`:"");
 
-        const result=await response.json();
+       toast("✓ Zadanie dodane głosem");
 
-        if(!response.ok){
-          throw new Error(
-            result?.error?.message ||
-            result?.error ||
-            "Błąd API"
-          );
-        }
+     }catch(error){
+       console.error(error);
+       $("voiceHint").textContent="❌ Nie udało się dodać zadania głosem";
+       toast("Błąd polecenia głosowego");
+     }
 
-        const text=(result.text||"").trim();
+     mediaRecorder=null;
+   };
 
-        if(!text){
-          throw new Error("Brak tekstu");
-        }
+   mediaRecorder.start();
 
-        $("title").value=text;
-
-        $("voiceHint").textContent=
-          "✓ Rozpoznano: "+text;
-
-        toast("✓ Rozpoznano głos");
-
-      }catch(error){
-
-        console.error(error);
-
-        $("voiceHint").textContent=
-          "❌ Nie udało się rozpoznać nagrania";
-
-        toast("Błąd rozpoznawania głosu");
-      }
-
-      mediaRecorder=null;
-    };
-
-    mediaRecorder.start();
-
-  }catch(error){
-
-    console.error(error);
-
-    $("voiceHint").textContent=
-      "❌ Nie udało się uruchomić mikrofonu";
-
-    toast("Brak dostępu do mikrofonu");
-  }
+ }catch(error){
+   console.error(error);
+   $("voiceHint").textContent="❌ Nie udało się uruchomić mikrofonu";
+   toast("Brak dostępu do mikrofonu");
+ }
 };
 
 
-/* ==============================
-   MINUTNIK
-================================ */
+/* ===== MINUTNIK ===== */
 
 let timer=300;
 let interval=null;
 
 function displayTimer(){
-  const min=Math.floor(timer/60);
-  const sec=timer%60;
-
-  $("clock").textContent=
-    String(min).padStart(2,"0")+
-    ":"+
-    String(sec).padStart(2,"0");
+ $("clock").textContent=
+   `${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
 }
 
 $("timerBtn").onclick=()=>{
+ if(interval){
+   clearInterval(interval);
+   interval=null;
+   $("timerBtn").textContent="▶";
+   return;
+ }
 
-  if(interval){
+ const value=prompt("Ustaw minutnik (minuty):","5");
+ if(value===null)return;
 
-    clearInterval(interval);
-    interval=null;
+ const minutes=parseInt(value,10);
 
-    $("timerBtn").textContent="▶";
+ if(!Number.isFinite(minutes)||minutes<1||minutes>180){
+   toast("Podaj liczbę od 1 do 180");
+   return;
+ }
 
-    return;
-  }
+ timer=minutes*60;
+ displayTimer();
+ $("timerBtn").textContent="Ⅱ";
 
-  const value=prompt(
-    "Ustaw minutnik (minuty):",
-    "5"
-  );
+ interval=setInterval(()=>{
+   timer--;
+   displayTimer();
 
-  if(value===null)return;
-
-  const minutes=parseInt(value,10);
-
-  if(
-    !Number.isFinite(minutes) ||
-    minutes<1 ||
-    minutes>180
-  ){
-    toast("Podaj liczbę od 1 do 180");
-    return;
-  }
-
-  timer=minutes*60;
-
-  displayTimer();
-
-  $("timerBtn").textContent="Ⅱ";
-
-  interval=setInterval(()=>{
-
-    timer--;
-
-    displayTimer();
-
-    if(timer<=0){
-
-      clearInterval(interval);
-
-      interval=null;
-
-      $("timerBtn").textContent="▶";
-
-      toast("⏰ Minutnik zakończony");
-
-      timer=300;
-
-      displayTimer();
-    }
-
-  },1000);
+   if(timer<=0){
+     clearInterval(interval);
+     interval=null;
+     $("timerBtn").textContent="▶";
+     toast("⏰ Minutnik zakończony");
+     timer=300;
+     displayTimer();
+   }
+ },1000);
 };
 
 
-/* ==============================
-   NOTATKI
-================================ */
+/* ===== WOLNE MYŚLI ===== */
 
-$("note").value=
-  localStorage.getItem(NOTE_KEY) || "";
+$("note").value=localStorage.getItem(NOTE_KEY)||"";
 
 $("saveNote").onclick=()=>{
-
-  localStorage.setItem(
-    NOTE_KEY,
-    $("note").value
-  );
-
-  toast("✓ Zapisano wolną myśl");
+ localStorage.setItem(NOTE_KEY,$("note").value);
+ toast("✓ Zapisano");
 };
 
 
 /* START */
 
 $("date").value=iso(selected);
-
-renderDay();
-renderWeek();
-renderMonth();
+renderAll();
 
 </script>
-
 </body>
 </html>
