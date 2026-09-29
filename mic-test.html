@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Test mikrofonu</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:30px;max-width:650px;margin:auto;background:#f7f8fc;color:#172033}
+button{width:100%;padding:18px;border:0;border-radius:14px;background:#1f6feb;color:white;font-size:20px;font-weight:700;margin:12px 0}
+#status{padding:16px;background:white;border-radius:14px;border:1px solid #ddd;min-height:28px}
+audio{width:100%;margin-top:16px}
+</style>
+</head>
+<body>
+<h1>🎙 Test mikrofonu</h1>
+<p>Ten test sprawdza tylko mikrofon iPada. Nie używa OpenAI.</p>
+<button id="btn">Uruchom mikrofon</button>
+<div id="status">Gotowy do testu.</div>
+<audio id="audio" controls hidden></audio>
+<script>
+const btn=document.getElementById('btn');
+const status=document.getElementById('status');
+const audio=document.getElementById('audio');
+let recorder=null, chunks=[], stream=null;
+btn.addEventListener('click', async()=>{
+  if(recorder && recorder.state==='recording'){
+    status.textContent='Zatrzymuję nagranie…';
+    recorder.stop();
+    return;
+  }
+  try{
+    status.textContent='Proszę o dostęp do mikrofonu…';
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[];
+    recorder=new MediaRecorder(stream);
+    recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    recorder.onstart=()=>{btn.textContent='⏹ Zatrzymaj nagranie';status.textContent='🔴 Mikrofon działa — mów teraz.'};
+    recorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(chunks,{type:recorder.mimeType||'audio/mp4'});
+      audio.src=URL.createObjectURL(blob);audio.hidden=false;
+      btn.textContent='Uruchom mikrofon';status.textContent='✅ Nagranie gotowe. Odsłuchaj poniżej.';
+      recorder=null;
+    };
+    recorder.start();
+  }catch(e){
+    status.textContent='❌ '+e.name+': '+e.message;
+  }
+});
+</script>
+</body>
+</html>
