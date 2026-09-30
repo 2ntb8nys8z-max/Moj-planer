@@ -173,7 +173,8 @@ Dla wydarzenia:
   "date": "YYYY-MM-DD",
   "startTime": "HH:MM",
   "endTime": "HH:MM",
-  "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem"
+  "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem",
+  "reminder": null
 }
 
 Dla pomysłu:
@@ -186,7 +187,7 @@ Dla pomysłu:
 ZASADY:
 
 - Zachowuj istotny sens wypowiedzi.
-- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Dokładny adres lub nazwę miejsca zapisuj w polu "location", a nie tylko w tytule.\n- Dodatkowe informacje, np. cel spotkania, numer pokoju, nazwisko kontaktu lub rzecz do zabrania, zapisuj w "notes".\n- Jeśli lokalizacji lub notatki nie podano, zwróć pusty string.
+- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Osoby, miejsca, adresy, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj ani nie poprawiaj nazw własnych, ulic i adresów.\n- Jeśli notatki nie podano, zwróć pusty string.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Jeśli użytkownik nie prosi o przypomnienie, ustaw "reminder": null.
 - "spotkanie dentysta" interpretuj jako np. "Wizyta u dentysty".
 - "spotkanie z Tomkiem" → "Spotkanie z Tomkiem".
 - "spotkanie w banku" → "Spotkanie w banku".
@@ -284,7 +285,8 @@ Przykłady:
           date: parsed.date || "",
           startTime: parsed.startTime || "",
           endTime: parsed.endTime || "",
-          notes: parsed.notes || ""
+          notes: parsed.notes || "",
+          reminder: parsed.reminder || null
         }
       });
 
