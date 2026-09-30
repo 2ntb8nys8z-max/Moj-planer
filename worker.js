@@ -160,8 +160,7 @@ Dla wydarzenia:
   "date": "YYYY-MM-DD",
   "startTime": "HH:MM",
   "endTime": "HH:MM",
-  "location": "pełny adres lub miejsce, jeśli podano",
-  "notes": "pozostałe istotne informacje, jeśli podano"
+  "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem"
 }
 
 Dla pomysłu:
@@ -272,7 +271,6 @@ Przykłady:
           date: parsed.date || "",
           startTime: parsed.startTime || "",
           endTime: parsed.endTime || "",
-          location: parsed.location || "",
           notes: parsed.notes || ""
         }
       });
