@@ -4,7 +4,7 @@ export default {
     const cors = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, X-Current-Item",
     };
 
     const json = (data, status = 200) =>
@@ -93,6 +93,12 @@ export default {
       const spokenText =
         (transcription.text || "").trim();
 
+      let currentItem = null;
+      const currentItemHeader = request.headers.get("X-Current-Item");
+      if (currentItemHeader) {
+        try { currentItem = JSON.parse(decodeURIComponent(currentItemHeader)); } catch (_) {}
+      }
+
       if (!spokenText) {
         throw new Error("Nie rozpoznano wypowiedzi");
       }
@@ -143,6 +149,13 @@ export default {
 
 Dzisiejsza data w strefie Europe/Berlin:
 ${currentDate}
+
+Jeżeli poniżej przekazano AKTUALNY WPIS, wypowiedź użytkownika jest poprawką do tego wpisu.
+W takim przypadku zmień WYŁĄCZNIE informacje wskazane przez użytkownika, zachowaj wszystkie pozostałe pola i zwróć kompletny poprawiony JSON.
+Nie twórz nowego wydarzenia i nie usuwaj informacji, których użytkownik nie koryguje.
+
+AKTUALNY WPIS:
+${currentItem ? JSON.stringify(currentItem) : "brak — utwórz nowy wpis"}
 
 Musisz ustalić, czy wypowiedź użytkownika jest:
 
