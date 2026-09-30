@@ -7,62 +7,413 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f8fc;color:#172033}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f7f8fc;
+  color:#172033;
+}
+
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
-.app{max-width:1000px;margin:auto;padding:20px 16px 100px}
-h1{margin:0;font-size:28px}
-.card{background:#fff;border:1px solid #e1e5ec;border-radius:18px;padding:16px;margin-bottom:16px}
-.tabs{display:flex;gap:6px;background:#eef1f6;padding:5px;border-radius:14px;margin:18px 0 16px}
-.tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:10px}
-.tabs button.active{background:#fff;font-weight:700}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.field{flex:1;min-width:150px}
-label{display:block;font-size:13px;margin:0 0 5px 3px;color:#667085}
-input,select,textarea{width:100%;border:1px solid #d8dde6;border-radius:12px;padding:12px;background:#fff}
-.primary{border:0;border-radius:12px;padding:13px 18px;background:#172033;color:#fff;font-weight:700}
-.voice{width:100%;border:0;border-radius:14px;padding:16px;background:#172033;color:#fff;font-size:18px;font-weight:700;margin-top:12px}
-#voiceHint{text-align:center;margin-top:10px;color:#667085;min-height:22px}
-.daybar{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.navbutton{border:1px solid #dfe3ea;background:#fff;border-radius:10px;padding:8px 12px}
-.task{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:13px 2px}
+
+.app{
+  max-width:1100px;
+  margin:auto;
+  padding:20px 16px 100px;
+}
+
+h1{margin:0;font-size:30px}
+h2{margin-top:0}
+
+.subtitle{
+  color:#667085;
+  margin-top:4px;
+}
+
+.card{
+  background:#fff;
+  border:1px solid #e1e5ec;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  background:#eef1f6;
+  padding:5px;
+  border-radius:14px;
+  margin:18px 0 16px;
+}
+
+.tabs button{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:11px 6px;
+  border-radius:10px;
+  color:#246bfd;
+}
+
+.tabs button.active{
+  background:#fff;
+  font-weight:700;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.field{
+  flex:1;
+  min-width:145px;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  margin:0 0 5px 3px;
+  color:#667085;
+}
+
+input,select,textarea{
+  width:100%;
+  border:1px solid #d8dde6;
+  border-radius:12px;
+  padding:12px;
+  background:#fff;
+}
+
+.primary{
+  border:0;
+  border-radius:12px;
+  padding:13px 18px;
+  background:#172033;
+  color:#fff;
+  font-weight:700;
+}
+
+.secondary{
+  border:1px solid #d8dde6;
+  border-radius:12px;
+  padding:13px 18px;
+  background:#fff;
+  color:#172033;
+  font-weight:650;
+}
+
+.danger{
+  border:0;
+  border-radius:12px;
+  padding:13px 18px;
+  background:#f2f4f7;
+  color:#b42318;
+  font-weight:700;
+}
+
+/* ===== GŁÓWNY MIKROFON ===== */
+
+.voice-area{
+  text-align:center;
+  padding:22px 16px;
+}
+
+.voice-button{
+  width:118px;
+  height:118px;
+  border-radius:50%;
+  border:0;
+  background:#172033;
+  color:white;
+  font-size:48px;
+  box-shadow:0 8px 24px rgba(23,32,51,.18);
+}
+
+.voice-button.recording{
+  background:#b42318;
+}
+
+#voiceHint{
+  margin-top:14px;
+  color:#667085;
+  min-height:24px;
+  font-size:15px;
+}
+
+/* ===== PODGLĄD AI ===== */
+
+.preview{
+  border:2px solid #246bfd;
+  border-radius:16px;
+  padding:16px;
+  margin-top:18px;
+  text-align:left;
+}
+
+.preview.hidden{display:none}
+
+.preview-type{
+  display:inline-block;
+  font-size:12px;
+  font-weight:800;
+  background:#eef4ff;
+  color:#175cd3;
+  padding:5px 9px;
+  border-radius:20px;
+  margin-bottom:10px;
+}
+
+.preview-title{
+  font-size:20px;
+  font-weight:750;
+  margin-bottom:6px;
+}
+
+.preview-info{
+  color:#667085;
+  line-height:1.5;
+}
+
+.preview-actions{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+
+.preview-actions button{
+  flex:1;
+}
+
+/* ===== DZIEŃ ===== */
+
+.daybar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.navbutton{
+  border:1px solid #dfe3ea;
+  background:#fff;
+  border-radius:10px;
+  padding:8px 12px;
+}
+
+.task{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #eee;
+  padding:14px 2px;
+}
+
 .task:last-child{border-bottom:0}
-.task-time{width:110px;font-weight:700}
+
+.task-time{
+  width:125px;
+  font-weight:750;
+}
+
 .task-title{flex:1}
-.task.done .task-title{text-decoration:line-through;opacity:.5}
-.delete{border:0;background:transparent;font-size:18px}
-.empty{padding:30px 5px;text-align:center;color:#98a2b3}
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.week-day{border:1px solid #e1e5ec;border-radius:12px;padding:8px;min-height:100px;font-size:12px}
-.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.month-day{border:1px solid #e1e5ec;border-radius:10px;min-height:80px;padding:7px;font-size:12px}
-.today{border:2px solid #172033}
-.hidden{display:none}
-.timer{display:flex;align-items:center;justify-content:space-between}
-#clock{font-size:30px;font-weight:700}
-textarea{min-height:120px;resize:vertical}
-.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#172033;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:999}
+
+.task.done .task-title{
+  text-decoration:line-through;
+  opacity:.5;
+}
+
+.delete{
+  border:0;
+  background:transparent;
+  font-size:20px;
+  color:#246bfd;
+}
+
+.empty{
+  padding:30px 5px;
+  text-align:center;
+  color:#98a2b3;
+}
+
+/* ===== TYDZIEŃ ===== */
+
+.week-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+}
+
+.week-day{
+  border:1px solid #e1e5ec;
+  border-radius:12px;
+  padding:8px;
+  min-height:110px;
+  font-size:12px;
+}
+
+/* ===== MIESIĄC ===== */
+
+.month-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+}
+
+.month-day{
+  border:1px solid #e1e5ec;
+  border-radius:10px;
+  min-height:80px;
+  padding:7px;
+  font-size:12px;
+}
+
+.today{
+  border:2px solid #172033;
+}
+
+/* ===== POMYSŁY ===== */
+
+.idea{
+  border-bottom:1px solid #eee;
+  padding:15px 2px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.idea:last-child{
+  border-bottom:0;
+}
+
+.idea-content{
+  flex:1;
+}
+
+.idea-text{
+  font-size:17px;
+  line-height:1.4;
+}
+
+.idea-date{
+  margin-top:6px;
+  color:#98a2b3;
+  font-size:13px;
+}
+
+/* ===== INNE ===== */
+
+.hidden{display:none!important}
+
+.timer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+#clock{
+  font-size:30px;
+  font-weight:700;
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:30px;
+  transform:translateX(-50%);
+  background:#172033;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+  z-index:999;
+}
+
 .toast.show{opacity:1}
-@media(max-width:700px){.week-grid{grid-template-columns:1fr}.month-day{min-height:55px}}
+
+@media(max-width:700px){
+  .week-grid{grid-template-columns:1fr}
+  .month-day{min-height:55px}
+  .tabs button{font-size:13px}
+  .voice-button{
+    width:105px;
+    height:105px;
+  }
+}
 </style>
 </head>
 
 <body>
+
 <div class="app">
 
 <h1>Mój Planer</h1>
-<div style="color:#667085">Twój dzień pod kontrolą</div>
+<div class="subtitle">Twój dzień pod kontrolą</div>
 
 <div class="tabs">
-<button id="tabDay" class="active">Dzień</button>
-<button id="tabWeek">Tydzień</button>
-<button id="tabMonth">Miesiąc</button>
+  <button id="tabDay" class="active">Dzień</button>
+  <button id="tabWeek">Tydzień</button>
+  <button id="tabMonth">Miesiąc</button>
+  <button id="tabIdeas">Pomysły</button>
 </div>
 
-<div class="card">
-<h2>Dodaj zadanie</h2>
+
+<!-- ===== MIKROFON ===== -->
+
+<div class="card voice-area">
+
+  <button id="voice" class="voice-button" type="button">
+    🎙️
+  </button>
+
+  <div id="voiceHint">
+    Naciśnij mikrofon i powiedz wydarzenie lub pomysł
+  </div>
+
+  <div id="aiPreview" class="preview hidden">
+
+    <div id="previewType" class="preview-type"></div>
+
+    <div id="previewTitle" class="preview-title"></div>
+
+    <div id="previewInfo" class="preview-info"></div>
+
+    <div class="preview-actions">
+
+      <button id="confirmVoice" class="primary">
+        ✓ Potwierdź
+      </button>
+
+      <button id="cancelVoice" class="danger">
+        🗑 Usuń
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ===== RĘCZNE DODAWANIE ===== -->
+
+<div id="manualCard" class="card">
+
+<h2>Dodaj wydarzenie</h2>
 
 <form id="form">
+
 <div class="row">
 
 <div class="field">
@@ -87,6 +438,7 @@ textarea{min-height:120px;resize:vertical}
 
 <div class="field">
 <label>Kategoria</label>
+
 <select id="category">
 <option>Osobiste</option>
 <option>Praca</option>
@@ -94,484 +446,1370 @@ textarea{min-height:120px;resize:vertical}
 <option>Zakupy</option>
 <option>Inne</option>
 </select>
+
 </div>
 
 </div>
 
 <button class="primary" type="submit" style="margin-top:12px">
-Dodaj zadanie
+Dodaj wydarzenie
 </button>
+
 </form>
 
-<button id="voice" class="voice" type="button">
-🎙️ Dodaj głosem
-</button>
-
-<div id="voiceHint">Naciśnij i powiedz swoje zadanie</div>
 </div>
 
+
+<!-- ===== DZIEŃ ===== -->
+
 <div id="dayView" class="card">
+
 <div class="daybar">
+
 <button id="prev" class="navbutton">←</button>
+
 <h2 id="dayTitle"></h2>
+
 <button id="next" class="navbutton">→</button>
+
 </div>
 
 <div style="text-align:center;margin:10px">
-<button id="todayBtn" class="navbutton">Dzisiaj</button>
+
+<button id="todayBtn" class="navbutton">
+Dzisiaj
+</button>
+
 </div>
 
 <div id="taskList"></div>
+
 </div>
+
+
+<!-- ===== TYDZIEŃ ===== -->
 
 <div id="weekView" class="card hidden">
+
 <div class="daybar">
+
 <button id="weekPrev" class="navbutton">←</button>
+
 <h2>Tydzień</h2>
+
 <button id="weekNext" class="navbutton">→</button>
+
 </div>
+
 <div id="weekGrid" class="week-grid"></div>
+
 </div>
+
+
+<!-- ===== MIESIĄC ===== -->
 
 <div id="monthView" class="card hidden">
+
 <div class="daybar">
+
 <button id="monthPrev" class="navbutton">←</button>
+
 <h2 id="monthTitle"></h2>
+
 <button id="monthNext" class="navbutton">→</button>
+
 </div>
+
 <div id="monthGrid" class="month-grid"></div>
+
 </div>
+
+
+<!-- ===== POMYSŁY ===== -->
+
+<div id="ideasView" class="card hidden">
+
+<h2>💡 Pomysły</h2>
+
+<div style="color:#667085;margin-bottom:10px">
+Luźne myśli, książki, filmy i rzeczy, o których chcesz pamiętać.
+</div>
+
+<div id="ideasList"></div>
+
+</div>
+
+
+<!-- ===== MINUTNIK ===== -->
+
+<div id="toolsArea">
 
 <div class="card timer">
+
 <div>
-<div style="color:#667085">Minutnik</div>
-<div id="clock">05:00</div>
+
+<div style="color:#667085">
+Minutnik
 </div>
-<button id="timerBtn" class="primary">▶</button>
+
+<div id="clock">
+05:00
 </div>
+
+</div>
+
+<button id="timerBtn" class="primary">
+▶
+</button>
+
+</div>
+
+
+<!-- ===== NOTATKI ===== -->
 
 <div class="card">
+
 <h2>Wolne myśli</h2>
-<textarea id="note" placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea>
-<button id="saveNote" class="primary" style="margin-top:10px">Zapisz</button>
+
+<textarea
+id="note"
+placeholder="Zapisz coś, żeby nie zapomnieć..."
+></textarea>
+
+<button
+id="saveNote"
+class="primary"
+style="margin-top:10px">
+Zapisz
+</button>
+
 </div>
 
 </div>
+
+</div>
+
 
 <div id="toast" class="toast"></div>
 
+
 <script>
+
+/* ========================================
+   PODSTAWY
+======================================== */
+
 const $ = id => document.getElementById(id);
 
-const TASK_KEY="moj-planer-tasks";
-const NOTE_KEY="moj-planer-note";
-const API_URL="https://moj-planer-api.yd7ynvj864.workers.dev";
+const TASK_KEY = "moj-planer-tasks";
+const IDEA_KEY = "moj-planer-ideas";
+const NOTE_KEY = "moj-planer-note";
 
-let tasks=JSON.parse(localStorage.getItem(TASK_KEY)||"[]");
+const API_URL =
+"https://moj-planer-api.yd7ynvj864.workers.dev";
+
+let tasks =
+JSON.parse(localStorage.getItem(TASK_KEY) || "[]");
+
+let ideas =
+JSON.parse(localStorage.getItem(IDEA_KEY) || "[]");
+
+let pendingVoiceItem = null;
+
+
+/* ========================================
+   DATY
+======================================== */
 
 function today(){
- const d=new Date();
- d.setHours(12,0,0,0);
- return d;
+
+  const d = new Date();
+
+  d.setHours(12,0,0,0);
+
+  return d;
 }
 
-let selected=today();
-let monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
+let selected = today();
+
+let monthCursor =
+new Date(
+  selected.getFullYear(),
+  selected.getMonth(),
+  1
+);
 
 function iso(d){
- return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
 
-function escapeHtml(text){
- const div=document.createElement("div");
- div.textContent=text;
- return div.innerHTML;
-}
-
-function toast(text){
- $("toast").textContent=text;
- $("toast").classList.add("show");
- setTimeout(()=>$("toast").classList.remove("show"),2200);
-}
-
-function save(){
- localStorage.setItem(TASK_KEY,JSON.stringify(tasks));
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth()+1).padStart(2,"0") +
+    "-" +
+    String(d.getDate()).padStart(2,"0")
+  );
 }
 
 function formatDate(d){
- return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"});
+
+  return d.toLocaleDateString(
+    "pl-PL",
+    {
+      weekday:"long",
+      day:"numeric",
+      month:"long"
+    }
+  );
 }
+
+
+/* ========================================
+   POMOCNICZE
+======================================== */
+
+function escapeHtml(text){
+
+  const div =
+  document.createElement("div");
+
+  div.textContent = text || "";
+
+  return div.innerHTML;
+}
+
+function toast(text){
+
+  $("toast").textContent = text;
+
+  $("toast").classList.add("show");
+
+  setTimeout(
+    ()=>$("toast").classList.remove("show"),
+    2200
+  );
+}
+
+function saveTasks(){
+
+  localStorage.setItem(
+    TASK_KEY,
+    JSON.stringify(tasks)
+  );
+}
+
+function saveIdeas(){
+
+  localStorage.setItem(
+    IDEA_KEY,
+    JSON.stringify(ideas)
+  );
+}
+
+
+/* ========================================
+   WYDARZENIA
+======================================== */
+
+function addTask(
+  title,
+  date,
+  time="",
+  endTime="",
+  category="Osobiste"
+){
+
+  tasks.push({
+
+    id:
+      Date.now() +
+      Math.random(),
+
+    title,
+    date,
+    time,
+    endTime,
+    category,
+    done:false
+  });
+
+  saveTasks();
+
+  selected =
+    new Date(date + "T12:00:00");
+
+  monthCursor =
+    new Date(
+      selected.getFullYear(),
+      selected.getMonth(),
+      1
+    );
+
+  $("date").value = date;
+
+  renderAll();
+}
+
+
+/* ========================================
+   POMYSŁY
+======================================== */
+
+function addIdea(text){
+
+  const now = new Date();
+
+  ideas.unshift({
+
+    id:
+      Date.now() +
+      Math.random(),
+
+    text,
+
+    createdAt:
+      now.toISOString()
+  });
+
+  saveIdeas();
+
+  renderIdeas();
+}
+
+function renderIdeas(){
+
+  $("ideasList").innerHTML = "";
+
+  if(!ideas.length){
+
+    $("ideasList").innerHTML =
+      '<div class="empty">Nie masz jeszcze zapisanych pomysłów.</div>';
+
+    return;
+  }
+
+  ideas.forEach(idea=>{
+
+    const div =
+      document.createElement("div");
+
+    div.className = "idea";
+
+    const date =
+      new Date(idea.createdAt);
+
+    const dateText =
+      date.toLocaleString(
+        "pl-PL",
+        {
+          day:"2-digit",
+          month:"2-digit",
+          year:"numeric",
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    div.innerHTML = `
+
+      <div class="idea-content">
+
+        <div class="idea-text">
+          ${escapeHtml(idea.text)}
+        </div>
+
+        <div class="idea-date">
+          ${dateText}
+        </div>
+
+      </div>
+
+      <button
+        class="delete"
+        title="Usuń">
+        🗑
+      </button>
+    `;
+
+    div.querySelector(".delete").onclick = ()=>{
+
+      ideas =
+        ideas.filter(
+          x => x.id !== idea.id
+        );
+
+      saveIdeas();
+
+      renderIdeas();
+    };
+
+    $("ideasList").appendChild(div);
+  });
+}
+
+
+/* ========================================
+   DZIEŃ
+======================================== */
 
 function renderDay(){
- $("dayTitle").textContent=formatDate(selected);
 
- const list=tasks
-   .filter(t=>t.date===iso(selected))
-   .sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
+  $("dayTitle").textContent =
+    formatDate(selected);
 
- $("taskList").innerHTML="";
+  const list =
+    tasks
+      .filter(
+        t => t.date === iso(selected)
+      )
+      .sort(
+        (a,b)=>
+          (a.time || "99:99")
+          .localeCompare(
+            b.time || "99:99"
+          )
+      );
 
- if(!list.length){
-   $("taskList").innerHTML='<div class="empty">Brak zadań na ten dzień</div>';
-   return;
- }
+  $("taskList").innerHTML = "";
 
- list.forEach(task=>{
-   const div=document.createElement("div");
-   div.className="task"+(task.done?" done":"");
+  if(!list.length){
 
-   let timeText=task.time||"—";
-   if(task.time && task.endTime) timeText=`${task.time}–${task.endTime}`;
+    $("taskList").innerHTML =
+      '<div class="empty">Brak wydarzeń na ten dzień</div>';
 
-   div.innerHTML=`
-     <input type="checkbox" ${task.done?"checked":""} style="width:auto">
-     <div class="task-time">${timeText}</div>
-     <div class="task-title">${escapeHtml(task.title)}</div>
-     <button class="delete">×</button>
-   `;
+    return;
+  }
 
-   div.querySelector("input").onchange=e=>{
-     task.done=e.target.checked;
-     save(); renderAll();
-   };
+  list.forEach(task=>{
 
-   div.querySelector(".delete").onclick=()=>{
-     tasks=tasks.filter(t=>t.id!==task.id);
-     save(); renderAll();
-   };
+    const div =
+      document.createElement("div");
 
-   $("taskList").appendChild(div);
- });
+    div.className =
+      "task" +
+      (task.done ? " done" : "");
+
+    let timeText =
+      task.time || "—";
+
+    if(
+      task.time &&
+      task.endTime
+    ){
+
+      timeText =
+        `${task.time}–${task.endTime}`;
+    }
+
+    div.innerHTML = `
+
+      <input
+        type="checkbox"
+        ${task.done ? "checked" : ""}
+        style="width:auto">
+
+      <div class="task-time">
+        ${timeText}
+      </div>
+
+      <div class="task-title">
+        ${escapeHtml(task.title)}
+      </div>
+
+      <button class="delete">
+        ×
+      </button>
+    `;
+
+    div.querySelector("input")
+      .onchange = e => {
+
+        task.done =
+          e.target.checked;
+
+        saveTasks();
+
+        renderAll();
+      };
+
+    div.querySelector(".delete")
+      .onclick = ()=>{
+
+        tasks =
+          tasks.filter(
+            t => t.id !== task.id
+          );
+
+        saveTasks();
+
+        renderAll();
+      };
+
+    $("taskList")
+      .appendChild(div);
+  });
 }
+
+
+/* ========================================
+   TYDZIEŃ
+======================================== */
 
 function renderWeek(){
- $("weekGrid").innerHTML="";
- const start=new Date(selected);
- const weekday=start.getDay()||7;
- start.setDate(start.getDate()-weekday+1);
 
- for(let i=0;i<7;i++){
-   const d=new Date(start);
-   d.setDate(start.getDate()+i);
-   const date=iso(d);
-   const dayTasks=tasks.filter(t=>t.date===date);
+  $("weekGrid").innerHTML = "";
 
-   const div=document.createElement("div");
-   div.className="week-day";
+  const start =
+    new Date(selected);
 
-   div.innerHTML=
-     `<strong>${d.toLocaleDateString("pl-PL",{weekday:"short",day:"numeric"})}</strong><br><br>`+
-     dayTasks.map(t=>{
-       const tm=t.endTime?`${t.time}–${t.endTime}`:(t.time||"");
-       return `${tm} ${escapeHtml(t.title)}`;
-     }).join("<br>");
+  const weekday =
+    start.getDay() || 7;
 
-   $("weekGrid").appendChild(div);
- }
+  start.setDate(
+    start.getDate() -
+    weekday +
+    1
+  );
+
+  for(let i=0;i<7;i++){
+
+    const d =
+      new Date(start);
+
+    d.setDate(
+      start.getDate()+i
+    );
+
+    const date =
+      iso(d);
+
+    const dayTasks =
+      tasks.filter(
+        t => t.date === date
+      );
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "week-day";
+
+    div.innerHTML =
+
+      `<strong>${
+        d.toLocaleDateString(
+          "pl-PL",
+          {
+            weekday:"short",
+            day:"numeric"
+          }
+        )
+      }</strong><br><br>` +
+
+      dayTasks.map(t=>{
+
+        const tm =
+          t.endTime
+            ? `${t.time}–${t.endTime}`
+            : (t.time || "");
+
+        return (
+          `${tm} ${escapeHtml(t.title)}`
+        );
+
+      }).join("<br>");
+
+    $("weekGrid")
+      .appendChild(div);
+  }
 }
+
+
+/* ========================================
+   MIESIĄC
+======================================== */
 
 function renderMonth(){
- $("monthGrid").innerHTML="";
 
- $("monthTitle").textContent=monthCursor.toLocaleDateString(
-   "pl-PL",{month:"long",year:"numeric"}
- );
+  $("monthGrid").innerHTML = "";
 
- const first=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),1);
- let offset=first.getDay();
- if(offset===0)offset=7;
+  $("monthTitle").textContent =
+    monthCursor
+      .toLocaleDateString(
+        "pl-PL",
+        {
+          month:"long",
+          year:"numeric"
+        }
+      );
 
- for(let i=1;i<offset;i++){
-   $("monthGrid").appendChild(document.createElement("div"));
- }
+  const first =
+    new Date(
+      monthCursor.getFullYear(),
+      monthCursor.getMonth(),
+      1
+    );
 
- const days=new Date(monthCursor.getFullYear(),monthCursor.getMonth()+1,0).getDate();
+  let offset =
+    first.getDay();
 
- for(let day=1;day<=days;day++){
-   const d=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),day);
-   const date=iso(d);
-   const count=tasks.filter(t=>t.date===date).length;
+  if(offset === 0){
+    offset = 7;
+  }
 
-   const div=document.createElement("div");
-   div.className="month-day"+(date===iso(today())?" today":"");
-   div.innerHTML=`<strong>${day}</strong>${count?`<div style="margin-top:8px">${count} zad.</div>`:""}`;
+  for(
+    let i=1;
+    i<offset;
+    i++
+  ){
 
-   div.onclick=()=>{
-     selected=d;
-     $("date").value=date;
-     showView("day");
-   };
+    $("monthGrid")
+      .appendChild(
+        document.createElement("div")
+      );
+  }
 
-   $("monthGrid").appendChild(div);
- }
+  const days =
+    new Date(
+      monthCursor.getFullYear(),
+      monthCursor.getMonth()+1,
+      0
+    ).getDate();
+
+  for(
+    let day=1;
+    day<=days;
+    day++
+  ){
+
+    const d =
+      new Date(
+        monthCursor.getFullYear(),
+        monthCursor.getMonth(),
+        day
+      );
+
+    const date =
+      iso(d);
+
+    const count =
+      tasks.filter(
+        t => t.date === date
+      ).length;
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "month-day" +
+      (
+        date === iso(today())
+        ? " today"
+        : ""
+      );
+
+    div.innerHTML =
+      `<strong>${day}</strong>` +
+      (
+        count
+        ? `<div style="margin-top:8px">${count} wydarzeń</div>`
+        : ""
+      );
+
+    div.onclick = ()=>{
+
+      selected = d;
+
+      $("date").value =
+        date;
+
+      showView("day");
+    };
+
+    $("monthGrid")
+      .appendChild(div);
+  }
 }
 
+
+/* ========================================
+   WIDOKI
+======================================== */
+
 function renderAll(){
- renderDay();
- renderWeek();
- renderMonth();
+
+  renderDay();
+  renderWeek();
+  renderMonth();
+  renderIdeas();
 }
 
 function showView(view){
- $("dayView").classList.toggle("hidden",view!=="day");
- $("weekView").classList.toggle("hidden",view!=="week");
- $("monthView").classList.toggle("hidden",view!=="month");
 
- $("tabDay").classList.toggle("active",view==="day");
- $("tabWeek").classList.toggle("active",view==="week");
- $("tabMonth").classList.toggle("active",view==="month");
+  $("dayView")
+    .classList.toggle(
+      "hidden",
+      view !== "day"
+    );
 
- renderAll();
+  $("weekView")
+    .classList.toggle(
+      "hidden",
+      view !== "week"
+    );
+
+  $("monthView")
+    .classList.toggle(
+      "hidden",
+      view !== "month"
+    );
+
+  $("ideasView")
+    .classList.toggle(
+      "hidden",
+      view !== "ideas"
+    );
+
+  $("manualCard")
+    .classList.toggle(
+      "hidden",
+      view === "ideas"
+    );
+
+  $("tabDay")
+    .classList.toggle(
+      "active",
+      view === "day"
+    );
+
+  $("tabWeek")
+    .classList.toggle(
+      "active",
+      view === "week"
+    );
+
+  $("tabMonth")
+    .classList.toggle(
+      "active",
+      view === "month"
+    );
+
+  $("tabIdeas")
+    .classList.toggle(
+      "active",
+      view === "ideas"
+    );
+
+  renderAll();
 }
 
-$("tabDay").onclick=()=>showView("day");
-$("tabWeek").onclick=()=>showView("week");
-$("tabMonth").onclick=()=>showView("month");
+$("tabDay").onclick =
+  ()=>showView("day");
 
-$("prev").onclick=()=>{
- selected.setDate(selected.getDate()-1);
- $("date").value=iso(selected);
- renderDay();
+$("tabWeek").onclick =
+  ()=>showView("week");
+
+$("tabMonth").onclick =
+  ()=>showView("month");
+
+$("tabIdeas").onclick =
+  ()=>showView("ideas");
+
+
+/* ========================================
+   NAWIGACJA
+======================================== */
+
+$("prev").onclick = ()=>{
+
+  selected.setDate(
+    selected.getDate()-1
+  );
+
+  $("date").value =
+    iso(selected);
+
+  renderDay();
 };
 
-$("next").onclick=()=>{
- selected.setDate(selected.getDate()+1);
- $("date").value=iso(selected);
- renderDay();
+$("next").onclick = ()=>{
+
+  selected.setDate(
+    selected.getDate()+1
+  );
+
+  $("date").value =
+    iso(selected);
+
+  renderDay();
 };
 
-$("todayBtn").onclick=()=>{
- selected=today();
- $("date").value=iso(selected);
- renderDay();
+$("todayBtn").onclick = ()=>{
+
+  selected = today();
+
+  $("date").value =
+    iso(selected);
+
+  renderDay();
 };
 
-$("weekPrev").onclick=()=>{
- selected.setDate(selected.getDate()-7);
- renderWeek();
+$("weekPrev").onclick = ()=>{
+
+  selected.setDate(
+    selected.getDate()-7
+  );
+
+  renderWeek();
 };
 
-$("weekNext").onclick=()=>{
- selected.setDate(selected.getDate()+7);
- renderWeek();
+$("weekNext").onclick = ()=>{
+
+  selected.setDate(
+    selected.getDate()+7
+  );
+
+  renderWeek();
 };
 
-$("monthPrev").onclick=()=>{
- monthCursor.setMonth(monthCursor.getMonth()-1);
- renderMonth();
+$("monthPrev").onclick = ()=>{
+
+  monthCursor.setMonth(
+    monthCursor.getMonth()-1
+  );
+
+  renderMonth();
 };
 
-$("monthNext").onclick=()=>{
- monthCursor.setMonth(monthCursor.getMonth()+1);
- renderMonth();
+$("monthNext").onclick = ()=>{
+
+  monthCursor.setMonth(
+    monthCursor.getMonth()+1
+  );
+
+  renderMonth();
 };
 
-function addTask(title,date,time="",endTime="",category="Osobiste"){
- tasks.push({
-   id:Date.now(),
-   title,
-   date,
-   time,
-   endTime,
-   category,
-   done:false
- });
 
- save();
+/* ========================================
+   RĘCZNE WYDARZENIE
+======================================== */
 
- selected=new Date(date+"T12:00:00");
- monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);
+$("form").onsubmit = e => {
 
- $("date").value=date;
+  e.preventDefault();
 
- showView("day");
+  const title =
+    $("title").value.trim();
+
+  if(!title){
+
+    toast(
+      "Wpisz nazwę wydarzenia"
+    );
+
+    return;
+  }
+
+  const date =
+    $("date").value ||
+    iso(selected);
+
+  addTask(
+    title,
+    date,
+    $("time").value || "",
+    $("endTime").value || "",
+    $("category").value
+  );
+
+  $("title").value = "";
+  $("time").value = "";
+  $("endTime").value = "";
+
+  toast(
+    "✓ Wydarzenie dodane"
+  );
+};
+
+
+/* ========================================
+   GŁOS
+======================================== */
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let microphoneStream = null;
+
+$("voice").onclick =
+async ()=>{
+
+  if(
+    mediaRecorder &&
+    mediaRecorder.state === "recording"
+  ){
+
+    mediaRecorder.stop();
+
+    return;
+  }
+
+  try{
+
+    $("voiceHint").textContent =
+      "Uruchamiam mikrofon…";
+
+    microphoneStream =
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio:true
+        });
+
+    recordedChunks = [];
+
+    mediaRecorder =
+      new MediaRecorder(
+        microphoneStream
+      );
+
+    mediaRecorder
+      .ondataavailable = e => {
+
+        if(
+          e.data &&
+          e.data.size
+        ){
+
+          recordedChunks
+            .push(e.data);
+        }
+      };
+
+    mediaRecorder.onstart = ()=>{
+
+      $("voice")
+        .classList.add(
+          "recording"
+        );
+
+      $("voice").textContent =
+        "⏹";
+
+      $("voiceHint").textContent =
+        "🔴 Nagrywanie — naciśnij ponownie, aby zakończyć";
+    };
+
+    mediaRecorder.onstop =
+    async ()=>{
+
+      microphoneStream
+        .getTracks()
+        .forEach(
+          track=>track.stop()
+        );
+
+      $("voice")
+        .classList.remove(
+          "recording"
+        );
+
+      $("voice").textContent =
+        "🎙️";
+
+      $("voiceHint").textContent =
+        "⏳ Rozpoznaję wypowiedź…";
+
+      try{
+
+        const blob =
+          new Blob(
+            recordedChunks,
+            {
+              type:
+                mediaRecorder.mimeType ||
+                "audio/mp4"
+            }
+          );
+
+        const response =
+          await fetch(
+            API_URL,
+            {
+              method:"POST",
+
+              headers:{
+                "Content-Type":
+                  blob.type
+              },
+
+              body:blob
+            }
+          );
+
+        const result =
+          await response.json();
+
+        if(
+          !response.ok ||
+          !result.success
+        ){
+
+          throw new Error(
+            result.error ||
+            "Błąd API"
+          );
+        }
+
+        if(!result.item){
+
+          throw new Error(
+            "AI nie zwróciło elementu"
+          );
+        }
+
+        pendingVoiceItem =
+          result.item;
+
+        showVoicePreview(
+          pendingVoiceItem,
+          result.transcription
+        );
+
+        $("voiceHint").textContent =
+          "Sprawdź i potwierdź";
+
+      }catch(error){
+
+        console.error(error);
+
+        $("voiceHint").textContent =
+          "❌ Nie udało się rozpoznać wypowiedzi";
+
+        toast(
+          "Błąd rozpoznawania"
+        );
+      }
+
+      mediaRecorder = null;
+    };
+
+    mediaRecorder.start();
+
+  }catch(error){
+
+    console.error(error);
+
+    $("voiceHint").textContent =
+      "❌ Brak dostępu do mikrofonu";
+
+    toast(
+      "Nie udało się uruchomić mikrofonu"
+    );
+  }
+};
+
+
+/* ========================================
+   PODGLĄD AI
+======================================== */
+
+function showVoicePreview(
+  item,
+  transcription
+){
+
+  $("aiPreview")
+    .classList.remove(
+      "hidden"
+    );
+
+  if(item.type === "idea"){
+
+    $("previewType")
+      .textContent =
+      "💡 POMYSŁ";
+
+    $("previewTitle")
+      .textContent =
+      item.text;
+
+    $("previewInfo")
+      .textContent =
+      "Zostanie zapisany w zakładce Pomysły.";
+
+  }else{
+
+    $("previewType")
+      .textContent =
+      "📅 WYDARZENIE";
+
+    $("previewTitle")
+      .textContent =
+      item.title;
+
+    let info =
+      item.date || "";
+
+    if(item.startTime){
+
+      info +=
+        " • " +
+        item.startTime;
+    }
+
+    if(item.endTime){
+
+      info +=
+        "–" +
+        item.endTime;
+    }
+
+    $("previewInfo")
+      .textContent =
+      info;
+  }
 }
 
-$("form").onsubmit=e=>{
- e.preventDefault();
 
- const title=$("title").value.trim();
+/* ========================================
+   POTWIERDZENIE
+======================================== */
 
- if(!title){
-   toast("Wpisz nazwę zadania");
-   return;
- }
+$("confirmVoice").onclick = ()=>{
 
- const date=$("date").value||iso(selected);
+  if(!pendingVoiceItem){
+    return;
+  }
 
- addTask(
-   title,
-   date,
-   $("time").value||"",
-   $("endTime").value||"",
-   $("category").value
- );
+  if(
+    pendingVoiceItem.type ===
+    "idea"
+  ){
 
- $("title").value="";
- $("time").value="";
- $("endTime").value="";
+    addIdea(
+      pendingVoiceItem.text
+    );
 
- toast("✓ Zadanie dodane");
+    showView("ideas");
+
+    toast(
+      "💡 Pomysł zapisany"
+    );
+
+  }else{
+
+    if(
+      !pendingVoiceItem.date
+    ){
+
+      toast(
+        "Brak daty wydarzenia"
+      );
+
+      return;
+    }
+
+    addTask(
+
+      pendingVoiceItem.title,
+
+      pendingVoiceItem.date,
+
+      pendingVoiceItem.startTime || "",
+
+      pendingVoiceItem.endTime || "",
+
+      "Osobiste"
+    );
+
+    showView("day");
+
+    toast(
+      "📅 Wydarzenie zapisane"
+    );
+  }
+
+  clearVoicePreview();
 };
 
 
-/* ===== GŁOS ===== */
+/* ========================================
+   USUNIĘCIE PODGLĄDU
+======================================== */
 
-let mediaRecorder=null;
-let recordedChunks=[];
-let microphoneStream=null;
+$("cancelVoice").onclick = ()=>{
 
-$("voice").onclick=async()=>{
+  clearVoicePreview();
 
- if(mediaRecorder && mediaRecorder.state==="recording"){
-   mediaRecorder.stop();
-   return;
- }
-
- try{
-   $("voiceHint").textContent="Proszę o dostęp do mikrofonu…";
-
-   microphoneStream=await navigator.mediaDevices.getUserMedia({audio:true});
-   recordedChunks=[];
-
-   mediaRecorder=new MediaRecorder(microphoneStream);
-
-   mediaRecorder.ondataavailable=e=>{
-     if(e.data && e.data.size) recordedChunks.push(e.data);
-   };
-
-   mediaRecorder.onstart=()=>{
-     $("voice").textContent="⏹ Zatrzymaj nagranie";
-     $("voiceHint").textContent="🔴 NAGRYWANIE — mów teraz";
-   };
-
-   mediaRecorder.onstop=async()=>{
-
-     microphoneStream.getTracks().forEach(track=>track.stop());
-
-     $("voice").textContent="🎙️ Dodaj głosem";
-     $("voiceHint").textContent="⏳ Rozpoznaję i dodaję zadanie…";
-
-     try{
-       const blob=new Blob(recordedChunks,{
-         type:mediaRecorder.mimeType||"audio/mp4"
-       });
-
-       const response=await fetch(API_URL,{
-         method:"POST",
-         headers:{"Content-Type":blob.type},
-         body:blob
-       });
-
-       const result=await response.json();
-
-       if(!response.ok || !result.success){
-         throw new Error(result.error||"Błąd API");
-       }
-
-       const task=result.task;
-
-       if(!task || !task.title || !task.date){
-         throw new Error("Nie udało się ustalić zadania lub daty");
-       }
-
-       addTask(
-         task.title,
-         task.date,
-         task.startTime||"",
-         task.endTime||"",
-         "Osobiste"
-       );
-
-       $("voiceHint").textContent=
-         `✓ ${task.title} — ${task.date}`+
-         (task.startTime?` ${task.startTime}`:"")+
-         (task.endTime?`–${task.endTime}`:"");
-
-       toast("✓ Zadanie dodane głosem");
-
-     }catch(error){
-       console.error(error);
-       $("voiceHint").textContent="❌ Nie udało się dodać zadania głosem";
-       toast("Błąd polecenia głosowego");
-     }
-
-     mediaRecorder=null;
-   };
-
-   mediaRecorder.start();
-
- }catch(error){
-   console.error(error);
-   $("voiceHint").textContent="❌ Nie udało się uruchomić mikrofonu";
-   toast("Brak dostępu do mikrofonu");
- }
+  toast(
+    "Usunięto"
+  );
 };
 
+function clearVoicePreview(){
 
-/* ===== MINUTNIK ===== */
+  pendingVoiceItem = null;
 
-let timer=300;
-let interval=null;
+  $("aiPreview")
+    .classList.add(
+      "hidden"
+    );
+
+  $("previewTitle")
+    .textContent = "";
+
+  $("previewInfo")
+    .textContent = "";
+
+  $("voiceHint")
+    .textContent =
+      "Naciśnij mikrofon i powiedz wydarzenie lub pomysł";
+}
+
+
+/* ========================================
+   MINUTNIK
+======================================== */
+
+let timer = 300;
+let interval = null;
 
 function displayTimer(){
- $("clock").textContent=
-   `${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
+
+  $("clock").textContent =
+
+    String(
+      Math.floor(timer/60)
+    ).padStart(2,"0")
+
+    + ":" +
+
+    String(
+      timer%60
+    ).padStart(2,"0");
 }
 
-$("timerBtn").onclick=()=>{
- if(interval){
-   clearInterval(interval);
-   interval=null;
-   $("timerBtn").textContent="▶";
-   return;
- }
+$("timerBtn").onclick = ()=>{
 
- const value=prompt("Ustaw minutnik (minuty):","5");
- if(value===null)return;
+  if(interval){
 
- const minutes=parseInt(value,10);
+    clearInterval(interval);
 
- if(!Number.isFinite(minutes)||minutes<1||minutes>180){
-   toast("Podaj liczbę od 1 do 180");
-   return;
- }
+    interval = null;
 
- timer=minutes*60;
- displayTimer();
- $("timerBtn").textContent="Ⅱ";
+    $("timerBtn")
+      .textContent =
+      "▶";
 
- interval=setInterval(()=>{
-   timer--;
-   displayTimer();
+    return;
+  }
 
-   if(timer<=0){
-     clearInterval(interval);
-     interval=null;
-     $("timerBtn").textContent="▶";
-     toast("⏰ Minutnik zakończony");
-     timer=300;
-     displayTimer();
-   }
- },1000);
+  const value =
+    prompt(
+      "Ustaw minutnik (minuty):",
+      "5"
+    );
+
+  if(value === null){
+    return;
+  }
+
+  const minutes =
+    parseInt(
+      value,
+      10
+    );
+
+  if(
+    !Number.isFinite(minutes) ||
+    minutes < 1 ||
+    minutes > 180
+  ){
+
+    toast(
+      "Podaj liczbę od 1 do 180"
+    );
+
+    return;
+  }
+
+  timer =
+    minutes * 60;
+
+  displayTimer();
+
+  $("timerBtn")
+    .textContent =
+    "Ⅱ";
+
+  interval =
+    setInterval(
+      ()=>{
+
+        timer--;
+
+        displayTimer();
+
+        if(timer <= 0){
+
+          clearInterval(
+            interval
+          );
+
+          interval = null;
+
+          $("timerBtn")
+            .textContent =
+            "▶";
+
+          toast(
+            "⏰ Minutnik zakończony"
+          );
+
+          timer = 300;
+
+          displayTimer();
+        }
+
+      },
+      1000
+    );
 };
 
 
-/* ===== WOLNE MYŚLI ===== */
+/* ========================================
+   NOTATKI
+======================================== */
 
-$("note").value=localStorage.getItem(NOTE_KEY)||"";
+$("note").value =
+  localStorage.getItem(
+    NOTE_KEY
+  ) || "";
 
-$("saveNote").onclick=()=>{
- localStorage.setItem(NOTE_KEY,$("note").value);
- toast("✓ Zapisano");
+$("saveNote").onclick = ()=>{
+
+  localStorage.setItem(
+    NOTE_KEY,
+    $("note").value
+  );
+
+  toast(
+    "✓ Zapisano"
+  );
 };
 
 
-/* START */
+/* ========================================
+   START
+======================================== */
 
-$("date").value=iso(selected);
+$("date").value =
+  iso(selected);
+
+displayTimer();
+
 renderAll();
 
 </script>
+
 </body>
 </html>
