@@ -58,7 +58,7 @@ async function sendTaskToGoogle(task){
   if(!googleAccessToken||!task?.date||!task?.time)return;
   const endTime=task.endTime||addMinutes(task.time,60);
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const event={summary:task.title,description:`Dodano przez Mój Planer • ${task.category||'Osobiste'}`,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
+  const event={summary:task.title,location:task.location||'',description:`${task.notes?task.notes+'\n\n':''}Dodano przez Mój Planer • ${task.category||'Osobiste'}`,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
   try{
     const response=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(event)});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
@@ -71,8 +71,8 @@ async function sendTaskToGoogle(task){
 
 setupGoogleCalendarUI();
 const originalAddTask=addTask;
-addTask=function(title,date,time='',endTime='',category='Osobiste'){
-  originalAddTask(title,date,time,endTime,category);
+addTask=function(title,date,time='',endTime='',category='Osobiste',location='',notes=''){
+  originalAddTask(title,date,time,endTime,category,location,notes);
   const task=tasks[tasks.length-1];
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
