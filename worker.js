@@ -159,7 +159,9 @@ Dla wydarzenia:
   "title": "Wizyta u dentysty",
   "date": "YYYY-MM-DD",
   "startTime": "HH:MM",
-  "endTime": "HH:MM"
+  "endTime": "HH:MM",
+  "location": "pełny adres lub miejsce, jeśli podano",
+  "notes": "pozostałe istotne informacje, jeśli podano"
 }
 
 Dla pomysłu:
@@ -172,7 +174,7 @@ Dla pomysłu:
 ZASADY:
 
 - Zachowuj istotny sens wypowiedzi.
-- NIE usuwaj informacji takich jak osoba, miejsce lub cel spotkania.
+- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Dokładny adres lub nazwę miejsca zapisuj w polu "location", a nie tylko w tytule.\n- Dodatkowe informacje, np. cel spotkania, numer pokoju, nazwisko kontaktu lub rzecz do zabrania, zapisuj w "notes".\n- Jeśli lokalizacji lub notatki nie podano, zwróć pusty string.
 - "spotkanie dentysta" interpretuj jako np. "Wizyta u dentysty".
 - "spotkanie z Tomkiem" → "Spotkanie z Tomkiem".
 - "spotkanie w banku" → "Spotkanie w banku".
@@ -269,7 +271,9 @@ Przykłady:
           title: parsed.title || spokenText,
           date: parsed.date || "",
           startTime: parsed.startTime || "",
-          endTime: parsed.endTime || ""
+          endTime: parsed.endTime || "",
+          location: parsed.location || "",
+          notes: parsed.notes || ""
         }
       });
 
