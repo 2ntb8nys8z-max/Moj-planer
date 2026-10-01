@@ -1,5 +1,6 @@
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
+const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
 let googleTokenClient=null,googleAccessToken=null;
 
 function setupGoogleCalendarUI(){
@@ -33,6 +34,7 @@ function initGoogleTokenClient(){
     googleTokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:GOOGLE_SCOPE,callback:async r=>{
       if(r.error){console.error(r);toast('Nie udało się połączyć z Google');return;}
       googleAccessToken=r.access_token;
+      localStorage.setItem(GOOGLE_CONNECTED_KEY,'1');
       setGoogleStatus(true,'Połączony');
       toast('✓ Google Calendar połączony');
       await syncGoogleCalendar();
@@ -45,9 +47,24 @@ function connectGoogleCalendar(){
   if(initGoogleTokenClient())googleTokenClient.requestAccessToken({prompt:'consent'});
 }
 
+function restoreGoogleCalendarConnection(){
+  if(localStorage.getItem(GOOGLE_CONNECTED_KEY)!=='1')return;
+  let tries=0;
+  const attempt=()=>{
+    if(initGoogleTokenClient()){
+      setGoogleStatus(false,'Łączę z Google…');
+      googleTokenClient.requestAccessToken({prompt:''});
+      return;
+    }
+    if(++tries<20)setTimeout(attempt,250);
+  };
+  attempt();
+}
+
 function disconnectGoogleCalendar(){
   if(googleAccessToken&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(googleAccessToken,()=>{});
   googleAccessToken=null;
+  localStorage.removeItem(GOOGLE_CONNECTED_KEY);
   setGoogleStatus(false,'Niepołączony');
   toast('Google Calendar rozłączony');
 }
@@ -202,6 +219,7 @@ async function syncFromGoogle(silent=false){
 }
 
 setupGoogleCalendarUI();
+restoreGoogleCalendarConnection();
 const originalAddTask=addTask;
 addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',reminder=null,seriesId=null){
   originalAddTask(title,date,time,endTime,category,notes,reminder,seriesId);
