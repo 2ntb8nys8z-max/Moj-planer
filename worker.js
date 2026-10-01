@@ -184,7 +184,9 @@ Dla pomysłu:
 
 {
   "type": "idea",
-  "text": "Przeczytać książkę Solaris Stanisława Lema"
+  "text": "Przeczytać książkę Solaris Stanisława Lema",
+  "action": "replace",
+  "addition": null
 }
 
 ZASADY:
@@ -225,9 +227,10 @@ ZASADY:
   startTime = "".
 
 - Jeżeli AKTUALNY WPIS ma type "idea", traktuj wypowiedź jako operację na tym konkretnym pomyśle.
-- Dla istniejącego pomysłu pole "text" jest jego pełną treścią po zmianie.
-- Gdy użytkownik mówi "dopisz", "dodaj do tego", "uzupełnij" lub podobnie, ZACHOWAJ obecną treść pomysłu i dopisz nową informację. Nie zastępuj starej treści.
-- Gdy użytkownik mówi "zmień", "popraw", "usuń fragment" lub podobnie, zmodyfikuj tylko wskazany fragment i zachowaj resztę.
+- Dla istniejącego pomysłu przy zwykłej edycji pole "text" jest jego pełną treścią po zmianie.
+- Gdy użytkownik mówi "dopisz", "dodaj do tego", "uzupełnij" lub podobnie, NIE PRZEREDAGOWUJ ani nie zwracaj zmienionej wcześniejszej treści. Ustaw "action":"append" i w polu "addition" zwróć WYŁĄCZNIE nową informację do dopisania. Pole "text" pozostaw dokładnie takie jak w AKTUALNYM WPISIE.
+- Gdy użytkownik mówi "zmień", "popraw", "usuń fragment" lub podobnie, ustaw "action":"replace", "addition":null, zmodyfikuj tylko wskazany fragment w polu "text" i zachowaj resztę.
+- Dla nowego pomysłu ustaw "action":"replace" i "addition":null.
 - Gdy użytkownik każe przenieść, wpisać, dodać lub zamienić TEN POMYSŁ na wydarzenie w kalendarzu i podaje termin, zwróć type "event". Użyj treści aktualnego pomysłu do utworzenia krótkiego sensownego title, zachowaj istotne szczegóły w notes i ustaw podaną datę/godzinę. Nie wymagaj, aby użytkownik powtarzał treść pomysłu.
 - Przykład: AKTUALNY WPIS = {"type":"idea","text":"Sprawdzić nowego dentystę na Mokotowie"}, użytkownik mówi "przenieś to do kalendarza jutro na 15" → zwróć event na jutro 15:00 dotyczący sprawdzenia dentysty.
 - Jeśli przy istniejącym pomyśle użytkownik nie prosi o przeniesienie do kalendarza, wynik ma pozostać type "idea".
@@ -295,7 +298,9 @@ Przykłady:
 
           item: {
             type: "idea",
-            text: parsed.text || spokenText
+            text: parsed.text || spokenText,
+            action: parsed.action || "replace",
+            addition: parsed.addition || null
           }
         });
       }
