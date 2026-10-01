@@ -174,7 +174,8 @@ Dla wydarzenia:
   "startTime": "HH:MM",
   "endTime": "HH:MM",
   "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem",
-  "reminder": null
+  "reminder": null,
+  "recurrence": null
 }
 
 Dla pomysłu:
@@ -188,6 +189,13 @@ ZASADY:
 
 - Zachowuj istotny sens wypowiedzi.
 - NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Osoby, miejsca, adresy, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj ani nie poprawiaj nazw własnych, ulic i adresów.\n- Jeśli notatki nie podano, zwróć pusty string.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Jeśli użytkownik nie prosi o przypomnienie, ustaw "reminder": null.
+- Jeśli wydarzenie ma się powtarzać, ustaw "recurrence" jako:
+  {"frequency":"daily|weekly|monthly","interval":1,"until":"YYYY-MM-DD","count":null}
+- "co tydzień" = weekly / interval 1; "co dwa tygodnie" = weekly / interval 2; "codziennie" = daily; "co miesiąc" = monthly.
+- Jeśli użytkownik mówi "przez dwa miesiące", "przez 6 tygodni" itp., oblicz konkretną datę końcową i wpisz ją w "until".
+- Jeśli mówi "5 razy", ustaw count=5 i until=null.
+- Pole "date" dla serii oznacza datę pierwszego wystąpienia. Jeśli mówi np. "w każdy czwartek", wyznacz najbliższy przyszły czwartek jako pierwszą datę.
+- Jeśli wydarzenie nie jest cykliczne, ustaw "recurrence": null.
 - "spotkanie dentysta" interpretuj jako np. "Wizyta u dentysty".
 - "spotkanie z Tomkiem" → "Spotkanie z Tomkiem".
 - "spotkanie w banku" → "Spotkanie w banku".
@@ -286,7 +294,8 @@ Przykłady:
           startTime: parsed.startTime || "",
           endTime: parsed.endTime || "",
           notes: parsed.notes || "",
-          reminder: parsed.reminder || null
+          reminder: parsed.reminder || null,
+          recurrence: parsed.recurrence || null
         }
       });
 
