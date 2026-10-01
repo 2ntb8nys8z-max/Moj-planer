@@ -101,7 +101,7 @@ function googleEditPatch(task){
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
   const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
   if(task.source!=='google'){patch.description=plannerDescription(task);patch.location=task.location||'';}
-  else if(task.notes!==undefined)patch.description=task.notes||'';
+  else{if(task.notes!==undefined)patch.description=task.notes||'';patch.location=task.location||'';}
   return patch;
 }
 
