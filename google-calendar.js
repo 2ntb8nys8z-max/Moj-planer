@@ -81,15 +81,16 @@ async function updateTaskInGoogle(task){
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
+  const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
+  const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
   let created=0;
-  for(const task of tasks){
-    if(!task?.date||!task?.time)continue;
-    if(task.source==='google'||task.googleEventId)continue;
+  for(const task of pending){
     await sendTaskToGoogle(task,true);
     if(task.googleEventId)created++;
   }
   saveTasks();renderAll();
-  return {created,updated:0};
+  return {created,updated:0,pending:pending.length};
 }
 
 async function syncGoogleCalendar(){
@@ -180,27 +181,23 @@ function upsertGoogleEvent(event){
 
 async function syncFromGoogle(silent=false){
   if(!googleAccessToken)return;
-  setGoogleStatus(true,'Synchronizuję…');
+  if(!silent)setGoogleStatus(true,'Synchronizuję…');
   try{
-    const from=new Date();from.setDate(from.getDate()-30);
-    const to=new Date();to.setFullYear(to.getFullYear()+1);
-    let pageToken='',changed=0;
-    do{
-      const params=new URLSearchParams({singleEvents:'true',orderBy:'startTime',timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:'2500'});
-      if(pageToken)params.set('pageToken',pageToken);
-      const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
-      if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
-      if(!response.ok)throw new Error(await response.text());
-      const data=await response.json();
-      (data.items||[]).forEach(event=>{if(upsertGoogleEvent(event))changed++;});
-      pageToken=data.nextPageToken||'';
-    }while(pageToken);
+    const from=new Date();from.setDate(from.getDate()-7);
+    const to=new Date();to.setMonth(to.getMonth()+6);
+    const params=new URLSearchParams({singleEvents:'true',orderBy:'updated',timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:'250'});
+    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
+    if(!response.ok)throw new Error(await response.text());
+    const data=await response.json();
+    let changed=0;(data.items||[]).forEach(event=>{if(upsertGoogleEvent(event))changed++;});
     saveTasks();renderAll();
     if(!silent){setGoogleStatus(true,'Połączony • zsynchronizowano');toast(changed?'✓ Kalendarz Google zsynchronizowany':'✓ Brak nowych wydarzeń');}
   }catch(err){
     console.error(err);
     setGoogleStatus(true,'Połączony • błąd synchronizacji');
-    toast('Nie udało się pobrać wydarzeń z Google');
+    if(!silent)toast('Nie udało się pobrać wydarzeń z Google');
+    throw err;
   }
 }
 
