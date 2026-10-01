@@ -65,7 +65,7 @@ function plannerDescription(task){
 function googleEventBody(task){
   const endTime=task.endTime||addMinutes(task.time,60);
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return {summary:task.title,description:plannerDescription(task),start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
+  return {summary:task.title,description:plannerDescription(task),start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
 }
 
 async function updateTaskInGoogle(task){
