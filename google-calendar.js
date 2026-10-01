@@ -81,19 +81,15 @@ async function updateTaskInGoogle(task){
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
-  let created=0,updated=0;
+  let created=0;
   for(const task of tasks){
     if(!task?.date||!task?.time)continue;
-    if(task.googleEventId){
-      if(task.source==='google')continue;
-      if(await updateTaskInGoogle(task))updated++;
-    }else{
-      await sendTaskToGoogle(task);
-      if(task.googleEventId)created++;
-    }
+    if(task.source==='google'||task.googleEventId)continue;
+    await sendTaskToGoogle(task,true);
+    if(task.googleEventId)created++;
   }
   saveTasks();renderAll();
-  return {created,updated};
+  return {created,updated:0};
 }
 
 async function syncGoogleCalendar(){
@@ -112,17 +108,17 @@ async function syncGoogleCalendar(){
   }
 }
 
-async function sendTaskToGoogle(task){
+async function sendTaskToGoogle(task,silent=false){
   if(!googleAccessToken||!task?.date||!task?.time||task.source==='google')return;
   const event=googleEventBody(task);
   try{
     const response=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(event)});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
-    if(!response.ok){console.error(await response.text());toast('Nie udało się dodać do Google Calendar');return;}
+    if(!response.ok){console.error(await response.text());if(!silent)toast('Nie udało się dodać do Google Calendar');return;}
     const result=await response.json();
     task.googleEventId=result.id;task.googleSynced=true;task.source='planner';saveTasks();renderAll();
-    toast('✓ Dodano również do Google Calendar');
-  }catch(err){console.error(err);toast('Błąd połączenia z Google Calendar');}
+    if(!silent)toast('✓ Dodano również do Google Calendar');
+  }catch(err){console.error(err);if(!silent)toast('Błąd połączenia z Google Calendar');}
 }
 
 function googleDateParts(event){
