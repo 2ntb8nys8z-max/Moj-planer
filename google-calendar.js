@@ -71,8 +71,8 @@ async function sendTaskToGoogle(task){
 
 setupGoogleCalendarUI();
 const originalAddTask=addTask;
-addTask=function(title,date,time='',endTime='',category='Osobiste',notes=''){
-  originalAddTask(title,date,time,endTime,category,notes);
+addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',reminder=null,seriesId=null){
+  originalAddTask(title,date,time,endTime,category,notes,reminder,seriesId);
   const task=tasks[tasks.length-1];
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
