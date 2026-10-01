@@ -176,7 +176,8 @@ Dla wydarzenia:
   "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem",
   "reminder": null,
   "recurrence": null,
-  "applyToSeries": false
+  "applyToSeries": false,
+  "recurrenceAction": null
 }
 
 Dla pomysłu:
@@ -198,6 +199,10 @@ ZASADY:
 - Pole "date" dla serii oznacza datę pierwszego wystąpienia. Jeśli mówi np. "w każdy czwartek", wyznacz najbliższy przyszły czwartek jako pierwszą datę.
 - Jeśli wydarzenie nie jest cykliczne, ustaw "recurrence": null.
 - Przy poprawianiu istniejącego wydarzenia należącego do serii domyślnie zmieniaj TYLKO to jedno wystąpienie i ustaw "applyToSeries": false.
+- Pole "recurrenceAction" służy WYŁĄCZNIE do zmiany cykliczności istniejącego wydarzenia.
+- Gdy użytkownik zmienia zwykłe istniejące wydarzenie na cykliczne (np. "powtarzaj to co tydzień przez dwa miesiące", "zmień to na cykliczne"), ustaw recurrence na żądaną regułę oraz "recurrenceAction":"create". Zachowaj datę aktualnego wydarzenia jako pierwsze wystąpienie, chyba że użytkownik wyraźnie poda inną datę.
+- Gdy użytkownik mówi "usuń cykliczność", "wyłącz cykliczność", "nie powtarzaj już tego spotkania" lub podobnie dla istniejącej serii, ustaw "recurrenceAction":"remove". Zachowaj pozostałe dane wydarzenia. Nie usuwaj samego bieżącego wydarzenia. Ta operacja oznacza: bieżące wydarzenie zostaje, a późniejsze wystąpienia serii mają zostać usunięte.
+- W pozostałych przypadkach ustaw "recurrenceAction": null.
 - Ustaw "applyToSeries": true WYŁĄCZNIE gdy użytkownik wyraźnie mówi, że zmiana ma dotyczyć całej serii, wszystkich spotkań lub wszystkich powtórzeń.
 - Przykład: "przypomnij mi 15 minut wcześniej" = tylko to wydarzenie. "Ustaw to przypomnienie dla całej serii" = applyToSeries true.
 - Gdy użytkownik mówi "zmień przypomnienie na przypomnienie cykliczne", "zrób to przypomnienie cykliczne", "ustaw przypomnienie cykliczne" lub podobnie, zachowaj OBECNE reminder bez zmiany i ustaw applyToSeries=true. Nie ustawiaj reminder=null. Oznacza to zastosowanie istniejącego przypomnienia do całej serii.
@@ -301,7 +306,8 @@ Przykłady:
           notes: parsed.notes || "",
           reminder: parsed.reminder || null,
           recurrence: parsed.recurrence || null,
-          applyToSeries: parsed.applyToSeries === true
+          applyToSeries: parsed.applyToSeries === true,
+          recurrenceAction: parsed.recurrenceAction || null
         }
       });
 
