@@ -96,6 +96,26 @@ async function updateTaskInGoogle(task){
   }catch(err){console.error(err);return false;}
 }
 
+function googleEditPatch(task){
+  const endTime=task.endTime||addMinutes(task.time,60);
+  const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
+  if(task.source!=='google')patch.description=plannerDescription(task);
+  else if(task.notes!==undefined)patch.description=task.notes||'';
+  return patch;
+}
+
+async function syncEditedTaskToGoogle(task){
+  if(!googleAccessToken||!task?.googleEventId||!task?.date||!task?.time)return false;
+  try{
+    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
+    task.googleSynced=true;saveTasks();return true;
+  }catch(err){console.error(err);toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
+}
+window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
+
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
