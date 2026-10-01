@@ -193,7 +193,7 @@ Dla pomysłu:
 ZASADY:
 
 - Zachowuj istotny sens wypowiedzi.
-- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Osoby, miejsca, adresy, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj ani nie poprawiaj nazw własnych, ulic i adresów.\n- Jeśli notatki nie podano, zwróć pusty string.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Jeśli użytkownik nie prosi o przypomnienie, ustaw "reminder": null.
+- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Dokładny adres lub lokalizację docelową zapisuj WYŁĄCZNIE w polu "location", a nie w "notes".\n- Jeśli użytkownik podaje miejsce bez pełnego adresu, ale ma ono służyć jako cel nawigacji, również zapisz je w "location".\n- Osobę, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj ani nie poprawiaj nazw własnych, ulic i adresów. Lokalizację zachowaj możliwie wiernie z transkrypcji.\n- Jeśli lokalizacji nie podano, zwróć pusty string. Jeśli notatki nie podano, zwróć pusty string.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Jeśli użytkownik nie prosi o przypomnienie, ustaw "reminder": null.
 - Jeśli wydarzenie ma się powtarzać, ustaw "recurrence" jako:
   {"frequency":"daily|weekly|monthly","interval":1,"until":"YYYY-MM-DD","count":null}
 - "co tydzień" = weekly / interval 1; "co dwa tygodnie" = weekly / interval 2; "codziennie" = daily; "co miesiąc" = monthly.
