@@ -200,6 +200,7 @@ ZASADY:
 - Przy poprawianiu istniejącego wydarzenia należącego do serii domyślnie zmieniaj TYLKO to jedno wystąpienie i ustaw "applyToSeries": false.
 - Ustaw "applyToSeries": true WYŁĄCZNIE gdy użytkownik wyraźnie mówi, że zmiana ma dotyczyć całej serii, wszystkich spotkań lub wszystkich powtórzeń.
 - Przykład: "przypomnij mi 15 minut wcześniej" = tylko to wydarzenie. "Ustaw to przypomnienie dla całej serii" = applyToSeries true.
+- Gdy użytkownik mówi "zmień przypomnienie na przypomnienie cykliczne", "zrób to przypomnienie cykliczne", "ustaw przypomnienie cykliczne" lub podobnie, zachowaj OBECNE reminder bez zmiany i ustaw applyToSeries=true. Nie ustawiaj reminder=null. Oznacza to zastosowanie istniejącego przypomnienia do całej serii.
 - "spotkanie dentysta" interpretuj jako np. "Wizyta u dentysty".
 - "spotkanie z Tomkiem" → "Spotkanie z Tomkiem".
 - "spotkanie w banku" → "Spotkanie w banku".
