@@ -224,6 +224,14 @@ ZASADY:
 - Jeżeli nie podano godziny:
   startTime = "".
 
+- Jeżeli AKTUALNY WPIS ma type "idea", traktuj wypowiedź jako operację na tym konkretnym pomyśle.
+- Dla istniejącego pomysłu pole "text" jest jego pełną treścią po zmianie.
+- Gdy użytkownik mówi "dopisz", "dodaj do tego", "uzupełnij" lub podobnie, ZACHOWAJ obecną treść pomysłu i dopisz nową informację. Nie zastępuj starej treści.
+- Gdy użytkownik mówi "zmień", "popraw", "usuń fragment" lub podobnie, zmodyfikuj tylko wskazany fragment i zachowaj resztę.
+- Gdy użytkownik każe przenieść, wpisać, dodać lub zamienić TEN POMYSŁ na wydarzenie w kalendarzu i podaje termin, zwróć type "event". Użyj treści aktualnego pomysłu do utworzenia krótkiego sensownego title, zachowaj istotne szczegóły w notes i ustaw podaną datę/godzinę. Nie wymagaj, aby użytkownik powtarzał treść pomysłu.
+- Przykład: AKTUALNY WPIS = {"type":"idea","text":"Sprawdzić nowego dentystę na Mokotowie"}, użytkownik mówi "przenieś to do kalendarza jutro na 15" → zwróć event na jutro 15:00 dotyczący sprawdzenia dentysty.
+- Jeśli przy istniejącym pomyśle użytkownik nie prosi o przeniesienie do kalendarza, wynik ma pozostać type "idea".
+
 - Jeżeli wypowiedź nie ma konkretnego terminu i jest rzeczą do zapamiętania, klasyfikuj ją jako "idea".
 
 Przykłady:
