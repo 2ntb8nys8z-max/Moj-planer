@@ -98,7 +98,7 @@ async function pushPlannerTasksToGoogle(){
 
 async function syncGoogleCalendar(){
   if(!googleAccessToken)return;
-  if(!silent)setGoogleStatus(true,'Synchronizuję…');
+  setGoogleStatus(true,'Synchronizuję…');
   try{
     const pushed=await pushPlannerTasksToGoogle();
     await syncFromGoogle(true);
