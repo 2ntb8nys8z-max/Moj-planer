@@ -13,7 +13,7 @@ function setupGoogleCalendarUI(){
   subtitle.after(card);
   document.getElementById('googleConnect').onclick=connectGoogleCalendar;
   document.getElementById('googleDisconnect').onclick=disconnectGoogleCalendar;
-  document.getElementById('googleSync').onclick=syncGoogleCalendar;
+  document.getElementById('googleSync').onclick=()=>{toast('↻ Uruchamiam synchronizację');syncGoogleCalendar();};
 }
 
 function setGoogleStatus(connected,text){
