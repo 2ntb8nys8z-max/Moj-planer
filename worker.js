@@ -175,7 +175,8 @@ Dla wydarzenia:
   "endTime": "HH:MM",
   "notes": "wszystkie istotne szczegóły wypowiedzi poza datą, godziną i krótkim tytułem",
   "reminder": null,
-  "recurrence": null
+  "recurrence": null,
+  "applyToSeries": false
 }
 
 Dla pomysłu:
@@ -196,6 +197,9 @@ ZASADY:
 - Jeśli mówi "5 razy", ustaw count=5 i until=null.
 - Pole "date" dla serii oznacza datę pierwszego wystąpienia. Jeśli mówi np. "w każdy czwartek", wyznacz najbliższy przyszły czwartek jako pierwszą datę.
 - Jeśli wydarzenie nie jest cykliczne, ustaw "recurrence": null.
+- Przy poprawianiu istniejącego wydarzenia należącego do serii domyślnie zmieniaj TYLKO to jedno wystąpienie i ustaw "applyToSeries": false.
+- Ustaw "applyToSeries": true WYŁĄCZNIE gdy użytkownik wyraźnie mówi, że zmiana ma dotyczyć całej serii, wszystkich spotkań lub wszystkich powtórzeń.
+- Przykład: "przypomnij mi 15 minut wcześniej" = tylko to wydarzenie. "Ustaw to przypomnienie dla całej serii" = applyToSeries true.
 - "spotkanie dentysta" interpretuj jako np. "Wizyta u dentysty".
 - "spotkanie z Tomkiem" → "Spotkanie z Tomkiem".
 - "spotkanie w banku" → "Spotkanie w banku".
@@ -295,7 +299,8 @@ Przykłady:
           endTime: parsed.endTime || "",
           notes: parsed.notes || "",
           reminder: parsed.reminder || null,
-          recurrence: parsed.recurrence || null
+          recurrence: parsed.recurrence || null,
+          applyToSeries: parsed.applyToSeries === true
         }
       });
 
