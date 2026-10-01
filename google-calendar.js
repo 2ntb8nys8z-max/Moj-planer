@@ -82,7 +82,7 @@ function plannerDescription(task){
 function googleEventBody(task){
   const endTime=task.endTime||addMinutes(task.time,60);
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return {summary:task.title,description:plannerDescription(task),start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
+  return {summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
 }
 
 async function updateTaskInGoogle(task){
@@ -100,7 +100,7 @@ function googleEditPatch(task){
   const endTime=task.endTime||addMinutes(task.time,60);
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
   const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
-  if(task.source!=='google')patch.description=plannerDescription(task);
+  if(task.source!=='google'){patch.description=plannerDescription(task);patch.location=task.location||'';}
   else if(task.notes!==undefined)patch.description=task.notes||'';
   return patch;
 }
@@ -195,6 +195,7 @@ function upsertGoogleEvent(event){
   task.endTime=p.endTime;
   task.category=task.category||'Osobiste';
   task.notes=cleanGoogleDescription(event.description||'');
+  task.location=event.location||'';
   task.reminder=googleReminder(event);
   task.source=task.source==='planner'?'planner':'google';
   task.googleEventId=event.id;
@@ -241,8 +242,8 @@ async function syncFromGoogle(silent=false){
 setupGoogleCalendarUI();
 restoreGoogleCalendarConnection();
 const originalAddTask=addTask;
-addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',reminder=null,seriesId=null){
-  originalAddTask(title,date,time,endTime,category,notes,reminder,seriesId);
+addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',reminder=null,seriesId=null,location=''){
+  originalAddTask(title,date,time,endTime,category,notes,reminder,seriesId,location);
   const task=tasks[tasks.length-1];
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
