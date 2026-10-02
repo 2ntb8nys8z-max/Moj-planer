@@ -90,6 +90,9 @@ if(x.recurrenceAction==="remove"&&targetTask.seriesId){
 if(x.recurrenceAction==="create"&&!targetTask.seriesId&&x.recurrence){
   const originalId=targetTask.id;
   const base={title:x.title||targetTask.title,date:targetTask.date,startTime:x.startTime??targetTask.time,endTime:x.endTime??targetTask.endTime,notes:x.notes??targetTask.notes,reminder:x.reminder??targetTask.reminder,location:x.location??targetTask.location??"",recurrence:x.recurrence};
+  const recurrenceText=formatRecurrence(x.recurrence);
+  const details=[base.title,base.date+(base.startTime?" • "+base.startTime:"")+(base.endTime?"–"+base.endTime:""),"🔁 "+recurrenceText].join("\n");
+  if(!confirm("Potwierdź zmianę na wydarzenie cykliczne:\n\n"+details)){ $("eventVoiceHint").textContent="Anulowano zmianę"; return }
   // The old linked Google event must not survive beside the newly created series.
   if(targetTask.googleEventId&&window.queueGoogleDelete)window.queueGoogleDelete(targetTask);
   tasks=tasks.filter(t=>t.id!==originalId);
