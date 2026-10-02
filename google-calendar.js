@@ -23,7 +23,8 @@ async function detectGoogleDeleteTestConflicts(){
       const ev=await r.json();
       const snap=tomb.localSnapshot||{};
       const p=googleDateParts(ev);
-      const changed=!p||ev.summary!==(snap.title||'')||p.date!==snap.date||p.time!==(snap.time||'')||p.endTime!==(snap.endTime||'')||(ev.location||'')!==(snap.location||'');
+      const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
+      const changed=baseUpdated?ev.updated!==baseUpdated:(!p||ev.summary!==(snap.title||'')||p.date!==snap.date||p.time!==(snap.time||'')||p.endTime!==(snap.endTime||'')||(ev.location||'')!==(snap.location||''));
       if(changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;}
     }catch(e){console.error("Delete conflict check failed",e);}
   }
