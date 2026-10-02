@@ -202,13 +202,11 @@ async function syncGoogleCalendar(){
       try{
         const check=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
         if(check.status===404||check.status===410){
-          if(task.googleDirty){task.googleConflict='deleted';task.googleSynced=false;}
-          else{tasks=tasks.filter(t=>t.id!==task.id);}
+          task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;
         }else if(check.ok){
           const ev=await check.json();
           if(ev.status==='cancelled'){
-            if(task.googleDirty){task.googleConflict='deleted';task.googleSynced=false;}
-            else{tasks=tasks.filter(t=>t.id!==task.id);}
+            task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;
           }
         }
       }catch(err){console.error('Google event existence check failed',err);}
@@ -313,9 +311,8 @@ async function syncFromGoogle(silent=false){
     (data.items||[]).forEach(event=>{
       if(event?.status==='cancelled'&&event.id){
         const before=tasks.length;
-        const conflict=tasks.find(task=>task.googleEventId===event.id&&task.googleDirty);
-        if(conflict){conflict.googleConflict='deleted';conflict.googleSynced=false;}
-        tasks=tasks.filter(task=>!(task.googleEventId===event.id&&!task.googleDirty));
+        const conflict=tasks.find(task=>task.googleEventId===event.id);
+        if(conflict){conflict.googleConflict='deleted';conflict.googleDirty=true;conflict.googleSynced=false;}
         if(tasks.length!==before||conflict)changed++;
         return;
       }
