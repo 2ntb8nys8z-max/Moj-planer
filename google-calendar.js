@@ -269,8 +269,9 @@ async function pushPlannerTasksToGoogle(){
     await sendTaskToGoogle(task,true);
     if(task.googleEventId)created++;
   }
+  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).length;
   saveTasks();renderAll();
-  return {created,updated,pending:pending.length,dirty:dirty.length};
+  return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
 
 async function syncGoogleCalendar(){
@@ -299,7 +300,12 @@ async function syncGoogleCalendar(){
     const pushed=await pushPlannerTasksToGoogle();
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
-    toast(deleteConflicts?`⚠️ Wykryto konflikt synchronizacji`:(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane'));
+    if(pushed.remaining){
+      setGoogleStatus(true,`Połączony • ${pushed.remaining} oczekuje`);
+      toast(`⚠️ Nie zsynchronizowano ${pushed.remaining} wydarzeń`);
+    }else{
+      toast(deleteConflicts?`⚠️ Wykryto konflikt synchronizacji`:(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane'));
+    }
   }catch(err){
     console.error(err);
     setGoogleStatus(true,'Połączony • błąd synchronizacji');
