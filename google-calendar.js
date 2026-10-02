@@ -118,6 +118,19 @@ async function syncEditedTaskToGoogle(task){
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
 
+async function deleteTaskFromGoogle(task){
+  if(!task?.googleEventId)return true;
+  if(!googleAccessToken){toast('Połącz Google Calendar przed usunięciem tego wydarzenia');return false;}
+  try{
+    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'DELETE',headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(response.status===404||response.status===410)return true;
+    if(!response.ok){console.error(await response.text());toast('Nie udało się usunąć wydarzenia z Google');return false;}
+    return true;
+  }catch(err){console.error(err);toast('Błąd połączenia z Google Calendar');return false;}
+}
+window.deleteTaskFromGoogle=deleteTaskFromGoogle;
+
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
