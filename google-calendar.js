@@ -178,10 +178,16 @@ function googleDateTimeRange(task){
 
 
 function googleEventBody(task){
-  const {endTime,endDate,timeZone}=googleDateTimeRange(task);
-  const body={summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
-  // New Planner series carry a canonical RRULE. For now this metadata is opt-in:
-  // only a designated series master is sent as a Google recurring parent.
+  const body={summary:task.title,description:plannerDescription(task),location:task.location||'',reminders:{useDefault:false,overrides:[]}};
+  if(task.time){
+    const {endTime,endDate,timeZone}=googleDateTimeRange(task);
+    body.start={dateTime:`${task.date}T${task.time}:00`,timeZone};
+    body.end={dateTime:`${endDate}T${endTime}:00`,timeZone};
+  }else{
+    const next=new Date(task.date+"T12:00:00");next.setDate(next.getDate()+1);
+    const nextDate=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+    body.start={date:task.date};body.end={date:nextDate};
+  }
   if(task.googleSeriesMaster===true&&task.seriesMeta?.rrule)body.recurrence=[task.seriesMeta.rrule];
   return body;
 }
@@ -275,7 +281,7 @@ async function pushPlannerTasksToGoogle(){
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   // Every local event without a Google id is pending. Do not hide older starts:
   // a recurring series may legitimately begin before today and still contain future occurrences.
-  const pending=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual);
+  const pending=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual);
   let created=0;
   for(const task of pending){
     if(!tasks.some(current=>current===task||current.id===task.id))continue;
@@ -292,7 +298,7 @@ async function pushPlannerTasksToGoogle(){
       }
     }
   }
-  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual).length;
+  const remaining=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual).length;
   saveTasks();renderAll();
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
@@ -337,7 +343,7 @@ async function syncGoogleCalendar(){
 }
 
 async function sendTaskToGoogle(task,silent=false){
-  if(!googleAccessToken||!task?.date||!task?.time||task.source==='google')return false;
+  if(!googleAccessToken||!task?.date||task.source==='google')return false;
   if(!task.googleCreateId){
     const bytes=new Uint8Array(12);crypto.getRandomValues(bytes);
     task.googleCreateId='mp'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
