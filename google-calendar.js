@@ -123,7 +123,7 @@ async function syncEditedTaskToGoogle(task){
     const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
     const response=await fetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
-    if(response.status===404||response.status===410){toast('Nie znaleziono tego wydarzenia w Google Calendar');return false;}
+    if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
     if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
     const updated=await response.json();
     const p=googleDateParts(updated);
@@ -151,6 +151,16 @@ async function deleteTaskFromGoogle(task){
   }catch(err){console.error(err);toast('Błąd połączenia z Google Calendar');return false;}
 }
 window.deleteTaskFromGoogle=deleteTaskFromGoogle;
+async function restoreConflictToGoogle(task){
+  if(!task?.googleConflict||!googleAccessToken)return false;
+  const oldId=task.googleEventId;
+  task.googleEventId=null;task.source='planner';task.googleDirty=false;task.googleSynced=false;task.googleConflict=null;
+  await sendTaskToGoogle(task,true);
+  if(task.googleEventId){saveTasks();renderAll();toast('✓ Przywrócono wydarzenie w Google');return true;}
+  task.googleEventId=oldId;task.googleDirty=true;task.googleSynced=false;task.googleConflict='deleted';saveTasks();renderAll();toast('Nie udało się przywrócić wydarzenia w Google');return false;
+}
+window.restoreConflictToGoogle=restoreConflictToGoogle;
+
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
@@ -275,8 +285,10 @@ async function syncFromGoogle(silent=false){
     (data.items||[]).forEach(event=>{
       if(event?.status==='cancelled'&&event.id){
         const before=tasks.length;
+        const conflict=tasks.find(task=>task.googleEventId===event.id&&task.googleDirty);
+        if(conflict){conflict.googleConflict='deleted';conflict.googleSynced=false;}
         tasks=tasks.filter(task=>!(task.googleEventId===event.id&&!task.googleDirty));
-        if(tasks.length!==before)changed++;
+        if(tasks.length!==before||conflict)changed++;
         return;
       }
       if(upsertGoogleEvent(event))changed++;
