@@ -7,10 +7,64 @@ function googleDeleteTestQueue(){try{return JSON.parse(localStorage.getItem(GOOG
 function saveGoogleDeleteTestQueue(q){localStorage.setItem(GOOGLE_DELETE_TEST_KEY,JSON.stringify(q))}
 function queueGoogleDeleteForTest(task){
   const q=googleDeleteTestQueue();
-  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),deletedAt:new Date().toISOString(),state:"pending"});
+  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending"});
   saveGoogleDeleteTestQueue(q);
 }
 window.queueGoogleDeleteForTest=queueGoogleDeleteForTest;
+
+async function detectGoogleDeleteTestConflicts(){
+  const q=googleDeleteTestQueue();
+  let conflicts=0;
+  for(const tomb of q){
+    if(tomb.state!=="pending")continue;
+    try{
+      const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(tomb.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+      if(!r.ok)continue;
+      const ev=await r.json();
+      const snap=tomb.localSnapshot||{};
+      const p=googleDateParts(ev);
+      const changed=!p||ev.summary!==(snap.title||'')||p.date!==snap.date||p.time!==(snap.time||'')||p.endTime!==(snap.endTime||'')||(ev.location||'')!==(snap.location||'');
+      if(changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;}
+    }catch(e){console.error("Delete conflict check failed",e);}
+  }
+  saveGoogleDeleteTestQueue(q);
+  renderGoogleDeleteTestConflicts();
+  return conflicts;
+}
+function renderGoogleDeleteTestConflicts(){
+  let box=document.getElementById("googleDeleteConflicts");
+  const conflicts=googleDeleteTestQueue().filter(x=>x.state==="conflict");
+  if(!box){
+    box=document.createElement("div");box.id="googleDeleteConflicts";box.className="card";box.style.cssText="margin-top:12px";
+    const card=document.getElementById("googleCalendarCard");if(card)card.after(box);
+  }
+  if(!box)return;
+  if(!conflicts.length){box.classList.add("hidden");box.innerHTML="";return;}
+  box.classList.remove("hidden");
+  box.innerHTML="<strong>⚠️ Konflikty synchronizacji</strong>";
+  conflicts.forEach(t=>{
+    const row=document.createElement("div");row.style.cssText="margin-top:10px;padding-top:10px;border-top:1px solid #ddd";
+    const remote=t.remoteSnapshot||{},local=t.localSnapshot||{};
+    row.innerHTML=`<div><b>${local.title||remote.summary||"Wydarzenie"}</b><br><small>Usunięte w Planerze, ale zmienione w Google.</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="danger del-google">Usuń również z Google</button><button class="secondary restore-local">Przywróć do Planera</button></div>`;
+    row.querySelector(".del-google").onclick=()=>resolveDeleteTestConflict(t.googleEventId,"delete");
+    row.querySelector(".restore-local").onclick=()=>resolveDeleteTestConflict(t.googleEventId,"restore");
+    box.appendChild(row);
+  });
+}
+async function resolveDeleteTestConflict(id,choice){
+  const q=googleDeleteTestQueue(),t=q.find(x=>x.googleEventId===id);if(!t)return;
+  if(choice==="delete"){
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`,{method:"DELETE",headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(!r.ok&&r.status!==404&&r.status!==410){toast("Nie udało się usunąć z Google");return;}
+  }else{
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(!r.ok){toast("Nie udało się pobrać wydarzenia z Google");return;}
+    const ev=await r.json();upsertGoogleEvent(ev);
+  }
+  saveGoogleDeleteTestQueue(q.filter(x=>x.googleEventId!==id));saveTasks();renderAll();renderGoogleDeleteTestConflicts();
+  toast(choice==="delete"?"✓ Usunięto również z Google":"✓ Przywrócono do Planera");
+}
+window.resolveDeleteTestConflict=resolveDeleteTestConflict;
 
 
 function setupGoogleCalendarUI(){
@@ -211,6 +265,7 @@ async function syncGoogleCalendar(){
   try{
     const pulled=await syncFromGoogle(true);
     if(!googleAccessToken||pulled===false)return;
+    const deleteConflicts=await detectGoogleDeleteTestConflicts();
     const linked=tasks.filter(task=>task.googleEventId&&task.date&&task.time&&!task.googleConflict);
     for(const task of linked){
       try{
@@ -229,7 +284,7 @@ async function syncGoogleCalendar(){
     const pushed=await pushPlannerTasksToGoogle();
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
-    toast(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane');
+    toast(deleteConflicts?`⚠️ Wykryto konflikt synchronizacji`:(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane'));
   }catch(err){
     console.error(err);
     setGoogleStatus(true,'Połączony • błąd synchronizacji');
@@ -297,6 +352,7 @@ function upsertGoogleEvent(event){
   task.googleData={
     location:event.location||'',
     description:event.description||'',
+    updated:event.updated||'',
     attendees:Array.isArray(event.attendees)?event.attendees:[],
     hangoutLink:event.hangoutLink||'',
     conferenceData:event.conferenceData||null,
@@ -345,6 +401,7 @@ async function syncFromGoogle(silent=false){
 }
 
 setupGoogleCalendarUI();
+renderGoogleDeleteTestConflicts();
 restoreGoogleCalendarConnection();
 const originalAddTask=addTask;
 addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',reminder=null,seriesId=null,location=''){
