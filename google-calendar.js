@@ -126,6 +126,7 @@ async function syncEditedTaskToGoogle(task){
     if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
     if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
     const updated=await response.json();
+    if(updated.status==='cancelled'){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
     const p=googleDateParts(updated);
     if(!p||p.date!==task.date||p.time!==task.time){
       console.error('Google returned different event time',updated);
@@ -166,7 +167,7 @@ async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
   const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
-  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty).slice(0,20);
+  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict).slice(0,20);
   let updated=0;
   for(const task of dirty){if(await syncEditedTaskToGoogle(task))updated++;}
   const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
