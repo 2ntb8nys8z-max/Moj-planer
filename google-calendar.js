@@ -35,9 +35,8 @@ function initGoogleTokenClient(){
       if(r.error){console.error(r);toast('Nie udało się połączyć z Google');return;}
       googleAccessToken=r.access_token;
       localStorage.setItem(GOOGLE_CONNECTED_KEY,'1');
-      setGoogleStatus(true,'Połączony');
+      setGoogleStatus(true,'Połączony • synchronizacja ręczna');
       toast('✓ Google Calendar połączony');
-      await syncGoogleCalendar();
     }});
   }
   return true;
