@@ -94,6 +94,7 @@ if(x.recurrenceAction==="create"&&!targetTask.seriesId&&x.recurrence){
   pendingEventRecurrence={voiceTaskId,originalId,base};
   $("eventRecurrencePreviewTitle").textContent=base.title;
   $("eventRecurrencePreviewInfo").textContent=base.date+(base.startTime?" • "+base.startTime:"")+(base.endTime?"–"+base.endTime:"")+" • 🔁 "+formatRecurrence(base.recurrence);
+  $("eventModal").classList.add("hidden");
   $("eventRecurrencePreview").classList.remove("hidden");
   $("eventVoiceHint").textContent="Sprawdź zmianę i potwierdź";
   return
@@ -112,7 +113,7 @@ targetTask.title=nextTitle;targetTask.date=nextDate;targetTask.time=nextStart;ta
 $("eventVoice").onclick=startEventVoice;
 function closeEventRecurrencePreview(){pendingEventRecurrence=null;$("eventRecurrencePreview").classList.add("hidden")}
 $("closeEventRecurrencePreview").onclick=closeEventRecurrencePreview;
-$("cancelEventRecurrence").onclick=()=>{closeEventRecurrencePreview();$("eventVoiceHint").textContent="Anulowano zmianę"};
+$("cancelEventRecurrence").onclick=()=>{const target=pendingEventRecurrence?tasks.find(t=>t.id===pendingEventRecurrence.voiceTaskId):null;closeEventRecurrencePreview();if(target)openEventActions(target);$("eventVoiceHint").textContent="Anulowano zmianę"};
 $("eventRecurrencePreview").onclick=e=>{if(e.target===$("eventRecurrencePreview"))closeEventRecurrencePreview()};
 $("confirmEventRecurrence").onclick=()=>{if(!pendingEventRecurrence)return;const p=pendingEventRecurrence,target=tasks.find(t=>t.id===p.voiceTaskId);if(!target){closeEventRecurrencePreview();toast("Wydarzenie już nie istnieje");return}if(target.googleEventId&&window.queueGoogleDelete)window.queueGoogleDelete(target);tasks=tasks.filter(t=>t.id!==p.originalId);const made=addRecurringTasks(p.base);closeEventRecurrencePreview();toast(`🔁 Zmieniono na serię: ${made} wydarzeń`);closeEventActions()};
 $("correctEventRecurrence").onclick=()=>{if(!pendingEventRecurrence)return;const p=pendingEventRecurrence,target=tasks.find(t=>t.id===p.voiceTaskId);if(!target){closeEventRecurrencePreview();return}closeEventRecurrencePreview();activeTask=target;startEventVoice()};
