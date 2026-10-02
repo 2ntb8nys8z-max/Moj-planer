@@ -125,6 +125,33 @@ async function syncEditedTaskToGoogle(task){
   return true;
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
+async function pushEditedTaskToGoogle(task){
+  if(!googleAccessToken||!task?.googleEventId||!task?.date||!task?.time||task.googleConflict)return false;
+  try{
+    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
+    const exists=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(exists.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(exists.status===404||exists.status===410){
+      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;
+    }
+    if(!exists.ok){console.error(await exists.text());return false;}
+    const existing=await exists.json();
+    if(existing.status==='cancelled'){
+      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;
+    }
+    const response=await fetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;}
+    if(!response.ok){console.error(await response.text());return false;}
+    const updated=await response.json();
+    if(updated.status==='cancelled'){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;}
+    const p=googleDateParts(updated);
+    if(!p||p.date!==task.date||p.time!==task.time){console.error('Google returned different event time',updated);return false;}
+    task.googleSynced=true;task.googleDirty=false;
+    task.googleData={...(task.googleData||{}),location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
+    saveTasks();renderAll();return true;
+  }catch(err){console.error('Google event update failed',err);return false;}
+}
 
 async function deleteTaskFromGoogle(task){
   if(!task?.googleEventId)return true;
@@ -156,7 +183,7 @@ async function pushPlannerTasksToGoogle(){
   const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
   const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict).slice(0,20);
   let updated=0;
-  for(const task of dirty){if(await syncEditedTaskToGoogle(task))updated++;}
+  for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
   let created=0;
   for(const task of pending){
