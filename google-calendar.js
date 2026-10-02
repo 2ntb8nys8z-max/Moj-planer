@@ -185,8 +185,25 @@ async function syncGoogleCalendar(){
   setGoogleStatus(true,'Synchronizuję…');
   try{
     const pulled=await syncFromGoogle(true);
-    const pushed=await pushPlannerTasksToGoogle();
     if(!googleAccessToken||pulled===false)return;
+    const linked=tasks.filter(task=>task.googleEventId&&task.date&&task.time&&!task.googleConflict);
+    for(const task of linked){
+      try{
+        const check=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+        if(check.status===404||check.status===410){
+          if(task.googleDirty){task.googleConflict='deleted';task.googleSynced=false;}
+          else{tasks=tasks.filter(t=>t.id!==task.id);}
+        }else if(check.ok){
+          const ev=await check.json();
+          if(ev.status==='cancelled'){
+            if(task.googleDirty){task.googleConflict='deleted';task.googleSynced=false;}
+            else{tasks=tasks.filter(t=>t.id!==task.id);}
+          }
+        }
+      }catch(err){console.error('Google event existence check failed',err);}
+    }
+    saveTasks();renderAll();
+    const pushed=await pushPlannerTasksToGoogle();
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
     toast(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane');
