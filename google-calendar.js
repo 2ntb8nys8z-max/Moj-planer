@@ -1,7 +1,7 @@
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
-let googleTokenClient=null,googleAccessToken=null;
+let googleTokenClient=null,googleAccessToken=null,googleSyncInProgress=false;
 
 function setupGoogleCalendarUI(){
   const subtitle=document.querySelector('.subtitle');
@@ -92,7 +92,7 @@ async function updateTaskInGoogle(task){
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(response.status===404){task.googleEventId=null;task.googleSynced=false;return false;}
     if(!response.ok)throw new Error(await response.text());
-    task.googleSynced=true;return true;
+    task.googleSynced=true;task.googleDirty=false;return true;
   }catch(err){console.error(err);return false;}
 }
 
@@ -106,12 +106,14 @@ function googleEditPatch(task){
 }
 
 async function syncEditedTaskToGoogle(task){
-  if(!googleAccessToken||!task?.googleEventId||!task?.date||!task?.time)return false;
+  if(!task?.googleEventId||!task?.date||!task?.time)return false;
+  task.googleDirty=true;task.googleSynced=false;saveTasks();
+  if(!googleAccessToken)return false;
   try{
     const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
-    task.googleSynced=true;saveTasks();return true;
+    task.googleSynced=true;task.googleDirty=false;saveTasks();return true;
   }catch(err){console.error(err);toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
@@ -120,6 +122,9 @@ async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
   const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
+  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.googleEventId&&task.googleDirty).slice(0,20);
+  let updated=0;
+  for(const task of dirty){if(await syncEditedTaskToGoogle(task))updated++;}
   const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
   let created=0;
   for(const task of pending){
@@ -127,15 +132,17 @@ async function pushPlannerTasksToGoogle(){
     if(task.googleEventId)created++;
   }
   saveTasks();renderAll();
-  return {created,updated:0,pending:pending.length};
+  return {created,updated,pending:pending.length,dirty:dirty.length};
 }
 
 async function syncGoogleCalendar(){
-  if(!googleAccessToken)return;
+  if(!googleAccessToken||googleSyncInProgress)return;
+  googleSyncInProgress=true;
   setGoogleStatus(true,'Synchronizuję…');
   try{
     const pushed=await pushPlannerTasksToGoogle();
-    await syncFromGoogle(true);
+    const pulled=await syncFromGoogle(true);
+    if(!googleAccessToken||pulled===false)return;
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
     toast(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane');
@@ -143,7 +150,7 @@ async function syncGoogleCalendar(){
     console.error(err);
     setGoogleStatus(true,'Połączony • błąd synchronizacji');
     toast('Nie udało się zsynchronizować kalendarzy');
-  }
+  }finally{googleSyncInProgress=false;}
 }
 
 async function sendTaskToGoogle(task,silent=false){
@@ -151,10 +158,10 @@ async function sendTaskToGoogle(task,silent=false){
   const event=googleEventBody(task);
   try{
     const response=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(event)});
-    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(!response.ok){console.error(await response.text());if(!silent)toast('Nie udało się dodać do Google Calendar');return;}
     const result=await response.json();
-    task.googleEventId=result.id;task.googleSynced=true;task.source='planner';saveTasks();renderAll();
+    task.googleEventId=result.id;task.googleSynced=true;task.googleDirty=false;task.source='planner';saveTasks();renderAll();
     if(!silent)toast('✓ Dodano również do Google Calendar');
   }catch(err){console.error(err);if(!silent)toast('Błąd połączenia z Google Calendar');}
 }
@@ -175,16 +182,17 @@ function cleanGoogleDescription(description=''){
   return description.replace(/\n*Dodano przez Mój Planer • [^\n]*\s*$/,'').trim();
 }
 
-function googleReminder(event){
-  if(!event.reminders||event.reminders.useDefault)return null;
-  const popup=(event.reminders.overrides||[]).find(x=>x.method==='popup');
-  return popup&&Number.isFinite(Number(popup.minutes))?{minutesBefore:Number(popup.minutes)}:null;
+function googleHasReminder(event){
+  if(!event.reminders)return false;
+  if(event.reminders.useDefault)return true;
+  return Array.isArray(event.reminders.overrides)&&event.reminders.overrides.length>0;
 }
 
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
   const p=googleDateParts(event);if(!p)return false;
   let task=tasks.find(t=>t.googleEventId===event.id);
+  if(task?.googleDirty)return false;
   if(!task){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
@@ -196,10 +204,11 @@ function upsertGoogleEvent(event){
   task.category=task.category||'Osobiste';
   task.notes=cleanGoogleDescription(event.description||'');
   task.location=event.location||'';
-  task.reminder=googleReminder(event);
+  // reminder belongs only to Mój Planer. Google reminders are informational metadata.
+  task.googleHasReminder=googleHasReminder(event);
   task.source=task.source==='planner'?'planner':'google';
   task.googleEventId=event.id;
-  task.googleSynced=true;
+  task.googleSynced=true;task.googleDirty=false;
   task.googleData={
     location:event.location||'',
     description:event.description||'',
@@ -231,6 +240,7 @@ async function syncFromGoogle(silent=false){
     let changed=0;(data.items||[]).forEach(event=>{if(upsertGoogleEvent(event))changed++;});
     saveTasks();renderAll();
     if(!silent){setGoogleStatus(true,'Połączony • zsynchronizowano');toast(changed?'✓ Kalendarz Google zsynchronizowany':'✓ Brak nowych wydarzeń');}
+    return true;
   }catch(err){
     console.error(err);
     setGoogleStatus(true,'Połączony • błąd synchronizacji');
