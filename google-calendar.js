@@ -179,7 +179,11 @@ function googleDateTimeRange(task){
 
 function googleEventBody(task){
   const {endTime,endDate,timeZone}=googleDateTimeRange(task);
-  return {summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
+  const body={summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
+  // New Planner series carry a canonical RRULE. For now this metadata is opt-in:
+  // only a designated series master is sent as a Google recurring parent.
+  if(task.googleSeriesMaster===true&&task.seriesMeta?.rrule)body.recurrence=[task.seriesMeta.rrule];
+  return body;
 }
 
 async function updateTaskInGoogle(task){
