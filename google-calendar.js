@@ -2,6 +2,16 @@ const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googl
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
 let googleTokenClient=null,googleAccessToken=null,googleSyncInProgress=false;
+const GOOGLE_DELETE_TEST_KEY="moj-planer-google-delete-test";
+function googleDeleteTestQueue(){try{return JSON.parse(localStorage.getItem(GOOGLE_DELETE_TEST_KEY)||"[]")}catch(e){return []}}
+function saveGoogleDeleteTestQueue(q){localStorage.setItem(GOOGLE_DELETE_TEST_KEY,JSON.stringify(q))}
+function queueGoogleDeleteForTest(task){
+  const q=googleDeleteTestQueue();
+  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),deletedAt:new Date().toISOString(),state:"pending"});
+  saveGoogleDeleteTestQueue(q);
+}
+window.queueGoogleDeleteForTest=queueGoogleDeleteForTest;
+
 
 function setupGoogleCalendarUI(){
   const subtitle=document.querySelector('.subtitle');
@@ -264,6 +274,7 @@ function googleHasReminder(event){
 
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
+  if(googleDeleteTestQueue().some(x=>x.googleEventId===event.id))return false;
   const p=googleDateParts(event);if(!p)return false;
   let task=tasks.find(t=>t.googleEventId===event.id);
   if(task?.googleDirty)return false;
