@@ -350,6 +350,7 @@ async function sendTaskToGoogle(task,silent=false){
     saveTasks();
   }
   const event={...googleEventBody(task),id:task.googleCreateId};
+  if(!task.time&&Array.isArray(event.recurrence))event.recurrence=event.recurrence.map(rule=>rule.replace(/;UNTIL=(\\d{8})T235959Z/, ';UNTIL=$1'));
   const bindResult=result=>{
     task.googleEventId=result.id||task.googleCreateId;task.googleSynced=true;task.googleDirty=false;task.source='planner';
     task.googleData={...(task.googleData||{}),etag:result.etag||'',updated:result.updated||'',location:result.location||task.location||'',description:result.description||'',reminders:result.reminders||null,htmlLink:result.htmlLink||''};
