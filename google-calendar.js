@@ -184,8 +184,8 @@ async function syncGoogleCalendar(){
   googleSyncInProgress=true;
   setGoogleStatus(true,'Synchronizuję…');
   try{
-    const pushed=await pushPlannerTasksToGoogle();
     const pulled=await syncFromGoogle(true);
+    const pushed=await pushPlannerTasksToGoogle();
     if(!googleAccessToken||pulled===false)return;
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
