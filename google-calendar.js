@@ -78,11 +78,22 @@ function plannerDescription(task){
   return `${task.notes?task.notes+'\n\n':''}Dodano przez Mój Planer • ${task.category||'Osobiste'}`;
 }
 
-
-function googleEventBody(task){
+function googleDateTimeRange(task){
   const endTime=task.endTime||addMinutes(task.time,60);
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return {summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
+  let endDate=task.date;
+  if(endTime<=task.time){
+    const d=new Date(task.date+"T12:00:00");
+    d.setDate(d.getDate()+1);
+    endDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  return {timeZone,endTime,endDate};
+}
+
+
+function googleEventBody(task){
+  const {endTime,endDate,timeZone}=googleDateTimeRange(task);
+  return {summary:task.title,description:plannerDescription(task),location:task.location||'',start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone},reminders:{useDefault:false,overrides:[]}};
 }
 
 async function updateTaskInGoogle(task){
@@ -97,9 +108,8 @@ async function updateTaskInGoogle(task){
 }
 
 function googleEditPatch(task){
-  const endTime=task.endTime||addMinutes(task.time,60);
-  const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${task.date}T${endTime}:00`,timeZone}};
+  const {endTime,endDate,timeZone}=googleDateTimeRange(task);
+  const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone}};
   if(task.source!=='google'){patch.description=plannerDescription(task);patch.location=task.location||'';}
   else{if(task.notes!==undefined)patch.description=task.notes||'';patch.location=task.location||'';}
   return patch;
