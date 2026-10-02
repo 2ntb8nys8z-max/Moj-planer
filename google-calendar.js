@@ -7,7 +7,7 @@ function googleDeleteTestQueue(){try{return JSON.parse(localStorage.getItem(GOOG
 function saveGoogleDeleteTestQueue(q){localStorage.setItem(GOOGLE_DELETE_TEST_KEY,JSON.stringify(q))}
 function queueGoogleDeleteForTest(task){
   const q=googleDeleteTestQueue();
-  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending"});
+  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseEtag:task.googleData?.etag||null,baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending"});
   saveGoogleDeleteTestQueue(q);
 }
 window.queueGoogleDeleteForTest=queueGoogleDeleteForTest;
@@ -23,8 +23,9 @@ async function detectGoogleDeleteTestConflicts(){
       const ev=await r.json();
       const snap=tomb.localSnapshot||{};
       const p=googleDateParts(ev);
+      const baseEtag=tomb.baseEtag||snap.googleData?.etag||null;
       const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
-      const changed=baseUpdated?ev.updated!==baseUpdated:(!p||ev.summary!==(snap.title||'')||p.date!==snap.date||p.time!==(snap.time||'')||p.endTime!==(snap.endTime||'')||(ev.location||'')!==(snap.location||''));
+      const changed=baseEtag?ev.etag!==baseEtag:(baseUpdated?ev.updated!==baseUpdated:(!p||ev.summary!==(snap.title||'')||p.date!==snap.date||p.time!==(snap.time||'')||p.endTime!==(snap.endTime||'')||(ev.location||'')!==(snap.location||'')));
       if(changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;}
     }catch(e){console.error("Delete conflict check failed",e);}
   }
@@ -353,6 +354,7 @@ function upsertGoogleEvent(event){
   task.googleData={
     location:event.location||'',
     description:event.description||'',
+    etag:event.etag||'',
     updated:event.updated||'',
     attendees:Array.isArray(event.attendees)?event.attendees:[],
     hangoutLink:event.hangoutLink||'',
