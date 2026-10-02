@@ -121,6 +121,16 @@ async function syncEditedTaskToGoogle(task){
   if(!googleAccessToken)return false;
   try{
     const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
+    const exists=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(exists.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(exists.status===404||exists.status===410){
+      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;
+    }
+    if(!exists.ok){console.error(await exists.text());toast('Nie udało się sprawdzić wydarzenia w Google');return false;}
+    const existing=await exists.json();
+    if(existing.status==='cancelled'){
+      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;
+    }
     const response=await fetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
