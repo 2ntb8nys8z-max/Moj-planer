@@ -275,14 +275,24 @@ async function pushPlannerTasksToGoogle(){
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   // Every local event without a Google id is pending. Do not hide older starts:
   // a recurring series may legitimately begin before today and still contain future occurrences.
-  const pending=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId);
+  const pending=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual);
   let created=0;
   for(const task of pending){
     if(!tasks.some(current=>current===task||current.id===task.id))continue;
     await sendTaskToGoogle(task,true);
-    if(task.googleEventId)created++;
+    if(task.googleEventId){
+      created++;
+      if(task.googleSeriesMaster&&task.seriesId){
+        tasks.filter(x=>x.seriesId===task.seriesId&&x.id!==task.id&&x.googleSeriesVirtual).forEach(x=>{
+          x.googleSeriesParentId=task.googleEventId;
+          x.googleSynced=true;
+          x.googleDirty=false;
+          x.source='planner';
+        });
+      }
+    }
   }
-  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId).length;
+  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual).length;
   saveTasks();renderAll();
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
