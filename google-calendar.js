@@ -276,7 +276,7 @@ async function syncFromGoogle(silent=false){
   try{
     const from=new Date();from.setDate(from.getDate()-7);
     const to=new Date();to.setMonth(to.getMonth()+6);
-    const params=new URLSearchParams({singleEvents:'true',orderBy:'updated',timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:'250'});
+    const params=new URLSearchParams({singleEvents:'true',showDeleted:'true',orderBy:'updated',timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:'250'});
     const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
     if(!response.ok)throw new Error(await response.text());
