@@ -94,7 +94,7 @@ if(x.recurrenceAction==="create"&&!targetTask.seriesId&&x.recurrence){
   const base={title:x.title||targetTask.title,date:targetTask.date,startTime:x.startTime??targetTask.time,endTime:x.endTime??targetTask.endTime,notes:x.notes??targetTask.notes,reminder:x.reminder??targetTask.reminder,location:x.location??targetTask.location??"",recurrence:x.recurrence};
   pendingEventRecurrence={voiceTaskId,originalId,base};
   $("eventRecurrencePreviewTitle").textContent=base.title;
-  $("eventRecurrencePreviewInfo").textContent=base.date+(base.startTime?" • "+base.startTime:"")+(base.endTime?"–"+base.endTime:"")+" • 🔁 "+formatRecurrence(base.recurrence);
+  $("eventRecurrencePreviewInfo").textContent=base.date+(base.startTime?" • "+base.startTime+(base.endTime?"–"+base.endTime:""):" • Cały dzień")+" • 🔁 "+formatRecurrence(base.recurrence);
   $("eventModal").classList.add("hidden");
   $("eventRecurrencePreview").classList.remove("hidden");
   $("eventVoiceHint").textContent="Sprawdź zmianę i potwierdź";
