@@ -271,7 +271,16 @@ async function syncFromGoogle(silent=false){
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return;}
     if(!response.ok)throw new Error(await response.text());
     const data=await response.json();
-    let changed=0;(data.items||[]).forEach(event=>{if(upsertGoogleEvent(event))changed++;});
+    let changed=0;
+    (data.items||[]).forEach(event=>{
+      if(event?.status==='cancelled'&&event.id){
+        const before=tasks.length;
+        tasks=tasks.filter(task=>!(task.googleEventId===event.id&&!task.googleDirty));
+        if(tasks.length!==before)changed++;
+        return;
+      }
+      if(upsertGoogleEvent(event))changed++;
+    });
     saveTasks();renderAll();
     if(!silent){setGoogleStatus(true,'Połączony • zsynchronizowano');toast(changed?'✓ Kalendarz Google zsynchronizowany':'✓ Brak nowych wydarzeń');}
     return true;
