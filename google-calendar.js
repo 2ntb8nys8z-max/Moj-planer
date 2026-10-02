@@ -165,6 +165,7 @@ async function restoreConflictToGoogle(task){
   if(!task?.googleConflict||!googleAccessToken)return false;
   const oldId=task.googleEventId;
   task.googleEventId=null;task.source='planner';task.googleDirty=false;task.googleSynced=false;task.googleConflict=null;
+  saveTasks();renderAll();
   await sendTaskToGoogle(task,true);
   if(task.googleEventId){saveTasks();renderAll();toast('✓ Przywrócono wydarzenie w Google');return true;}
   task.googleEventId=oldId;task.googleDirty=true;task.googleSynced=false;task.googleConflict='deleted';saveTasks();renderAll();toast('Nie udało się przywrócić wydarzenia w Google');return false;
