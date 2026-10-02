@@ -260,10 +260,10 @@ async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
   const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
-  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict).slice(0,20);
+  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict);
   let updated=0;
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
-  const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
+  const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId);
   let created=0;
   for(const task of pending){
     await sendTaskToGoogle(task,true);
