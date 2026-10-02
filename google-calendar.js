@@ -116,36 +116,13 @@ function googleEditPatch(task){
 
 async function syncEditedTaskToGoogle(task){
   if(!task?.googleEventId||!task?.date||!task?.time)return false;
-  task.googleDirty=true;task.googleSynced=false;saveTasks();
-  if(!googleAccessToken)return false;
-  try{
-    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
-    const exists=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
-    if(exists.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
-    if(exists.status===404||exists.status===410){
-      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;
-    }
-    if(!exists.ok){console.error(await exists.text());toast('Nie udało się sprawdzić wydarzenia w Google');return false;}
-    const existing=await exists.json();
-    if(existing.status==='cancelled'){
-      task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;
-    }
-    const response=await fetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
-    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
-    if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
-    if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
-    const updated=await response.json();
-    if(updated.status==='cancelled'){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();toast('Konflikt synchronizacji: wydarzenie usunięto w Google');return false;}
-    const p=googleDateParts(updated);
-    if(!p||p.date!==task.date||p.time!==task.time){
-      console.error('Google returned different event time',updated);
-      toast('Google nie potwierdził zmiany godziny');
-      return false;
-    }
-    task.googleSynced=true;task.googleDirty=false;
-    task.googleData={...(task.googleData||{}),location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
-    saveTasks();return true;
-  }catch(err){console.error(err);toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
+  // Linked edits stay local until the user presses Synchronizuj.
+  // This prevents a quick local edit from recreating an event just deleted in Google.
+  task.googleDirty=true;
+  task.googleSynced=false;
+  saveTasks();
+  renderAll();
+  return true;
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
 
