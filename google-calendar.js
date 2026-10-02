@@ -110,10 +110,21 @@ async function syncEditedTaskToGoogle(task){
   task.googleDirty=true;task.googleSynced=false;saveTasks();
   if(!googleAccessToken)return false;
   try{
-    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
+    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
+    const response=await fetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
+    if(response.status===404||response.status===410){toast('Nie znaleziono tego wydarzenia w Google Calendar');return false;}
     if(!response.ok){console.error(await response.text());toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
-    task.googleSynced=true;task.googleDirty=false;saveTasks();return true;
+    const updated=await response.json();
+    const p=googleDateParts(updated);
+    if(!p||p.date!==task.date||p.time!==task.time){
+      console.error('Google returned different event time',updated);
+      toast('Google nie potwierdził zmiany godziny');
+      return false;
+    }
+    task.googleSynced=true;task.googleDirty=false;
+    task.googleData={...(task.googleData||{}),location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
+    saveTasks();return true;
   }catch(err){console.error(err);toast('Zmiana zapisana w Planerze, ale nie w Google');return false;}
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
@@ -135,7 +146,7 @@ async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
   const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
-  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.googleEventId&&task.googleDirty).slice(0,20);
+  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty).slice(0,20);
   let updated=0;
   for(const task of dirty){if(await syncEditedTaskToGoogle(task))updated++;}
   const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).slice(0,20);
