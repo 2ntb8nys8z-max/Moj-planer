@@ -258,18 +258,18 @@ window.restoreConflictToGoogle=restoreConflictToGoogle;
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
-  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-1);
-  const cutoffDate=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}-${String(cutoff.getDate()).padStart(2,'0')}`;
   const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict);
   let updated=0;
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
-  const pending=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId);
+  // Every local event without a Google id is pending. Do not hide older starts:
+  // a recurring series may legitimately begin before today and still contain future occurrences.
+  const pending=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId);
   let created=0;
   for(const task of pending){
     await sendTaskToGoogle(task,true);
     if(task.googleEventId)created++;
   }
-  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.date>=cutoffDate&&task.source!=='google'&&!task.googleEventId).length;
+  const remaining=tasks.filter(task=>task?.date&&task?.time&&task.source!=='google'&&!task.googleEventId).length;
   saveTasks();renderAll();
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
