@@ -204,15 +204,20 @@ async function updateTaskInGoogle(task){
 }
 
 function googleEditPatch(task){
-  const {endTime,endDate,timeZone}=googleDateTimeRange(task);
-  const patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone}};
+  let patch;
+  if(task.time){
+    const {endTime,endDate,timeZone}=googleDateTimeRange(task);
+    patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone}};
+  }else{
+    patch={summary:task.title,start:{date:task.date},end:{date:googleNextDate(task.date)}};
+  }
   if(task.source!=='google'){patch.description=plannerDescription(task);patch.location=task.location||'';}
   else{if(task.notes!==undefined)patch.description=task.notes||'';patch.location=task.location||'';}
   return patch;
 }
 
 async function syncEditedTaskToGoogle(task){
-  if(!task?.googleEventId||!task?.date||!task?.time)return false;
+  if(!task?.googleEventId||!task?.date)return false;
   // Linked edits stay local until the user presses Synchronizuj.
   // This prevents a quick local edit from recreating an event just deleted in Google.
   task.googleDirty=true;
@@ -223,7 +228,7 @@ async function syncEditedTaskToGoogle(task){
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
 async function pushEditedTaskToGoogle(task){
-  if(!googleAccessToken||!task?.googleEventId||!task?.date||!task?.time||task.googleConflict)return false;
+  if(!googleAccessToken||!task?.googleEventId||!task?.date||task.googleConflict)return false;
   try{
     const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
     const exists=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
@@ -243,7 +248,7 @@ async function pushEditedTaskToGoogle(task){
     const updated=await response.json();
     if(updated.status==='cancelled'){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;}
     const p=googleDateParts(updated);
-    if(!p||p.date!==task.date||p.time!==task.time){console.error('Google returned different event time',updated);return false;}
+    if(!p||p.date!==task.date||(task.time?(p.time!==task.time):!!p.time)){console.error('Google returned different event time',updated);return false;}
     task.googleSynced=true;task.googleDirty=false;
     task.googleData={...(task.googleData||{}),etag:updated.etag||task.googleData?.etag||'',updated:updated.updated||task.googleData?.updated||'',location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
     saveTasks();renderAll();return true;
@@ -276,7 +281,7 @@ window.restoreConflictToGoogle=restoreConflictToGoogle;
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
-  const dirty=tasks.filter(task=>task?.date&&task?.time&&task.googleEventId&&task.googleDirty&&!task.googleConflict);
+  const dirty=tasks.filter(task=>task?.date&&task.googleEventId&&task.googleDirty&&!task.googleConflict);
   let updated=0;
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   // Every local event without a Google id is pending. Do not hide older starts:
@@ -311,7 +316,7 @@ async function syncGoogleCalendar(){
     const pulled=await syncFromGoogle(true);
     if(!googleAccessToken||pulled===false)return;
     const deleteConflicts=await processGoogleDeleteQueue();
-    const linked=tasks.filter(task=>task.googleEventId&&task.date&&task.time&&!task.googleConflict);
+    const linked=tasks.filter(task=>task.googleEventId&&task.date&&!task.googleConflict);
     for(const task of linked){
       try{
         const check=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
