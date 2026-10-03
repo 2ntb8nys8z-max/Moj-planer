@@ -252,14 +252,18 @@ async function ensureGoogleSeriesInstance(task){
 
 async function syncEditedTaskToGoogle(task){
   if(!task?.date)return false;
-  if(task.seriesId&&(task.googleSeriesParentId||task.googleSeriesMaster)){
-    if(!await ensureGoogleSeriesInstance(task)){toast("Nie udało się odnaleźć tego wystąpienia serii w Google");return false;}
-  }
-  if(!task.googleEventId)return false;
-  // Linked edits stay local until the user presses Synchronizuj.
-  // This prevents a quick local edit from recreating an event just deleted in Google.
   task.googleDirty=true;
   task.googleSynced=false;
+  if(task.seriesId&&(task.googleSeriesParentId||task.googleSeriesMaster)){
+    if(!await ensureGoogleSeriesInstance(task)){
+      saveTasks();renderAll();
+      toast("Nie udało się odnaleźć tego wystąpienia serii w Google");
+      return false;
+    }
+  }
+  if(!task.googleEventId){saveTasks();renderAll();return false;}
+  // Linked edits stay local until the user presses Synchronizuj.
+  // This prevents a quick local edit from recreating an event just deleted in Google.
   saveTasks();
   renderAll();
   return true;
@@ -444,14 +448,19 @@ function googleHasReminder(event){
 
 function googleOriginalStartKey(value){
   if(!value)return "";
-  if(typeof value==="string")return value;
-  return value.dateTime||value.date||"";
+  const raw=typeof value==="string"?value:(value.dateTime||value.date||"");
+  if(!raw)return "";
+  if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return "date:"+raw;
+  const ms=Date.parse(raw);
+  return Number.isFinite(ms)?"datetime:"+String(ms):"datetime:"+raw;
 }
 function localOriginalStartKey(task){
   const saved=googleOriginalStartKey(task?.googleOriginalStart);
   if(saved)return saved;
   if(!task?.date)return "";
-  return task.time?`${task.date}T${task.time}`:task.date;
+  if(!task.time)return "date:"+task.date;
+  const local=new Date(`${task.date}T${task.time}:00`);
+  return "datetime:"+String(local.getTime());
 }
 function googleInstanceOriginalKey(event){
   return googleOriginalStartKey(event?.originalStartTime);
@@ -470,7 +479,7 @@ function upsertGoogleEvent(event){
       return sameParent&&localOriginalStartKey(t)===originalKey;
     });
   }
-  if(task?.googleDirty)return false;
+  const wasDirty=task?.googleDirty===true;
   if(!task){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
@@ -482,6 +491,10 @@ function upsertGoogleEvent(event){
     task.googleEventId=event.id;
   }else{
     task.googleEventId=event.id;
+  }
+  if(wasDirty){
+    task.googleData={...(task.googleData||{}),etag:event.etag||task.googleData?.etag||"",updated:event.updated||task.googleData?.updated||"",recurringEventId:parentId||task.googleData?.recurringEventId||null,originalStartTime:event.originalStartTime||task.googleData?.originalStartTime||null};
+    return true;
   }
   task.title=event.summary||'(Bez tytułu)';
   task.date=p.date;task.time=p.time;task.endTime=p.endTime;
