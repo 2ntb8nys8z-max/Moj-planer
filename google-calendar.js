@@ -222,8 +222,37 @@ function googleEditPatch(task){
   return patch;
 }
 
+async function ensureGoogleSeriesInstance(task){
+  if(task?.googleEventId)return true;
+  const parentId=task?.googleSeriesParentId;
+  if(!parentId||!task?.date||!googleAccessToken)return false;
+  try{
+    const from=new Date(task.date+"T00:00:00");from.setDate(from.getDate()-1);
+    const to=new Date(task.date+"T23:59:59");to.setDate(to.getDate()+1);
+    const params=new URLSearchParams({singleEvents:"true",showDeleted:"false",timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:"50"});
+    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,"Połączenie wygasło");toast("Połącz ponownie Google Calendar");return false;}
+    if(!response.ok){console.error(await response.text());return false;}
+    const data=await response.json();
+    const match=(data.items||[]).find(event=>{
+      if(event.recurringEventId!==parentId||event.status==="cancelled")return false;
+      const p=googleDateParts(event);return p?.date===task.date;
+    });
+    if(!match)return false;
+    task.googleEventId=match.id;
+    task.googleSeriesParentId=parentId;
+    task.googleOriginalStart=match.originalStartTime||null;
+    task.googleData={...(task.googleData||{}),etag:match.etag||"",updated:match.updated||"",recurringEventId:parentId,originalStartTime:match.originalStartTime||null};
+    return true;
+  }catch(err){console.error("Google series instance lookup failed",err);return false;}
+}
+
 async function syncEditedTaskToGoogle(task){
-  if(!task?.googleEventId||!task?.date)return false;
+  if(!task?.date)return false;
+  if(!task.googleEventId&&task.googleSeriesVirtual){
+    if(!await ensureGoogleSeriesInstance(task))return false;
+  }
+  if(!task.googleEventId)return false;
   // Linked edits stay local until the user presses Synchronizuj.
   // This prevents a quick local edit from recreating an event just deleted in Google.
   task.googleDirty=true;
