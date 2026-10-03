@@ -340,13 +340,16 @@ async function syncGoogleCalendar(){
     const pushed=await pushPlannerTasksToGoogle();
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
-    const unresolved=tasks.filter(task=>task.googleConflict||task.googleDirty||task.googleSynced===false).length;
-    if(pushed.remaining||unresolved){
-      const waiting=pushed.remaining+unresolved;
-      setGoogleStatus(true,`Połączony • ${waiting} wymaga uwagi`);
-      toast(`⚠️ Synchronizacja niepełna • ${waiting} wydarzeń wymaga uwagi`);
+    const conflicts=tasks.filter(task=>task.googleConflict).length;
+    const waiting=tasks.filter(task=>!task.googleConflict&&(task.googleDirty||task.googleSynced===false)).length+pushed.remaining;
+    if(conflicts||deleteConflicts){
+      setGoogleStatus(true,`Połączony • konflikt synchronizacji`);
+      toast(`⚠️ Konflikt synchronizacji • wymaga decyzji`);
+    }else if(waiting){
+      setGoogleStatus(true,`Połączony • ${waiting} oczekuje`);
+      toast(`⏳ Oczekuje na synchronizację • ${waiting} wydarzeń`);
     }else{
-      toast(deleteConflicts?`⚠️ Wykryto konflikt synchronizacji`:(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane'));
+      toast(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane');
     }
   }catch(err){
     console.error(err);
