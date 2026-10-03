@@ -223,34 +223,37 @@ function googleEditPatch(task){
 }
 
 async function ensureGoogleSeriesInstance(task){
-  if(task?.googleEventId)return true;
-  const parentId=task?.googleSeriesParentId;
-  if(!parentId||!task?.date||!googleAccessToken)return false;
+  const parentId=task?.googleSeriesParentId||(task?.googleSeriesMaster?task?.googleEventId:null);
+  if(!parentId||!googleAccessToken)return false;
+  const wanted=localOriginalStartKey(task);
+  if(!wanted)return false;
   try{
-    const from=new Date(task.date+"T00:00:00");from.setDate(from.getDate()-1);
-    const to=new Date(task.date+"T23:59:59");to.setDate(to.getDate()+1);
-    const params=new URLSearchParams({singleEvents:"true",showDeleted:"false",timeMin:from.toISOString(),timeMax:to.toISOString(),maxResults:"50"});
-    const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
-    if(response.status===401){googleAccessToken=null;setGoogleStatus(false,"Połączenie wygasło");toast("Połącz ponownie Google Calendar");return false;}
-    if(!response.ok){console.error(await response.text());return false;}
-    const data=await response.json();
-    const match=(data.items||[]).find(event=>{
-      if(event.recurringEventId!==parentId||event.status==="cancelled")return false;
-      const p=googleDateParts(event);return p?.date===task.date;
-    });
-    if(!match)return false;
-    task.googleEventId=match.id;
-    task.googleSeriesParentId=parentId;
-    task.googleOriginalStart=match.originalStartTime||null;
-    task.googleData={...(task.googleData||{}),etag:match.etag||"",updated:match.updated||"",recurringEventId:parentId,originalStartTime:match.originalStartTime||null};
-    return true;
+    let pageToken="";
+    do{
+      const params=new URLSearchParams({singleEvents:"true",showDeleted:"false",maxResults:"250"});
+      if(pageToken)params.set("pageToken",pageToken);
+      const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+      if(response.status===401){googleAccessToken=null;setGoogleStatus(false,"Połączenie wygasło");toast("Połącz ponownie Google Calendar");return false;}
+      if(!response.ok){console.error(await response.text());return false;}
+      const data=await response.json();
+      const match=(data.items||[]).find(event=>event.recurringEventId===parentId&&event.status!=="cancelled"&&googleInstanceOriginalKey(event)===wanted);
+      if(match){
+        task.googleSeriesParentId=parentId;
+        task.googleEventId=match.id;
+        task.googleOriginalStart=match.originalStartTime||task.googleOriginalStart||null;
+        task.googleData={...(task.googleData||{}),etag:match.etag||"",updated:match.updated||"",recurringEventId:parentId,originalStartTime:match.originalStartTime||null};
+        saveTasks();return true;
+      }
+      pageToken=data.nextPageToken||"";
+    }while(pageToken);
+    return false;
   }catch(err){console.error("Google series instance lookup failed",err);return false;}
 }
 
 async function syncEditedTaskToGoogle(task){
   if(!task?.date)return false;
-  if(!task.googleEventId&&task.googleSeriesVirtual){
-    if(!await ensureGoogleSeriesInstance(task))return false;
+  if(task.seriesId&&(task.googleSeriesParentId||task.googleSeriesMaster)){
+    if(!await ensureGoogleSeriesInstance(task)){toast("Nie udało się odnaleźć tego wystąpienia serii w Google");return false;}
   }
   if(!task.googleEventId)return false;
   // Linked edits stay local until the user presses Synchronizuj.
@@ -321,16 +324,16 @@ async function pushPlannerTasksToGoogle(){
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   // Every local event without a Google id is pending. Do not hide older starts:
   // a recurring series may legitimately begin before today and still contain future occurrences.
-  const pending=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual);
+  const pending=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual);
   let created=0;
   for(const task of pending){
     if(!tasks.some(current=>current===task||current.id===task.id))continue;
     await sendTaskToGoogle(task,true);
-    if(task.googleEventId){
+    if(task.googleEventId||task.googleSeriesParentId){
       created++;
-      if(task.googleSeriesMaster&&task.seriesId){
+      if(task.googleSeriesMaster&&task.seriesId&&task.googleSeriesParentId){
         tasks.filter(x=>x.seriesId===task.seriesId&&x.id!==task.id&&x.googleSeriesVirtual).forEach(x=>{
-          x.googleSeriesParentId=task.googleEventId;
+          x.googleSeriesParentId=task.googleSeriesParentId;
           x.googleSynced=true;
           x.googleDirty=false;
           x.source='planner';
@@ -338,7 +341,7 @@ async function pushPlannerTasksToGoogle(){
       }
     }
   }
-  const remaining=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesVirtual).length;
+  const remaining=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual).length;
   saveTasks();renderAll();
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
@@ -397,7 +400,11 @@ async function sendTaskToGoogle(task,silent=false){
   const event={...googleEventBody(task),id:task.googleCreateId};
   if(!task.time&&Array.isArray(event.recurrence))event.recurrence=event.recurrence.map(rule=>rule.replace(/;UNTIL=(\d{8})T235959Z(?=;|$)/, ';UNTIL=$1'));
   const bindResult=result=>{
-    task.googleEventId=result.id||task.googleCreateId;task.googleSynced=true;task.googleDirty=false;task.source='planner';
+    if(task.googleSeriesMaster===true){
+      task.googleSeriesParentId=result.id||task.googleCreateId;
+      task.googleEventId=null;
+    }else task.googleEventId=result.id||task.googleCreateId;
+    task.googleSynced=true;task.googleDirty=false;task.source='planner';
     task.googleData={...(task.googleData||{}),etag:result.etag||'',updated:result.updated||'',location:result.location||task.location||'',description:result.description||'',reminders:result.reminders||null,htmlLink:result.htmlLink||''};
     saveTasks();renderAll();
   };
@@ -435,43 +442,60 @@ function googleHasReminder(event){
   return Array.isArray(event.reminders.overrides)&&event.reminders.overrides.length>0;
 }
 
+function googleOriginalStartKey(value){
+  if(!value)return "";
+  if(typeof value==="string")return value;
+  return value.dateTime||value.date||"";
+}
+function localOriginalStartKey(task){
+  const saved=googleOriginalStartKey(task?.googleOriginalStart);
+  if(saved)return saved;
+  if(!task?.date)return "";
+  return task.time?`${task.date}T${task.time}`:task.date;
+}
+function googleInstanceOriginalKey(event){
+  return googleOriginalStartKey(event?.originalStartTime);
+}
+
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
   if(googleDeleteQueue().some(x=>x.googleEventId===event.id))return false;
   const p=googleDateParts(event);if(!p)return false;
+  const parentId=event.recurringEventId||"";
+  const originalKey=googleInstanceOriginalKey(event);
   let task=tasks.find(t=>t.googleEventId===event.id);
+  if(!task&&parentId&&originalKey){
+    task=tasks.find(t=>{
+      const sameParent=t.googleSeriesParentId===parentId||(t.googleSeriesMaster&&t.googleEventId===parentId);
+      return sameParent&&localOriginalStartKey(t)===originalKey;
+    });
+  }
   if(task?.googleDirty)return false;
   if(!task){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
   }
+  if(parentId){
+    if(task.googleSeriesMaster&&task.googleEventId===parentId)task.googleEventId=null;
+    task.googleSeriesParentId=parentId;
+    task.googleOriginalStart=event.originalStartTime||task.googleOriginalStart||null;
+    task.googleEventId=event.id;
+  }else{
+    task.googleEventId=event.id;
+  }
   task.title=event.summary||'(Bez tytułu)';
-  task.date=p.date;
-  task.time=p.time;
-  task.endTime=p.endTime;
+  task.date=p.date;task.time=p.time;task.endTime=p.endTime;
   task.category=task.category||'Osobiste';
   task.notes=cleanGoogleDescription(event.description||'');
   task.location=event.location||'';
-  // reminder belongs only to Mój Planer. Google reminders are informational metadata.
   task.googleHasReminder=googleHasReminder(event);
   task.source=task.source==='planner'?'planner':'google';
-  task.googleEventId=event.id;
   task.googleSynced=true;task.googleDirty=false;
   task.googleData={
-    location:event.location||'',
-    description:event.description||'',
-    etag:event.etag||'',
-    updated:event.updated||'',
-    attendees:Array.isArray(event.attendees)?event.attendees:[],
-    hangoutLink:event.hangoutLink||'',
-    conferenceData:event.conferenceData||null,
-    recurrence:event.recurrence||null,
-    recurringEventId:event.recurringEventId||null,
-    reminders:event.reminders||null,
-    organizer:event.organizer||null,
-    creator:event.creator||null,
-    htmlLink:event.htmlLink||'',
-    allDay:p.allDay
+    location:event.location||'',description:event.description||'',etag:event.etag||'',updated:event.updated||'',
+    attendees:Array.isArray(event.attendees)?event.attendees:[],hangoutLink:event.hangoutLink||'',conferenceData:event.conferenceData||null,
+    recurrence:event.recurrence||null,recurringEventId:parentId||null,originalStartTime:event.originalStartTime||null,
+    reminders:event.reminders||null,organizer:event.organizer||null,creator:event.creator||null,htmlLink:event.htmlLink||'',allDay:p.allDay
   };
   return true;
 }
