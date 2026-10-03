@@ -340,9 +340,11 @@ async function syncGoogleCalendar(){
     const pushed=await pushPlannerTasksToGoogle();
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
-    if(pushed.remaining){
-      setGoogleStatus(true,`Połączony • ${pushed.remaining} oczekuje`);
-      toast(`⚠️ Nie zsynchronizowano ${pushed.remaining} wydarzeń`);
+    const unresolved=tasks.filter(task=>task.googleConflict||task.googleDirty||task.googleSynced===false).length;
+    if(pushed.remaining||unresolved){
+      const waiting=pushed.remaining+unresolved;
+      setGoogleStatus(true,`Połączony • ${waiting} wymaga uwagi`);
+      toast(`⚠️ Synchronizacja niepełna • ${waiting} wydarzeń wymaga uwagi`);
     }else{
       toast(deleteConflicts?`⚠️ Wykryto konflikt synchronizacji`:(n?`✓ Google: wysłano/odświeżono ${n} wydarzeń`:'✓ Kalendarze zsynchronizowane'));
     }
