@@ -390,7 +390,11 @@ async function syncGoogleCalendar(){
     const n=pushed.created+pushed.updated;
     const conflicts=tasks.filter(task=>task.googleConflict).length;
     const waiting=tasks.filter(task=>!task.googleConflict&&(task.googleDirty||task.googleSynced===false)).length+pushed.remaining;
-    if(conflicts||deleteConflicts){
+    // Only surface conflicts that still exist after the full sync/rebind pass.
+    // processGoogleDeleteQueue() runs earlier, so its returned count can be stale
+    // by the time a newly-created RRULE series has been rebound.
+    const currentDeleteConflicts=googleDeleteQueue().filter(x=>x.state==="conflict").length;
+    if(conflicts||currentDeleteConflicts){
       setGoogleStatus(true,`Połączony • konflikt synchronizacji`);
       toast(`⚠️ Konflikt synchronizacji • wymaga decyzji`);
     }else if(waiting){
