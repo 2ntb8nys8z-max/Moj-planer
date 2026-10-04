@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.9";
+const GOOGLE_SYNC_VERSION="2026.10.04.10";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -328,9 +328,11 @@ function applyGoogleSeriesBaseline(parentId,event){
     if(rule)task.seriesMeta={...(task.seriesMeta||{}),rrule:rule};
   }
 }
-async function fillMissingGoogleSeriesBaselines(){
+async function refreshGoogleSeriesBaselines(){
+  // A Google split changes the original parent's rule without changing its id.
+  // Refresh existing snapshots too, so the displayed end/count follows Google.
   const pending=new Set(googleDeleteQueue().filter(item=>item.seriesRange).map(item=>item.googleEventId));
-  const parents=new Set(tasks.filter(task=>task.googleSeriesParentId&&!task.googleSeriesDeleteBaseline&&!task.googleDirty&&!task.googleSeriesStopPending).map(task=>task.googleSeriesParentId));
+  const parents=new Set(tasks.filter(task=>task.googleSeriesParentId&&!task.googleDirty&&!task.googleSeriesStopPending).map(task=>task.googleSeriesParentId));
   for(const parentId of parents){
     if(pending.has(parentId))continue;
     try{applyGoogleSeriesBaseline(parentId,await fetchGoogleSeriesBaseline(parentId));}
@@ -944,7 +946,7 @@ async function syncFromGoogle(silent=false,refreshSeries=true){
       });
       pageToken=data.nextPageToken||'';
     }while(pageToken);
-    if(refreshSeries&&await fillMissingGoogleSeriesBaselines()===false)return false;
+    if(refreshSeries&&await refreshGoogleSeriesBaselines()===false)return false;
     saveTasks();renderAll();
     if(!silent){setGoogleStatus(true,'Połączony • zsynchronizowano');toast(changed?'✓ Kalendarz Google zsynchronizowany':'✓ Brak nowych wydarzeń');}
     return true;
