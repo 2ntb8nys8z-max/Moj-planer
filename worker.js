@@ -1,3 +1,45 @@
+function explicitVoiceEventEdit(text){
+  const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
+  const rules=[
+    ['title',/^(?:zmień|zmien|ustaw|popraw|zastąp)\s+(?:nazwę|nazwe|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i],
+    ['title',/^nazwij\s+(?:(?:to|te|ten)\s+|(?:wydarzenie|spotkanie)\s+)?(.+)$/i],
+    ['title',/^(?:nazwa|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s+(?:ma\s+być|ma\s+byc|powinna\s+być|powinien\s+być|to)\s+(.+)$/i],
+    ['append',/^(?:dodaj|dopisz)\s+(?:(?:do|w)\s+)?(?:notatkę|notatke|notatki|notatce)(?:\s+(?:do|dla)\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*[:—-]?\s*(.+)$/i],
+    ['replace',/^(?:zmień|zmien|ustaw|zastąp)\s+(?:treść\s+)?(?:notatkę|notatke|notatki)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i]
+  ];
+  if(/^(?:usuń|usun|wyczyść|wyczysc|skasuj)\s+(?:(?:tę|te|całą|cala|obecną)\s+)?(?:notatkę|notatke)[.!?]*$/i.test(command))return {changedFields:['notes'],notesAction:'clear',notes:''};
+  for(const [action,pattern] of rules){
+    const match=command.match(pattern);if(!match)continue;
+    const value=match[1].trim();
+    // Multiple operations belong to the AI interpreter, not a partial local match.
+    if(/\s+(?:i|oraz)\s+(?:dodaj|dopisz|zmień|zmien|ustaw|usuń|usun)\s/i.test(value))return null;
+    if(action==='title')return {changedFields:['title'],title:value};
+    return {changedFields:['notes'],notesAction:action,notes:action==='replace'?value:undefined,notesAddition:action==='append'?value:undefined};
+  }
+  return null;
+}
+function appendVoiceNotes(existing,addition){return existing?existing+'\n'+addition:addition;}
+function normalizeEventVoiceResult(current,parsed,transcription){
+  const direct=explicitVoiceEventEdit(transcription);
+  const edit=direct||parsed;
+  const allowed=['title','date','startTime','endTime','notes','location','reminder','recurrence'];
+  if(!Array.isArray(edit.changedFields))throw new Error('AI nie określiło pól zmiany');
+  const fields=[...new Set(edit.changedFields)];
+  if(fields.some(field=>!allowed.includes(field)))throw new Error('Nieprawidłowe pole zmiany');
+  const result={type:'event',title:current.title,date:current.date,startTime:current.startTime||'',endTime:current.endTime||'',notes:current.notes||'',location:current.location||'',reminder:current.reminder??null,recurrence:current.recurrence??null,changedFields:fields,recurrenceAction:null};
+  for(const field of fields){if(edit[field]!==undefined)result[field]=edit[field];else if(field!=='notes'||edit.notesAction!=='append')throw new Error('Brak wartości zmienianego pola');}
+  if(fields.includes('notes')){
+    result.notesAction=edit.notesAction||'replace';
+    if(result.notesAction==='append'){
+      if(typeof edit.notesAddition!=='string'||!edit.notesAddition.trim())throw new Error('Brak treści do dopisania');
+      result.notesAddition=edit.notesAddition;result.notes=appendVoiceNotes(current.notes||'',edit.notesAddition);
+    }else if(result.notesAction==='clear')result.notes='';
+    else if(result.notesAction!=='replace')throw new Error('Nieprawidłowa operacja notatki');
+  }
+  if(fields.includes('recurrence'))result.recurrenceAction=edit.recurrenceAction||null;
+  result.applyToSeries=parsed.applyToSeries===true;
+  return result;
+}
 export default {
   async fetch(request, env) {
 
@@ -153,6 +195,16 @@ ${currentDate}
 Jeżeli poniżej przekazano AKTUALNY WPIS, wypowiedź użytkownika jest poprawką do tego wpisu.
 W takim przypadku zmień WYŁĄCZNIE informacje wskazane przez użytkownika, zachowaj wszystkie pozostałe pola i zwróć kompletny poprawiony JSON.
 Nie twórz nowego wydarzenia i nie usuwaj informacji, których użytkownik nie koryguje.
+PRIORYTET PRZY EDYCJI WYDARZENIA: wynik ma type event, także gdy poprawka nie zawiera daty ani godziny. Zasady tworzenia krótkiego tytułu i domyślnych pustych pól dotyczą wyłącznie NOWYCH wpisów.
+Zwróć changedFields: tablicę nazw WYŁĄCZNIE pól, o których zmianę poprosił użytkownik: title, date, startTime, endTime, notes, location, reminder, recurrence. Nie dodawaj innych pól. Jeśli nie rozpoznajesz zmiany, zwróć changedFields: [].
+Polecenia „nazwij to”, „zmień nazwę”, „zmień tytuł”, „ustaw nagłówek”, „tytuł ma być” to zmiana title. Zachowaj CAŁĄ podaną nazwę, nawet długą. Nie skracaj jej, nie przeredagowuj i nie przenoś fragmentów do notes. Zachowaj poprzednią notatkę.
+Polecenia „dodaj notatkę”, „dopisz do notatki”, „dodaj w notatce” oznaczają notesAction: append. W notesAddition podaj WYŁĄCZNIE nową treść; nie dodawaj słów komendy ani instrukcji zakresu, np. „dla całej serii”. Notes ma być pełną notatką po dopisaniu, z zachowaniem wcześniejszej treści.
+„Zmień notatkę na”, „zastąp notatkę”, „ustaw treść notatki” oznaczają notesAction: replace i notes z nową pełną treścią. „Usuń notatkę” oznacza notesAction: clear i notes: "".
+NotesAction jest null i notesAddition jest null, gdy notatka nie jest zmieniana.
+Przykład: aktualny title „Spotkanie”, notes „Zabrać dokumenty”; użytkownik „zmień nagłówek na Spotkanie dotyczące nowej umowy i omówienia wszystkich warunków współpracy” → changedFields: ["title"], title: pełna podana nazwa, notes: „Zabrać dokumenty”.
+Przykład: użytkownik „dodaj notatkę zabrać wyniki badań” → changedFields: ["notes"], notesAction: "append", notesAddition: "zabrać wyniki badań". Zachowaj nazwę, datę, godziny, lokalizację, przypomnienie i cykliczność.
+Przykład: użytkownik „zmień notatkę na przyjść dziesięć minut wcześniej” → changedFields: ["notes"], notesAction: "replace", notes: "przyjść dziesięć minut wcześniej". Nie zmieniaj godziny wydarzenia: te słowa są treścią notatki.
+Przy przesuwaniu godziny i zachowaniu długości wydarzenia dodaj do changedFields startTime i endTime. Przy zmianie cykliczności dodaj recurrence. Zachowaj nietknięte wartości dokładnie jak w aktualnym wpisie, również reminder i recurrence.
 
 AKTUALNY WPIS:
 ${currentItem ? JSON.stringify(currentItem) : "brak — utwórz nowy wpis"}
@@ -178,7 +230,10 @@ Dla wydarzenia:
   "reminder": null,
   "recurrence": null,
   "applyToSeries": false,
-  "recurrenceAction": null
+  "recurrenceAction": null,
+  "changedFields": [],
+  "notesAction": null,
+  "notesAddition": null
 }
 
 Dla pomysłu:
@@ -197,14 +252,14 @@ ZASADY:
 - WAŻNE PRZY EDYCJI ISTNIEJĄCEGO WYDARZENIA: jeśli użytkownik mówi „dodaj lokalizację ...”, „dodaj adres ...”, „ustaw lokalizację ...”, „zmień adres na ...” lub podobnie, jest to bezpośrednie polecenie zmiany pola "location". Wpisz do "location" wszystko, co użytkownik podał po takim poleceniu, zachowując pozostałe pola bez zmian.
 - Przykład: AKTUALNY WPIS jest wydarzeniem, użytkownik mówi „dodaj lokalizację Lublin” → zachowaj pozostałe pola i ustaw "location":"Lublin".
 - Przykład: użytkownik mówi „dodaj adres Warszawa, Wyszogrodzka 1” → ustaw "location":"Warszawa, Wyszogrodzka 1".
-- Jeśli AKTUALNY WPIS ma już location i użytkownik NIE mówi nic o lokalizacji, adresie ani miejscu, zachowaj istniejące location. Nie zamieniaj go na pusty string.\n- Jeśli lokalizacji nie podano, zwróć pusty string. Jeśli notatki nie podano, zwróć pusty string.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Jeśli użytkownik nie prosi o przypomnienie, ustaw "reminder": null.
+- Jeśli AKTUALNY WPIS ma już location i użytkownik NIE mówi nic o lokalizacji, adresie ani miejscu, zachowaj istniejące location. Nie zamieniaj go na pusty string.\n- Przy tworzeniu NOWEGO wpisu: jeśli lokalizacji lub notatki nie podano, zwróć pusty string. Przy edycji zachowaj istniejące wartości, chyba że użytkownik każe je usunąć.\n- Jeśli użytkownik prosi o przypomnienie, ustaw "reminder": {"minutesBefore": liczba_minut}. Przykład: "15 minut wcześniej" = 15, "godzinę wcześniej" = 60, "dwie godziny wcześniej" = 120.\n- Przy NOWYM wpisie bez prośby o przypomnienie ustaw "reminder": null. Przy EDYCJI bez zmiany przypomnienia zachowaj obecne reminder i nie dodawaj reminder do changedFields.
 - Jeśli wydarzenie ma się powtarzać, ustaw "recurrence" jako:
   {"frequency":"daily|weekly|monthly","interval":1,"until":"YYYY-MM-DD","count":null}
 - "co tydzień" = weekly / interval 1; "co dwa tygodnie" = weekly / interval 2; "codziennie" = daily; "co miesiąc" = monthly.
 - Jeśli użytkownik mówi "przez dwa miesiące", "przez 6 tygodni" itp., oblicz konkretną datę końcową i wpisz ją w "until".
 - Jeśli mówi "5 razy", ustaw count=5 i until=null.
 - Pole "date" dla serii oznacza datę pierwszego wystąpienia. Jeśli mówi np. "w każdy czwartek", wyznacz najbliższy przyszły czwartek jako pierwszą datę.
-- Jeśli wydarzenie nie jest cykliczne, ustaw "recurrence": null.
+- Przy NOWYM wpisie bez cykliczności ustaw "recurrence": null. Przy EDYCJI bez zmiany cykliczności zachowaj obecną recurrence.
 - Przy poprawianiu istniejącego wydarzenia należącego do serii domyślnie zmieniaj TYLKO to jedno wystąpienie i ustaw "applyToSeries": false.
 - Pole "recurrenceAction" służy WYŁĄCZNIE do zmiany cykliczności istniejącego wydarzenia.
 - Gdy użytkownik zmienia zwykłe istniejące wydarzenie na cykliczne (np. "powtarzaj to co tydzień przez dwa miesiące", "zmień to na cykliczne"), ustaw recurrence na żądaną regułę oraz "recurrenceAction":"create". Zachowaj datę aktualnego wydarzenia jako pierwsze wystąpienie, chyba że użytkownik wyraźnie poda inną datę.
@@ -225,11 +280,9 @@ ZASADY:
 - "półtorej godziny" = 90 minut.
 - Jeśli podano zakres od X do Y, zachowaj obie godziny.
 
-- Jeżeli nie podano końca ani czasu trwania:
-  endTime = "".
+- Przy NOWYM wpisie bez końca ani czasu trwania: endTime = "". Przy EDYCJI bez zmiany czasu zachowaj endTime.
 
-- Jeżeli nie podano godziny:
-  startTime = "".
+- Przy NOWYM wpisie bez godziny: startTime = "". Przy EDYCJI bez zmiany czasu zachowaj startTime.
 
 - Jeżeli AKTUALNY WPIS ma type "idea", traktuj wypowiedź jako operację na tym konkretnym pomyśle.
 - Dla istniejącego pomysłu przy zwykłej edycji pole "text" jest jego pełną treścią po zmianie.
@@ -242,7 +295,7 @@ ZASADY:
 - Przykład: AKTUALNY WPIS = {"type":"idea","text":"Sprawdzić nowego dentystę na Mokotowie"}, użytkownik mówi "przenieś to do kalendarza jutro na 15" → zwróć event na jutro 15:00 dotyczący sprawdzenia dentysty.
 - Jeśli przy istniejącym pomyśle użytkownik nie prosi o przeniesienie do kalendarza, wynik ma pozostać type "idea".
 
-- Jeżeli wypowiedź nie ma konkretnego terminu i jest rzeczą do zapamiętania, klasyfikuj ją jako "idea".
+- Jeżeli NOWA wypowiedź nie ma konkretnego terminu i jest rzeczą do zapamiętania, klasyfikuj ją jako "idea". EDYCJA aktualnego wydarzenia pozostaje event.
 
 Przykłady:
 
@@ -297,7 +350,7 @@ Przykłady:
 
       /* ===== 5. ODPOWIEDŹ ===== */
 
-      if (parsed.type === "idea") {
+      if (parsed.type === "idea" && currentItem?.type !== "event") {
 
         return json({
           success: true,
@@ -313,22 +366,24 @@ Przykłady:
       }
 
 
+      const eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,spokenText):parsed;
       return json({
         success: true,
         transcription: spokenText,
 
         item: {
           type: "event",
-          title: parsed.title || spokenText,
-          date: parsed.date || "",
-          startTime: parsed.startTime || "",
-          endTime: parsed.endTime || "",
-          notes: parsed.notes || "",
-          location: parsed.location || "",
-          reminder: parsed.reminder || null,
-          recurrence: parsed.recurrence || null,
-          applyToSeries: parsed.applyToSeries === true,
-          recurrenceAction: parsed.recurrenceAction || null
+          title: eventResult.title || spokenText,
+          date: eventResult.date || "",
+          startTime: eventResult.startTime || "",
+          endTime: eventResult.endTime || "",
+          notes: eventResult.notes || "",
+          location: eventResult.location || "",
+          reminder: eventResult.reminder || null,
+          recurrence: eventResult.recurrence || null,
+          applyToSeries: eventResult.applyToSeries === true,
+          recurrenceAction: eventResult.recurrenceAction || null,
+          ...(currentItem?.type==='event'?{changedFields:eventResult.changedFields,notesAction:eventResult.notesAction||null,notesAddition:eventResult.notesAddition||null}:{})
         }
       });
 
@@ -344,3 +399,4 @@ Przykłady:
     }
   }
 };
+
