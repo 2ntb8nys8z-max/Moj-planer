@@ -24,6 +24,7 @@ async function processGoogleDeleteQueue(){
       if(r.status===410){tomb.state="done";completed++;continue;}
       if(!r.ok){tomb.lastError=String(r.status);continue;}
       const ev=await r.json();
+      if(ev.status==="cancelled"){tomb.state="done";completed++;continue;}
       const snap=tomb.localSnapshot||{},p=googleDateParts(ev);
       const baseEtag=tomb.baseEtag||snap.googleData?.etag||null;
       const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
@@ -43,7 +44,7 @@ async function processGoogleDeleteQueue(){
   const remaining=q.filter(x=>x.state!=="done");
   saveGoogleDeleteQueue(remaining);
   renderGoogleDeleteConflicts();
-  return conflicts;
+  return remaining.filter(x=>x.state==="conflict").length;
 }
 function renderGoogleDeleteConflicts(){
   let box=document.getElementById("googleDeleteConflicts");
@@ -374,6 +375,12 @@ async function syncGoogleCalendar(){
     }
     saveTasks();renderAll();
     const pushed=await pushPlannerTasksToGoogle();
+    // A newly-created RRULE parent has no instance IDs in the local model yet.
+    // Pull once more in the same sync so Google instances bind by parent + originalStart.
+    if(pushed.created>0&&googleAccessToken){
+      const rebound=await syncFromGoogle(true);
+      if(!googleAccessToken||rebound===false)return;
+    }
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
     const conflicts=tasks.filter(task=>task.googleConflict).length;
