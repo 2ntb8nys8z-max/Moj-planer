@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.6";
+const GOOGLE_SYNC_VERSION="2026.10.04.7";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -181,13 +181,16 @@ function deletePlannerSeriesRange(task,scope){
   saveTasks();renderAll();
 }
 window.deletePlannerSeriesRange=deletePlannerSeriesRange;
+function googleAllDayRecurrence(rules){
+  return (rules||[]).map(rule=>rule.replace(/;UNTIL=(\d{8})T235959Z(?=;|$)/, ";UNTIL=$1"));
+}
 function googleSeriesDeleteContentMatches(tomb,event){
   if(tomb.baseContent)return stableGoogleValue(tomb.baseContent)===stableGoogleValue(googleComparableDeleteContent(event));
   const snapshot=tomb.localSnapshot||{},data=snapshot.googleData||{};
   // Compatibility for series created before parent baselines were saved.
   // Compare the known series rule and shared content, not an instance's ETag.
   return !!snapshot.seriesMeta?.rrule&&
-    stableGoogleValue(event.recurrence||[])===stableGoogleValue([snapshot.seriesMeta.rrule])&&
+    stableGoogleValue(event.start?.date?googleAllDayRecurrence(event.recurrence):event.recurrence||[])===stableGoogleValue(event.start?.date?googleAllDayRecurrence([snapshot.seriesMeta.rrule]):[snapshot.seriesMeta.rrule])&&
     (event.summary||'(Bez tytułu)')===snapshot.title&&
     cleanGoogleDescription(event.description||'')===cleanGoogleDescription(data.description??snapshot.notes??'')&&
     (event.location||'')===(data.location??snapshot.location??'')&&
@@ -249,7 +252,8 @@ async function processGoogleDeleteQueue(){
       if(!r.ok){tomb.lastError=String(r.status);continue;}
       const ev=await r.json();
       if(ev.status==="cancelled"){tomb.state="done";completed++;continue;}
-      const sameContent=googleDeleteContentMatches(tomb,ev);
+      const sameVersion=!!tomb.baseEtag&&tomb.baseEtag===ev.etag;
+      const sameContent=sameVersion||googleDeleteContentMatches(tomb,ev);
       if(tomb.state==="conflict"&&!sameContent){tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;continue;}
       if(tomb.state==="conflict"&&sameContent){tomb.state="pending";delete tomb.conflictReason;}
       const snap=tomb.localSnapshot||{},p=googleDateParts(ev);
@@ -510,6 +514,7 @@ async function ensureGoogleSeriesInstance(task){
       if(match){
         task.googleSeriesParentId=parentId;
         task.googleEventId=match.id;
+        task.googleDeleteBaseline=googleComparableDeleteContent(match);
         task.googleOriginalStart=match.originalStartTime||task.googleOriginalStart||null;
         task.googleData={...(task.googleData||{}),etag:match.etag||"",updated:match.updated||"",recurringEventId:parentId,originalStartTime:match.originalStartTime||null};
         saveTasks();return true;
@@ -637,7 +642,7 @@ function renderGoogleSyncResult(pushed){
   const pendingDeletes=googleDeleteQueue().filter(item=>item.state==='pending').length;
   const pendingStops=tasks.filter(task=>task.googleSeriesStopPending).length;
   const summary=document.createElement('div');
-  summary.textContent=`Ostatnia synchronizacja: wysłano ${pushed.created||0}, zaktualizowano ${pushed.updated||0}. Konflikty: ${conflicts.length+deletions.length}.`;
+  summary.textContent=`Ostatnia synchronizacja: wysłano ${pushed.created||0}, zaktualizowano ${pushed.updated||0}. Konflikty: ${conflicts.length+deletions.length}.`+(pendingDeletes+pendingStops?` Oczekujące usunięcia lub zmiany cykliczności: ${pendingDeletes+pendingStops}.`:'');
   box.appendChild(summary);
   for(const task of conflicts){
     const row=document.createElement('div');row.style.marginTop='8px';
@@ -724,7 +729,7 @@ async function sendTaskToGoogle(task,silent=false){
     saveTasks();
   }
   const event={...googleEventBody(task),id:task.googleCreateId};
-  if(!task.time&&Array.isArray(event.recurrence))event.recurrence=event.recurrence.map(rule=>rule.replace(/;UNTIL=(\d{8})T235959Z(?=;|$)/, ';UNTIL=$1'));
+  if(!task.time&&Array.isArray(event.recurrence))event.recurrence=googleAllDayRecurrence(event.recurrence);
   const bindResult=result=>{
     if(task.googleSeriesMaster===true){
       task.googleSeriesParentId=result.id||task.googleCreateId;
@@ -774,7 +779,7 @@ function googleOriginalStartKey(value){
   if(!value)return "";
   const raw=typeof value==="string"?value:(value.dateTime||value.date||"");
   if(!raw)return "";
-  if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return "date:"+raw;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return "date:"+raw;
   const ms=Date.parse(raw);
   return Number.isFinite(ms)?"datetime:"+String(ms):"datetime:"+raw;
 }
@@ -892,3 +897,4 @@ addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',remi
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
 };
+
