@@ -1,3 +1,5 @@
+// Bump this version and index.html's script URL whenever this file changes.
+const GOOGLE_SYNC_VERSION="2026.10.04.4";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -100,6 +102,8 @@ window.resolveDeleteConflict=resolveDeleteConflict;
 
 
 function setupGoogleCalendarUI(){
+  const version=document.getElementById('appVersion');
+  if(version)version.textContent=version.textContent.replace(/Synchronizacja: .*/, 'Synchronizacja: '+GOOGLE_SYNC_VERSION);
   const subtitle=document.querySelector('.subtitle');
   if(!subtitle||document.getElementById('googleCalendarCard'))return;
   const card=document.createElement('div');
@@ -388,7 +392,7 @@ function renderGoogleSyncResult(pushed){
     box.appendChild(row);
   }
   const version=document.createElement('small');version.style.color='#667085';
-  version.textContent='Wersja synchronizacji: 04.10.3';box.appendChild(version);
+  version.textContent='Wersja synchronizacji: '+GOOGLE_SYNC_VERSION;box.appendChild(version);
 }
 
 async function syncGoogleCalendar(){
