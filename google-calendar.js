@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.7";
+const GOOGLE_SYNC_VERSION="2026.10.04.8";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -302,11 +302,40 @@ function renderGoogleDeleteConflicts(){
   conflicts.forEach(t=>{
     const row=document.createElement("div");row.style.cssText="margin-top:10px;padding-top:10px;border-top:1px solid #ddd";
     const remote=t.remoteSnapshot||{},local=t.localSnapshot||{};
-    row.innerHTML=`<div><b>${local.title||remote.summary||"Wydarzenie"}</b><br><small>Usunięte w Planerze; ${t.conflictReason==="missing-baseline"?"brakuje danych do porównania z Google.":"zapis Google wymaga sprawdzenia przed usunięciem."}</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="danger del-google">Usuń również z Google</button><button class="secondary restore-local">Przywróć do Planera</button></div>`;
+    row.innerHTML=`<div><b>${local.title||remote.summary||"Wydarzenie"}</b><br><small>Usunięte w Planerze; ${t.conflictReason==="missing-baseline"?(t.seriesRange?"brakuje zapisanych danych całej serii do porównania z Google.":"brakuje zapisanych danych tego wydarzenia do porównania z Google."):"zapis Google wymaga sprawdzenia przed usunięciem."}</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="danger del-google">Usuń również z Google</button><button class="secondary restore-local">Przywróć do Planera</button></div>`;
     row.querySelector(".del-google").onclick=()=>resolveDeleteConflict(t.googleEventId,"delete");
     row.querySelector(".restore-local").onclick=()=>resolveDeleteConflict(t.googleEventId,"restore");
     box.appendChild(row);
   });
+}
+async function fetchGoogleSeriesBaseline(parentId){
+  const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(parentId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+  if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');}
+  if(!response.ok)throw new Error('Nie udało się pobrać danych serii: '+response.status);
+  const event=await response.json();
+  if(event.id!==parentId||!event.start||!event.end||!Array.isArray(event.recurrence)||event.status==='cancelled')throw new Error('Niepełne dane serii Google');
+  return event;
+}
+function applyGoogleSeriesBaseline(parentId,event){
+  // Instance snapshots cannot stand in for the parent: dates, rule and ETag differ.
+  const baseline=googleComparableDeleteContent(event);
+  for(const task of tasks){
+    if(task.googleSeriesParentId!==parentId||task.googleDirty||task.googleSeriesStopPending)continue;
+    task.googleSeriesDeleteBaseline=baseline;
+    const rule=event.recurrence.find(value=>value.startsWith('RRULE:'));
+    if(rule)task.seriesMeta={...(task.seriesMeta||{}),rrule:rule};
+  }
+}
+async function fillMissingGoogleSeriesBaselines(){
+  const pending=new Set(googleDeleteQueue().filter(item=>item.seriesRange).map(item=>item.googleEventId));
+  const parents=new Set(tasks.filter(task=>task.googleSeriesParentId&&!task.googleSeriesDeleteBaseline&&!task.googleDirty&&!task.googleSeriesStopPending).map(task=>task.googleSeriesParentId));
+  for(const parentId of parents){
+    if(pending.has(parentId))continue;
+    try{applyGoogleSeriesBaseline(parentId,await fetchGoogleSeriesBaseline(parentId));}
+    catch(error){console.error('Google series baseline fetch failed',error);}
+    if(!googleAccessToken)return false;
+  }
+  return true;
 }
 async function resolveDeleteConflict(id,choice){
   let q=googleDeleteQueue(),t=q.find(x=>x.googleEventId===id);if(!t)return;
@@ -323,20 +352,22 @@ async function resolveDeleteConflict(id,choice){
     }
     // Restore the linked occurrences, not the Google parent as a fake singleton.
     const saved=t.localSnapshots||[t.localSnapshot];
-    saveGoogleDeleteQueue(q.filter(item=>item.googleEventId!==id));
     try{
-      await syncFromGoogle(true);
+      const parent=await fetchGoogleSeriesBaseline(id);
+      saveGoogleDeleteQueue(googleDeleteQueue().filter(item=>item.googleEventId!==id));
+      if(await syncFromGoogle(true,false)===false)throw new Error('Przerwano przywracanie serii');
       for(const snapshot of saved){
         if(!snapshot)continue;
-        const restored=tasks.find(task=>task.googleEventId===snapshot.googleEventId||
+        const restored=tasks.find(task=>(snapshot.googleEventId&&task.googleEventId===snapshot.googleEventId)||
           (task.googleSeriesParentId===id&&localOriginalStartKey(task)===localOriginalStartKey(snapshot)));
         if(restored){
           restored.seriesId=snapshot.seriesId;restored.recurrence=snapshot.recurrence;
           restored.seriesMeta=snapshot.seriesMeta;restored.reminder=snapshot.reminder;
         }
       }
+      applyGoogleSeriesBaseline(id,parent);
       saveTasks();renderAll();renderGoogleDeleteConflicts();toast('✓ Przywrócono serię do Planera');
-    }catch(error){saveGoogleDeleteQueue([...googleDeleteQueue(),t]);renderGoogleDeleteConflicts();toast('Nie udało się przywrócić serii');}
+    }catch(error){const remaining=googleDeleteQueue();if(!remaining.some(item=>item.googleEventId===id))remaining.push(t);saveGoogleDeleteQueue(remaining);renderGoogleDeleteConflicts();toast('Nie udało się przywrócić serii');}
     return;
   }
   if(choice==="delete"){
@@ -345,16 +376,23 @@ async function resolveDeleteConflict(id,choice){
     if(!r.ok&&r.status!==404&&r.status!==410){toast("Nie udało się usunąć z Google");return;}
     saveGoogleDeleteQueue(q.filter(x=>x.googleEventId!==id));
   }else{
-    saveGoogleDeleteQueue(q.filter(x=>x.googleEventId!==id));
     const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
-    if(!r.ok){saveGoogleDeleteQueue(q);toast("Nie udało się pobrać wydarzenia z Google");return;}
+    if(!r.ok){toast("Nie udało się pobrać wydarzenia z Google");return;}
     const ev=await r.json();
+    if(ev.status==='cancelled'||!googleDateParts(ev)){toast("Wydarzenie nie jest już dostępne w Google");return;}
+    let parent=null;
+    if(ev.recurringEventId){
+      try{parent=await fetchGoogleSeriesBaseline(ev.recurringEventId);}
+      catch(error){toast("Nie udało się pobrać danych serii do przywrócenia");return;}
+    }
     const snapshot=t.localSnapshot||{};
+    saveGoogleDeleteQueue(googleDeleteQueue().filter(x=>x.googleEventId!==id));
     upsertGoogleEvent(ev);
     const restored=tasks.find(x=>x.googleEventId===id);
     if(restored&&snapshot.seriesId)restored.seriesId=snapshot.seriesId;
     if(restored&&snapshot.recurrence)restored.recurrence=snapshot.recurrence;
     if(restored&&snapshot.reminder!==undefined)restored.reminder=snapshot.reminder;
+    if(parent)applyGoogleSeriesBaseline(ev.recurringEventId,parent);
   }
   saveTasks();renderAll();renderGoogleDeleteConflicts();
   toast(choice==="delete"?"✓ Usunięto również z Google":"✓ Przywrócono do Planera");
@@ -854,7 +892,7 @@ function upsertGoogleEvent(event){
   return true;
 }
 
-async function syncFromGoogle(silent=false){
+async function syncFromGoogle(silent=false,refreshSeries=true){
   if(!googleAccessToken)return false;
   if(!silent)setGoogleStatus(true,'Synchronizuję…');
   try{
@@ -878,6 +916,7 @@ async function syncFromGoogle(silent=false){
       });
       pageToken=data.nextPageToken||'';
     }while(pageToken);
+    if(refreshSeries&&await fillMissingGoogleSeriesBaselines()===false)return false;
     saveTasks();renderAll();
     if(!silent){setGoogleStatus(true,'Połączony • zsynchronizowano');toast(changed?'✓ Kalendarz Google zsynchronizowany':'✓ Brak nowych wydarzeń');}
     return true;
@@ -897,4 +936,5 @@ addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',remi
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
 };
+
 
