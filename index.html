@@ -127,5 +127,5 @@ let timer=300,interval=null,timerIdea=null;function displayTimer(){$("clock").te
 $("closeCelebrate").onclick=()=>$("celebrate").classList.add("hidden");$("note").value=localStorage.getItem(NOTE_KEY)||"";$("saveNote").onclick=()=>{localStorage.setItem(NOTE_KEY,$("note").value);toast("✓ Zapisano")};$("date").value=iso(selected);displayTimer();renderAll();
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="google-calendar.js?v=20261004-2"></script>
+<script src="google-calendar.js?v=20261004-3"></script>
 </body></html>
