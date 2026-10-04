@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.8";
+const GOOGLE_SYNC_VERSION="2026.10.04.9";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -321,7 +321,9 @@ function applyGoogleSeriesBaseline(parentId,event){
   const baseline=googleComparableDeleteContent(event);
   for(const task of tasks){
     if(task.googleSeriesParentId!==parentId||task.googleDirty||task.googleSeriesStopPending)continue;
+    bindGoogleSeriesMembership(task,parentId);
     task.googleSeriesDeleteBaseline=baseline;
+    task.recurrence=googleRecurrenceSummary(event.recurrence);
     const rule=event.recurrence.find(value=>value.startsWith('RRULE:'));
     if(rule)task.seriesMeta={...(task.seriesMeta||{}),rrule:rule};
   }
@@ -842,6 +844,31 @@ function reconcileGoogleDeletedTask(task){
   }
 }
 
+function bindGoogleSeriesMembership(task,parentId){
+  const previousParent=task.googleSeriesParentId||task.googleData?.recurringEventId||null;
+  const sibling=tasks.find(other=>other!==task&&other.googleSeriesParentId===parentId&&other.seriesId);
+  // Google splits "this and following" into a new parent. Use that identity,
+  // never title or changed time, to keep the two segments separate.
+  const changedParent=previousParent&&previousParent!==parentId;
+  if(changedParent){
+    task.googleSeriesDeleteBaseline=null;task.seriesMeta=null;task.recurrence=null;
+    task.googleSeriesMaster=false;task.googleSeriesVirtual=false;
+  }
+  task.seriesId=sibling?.seriesId||(!changedParent&&task.seriesId)||('google-series:'+parentId);
+  if(sibling?.googleSeriesDeleteBaseline&&!task.googleSeriesDeleteBaseline)task.googleSeriesDeleteBaseline=sibling.googleSeriesDeleteBaseline;
+  if(sibling?.seriesMeta&&!task.seriesMeta)task.seriesMeta={...sibling.seriesMeta};
+  if(sibling?.recurrence&&!task.recurrence)task.recurrence={...sibling.recurrence};
+  if(!task.recurrence)task.recurrence={frequency:'google',interval:1};
+}
+function googleRecurrenceSummary(rules){
+  const rule=(rules||[]).find(value=>value.startsWith('RRULE:'));
+  if(!rule)return {frequency:'google',interval:1};
+  const fields=Object.fromEntries(rule.slice(6).split(';').map(part=>part.split('=')));
+  const result={frequency:(fields.FREQ||'google').toLowerCase(),interval:Math.max(1,Number(fields.INTERVAL)||1)};
+  if(fields.COUNT)result.count=Number(fields.COUNT);
+  if(/^\d{8}/.test(fields.UNTIL||''))result.until=fields.UNTIL.slice(0,4)+'-'+fields.UNTIL.slice(4,6)+'-'+fields.UNTIL.slice(6,8);
+  return result;
+}
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
   if(googleDeleteQueue().some(x=>x.googleEventId===event.id)||googleEventStoppedLocally(event)||queuedGoogleSeriesDeletion(event))return false;
@@ -864,6 +891,7 @@ function upsertGoogleEvent(event){
   // A live event supersedes a previously observed deletion. Keep local edits.
   if(task.googleConflict==='deleted')task.googleConflict=null;
   if(parentId){
+    bindGoogleSeriesMembership(task,parentId);
     if(task.googleSeriesMaster&&task.googleEventId===parentId)task.googleEventId=null;
     task.googleSeriesParentId=parentId;
     task.googleOriginalStart=event.originalStartTime||task.googleOriginalStart||null;
@@ -936,5 +964,6 @@ addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',remi
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
 };
+
 
 
