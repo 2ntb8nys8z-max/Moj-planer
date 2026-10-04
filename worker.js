@@ -1,3 +1,89 @@
+// Private prototype API protection — 2026.10.04.14
+const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
+const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
+  id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
+  day_key TEXT NOT NULL, day_count INTEGER NOT NULL,
+  minute_key INTEGER NOT NULL, minute_count INTEGER NOT NULL
+)`;
+// One conditional statement checks and reserves every limit atomically.
+const QUOTA_RESERVE = `INSERT INTO planner_api_quota
+(id,month_key,month_count,day_key,day_count,minute_key,minute_count)
+VALUES ('private',?1,1,?2,1,?3,1)
+ON CONFLICT(id) DO UPDATE SET
+month_key=excluded.month_key,
+month_count=CASE WHEN planner_api_quota.month_key=excluded.month_key THEN planner_api_quota.month_count+1 ELSE 1 END,
+day_key=excluded.day_key,
+day_count=CASE WHEN planner_api_quota.day_key=excluded.day_key THEN planner_api_quota.day_count+1 ELSE 1 END,
+minute_key=excluded.minute_key,
+minute_count=CASE WHEN planner_api_quota.minute_key=excluded.minute_key THEN planner_api_quota.minute_count+1 ELSE 1 END
+WHERE (planner_api_quota.month_key<>excluded.month_key OR planner_api_quota.month_count<?4)
+AND (planner_api_quota.day_key<>excluded.day_key OR planner_api_quota.day_count<?5)
+AND (planner_api_quota.minute_key<>excluded.minute_key OR planner_api_quota.minute_count<?6)
+RETURNING *`;
+class PlannerApiError extends Error {
+  constructor(message,status=400,code='invalid_request',stage='request'){super(message);this.status=status;this.code=code;this.stage=stage;}
+}
+function quotaPeriod(now=new Date()){
+  const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  return {day,month:day.slice(0,7),minute:Math.floor(now.getTime()/60000)};
+}
+function quotaView(row,period){
+  return {month:period.month,day:period.day,monthlyLimit:API_LIMITS.monthly,dailyLimit:API_LIMITS.daily,minuteLimit:API_LIMITS.minute,
+    monthlyUsed:row?.month_key===period.month?row.month_count:0,dailyUsed:row?.day_key===period.day?row.day_count:0,
+    minuteUsed:row?.minute_key===period.minute?row.minute_count:0};
+}
+async function quotaRead(env){
+  await env.API_LIMITS_DB.prepare(QUOTA_SCHEMA).run();
+  return quotaView(await env.API_LIMITS_DB.prepare("SELECT * FROM planner_api_quota WHERE id='private'").first(),quotaPeriod());
+}
+async function quotaReserve(env){
+  const period=quotaPeriod();
+  await env.API_LIMITS_DB.prepare(QUOTA_SCHEMA).run();
+  const row=await env.API_LIMITS_DB.prepare(QUOTA_RESERVE).bind(period.month,period.day,period.minute,API_LIMITS.monthly,API_LIMITS.daily,API_LIMITS.minute).first();
+  if(row)return quotaView(row,period);
+  const usage=await quotaRead(env);
+  const reason=usage.monthlyUsed>=API_LIMITS.monthly?'monthly_limit':usage.dailyUsed>=API_LIMITS.daily?'daily_limit':'minute_limit';
+  const message=reason==='monthly_limit'?'Wykorzystano miesięczny limit 300 wywołań AI.':reason==='daily_limit'?'Wykorzystano dzienny limit 100 wywołań AI.':'Za dużo wywołań AI w krótkim czasie. Spróbuj za minutę.';
+  const error=new PlannerApiError(message,429,reason,'quota');error.usage=usage;throw error;
+}
+async function checkApiAccess(request,env){
+  if(typeof env.PLANNER_ACCESS_TOKEN!=='string'||! /^[\x20-\x7e]{24,256}$/.test(env.PLANNER_ACCESS_TOKEN)||!env.API_LIMITS_DB||!env.OPENAI_API_KEY){
+    throw new PlannerApiError('API wymaga konfiguracji kodu dostępu, bazy limitów i klucza OpenAI w Cloudflare.',503,'api_not_configured','configuration');
+  }
+  const auth=request.headers.get('Authorization')||'';
+  if(!auth.startsWith('Bearer ')||auth.length>520)throw new PlannerApiError('Podaj kod dostępu do AI.',401,'access_required','authentication');
+  const encode=new TextEncoder();
+  const actual=new Uint8Array(await crypto.subtle.digest('SHA-256',encode.encode(auth.slice(7))));
+  const expected=new Uint8Array(await crypto.subtle.digest('SHA-256',encode.encode(env.PLANNER_ACCESS_TOKEN)));
+  let different=0;for(let i=0;i<expected.length;i++)different|=actual[i]^expected[i];
+  if(different)throw new PlannerApiError('Nieprawidłowy kod dostępu do AI.',401,'access_denied','authentication');
+}
+async function boundedRequestBody(request,maxBytes){
+  const declared=Number(request.headers.get('Content-Length')||0);
+  if(declared>maxBytes)throw new PlannerApiError('Przesłany plik lub wiadomość jest za duża.',413,'body_too_large');
+  if(!request.body)return new Uint8Array();
+  const reader=request.body.getReader(),chunks=[];let total=0;
+  try{while(true){const {done,value}=await reader.read();if(done)break;total+=value.byteLength;
+    if(total>maxBytes){await reader.cancel();throw new PlannerApiError('Przesłany plik lub wiadomość jest za duża.',413,'body_too_large')}
+    chunks.push(value)}}finally{reader.releaseLock()}
+  const bytes=new Uint8Array(total);let at=0;for(const chunk of chunks){bytes.set(chunk,at);at+=chunk.length}return bytes;
+}
+function parseApiJson(text,stage='request'){
+  try{return JSON.parse(text)}catch(_){throw new PlannerApiError(stage==='request'?'Nieprawidłowa wiadomość JSON.':'AI zwróciło nieprawidłową odpowiedź. Spróbuj ponownie.',stage==='request'?400:502,'invalid_json',stage)}
+}
+async function fetchOpenAi(url,options){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
+  try{return await fetch(url,{...options,signal:controller.signal})}
+  catch(_){throw new PlannerApiError('Nie udało się połączyć z AI lub upłynął czas oczekiwania. Spróbuj ponownie.',504,'upstream_unavailable','connection')}
+  finally{clearTimeout(timer)}
+}
+function openAiFailure(status,text,stage){
+  let code='';try{code=JSON.parse(text)?.error?.code||''}catch(_){}
+  const credit=['credit_balance_exhausted','insufficient_quota','organization_usage_limit_exceeded','organization_spend_limit_exceeded','project_spend_limit_exceeded'].includes(code);
+  const message=credit?'OpenAI zgłosiło brak środków lub osiągnięcie limitu wydatków. Sprawdź saldo API.':status===429?'OpenAI chwilowo ogranicza liczbę wywołań. Spróbuj później.':status===401?'Klucz OpenAI w Cloudflare wymaga sprawdzenia.':'Usługa AI nie przetworzyła wypowiedzi. Spróbuj ponownie.';
+  return new PlannerApiError(message,status===429?429:502,credit?'openai_billing_limit':status===429?'openai_rate_limit':'openai_error',stage);
+}
+
 function explicitVoiceEventEdit(text){
   const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
   const rules=[
@@ -43,10 +129,14 @@ function normalizeEventVoiceResult(current,parsed,transcription){
 export default {
   async fetch(request, env) {
 
+    const origin=request.headers.get("Origin");
+    const allowedOrigin="https://2ntb8nys8z-max.github.io";
     const cors = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-Current-Item, X-Voice-Dialogue",
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Vary": "Origin",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Current-Item, X-Voice-Dialogue, Authorization",
     };
 
     const json = (data, status = 200) =>
@@ -58,38 +148,56 @@ export default {
         }
       });
 
+    if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
+    if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
+      return json({success:true,apiVersion:"2026.10.04.14",requiresAccess:true,limits:API_LIMITS});
+    }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
     }
 
-    if (request.method !== "POST") {
-      return new Response("Moj Planer API działa", {
-        status: 200,
-        headers: cors
-      });
-    }
-
+    let apiUsage=null;
     try {
-
-      if (!env.OPENAI_API_KEY) {
-        throw new Error("Brak OPENAI_API_KEY");
+      if(request.method!=="POST" && !(request.method==="GET" && new URL(request.url).pathname==="/usage")){
+        return json({success:false,error:"Użyj POST do rozpoznawania wypowiedzi.",code:"method_not_allowed"},405);
       }
-
+      await checkApiAccess(request,env);
+      if(request.method==="GET")return json({success:true,usage:await quotaRead(env)});
       /* ===== 1. AUDIO ===== */
 
       let spokenText = "", dialogue = [];
+      let currentItem = null;
       let bodyCurrent = null;
       if ((request.headers.get("Content-Type") || "").includes("application/json")) {
-        const body = await request.json();
-        if (typeof body.text !== "string" || body.text.length > 4000) throw new Error("Nieprawidłowa odpowiedź tekstowa");
+        const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,API_LIMITS.jsonBytes)));
+        if (typeof body.text !== "string" || body.text.length > 4000) throw new PlannerApiError("Nieprawidłowa odpowiedź tekstowa");
         spokenText = body.text.trim();
         dialogue = body.dialogue || [];
         bodyCurrent = body.currentItem || null;
+      }
+      const dialogueHeader = request.headers.get("X-Voice-Dialogue");
+      if(dialogueHeader && (request.headers.get("Content-Type")||"").includes("application/json"))throw new PlannerApiError("Kontekst rozmowy tekstowej musi być w JSON.");
+      if (dialogueHeader) dialogue = parseApiJson(decodeURIComponent(dialogueHeader));
+      if (!Array.isArray(dialogue) || dialogue.length > 24 || dialogue.some(m => !["user","assistant"].includes(m.role) || typeof m.content !== "string" || m.content.length > 4000)) throw new PlannerApiError("Nieprawidłowy kontekst rozmowy");
+      currentItem = bodyCurrent;
+      const currentItemHeader = request.headers.get("X-Current-Item");
+      if (currentItemHeader) {
+        if((request.headers.get("Content-Type")||"").includes("application/json"))throw new PlannerApiError("Kontekst wpisu tekstowego musi być w JSON.");
+        currentItem = parseApiJson(decodeURIComponent(currentItemHeader));
+      }
+
+      if(currentItem!==null&&(typeof currentItem!=="object"||Array.isArray(currentItem)||!["event","idea"].includes(currentItem.type)))throw new PlannerApiError("Nieprawidłowy kontekst wpisu.");
+
+      if ((request.headers.get("Content-Type") || "").includes("application/json")) {
+        if(!spokenText)throw new PlannerApiError("Wpisz odpowiedź.");
+        apiUsage=await quotaReserve(env);
       } else {
-      const audioBlob = await request.blob();
+      const audioType=(request.headers.get("Content-Type")||"").split(";")[0].toLowerCase();
+      if(!["audio/mp4","audio/webm","audio/wav","audio/x-wav","audio/mpeg","audio/ogg","video/mp4","video/webm"].includes(audioType))throw new PlannerApiError("Nieobsługiwany format nagrania.",415,"unsupported_audio");
+      const audioBlob = new Blob([await boundedRequestBody(request,API_LIMITS.audioBytes)],{type:audioType});
 
       if (!audioBlob.size) {
-        throw new Error("Plik audio jest pusty");
+        throw new PlannerApiError("Plik audio jest pusty");
       }
 
       let extension = "mp4";
@@ -114,9 +222,11 @@ export default {
       formData.append("language", "pl");
 
 
+      apiUsage=await quotaReserve(env);
+
       /* ===== 2. MOWA → TEKST ===== */
 
-      const transcriptionResponse = await fetch(
+      const transcriptionResponse = await fetchOpenAi(
         "https://api.openai.com/v1/audio/transcriptions",
         {
           method: "POST",
@@ -130,30 +240,13 @@ export default {
       const transcriptionText =
         await transcriptionResponse.text();
 
-      if (!transcriptionResponse.ok) {
-        return json({
-          success: false,
-          stage: "transcription",
-          error: transcriptionText
-        }, transcriptionResponse.status);
-      }
-
-      const transcription =
-        JSON.parse(transcriptionText);
-
+      if (!transcriptionResponse.ok) throw openAiFailure(transcriptionResponse.status,transcriptionText,"transcription");
+      const transcription = parseApiJson(transcriptionText,"transcription");
       spokenText =
         (transcription.text || "").trim();
 
       }
-      const dialogueHeader = request.headers.get("X-Voice-Dialogue");
-      if (dialogueHeader) dialogue = JSON.parse(decodeURIComponent(dialogueHeader));
-      if (!Array.isArray(dialogue) || dialogue.length > 24 || dialogue.some(m => !["user","assistant"].includes(m.role) || typeof m.content !== "string" || m.content.length > 4000)) throw new Error("Nieprawidłowy kontekst rozmowy");
-      let currentItem = bodyCurrent;
-      const currentItemHeader = request.headers.get("X-Current-Item");
-      if (currentItemHeader) {
-        try { currentItem = JSON.parse(decodeURIComponent(currentItemHeader)); } catch (_) {}
-      }
-
+      if(spokenText.length>API_LIMITS.textChars)throw new PlannerApiError("Wypowiedź jest za długa.");
       if (!spokenText) {
         throw new Error("Nie rozpoznano wypowiedzi");
       }
@@ -174,7 +267,7 @@ export default {
 
       /* ===== 4. AI ROZUMIE WYPOWIEDŹ ===== */
 
-      const aiResponse = await fetch(
+      const aiResponse = await fetchOpenAi(
         "https://api.openai.com/v1/chat/completions",
         {
           method: "POST",
@@ -189,6 +282,7 @@ export default {
 
             model: "gpt-4o-mini",
             temperature: 0,
+            max_completion_tokens: 2000,
 
             response_format: {
               type: "json_object"
@@ -349,17 +443,8 @@ Przykłady:
 
       const aiText = await aiResponse.text();
 
-      if (!aiResponse.ok) {
-        return json({
-          success: false,
-          stage: "interpretation",
-          transcription: spokenText,
-          error: aiText
-        }, aiResponse.status);
-      }
-
-      const aiResult = JSON.parse(aiText);
-
+      if (!aiResponse.ok) throw openAiFailure(aiResponse.status,aiText,"interpretation");
+      const aiResult = parseApiJson(aiText,"interpretation");
       const content =
         aiResult.choices?.[0]?.message?.content;
 
@@ -367,13 +452,13 @@ Przykłady:
         throw new Error("Brak interpretacji AI");
       }
 
-      const parsed = JSON.parse(content);
+      const parsed = parseApiJson(content,"interpretation");
       if (parsed.type === "clarification") {
         if (typeof parsed.question !== "string" || !parsed.question.trim() || parsed.question.length > 500) throw new Error("Nieprawidłowe pytanie AI");
-        return json({success:true, transcription:spokenText, clarification:{question:parsed.question.trim()}});
+        return json({success:true, usage:apiUsage, transcription:spokenText, clarification:{question:parsed.question.trim()}});
       }
       if (parsed.type === "event" && !parsed.date && !currentItem?.date) {
-        return json({success:true, transcription:spokenText, clarification:{question:"Na jaki dzień zapisać to wydarzenie?"}});
+        return json({success:true, usage:apiUsage, transcription:spokenText, clarification:{question:"Na jaki dzień zapisać to wydarzenie?"}});
       }
       const operationText = dialogue.filter(m => m.role === "user").map(m => m.content).concat(spokenText).join("\n");
 
@@ -384,6 +469,7 @@ Przykłady:
 
         return json({
           success: true,
+          usage: apiUsage,
           transcription: operationText,
 
           item: {
@@ -399,6 +485,7 @@ Przykłady:
       const eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;
       return json({
         success: true,
+        usage: apiUsage,
         transcription: operationText,
 
         item: {
@@ -420,14 +507,9 @@ Przykłady:
 
     } catch (error) {
 
-      console.log("WORKER ERROR:", error.message);
-
-      return json({
-        success: false,
-        error: error.message
-      }, 500);
+      const known=error instanceof PlannerApiError;
+      console.log("WORKER ERROR:",known?error.code:"processing_failed");
+      return json({success:false,error:known?error.message:"Nie udało się przetworzyć wypowiedzi. Spróbuj ponownie.",code:known?error.code:"processing_failed",stage:known?error.stage:"processing",usage:error.usage||apiUsage},known?error.status:502);
     }
   }
 };
-
-
