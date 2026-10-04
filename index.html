@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.04.14 · Synchronizacja: ładowanie…</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.04.15 · Synchronizacja: ładowanie…</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabIdeas">💡 Pomysły</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">💡 Pomysły — zobacz do zrobienia i zrealizowane</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz wydarzenie lub pomysł</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -18,6 +18,7 @@
 <div id="weekView" class="card hidden"><div class="daybar"><button id="weekPrev" class="navbutton">←</button><h2>Tydzień</h2><button id="weekNext" class="navbutton">→</button></div><div id="weekGrid" class="week-grid"></div></div>
 <div id="monthView" class="card hidden"><div class="daybar"><button id="monthPrev" class="navbutton">←</button><h2 id="monthTitle"></h2><button id="monthNext" class="navbutton">→</button></div><div id="monthGrid" class="month-grid"></div></div>
 <div id="ideasView" class="card hidden"><h2>💡 Pomysły</h2><div style="color:#667085;margin-bottom:10px">Luźne myśli, książki, filmy i rzeczy, o których chcesz pamiętać.</div><div class="tabs" style="margin:10px 0 14px"><button id="ideasTodoTab" class="active">Do zrobienia</button><button id="ideasDoneTab">Zrealizowane</button></div><div id="ideasList"></div></div>
+<div id="backupCard" class="card"><h2>Kopia danych</h2><p>Kopia zawiera wydarzenia, pomysły, wolne myśli oraz powiązania i kolejkę synchronizacji. Nie zawiera haseł ani kluczy dostępu.</p><div id="dataWarning" role="alert" hidden style="color:#b42318;white-space:pre-wrap;margin:12px 0"></div><div class="row"><button id="exportBackup" class="secondary" type="button">Pobierz kopię danych</button><button id="exportPrevious" class="secondary" type="button">Pobierz poprzedni zapis</button><button id="importBackup" class="secondary" type="button">Przywróć kopię</button></div><input id="backupFile" type="file" accept=".json,application/json" hidden><p style="color:#667085;font-size:13px">Zachowaj pobrany plik w aplikacji Pliki. Przywrócenie zastępuje bieżące dane i odłącza Google. Poprzedni zapis obejmuje ostatnią udaną operację zapisu.</p></div>
 <div id="toolsArea"><div class="card timer"><div><div style="color:#667085">Minutnik</div><div id="clock">05:00</div></div><button id="timerBtn" class="primary">▶</button></div><div class="card"><h2>Wolne myśli</h2><textarea id="note" placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea><button id="saveNote" class="primary" style="margin-top:10px">Zapisz</button></div></div>
 </div>
 <div id="toast" class="toast"></div><div id="celebrate" class="modal-backdrop hidden"><div class="action-card" style="text-align:center"><div style="font-size:64px">🎉</div><h2>Świetnie! Zrobione.</h2><button id="closeCelebrate" class="primary">OK</button></div></div>
@@ -26,14 +27,124 @@
 <div id="eventModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEvent" class="close-x">×</button><h2 id="actionTitle"></h2><div id="actionMeta" class="action-meta"></div><button id="navigateBtn" class="secondary hidden" type="button" style="width:100%;margin:0 0 12px">🧭 Nawiguj</button><div class="event-voice"><div id="eventVoiceCountdown" class="voice-countdown"></div><button id="eventVoice" class="event-mic" type="button">🎤</button><button id="eventRecordCancel" type="button" class="secondary hidden" aria-label="Skasuj nagranie">Skasuj</button><div id="eventVoiceHint" class="event-voice-hint">Powiedz, co chcesz zmienić</div></div><div class="action-buttons"><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div></div>
 <div id="apiAccessModal" class="modal-backdrop hidden" style="z-index:1002"><div class="action-card"><h2>Dostęp do AI</h2><p>Wpisz kod ustawiony w Cloudflare jako PLANNER_ACCESS_TOKEN. To nie jest klucz OpenAI.</p><input id="apiAccessInput" type="password" autocomplete="current-password" maxlength="256" aria-label="Kod dostępu do AI"><p id="apiAccessError" role="status"></p><div class="action-buttons"><button id="apiAccessSave" class="primary" type="button">Zapisz kod</button><button id="apiAccessCancel" class="secondary" type="button">Anuluj</button></div></div></div>
 <script>
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev";let tasks=JSON.parse(localStorage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(localStorage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo";
+// Durable planner state: one atomic record, one previous good snapshot.
+const PlannerData=(()=>{
+  const KEY='moj-planer-data-v1';
+  const keys=['moj-planer-tasks','moj-planer-ideas','moj-planer-note','moj-planer-google-delete-queue'];
+  const defaults={tasks:[],ideas:[],note:'',deleteQueue:[]};
+  const names=['tasks','ideas','note','deleteQueue'];
+  let state=structuredClone(defaults),previous=null,expected=null,locked=false,reason='',rawRecovery={};
+  const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+  function validId(id){return (typeof id==='string'&&id.length>0)||(typeof id==='number'&&Number.isFinite(id))}
+  function validate(data){
+    if(!object(data)||!Array.isArray(data.tasks)||!Array.isArray(data.ideas)||typeof data.note!=='string'||!Array.isArray(data.deleteQueue))throw Error('Nieprawidłowa struktura danych.');
+    for(const [name,field] of [['tasks','title'],['ideas','text']]){
+      const seen=new Set();
+      for(const item of data[name]){
+        if(!object(item)||!validId(item.id)||typeof item[field]!=='string'||(name==='tasks'&&(typeof item.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(item.date))))throw Error('Nieprawidłowy wpis: '+name+'.');
+        if(name==='tasks'){
+          const d=new Date(item.date+'T12:00:00');
+          if(!Number.isFinite(d.getTime())||d.getFullYear()!==Number(item.date.slice(0,4))||d.getMonth()+1!==Number(item.date.slice(5,7))||d.getDate()!==Number(item.date.slice(8,10)))throw Error('Nieprawidłowa data wydarzenia.');
+          for(const field of ['time','endTime'])if(item[field]!=null&&item[field]!==''&&(typeof item[field]!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(item[field])))throw Error('Nieprawidłowa godzina wydarzenia.');
+          for(const field of ['notes','location','category'])if(item[field]!=null&&typeof item[field]!=='string')throw Error('Nieprawidłowa treść wydarzenia.');
+        }else if(item.createdAt!=null&&!Number.isFinite(new Date(item.createdAt).getTime()))throw Error('Nieprawidłowa data pomysłu.');
+        if(seen.has(String(item.id)))throw Error('Powtórzony identyfikator wpisu.');seen.add(String(item.id));
+      }
+    }
+    if(data.deleteQueue.some(x=>!object(x)||typeof x.googleEventId!=='string'))throw Error('Nieprawidłowa kolejka synchronizacji.');
+    return structuredClone(data);
+  }
+  function fail(message){
+    locked=true;reason=message;
+    const panel=document.getElementById('dataWarning');
+    if(panel){panel.hidden=false;panel.textContent=message+' Zmiany i synchronizacja są wstrzymane. Pobierz kopię ratunkową i odśwież stronę albo przywróć poprawną kopię.';}
+    document.querySelectorAll('.modal-backdrop').forEach(el=>el.classList.add('hidden'));
+    document.getElementById('backupCard')?.scrollIntoView({block:'center'});
+    try{if(typeof cancelPlannerRecording==='function')['main','event','idea'].forEach(cancelPlannerRecording)}catch(_){}
+    return Object.assign(new Error(message),{plannerStorageError:true});
+  }
+  try{
+    expected=localStorage.getItem(KEY);rawRecovery[KEY]=expected;
+    if(expected!==null){
+      const record=JSON.parse(expected);
+      if(record.version!==1)throw Error('Nieobsługiwana wersja zapisu.');
+      state=validate(record.data);
+      if(record.previous!==null&&record.previous!==undefined)previous=validate(record.previous);
+    }else{
+      const candidate={};
+      keys.forEach(key=>{rawRecovery[key]=localStorage.getItem(key)});keys.forEach((key,i)=>{const raw=rawRecovery[key];candidate[names[i]]=raw===null?structuredClone(defaults[names[i]]):i===2?raw:JSON.parse(raw)});
+      state=validate(candidate);
+    }
+  }catch(error){fail('Nie udało się odczytać zapisanych danych. Oryginalny zapis pozostaje zachowany.');}
+  function commit(next){
+    if(locked)throw fail(reason);
+    const validated=validate(next);
+    const payload=JSON.stringify({version:1,data:validated,previous:state,savedAt:new Date().toISOString()});
+    try{
+      if(localStorage.getItem(KEY)!==expected)throw fail('Dane zostały zmienione w innej karcie. Odśwież tę kartę przed dalszą pracą.');
+      localStorage.setItem(KEY,payload);
+    }catch(error){if(error.plannerStorageError)throw error;throw fail('Nie udało się zapisać danych na urządzeniu. Ostatnia poprawnie zapisana wersja pozostaje zachowana.');}
+    previous=state;state=validated;expected=payload;
+  }
+  const storage={
+    getItem(key){const i=keys.indexOf(key);if(i<0){try{return localStorage.getItem(key)}catch(_){return null}}return i===2?state.note:JSON.stringify(state[names[i]])},
+    setItem(key,value){const i=keys.indexOf(key);if(i<0){try{return localStorage.setItem(key,value)}catch(_){throw fail('Nie udało się zapisać ustawień na urządzeniu.')}}const next=structuredClone(state);next[names[i]]=i===2?String(value):JSON.parse(value);commit(next)},
+    removeItem(key){if(keys.includes(key))throw fail('Nie można usuwać chronionego zapisu bez przywrócenia kopii.');try{localStorage.removeItem(key)}catch(_){throw fail('Nie udało się zapisać ustawień.');}}
+  };
+  function download(name,value){
+    const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
+    const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.04.15',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function exportCurrent(){
+    if(locked)download('moj-planer-kopia-ratunkowa.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
+    else download('moj-planer-kopia-'+new Date().toISOString().slice(0,10)+'.json',backup());
+  }
+  function restore(data){
+    const validated=validate(data),payload=JSON.stringify({version:1,data:validated,previous:state,savedAt:new Date().toISOString()});
+    // Disconnect first; importing an older snapshot must never restart Google automatically.
+    localStorage.removeItem('moj-planer-google-connected');
+    const actual=localStorage.getItem(KEY);
+    if(actual!==expected)throw Error('Dane zmieniły się w innej karcie. Odśwież stronę i spróbuj ponownie.');
+    localStorage.setItem(KEY,payload);
+    state=validated;expected=payload;locked=false;
+  }
+  function init(){
+    if(locked)fail(reason);
+    document.getElementById('exportBackup').onclick=exportCurrent;
+    document.getElementById('exportPrevious').onclick=()=>{if(!previous){alert('Nie ma jeszcze poprzedniej poprawnej wersji.');return}download('moj-planer-poprzedni-zapis.json',backup(previous))};
+    document.getElementById('importBackup').onclick=()=>document.getElementById('backupFile').click();
+    document.getElementById('backupFile').onchange=async e=>{
+      const file=e.target.files[0];e.target.value='';if(!file)return;
+      try{
+        if((window.googleSyncInProgress||window.plannerGoogleOperations>0)||Object.values(typeof plannerRecordings==='undefined'?{}:plannerRecordings).some(Boolean))throw Error('Poczekaj na zakończenie synchronizacji i nagrywania.');
+        if(file.size>20*1024*1024)throw Error('Plik kopii jest za duży (maksymalnie 20 MB).');
+        const parsed=JSON.parse(await file.text());
+        if(parsed.format!=='moj-planer-backup'||parsed.version!==1)throw Error('To nie jest obsługiwana kopia Planera. Kopia ratunkowa służy do odzyskiwania danych, nie do bezpośredniego importu.');
+        const data=validate(parsed.data);
+        if(!confirm('Przywrócić kopię?\n\nWydarzenia: '+data.tasks.length+'\nPomysły: '+data.ideas.length+'\nOperacje usuwania w kolejce: '+data.deleteQueue.length+'\n\nKopia ZASTĄPI dane na tym urządzeniu. Google zostanie odłączone. Po ponownym połączeniu synchronizacja może wykonać zapisane zmiany i usunięcia. Klucz API i kod dostępu nie są importowane.'))return;
+        if(window.googleSyncInProgress||window.plannerGoogleOperations>0)throw Error('Synchronizacja trwa. Poczekaj na jej zakończenie.');
+        restore(data);location.reload();
+      }catch(error){alert('Nie przywrócono kopii: '+error.message);}
+    };
+    ['click','submit','change'].forEach(type=>document.addEventListener(type,e=>{if(locked&&!e.target.closest('#backupCard')){e.preventDefault();e.stopImmediatePropagation();}},true));
+    window.addEventListener('error',e=>{if(e.error?.plannerStorageError){e.preventDefault();fail(reason)}});
+    window.addEventListener('unhandledrejection',e=>{if(e.reason?.plannerStorageError){e.preventDefault();fail(reason)}});
+    window.addEventListener('storage',e=>{if((e.key===KEY&&e.newValue!==expected)||e.key===null)fail('Dane zmieniły się w innej karcie. Odśwież tę kartę.');});
+  }
+  function assertWritable(){if(locked)throw fail(reason);try{if(localStorage.getItem(KEY)!==expected)throw fail('Dane zmieniły się w innej karcie. Odśwież stronę.');}catch(error){if(error.plannerStorageError)throw error;throw fail('Nie można odczytać zapisu na urządzeniu.');}}
+  return {storage,init,validate,backup,restore,commit,exportCurrent,assertWritable,isLocked:()=>locked,snapshot:()=>structuredClone(state),previous:()=>structuredClone(previous)};
+})();
+window.PlannerData=PlannerData;
+
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev";let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function validateAiItem(x){if(!x||typeof x!=="object")return false;if(x.type==="idea")return typeof x.text==="string"||typeof x.addition==="string";if(x.type!=="event")return false;if(x.date!==undefined&&x.date!==null&&x.date!==""&&!isValidPlannerDate(x.date))return false;if(!isValidPlannerTime(x.startTime,true)||!isValidPlannerTime(x.endTime,true))return false;if(x.reminder!==undefined&&x.reminder!==null){const n=Number(x.reminder.minutesBefore??x.reminder);if(!Number.isFinite(n)||n<0||n>10080)return false}if(x.recurrence!=null){if(typeof x.recurrence!=="object")return false;const allowed=["daily","weekly","monthly"];if(x.recurrence.frequency&&!allowed.includes(x.recurrence.frequency))return false;if(x.recurrence.interval!==undefined&&(!Number.isInteger(Number(x.recurrence.interval))||Number(x.recurrence.interval)<1||Number(x.recurrence.interval)>365))return false}return true}
-function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}function saveTasks(){localStorage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){localStorage.setItem(IDEA_KEY,JSON.stringify(ideas))}
+function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}function saveTasks(){PlannerData.storage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){PlannerData.storage.setItem(IDEA_KEY,JSON.stringify(ideas))}
 function voiceUsageMonth(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
-function getVoiceUsage(){let u;try{u=JSON.parse(localStorage.getItem(VOICE_USAGE_KEY)||"null")}catch(e){}const month=voiceUsageMonth();if(!u||u.month!==month)u={month,count:0};return u}
-function incrementVoiceUsage(){const u=getVoiceUsage();u.count++;localStorage.setItem(VOICE_USAGE_KEY,JSON.stringify(u));return u}
+function getVoiceUsage(){let u;try{u=JSON.parse(PlannerData.storage.getItem(VOICE_USAGE_KEY)||"null")}catch(e){}const month=voiceUsageMonth();if(!u||u.month!==month)u={month,count:0};return u}
+function incrementVoiceUsage(){const u=getVoiceUsage();u.count++;PlannerData.storage.setItem(VOICE_USAGE_KEY,JSON.stringify(u));return u}
 function getVoiceUsageStatus(){const u=getVoiceUsage();return {used:u.count,limit:VOICE_MONTHLY_LIMIT,left:Math.max(0,VOICE_MONTHLY_LIMIT-u.count)}}
 function addTask(title,date,time="",endTime="",category="Osobiste",notes="",reminder=null,seriesId=null,location=""){tasks.push({id:Date.now()+Math.random(),title,date,time,endTime,category,notes,reminder,seriesId,location,done:false});saveTasks();selected=new Date(date+"T12:00:00");monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=date;renderAll()}
 function recurrenceRRule(r,startDate){if(!r)return "";const freq={daily:"DAILY",weekly:"WEEKLY",monthly:"MONTHLY"}[r.frequency];if(!freq)return "";const parts=["FREQ="+freq,"INTERVAL="+Math.max(1,Number(r.interval)||1)];if(r.count)parts.push("COUNT="+Math.max(1,Number(r.count)||1));else if(r.until)parts.push("UNTIL="+String(r.until).replaceAll("-","")+"T235959Z");if(r.frequency==="monthly"&&startDate){const day=Number(String(startDate).slice(8,10));if(day)parts.push("BYMONTHDAY="+day)}return "RRULE:"+parts.join(";")}
@@ -54,8 +165,8 @@ $("tabIdeas").onclick=()=>showView("ideas");$("ideasShortcut").onclick=()=>showV
 $("form").onsubmit=e=>{e.preventDefault();const title=$("title").value.trim();if(!title){toast("Wpisz nazwę wydarzenia");return}const date=$("date").value||iso(selected);addTask(title,date,$("time").value||"",$("endTime").value||"",$("category").value);$("title").value="";$("time").value="";$("endTime").value="";toast("✓ Wydarzenie dodane")};
 const API_ACCESS_KEY='moj-planer-api-access';
 let apiAccessMemory='',apiAccessPending=null,apiInfoCache=null,apiInfoAt=0,apiServerUsage=null;
-function readApiAccess(){try{return localStorage.getItem(API_ACCESS_KEY)||apiAccessMemory}catch(_){return apiAccessMemory}}
-function saveApiAccess(value){apiAccessMemory=value;try{if(value)localStorage.setItem(API_ACCESS_KEY,value);else localStorage.removeItem(API_ACCESS_KEY)}catch(_){}}
+function readApiAccess(){try{return PlannerData.storage.getItem(API_ACCESS_KEY)||apiAccessMemory}catch(_){return apiAccessMemory}}
+function saveApiAccess(value){apiAccessMemory=value;try{if(value)PlannerData.storage.setItem(API_ACCESS_KEY,value);else PlannerData.storage.removeItem(API_ACCESS_KEY)}catch(_){}}
 function askApiAccess(force=false){
   const saved=readApiAccess();if(saved&&!force)return Promise.resolve(saved);if(apiAccessPending)return apiAccessPending;
   apiAccessPending=new Promise(resolve=>{
@@ -78,6 +189,7 @@ function renderApiUsage(usage){
   $('apiUsageStatus').textContent=`AI: dziś ${usage.dailyUsed}/${usage.dailyLimit}, miesiąc ${usage.monthlyUsed}/${usage.monthlyLimit} wywołań. Nagrania i odpowiedzi tekstowe są liczone razem.`;
 }
 async function plannerApiRequest(path,options={}){
+  PlannerData.assertWritable();
   const info=await getApiInfo();const headers={...(options.headers||{})};
   let token=readApiAccess();
   if(info.requiresAccess&&!token){token=await askApiAccess();if(!token){const e=new Error('Anulowano dostęp do AI. Niczego nie zmieniono.');e.cancelled=true;throw e}}
@@ -336,11 +448,12 @@ $("eventRecurrencePreview").onclick=e=>{if(e.target===$("eventRecurrencePreview"
 $("confirmEventRecurrence").onclick=()=>{if(!pendingEventRecurrence)return;const p=pendingEventRecurrence,target=tasks.find(t=>t.id===p.voiceTaskId);if(!target){closeEventRecurrencePreview();toast("Wydarzenie już nie istnieje");return}if(target.googleEventId){if(window.queueGoogleRecurrenceConversionDelete)window.queueGoogleRecurrenceConversionDelete(target);else if(window.queueGoogleDelete)window.queueGoogleDelete(target)}tasks=tasks.filter(t=>t.id!==p.originalId);const made=addRecurringTasks(p.base);const sid=tasks.length?tasks[tasks.length-1].seriesId:null;if(sid)tasks.filter(t=>t.seriesId===sid).forEach(t=>{t.googleSynced=false;t.googleDirty=false});saveTasks();renderAll();closeEventRecurrencePreview();toast(`🔁 Zmieniono na serię: ${made} wydarzeń • oczekuje na synchronizację`);closeEventActions()};
 $("correctEventRecurrence").onclick=()=>{if(!pendingEventRecurrence)return;const p=pendingEventRecurrence,target=tasks.find(t=>t.id===p.voiceTaskId);if(!target){closeEventRecurrencePreview();return}closeEventRecurrencePreview();activeTask=target;startEventVoice()};
 let timer=300,interval=null,timerIdea=null;function displayTimer(){$("clock").textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`}function startTimer(minutes,idea=null){if(!Number.isFinite(minutes)||minutes<1||minutes>1440){toast("Nieprawidłowy czas minutnika");return}if(interval)clearInterval(interval);timerIdea=idea;timer=minutes*60;displayTimer();$("timerBtn").textContent="Ⅱ";interval=setInterval(()=>{timer--;displayTimer();if(timer<=0){clearInterval(interval);interval=null;$("timerBtn").textContent="▶";toast("⏰ Minutnik zakończony");if(timerIdea){timerIdea.done=true;saveIdeas();renderAll();$("celebrate").classList.remove("hidden");timerIdea=null}timer=300;displayTimer()}},1000);toast(`⏱ Minutnik: ${minutes} min`);closeEventActions();document.getElementById("toolsArea").scrollIntoView({behavior:"smooth"})}document.querySelectorAll(".timer-presets button[data-min]").forEach(btn=>btn.onclick=()=>startTimer(parseInt(btn.dataset.min,10)));$("customTimer").onclick=()=>{const v=prompt("Ustaw minutnik (minuty):","5");if(v!==null)startTimer(parseInt(v,10))};$("timerBtn").onclick=()=>{if(interval){clearInterval(interval);interval=null;$("timerBtn").textContent="▶";return}const v=prompt("Ustaw minutnik (minuty):","5");if(v!==null)startTimer(parseInt(v,10))};
-$("closeCelebrate").onclick=()=>$("celebrate").classList.add("hidden");$("note").value=localStorage.getItem(NOTE_KEY)||"";$("saveNote").onclick=()=>{localStorage.setItem(NOTE_KEY,$("note").value);toast("✓ Zapisano")};$("date").value=iso(selected);displayTimer();renderAll();
+$("closeCelebrate").onclick=()=>$("celebrate").classList.add("hidden");$("note").value=PlannerData.storage.getItem(NOTE_KEY)||"";$("saveNote").onclick=()=>{PlannerData.storage.setItem(NOTE_KEY,$("note").value);toast("✓ Zapisano")};$("date").value=iso(selected);displayTimer();renderAll();PlannerData.init();
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="google-calendar.js?v=20261004-14"></script>
+<script src="google-calendar.js?v=20261004-15"></script>
 </body></html>
+
 
 
 
