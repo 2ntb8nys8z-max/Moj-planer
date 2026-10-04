@@ -5,12 +5,13 @@ let googleTokenClient=null,googleAccessToken=null,googleSyncInProgress=false;
 const GOOGLE_DELETE_QUEUE_KEY="moj-planer-google-delete-queue";
 function googleDeleteQueue(){try{return JSON.parse(localStorage.getItem(GOOGLE_DELETE_QUEUE_KEY)||"[]")}catch(e){return []}}
 function saveGoogleDeleteQueue(q){localStorage.setItem(GOOGLE_DELETE_QUEUE_KEY,JSON.stringify(q))}
-function queueGoogleDelete(task){
+function queueGoogleDelete(task,options={}){
   const q=googleDeleteQueue();
-  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseEtag:task.googleData?.etag||null,baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending"});
+  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseEtag:task.googleData?.etag||null,baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending",reason:options.reason||"delete"});
   saveGoogleDeleteQueue(q);
 }
 window.queueGoogleDelete=queueGoogleDelete;
+window.queueGoogleRecurrenceConversionDelete=task=>queueGoogleDelete(task,{reason:"recurrence-conversion"});
 
 async function processGoogleDeleteQueue(){
   const q=googleDeleteQueue();
@@ -28,9 +29,13 @@ async function processGoogleDeleteQueue(){
       const snap=tomb.localSnapshot||{},p=googleDateParts(ev);
       const baseEtag=tomb.baseEtag||snap.googleData?.etag||null;
       const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
-      if(!baseEtag&&!baseUpdated){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
-      const changed=baseEtag?ev.etag!==baseEtag:ev.updated!==baseUpdated;
-      if(changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
+      // Converting a Planner singleton into an RRULE series intentionally replaces
+      // the old Google event. It is not a user delete and must not surface as a
+      // delete/edit conflict while the replacement series is being created.
+      const recurrenceConversion=tomb.reason==="recurrence-conversion";
+      if(!recurrenceConversion&&!baseEtag&&!baseUpdated){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
+      const changed=baseEtag?ev.etag!==baseEtag:(baseUpdated?ev.updated!==baseUpdated:false);
+      if(!recurrenceConversion&&changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
       const headers={Authorization:`Bearer ${googleAccessToken}`};
       if(baseEtag)headers["If-Match"]=baseEtag;
       const del=await fetch(url,{method:"DELETE",headers});
