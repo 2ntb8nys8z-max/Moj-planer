@@ -4,7 +4,7 @@ async function plannerGoogleFetch(...args){
   return fetch(...args);
 }
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.15";
+const GOOGLE_SYNC_VERSION="2026.10.04.16";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -637,10 +637,12 @@ window.deleteTaskFromGoogle=deleteTaskFromGoogle;
 async function restoreConflictToGoogle(task){
   if(!task?.googleConflict||!googleAccessToken)return false;
   const oldId=task.googleEventId;
+  task.googleCreateId=task.googleRestoreCreateId||null;
   task.googleEventId=null;task.source='planner';task.googleDirty=false;task.googleSynced=false;task.googleConflict=null;
   saveTasks();renderAll();
-  await sendTaskToGoogle(task,true);
-  if(task.googleEventId){saveTasks();renderAll();toast('✓ Przywrócono wydarzenie w Google');return true;}
+  const restored=await sendTaskToGoogle(task,true);
+  if(restored){delete task.googleBackupRestored;delete task.googleRestoreCreateId;saveTasks();renderAll();toast('✓ Przywrócono wydarzenie w Google');return true;}
+  task.googleRestoreCreateId=task.googleCreateId;
   task.googleEventId=oldId;task.googleDirty=true;task.googleSynced=false;task.googleConflict='deleted';saveTasks();renderAll();toast('Nie udało się przywrócić wydarzenia w Google');return false;
 }
 window.restoreConflictToGoogle=restoreConflictToGoogle;
@@ -696,7 +698,7 @@ function renderGoogleSyncResult(pushed){
   for(const task of conflicts){
     const row=document.createElement('div');row.style.marginTop='8px';
     const description=document.createElement('div');
-    description.textContent=`${task.title||'Bez tytułu'} • ${task.date||''} ${task.time||''}: ${task.googleConflict==='deleted'?'Google zgłosił usunięcie; w Planerze pozostała niewysłana zmiana.':'Zapisany konflikt: '+task.googleConflict}`;
+    description.textContent=`${task.title||'Bez tytułu'} • ${task.date||''} ${task.time||''}: ${task.googleConflict==='deleted'?(task.googleBackupRestored?'Odzyskano z kopii; w Google wydarzenie jest usunięte. Wymaga Twojej decyzji.':'Google zgłosił usunięcie; w Planerze pozostała niewysłana zmiana.'):'Zapisany konflikt: '+task.googleConflict}`;
     row.appendChild(description);
     const button=document.createElement('button');button.className='secondary';button.textContent='Pokaż wydarzenie';
     button.onclick=()=>openEventActions(task);row.appendChild(button);box.appendChild(row);
@@ -797,7 +799,9 @@ async function sendTaskToGoogle(task,silent=false){
       response=await plannerGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleCreateId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
     }
     if(!response.ok){console.error(await response.text());if(!silent)toast('Nie udało się dodać do Google Calendar');return false;}
-    const result=await response.json();bindResult(result);
+    const result=await response.json();
+    if(result.status==='cancelled')return false;
+    bindResult(result);
     if(!silent)toast('✓ Dodano również do Google Calendar');
     return true;
   }catch(err){console.error(err);if(!silent)toast('Błąd połączenia z Google Calendar');return false;}
@@ -845,8 +849,8 @@ function googleInstanceOriginalKey(event){
 }
 
 function reconcileGoogleDeletedTask(task){
-  // Only an unsent local edit conflicts with a remote deletion.
-  if(task.googleDirty){
+  // Backup recovery is an explicit local intention, independent of dirty edits.
+  if(task.googleDirty||task.googleBackupRestored){
     task.googleConflict='deleted';task.googleSynced=false;
   }else{
     tasks=tasks.filter(current=>current!==task);
@@ -892,6 +896,7 @@ function upsertGoogleEvent(event){
     });
   }
   const wasDirty=task?.googleDirty===true;
+  if(task)delete task.googleBackupRestored;
   if(!task){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
