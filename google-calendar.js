@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.4";
+const GOOGLE_SYNC_VERSION="2026.10.04.5";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -14,6 +14,101 @@ function queueGoogleDelete(task,options={}){
 }
 window.queueGoogleDelete=queueGoogleDelete;
 window.queueGoogleRecurrenceConversionDelete=task=>queueGoogleDelete(task,{reason:"recurrence-conversion"});
+
+
+function googleStopBoundary(value){
+  if(value?.date)return Date.parse(value.date+'T00:00:00Z');
+  return value?.dateTime?Date.parse(value.dateTime):NaN;
+}
+function googleEventStoppedLocally(event){
+  const boundary=googleStopBoundary(event.originalStartTime);
+  return tasks.some(task=>{
+    const stop=task.googleSeriesStopPending||task.googleStoppedSeries;
+    return stop&&stop.parentId===event.recurringEventId&&boundary>=googleStopBoundary(stop.originalStart);
+  });
+}
+function stopPlannerSeries(task){
+  const sid=task.seriesId;
+  const parentId=task.googleSeriesParentId||task.googleData?.recurringEventId||
+    (task.googleSeriesMaster?task.googleEventId:null);
+  const originalStart=task.googleOriginalStart||task.googleData?.originalStartTime||
+    (task.time?{dateTime:`${task.date}T${task.time}:00`}:{date:task.date});
+  const boundary=googleStopBoundary(originalStart);
+  if(!Number.isFinite(boundary))throw new Error('Nieprawidłowy początek wystąpienia serii');
+  tasks=tasks.filter(current=>current.seriesId!==sid||current.id===task.id||
+    googleStopBoundary(current.googleOriginalStart||current.googleData?.originalStartTime||
+      (current.time?{dateTime:`${current.date}T${current.time}:00`}:{date:current.date}))<boundary);
+  const earlier=tasks.filter(current=>current.seriesId===sid&&current.id!==task.id);
+  for(const current of earlier){
+    if(current.seriesMeta?.rrule){
+      const shortened=truncatedGoogleRecurrence({recurrence:[current.seriesMeta.rrule]},originalStart)[0];
+      current.seriesMeta={...current.seriesMeta,rrule:shortened};
+    }
+  }
+  task.seriesId=null;task.recurrence=null;task.seriesReminder=false;
+  task.googleSynced=false;
+  if(parentId){
+    task.googleSeriesStopPending={parentId,originalStart};
+    task.googleDirty=false;
+  }else{
+    // The series has never reached Google; export the retained event as a singleton.
+    detachStoppedGoogleSeries(task);
+  }
+  saveTasks();renderAll();
+}
+window.stopPlannerSeries=stopPlannerSeries;
+function detachStoppedGoogleSeries(task){
+  task.googleEventId=null;task.googleSeriesParentId=null;task.googleSeriesMaster=false;
+  task.googleSeriesVirtual=false;task.googleOriginalStart=null;task.seriesMeta=null;
+  task.googleCreateId=null;task.googleData=null;task.googleConflict=null;
+  task.googleDirty=false;task.googleSynced=false;task.source='planner';
+}
+function truncatedGoogleRecurrence(event,originalStart){
+  const boundary=googleStopBoundary(originalStart);
+  const until=originalStart.date?
+    new Date(boundary-86400000).toISOString().slice(0,10).replaceAll('-',''):
+    new Date(boundary-1000).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  if(!event.recurrence?.some(rule=>rule.startsWith('RRULE:')))
+    throw new Error('Google nie zwrócił reguły serii');
+  // Keep rule constraints and exclusions, replace the previous end/count.
+  return event.recurrence.map(rule=>rule.startsWith('RRULE:')?
+    rule.split(';').filter(part=>!part.startsWith('COUNT=')&&!part.startsWith('UNTIL=')).join(';')+';UNTIL='+until:rule);
+}
+async function processGoogleSeriesStops(){
+  for(const task of tasks.filter(task=>task.googleSeriesStopPending)){
+    const stop=task.googleSeriesStopPending;
+    try{
+      const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(stop.parentId)}`;
+      const response=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+      if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');return;}
+      let finished=response.status===404||response.status===410;
+      if(!finished){
+        if(!response.ok)throw new Error('Google: '+response.status);
+        const event=await response.json();
+        finished=event.status==='cancelled';
+        if(!finished){
+          const first=googleStopBoundary(event.start),boundary=googleStopBoundary(stop.originalStart);
+          if(!Number.isFinite(first))throw new Error('Brak daty początku serii Google');
+          const method=boundary<=first?'DELETE':'PATCH';
+          const headers={Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'};
+          if(event.etag)headers['If-Match']=event.etag;
+          const options={method,headers};
+          if(method==='PATCH')options.body=JSON.stringify({recurrence:truncatedGoogleRecurrence(event,stop.originalStart)});
+          const result=await fetch(url,options);
+          if(result.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');return;}
+          finished=result.ok||result.status===404||result.status===410;
+          if(!finished)throw new Error('Google: '+result.status);
+        }
+      }
+      if(finished){
+        detachStoppedGoogleSeries(task);
+        task.googleStoppedSeries=stop;
+        delete task.googleSeriesStopPending;
+      }
+    }catch(error){stop.lastError=String(error);console.error('Google series stop failed',error);}
+    saveTasks();renderAll();
+  }
+}
 
 async function processGoogleDeleteQueue(){
   const q=googleDeleteQueue();
@@ -336,12 +431,12 @@ window.restoreConflictToGoogle=restoreConflictToGoogle;
 
 async function pushPlannerTasksToGoogle(){
   if(!googleAccessToken)return {created:0,updated:0};
-  const dirty=tasks.filter(task=>task?.date&&task.googleEventId&&task.googleDirty&&!task.googleConflict);
+  const dirty=tasks.filter(task=>task?.date&&task.googleEventId&&task.googleDirty&&!task.googleConflict&&!task.googleSeriesStopPending);
   let updated=0;
   for(const task of dirty){if(await pushEditedTaskToGoogle(task))updated++;}
   // Every local event without a Google id is pending. Do not hide older starts:
   // a recurring series may legitimately begin before today and still contain future occurrences.
-  const pending=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual);
+  const pending=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual&&!task.googleSeriesStopPending);
   let created=0;
   for(const task of pending){
     if(!tasks.some(current=>current===task||current.id===task.id))continue;
@@ -358,7 +453,7 @@ async function pushPlannerTasksToGoogle(){
       }
     }
   }
-  const remaining=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual).length;
+  const remaining=tasks.filter(task=>task?.date&&task.source!=='google'&&!task.googleEventId&&!task.googleSeriesParentId&&!task.googleSeriesVirtual&&!task.googleSeriesStopPending).length;
   saveTasks();renderAll();
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
@@ -375,6 +470,8 @@ function renderGoogleSyncResult(pushed){
   box.textContent='';
   const conflicts=tasks.filter(task=>task.googleConflict);
   const deletions=googleDeleteQueue().filter(item=>item.state==='conflict');
+  const pendingDeletes=googleDeleteQueue().filter(item=>item.state==='pending').length;
+  const pendingStops=tasks.filter(task=>task.googleSeriesStopPending).length;
   const summary=document.createElement('div');
   summary.textContent=`Ostatnia synchronizacja: wysłano ${pushed.created||0}, zaktualizowano ${pushed.updated||0}. Konflikty: ${conflicts.length+deletions.length}.`;
   box.appendChild(summary);
@@ -400,10 +497,12 @@ async function syncGoogleCalendar(){
   googleSyncInProgress=true;
   setGoogleStatus(true,'Synchronizuję…');
   try{
+    await processGoogleSeriesStops();
+    if(!googleAccessToken)return;
     const pulled=await syncFromGoogle(true);
     if(!googleAccessToken||pulled===false)return;
     await processGoogleDeleteQueue();
-    const linked=tasks.filter(task=>task.googleEventId&&task.date&&!task.googleConflict);
+    const linked=tasks.filter(task=>task.googleEventId&&task.date&&!task.googleConflict&&!task.googleSeriesStopPending);
     for(const task of linked){
       try{
         const check=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
@@ -430,7 +529,7 @@ async function syncGoogleCalendar(){
     setGoogleStatus(true,'Połączony • zsynchronizowano');
     const n=pushed.created+pushed.updated;
     const conflicts=tasks.filter(task=>task.googleConflict).length;
-    const waiting=tasks.filter(task=>!task.googleConflict&&(task.googleDirty||task.googleSynced===false)).length+pushed.remaining;
+    const waiting=tasks.filter(task=>!task.googleConflict&&(task.googleDirty||task.googleSynced===false||task.googleSeriesStopPending )).length+pushed.remaining+googleDeleteQueue().filter(item=>item.state==='pending').length;
     // Only surface conflicts that still exist after the full sync/rebind pass.
     // processGoogleDeleteQueue() runs earlier, so its returned count can be stale
     // by the time a newly-created RRULE series has been rebound.
@@ -535,7 +634,7 @@ function reconcileGoogleDeletedTask(task){
 
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
-  if(googleDeleteQueue().some(x=>x.googleEventId===event.id))return false;
+  if(googleDeleteQueue().some(x=>x.googleEventId===event.id)||googleEventStoppedLocally(event))return false;
   const p=googleDateParts(event);if(!p)return false;
   const parentId=event.recurringEventId||"";
   const originalKey=googleInstanceOriginalKey(event);
@@ -598,7 +697,7 @@ async function syncFromGoogle(silent=false){
       const data=await response.json();
       (data.items||[]).forEach(event=>{
         if(event?.status==='cancelled'&&event.id){
-          const conflict=tasks.find(task=>task.googleEventId===event.id);
+          const conflict=tasks.find(task=>task.googleEventId===event.id&&!task.googleSeriesStopPending);
           if(conflict){reconcileGoogleDeletedTask(conflict);changed++;}
           return;
         }
