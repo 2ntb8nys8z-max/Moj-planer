@@ -46,7 +46,7 @@ export default {
     const cors = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-Current-Item",
+      "Access-Control-Allow-Headers": "Content-Type, X-Current-Item, X-Voice-Dialogue",
     };
 
     const json = (data, status = 200) =>
@@ -77,6 +77,15 @@ export default {
 
       /* ===== 1. AUDIO ===== */
 
+      let spokenText = "", dialogue = [];
+      let bodyCurrent = null;
+      if ((request.headers.get("Content-Type") || "").includes("application/json")) {
+        const body = await request.json();
+        if (typeof body.text !== "string" || body.text.length > 4000) throw new Error("Nieprawidłowa odpowiedź tekstowa");
+        spokenText = body.text.trim();
+        dialogue = body.dialogue || [];
+        bodyCurrent = body.currentItem || null;
+      } else {
       const audioBlob = await request.blob();
 
       if (!audioBlob.size) {
@@ -132,10 +141,14 @@ export default {
       const transcription =
         JSON.parse(transcriptionText);
 
-      const spokenText =
+      spokenText =
         (transcription.text || "").trim();
 
-      let currentItem = null;
+      }
+      const dialogueHeader = request.headers.get("X-Voice-Dialogue");
+      if (dialogueHeader) dialogue = JSON.parse(decodeURIComponent(dialogueHeader));
+      if (!Array.isArray(dialogue) || dialogue.length > 24 || dialogue.some(m => !["user","assistant"].includes(m.role) || typeof m.content !== "string" || m.content.length > 4000)) throw new Error("Nieprawidłowy kontekst rozmowy");
+      let currentItem = bodyCurrent;
       const currentItemHeader = request.headers.get("X-Current-Item");
       if (currentItemHeader) {
         try { currentItem = JSON.parse(decodeURIComponent(currentItemHeader)); } catch (_) {}
@@ -188,6 +201,14 @@ export default {
 
                 content:
 `Jesteś inteligentnym parserem polskiego planera.
+
+DOPYTYWANIE — priorytet dla tworzenia oraz edycji wydarzeń i pomysłów/zadań:
+Jeśli brakuje informacji koniecznej do wykonania polecenia albo nie wiadomo, jakie pole zmienić, zwróć WYŁĄCZNIE {"type":"clarification","question":"jedno konkretne krótkie pytanie po polsku"}. Nie zwracaj wtedy propozycji zmiany ani nie wykonuj części polecenia.
+Historia rozmowy to to samo polecenie; następna odpowiedź uzupełnia pierwotną operację na AKTUALNYM WPISIE. Uwzględnij wszystkie wcześniejsze odpowiedzi, a changedFields i notesAddition opisują całą uzgodnioną operację, nie tylko ostatnią odpowiedź.
+Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu/zadania. Jeśli użytkownik chce wydarzenie lub przeniesienie do kalendarza, ale nie określił daty i nie ma jej w aktualnym wpisie, zapytaj o datę. Brak godziny może oznaczać wydarzenie całodniowe.
+Nie zgaduj, czy „o pierwszej” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
+Jeśli polecenie korekty nazwy nie określa, czy chodzi o tytuł czy lokalizację, zapytaj. Wyraźne polecenie poprawienia pisowni, przeliterowanie lub „napisz po niemiecku” pozwala poprawić wskazane pole. Gdy zapis nie jest jasny, poproś o przeliterowanie. Nie twierdź, że miejscowość nie istnieje; nie masz dostępu do weryfikacji mapowej. Nie sprawdzaj każdego adresu ani nie pytaj przy jasnym poleceniu.
+Przykład: „dodaj notatkę” bez treści → pytanie „Co dopisać do notatki?”; odpowiedź „Zabrać dokumenty” → zmiana notes z notesAction append, notesAddition „Zabrać dokumenty”, pozostałe pola bez zmian.
 
 Dzisiejsza data w strefie Europe/Berlin:
 ${currentDate}
@@ -248,7 +269,7 @@ Dla pomysłu:
 ZASADY:
 
 - Zachowuj istotny sens wypowiedzi.
-- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Dokładny adres lub lokalizację docelową zapisuj WYŁĄCZNIE w polu "location", a nie w "notes".\n- Jeśli użytkownik podaje miejsce bez pełnego adresu, ale ma ono służyć jako cel nawigacji, również zapisz je w "location".\n- Osobę, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj ani nie poprawiaj nazw własnych, ulic i adresów. Lokalizację zachowaj możliwie wiernie z transkrypcji.
+- NIE usuwaj informacji takich jak osoba, miejsce, dokładny adres lub cel spotkania.\n- Dokładny adres lub lokalizację docelową zapisuj WYŁĄCZNIE w polu "location", a nie w "notes".\n- Jeśli użytkownik podaje miejsce bez pełnego adresu, ale ma ono służyć jako cel nawigacji, również zapisz je w "location".\n- Osobę, cel spotkania i pozostałe istotne szczegóły zapisuj w "notes".\n- Nie zgaduj nazw własnych, ulic i adresów. Zachowaj zapis z transkrypcji, chyba że użytkownik wyraźnie prosi o korektę pisowni; uwzględnij wtedy podany język i literowanie.
 - WAŻNE PRZY EDYCJI ISTNIEJĄCEGO WYDARZENIA: jeśli użytkownik mówi „dodaj lokalizację ...”, „dodaj adres ...”, „ustaw lokalizację ...”, „zmień adres na ...” lub podobnie, jest to bezpośrednie polecenie zmiany pola "location". Wpisz do "location" wszystko, co użytkownik podał po takim poleceniu, zachowując pozostałe pola bez zmian.
 - Przykład: AKTUALNY WPIS jest wydarzeniem, użytkownik mówi „dodaj lokalizację Lublin” → zachowaj pozostałe pola i ustaw "location":"Lublin".
 - Przykład: użytkownik mówi „dodaj adres Warszawa, Wyszogrodzka 1” → ustaw "location":"Warszawa, Wyszogrodzka 1".
@@ -315,6 +336,7 @@ Przykłady:
 → idea / Obejrzeć film Interstellar`
               },
 
+              ...dialogue,
               {
                 role: "user",
                 content: spokenText
@@ -346,6 +368,14 @@ Przykłady:
       }
 
       const parsed = JSON.parse(content);
+      if (parsed.type === "clarification") {
+        if (typeof parsed.question !== "string" || !parsed.question.trim() || parsed.question.length > 500) throw new Error("Nieprawidłowe pytanie AI");
+        return json({success:true, transcription:spokenText, clarification:{question:parsed.question.trim()}});
+      }
+      if (parsed.type === "event" && !parsed.date && !currentItem?.date) {
+        return json({success:true, transcription:spokenText, clarification:{question:"Na jaki dzień zapisać to wydarzenie?"}});
+      }
+      const operationText = dialogue.filter(m => m.role === "user").map(m => m.content).concat(spokenText).join("\n");
 
 
       /* ===== 5. ODPOWIEDŹ ===== */
@@ -354,7 +384,7 @@ Przykłady:
 
         return json({
           success: true,
-          transcription: spokenText,
+          transcription: operationText,
 
           item: {
             type: "idea",
@@ -366,10 +396,10 @@ Przykłady:
       }
 
 
-      const eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,spokenText):parsed;
+      const eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;
       return json({
         success: true,
-        transcription: spokenText,
+        transcription: operationText,
 
         item: {
           type: "event",
@@ -399,4 +429,5 @@ Przykłady:
     }
   }
 };
+
 
