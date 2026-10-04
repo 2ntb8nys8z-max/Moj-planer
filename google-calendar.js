@@ -1,5 +1,5 @@
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.04.5";
+const GOOGLE_SYNC_VERSION="2026.10.04.6";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -7,9 +7,42 @@ let googleTokenClient=null,googleAccessToken=null,googleSyncInProgress=false;
 const GOOGLE_DELETE_QUEUE_KEY="moj-planer-google-delete-queue";
 function googleDeleteQueue(){try{return JSON.parse(localStorage.getItem(GOOGLE_DELETE_QUEUE_KEY)||"[]")}catch(e){return []}}
 function saveGoogleDeleteQueue(q){localStorage.setItem(GOOGLE_DELETE_QUEUE_KEY,JSON.stringify(q))}
+
+function googleComparableDeleteContent(event){
+  return {
+    title:event.summary||'(Bez tytułu)',start:event.start||null,end:event.end||null,
+    description:event.description||'',location:event.location||'',
+    reminders:event.reminders||null,attendees:event.attendees||[],
+    recurrence:event.recurrence||null,extendedProperties:event.extendedProperties||null
+  };
+}
+function stableGoogleValue(value){
+  if(Array.isArray(value))return '['+value.map(stableGoogleValue).join(',')+']';
+  if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+stableGoogleValue(value[key])).join(',')+'}';
+  return JSON.stringify(value);
+}
+function googleDeleteContentMatches(tomb,event){
+  if(tomb.baseContent)return stableGoogleValue(tomb.baseContent)===stableGoogleValue(googleComparableDeleteContent(event));
+  // Older queue entries have no full snapshot. Only accept an unchanged,
+  // synchronized local copy with the same visible Google fields.
+  const snapshot=tomb.localSnapshot||{},parts=googleDateParts(event),data=snapshot.googleData;
+  if(!parts||!data||snapshot.googleDirty||!snapshot.title||!snapshot.date)return false;
+  if(snapshot.title!==(event.summary||'(Bez tytułu)')||snapshot.date!==parts.date||
+     (snapshot.time||'')!==parts.time||(snapshot.endTime||'')!==parts.endTime)return false;
+  if(cleanGoogleDescription(data.description??snapshot.notes??'')!==cleanGoogleDescription(event.description||'')||
+     (data.location??snapshot.location??'')!==(event.location||''))return false;
+  if(stableGoogleValue(data.reminders||null)!==stableGoogleValue(event.reminders||null)||
+     stableGoogleValue(data.attendees||[])!==stableGoogleValue(event.attendees||[])||
+     stableGoogleValue(data.recurrence||null)!==stableGoogleValue(event.recurrence||null))return false;
+  // All-day durations were not saved by older builds; do not guess their baseline.
+  if(event.start?.date&&!event.end?.date)return false;
+  if(event.start?.date&&event.end.date!==googleNextDate(snapshot.date))return false;
+  return true;
+}
+
 function queueGoogleDelete(task,options={}){
   const q=googleDeleteQueue();
-  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseEtag:task.googleData?.etag||null,baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending",reason:options.reason||"delete"});
+  if(!q.some(x=>x.googleEventId===task.googleEventId))q.push({googleEventId:task.googleEventId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),baseContent:task.googleDeleteBaseline||null,baseEtag:task.googleData?.etag||null,baseUpdated:task.googleData?.updated||null,deletedAt:new Date().toISOString(),state:"pending",reason:options.reason||"delete"});
   saveGoogleDeleteQueue(q);
 }
 window.queueGoogleDelete=queueGoogleDelete;
@@ -110,12 +143,105 @@ async function processGoogleSeriesStops(){
   }
 }
 
+
+function plannerOriginalStart(task){
+  return task.googleOriginalStart||task.googleData?.originalStartTime||
+    (task.time?{dateTime:`${task.date}T${task.time}:00`}:{date:task.date});
+}
+function deletePlannerSeriesRange(task,scope){
+  const parentId=task.googleSeriesParentId||task.googleData?.recurringEventId||
+    (task.googleSeriesMaster?task.googleEventId:null);
+  const originalStart=plannerOriginalStart(task),boundary=googleStopBoundary(originalStart);
+  const removed=tasks.filter(current=>current.seriesId===task.seriesId&&
+    (scope==='all'||googleStopBoundary(plannerOriginalStart(current))>=boundary));
+  if(parentId){
+    const q=googleDeleteQueue();
+    const previous=q.find(item=>item.googleEventId===parentId&&item.seriesRange);
+    if(previous){
+      if(scope==='all')previous.seriesRange='all';
+      else if(previous.seriesRange!=='all'&&boundary<googleStopBoundary(previous.originalStart))previous.originalStart=originalStart;
+      previous.state='pending';
+    }else{
+      q.push({googleEventId:parentId,localTaskId:task.id,localSnapshot:JSON.parse(JSON.stringify(task)),
+        baseContent:task.googleSeriesDeleteBaseline||null,localSnapshots:JSON.parse(JSON.stringify(removed)),seriesRange:scope,originalStart,
+        deletedAt:new Date().toISOString(),state:'pending',reason:'series-delete'});
+    }
+    saveGoogleDeleteQueue(q);
+  }else{
+    // Legacy flat series: delete its known individual Google events.
+    removed.filter(current=>current.googleEventId).forEach(current=>queueGoogleDelete(current));
+  }
+  const ids=new Set(removed.map(current=>current.id));
+  tasks=tasks.filter(current=>!ids.has(current.id));
+  if(scope!=='all'){
+    tasks.filter(current=>current.seriesId===task.seriesId&&current.seriesMeta?.rrule).forEach(current=>{
+      current.seriesMeta={...current.seriesMeta,rrule:truncatedGoogleRecurrence({recurrence:[current.seriesMeta.rrule]},originalStart)[0]};
+    });
+  }
+  saveTasks();renderAll();
+}
+window.deletePlannerSeriesRange=deletePlannerSeriesRange;
+function googleSeriesDeleteContentMatches(tomb,event){
+  if(tomb.baseContent)return stableGoogleValue(tomb.baseContent)===stableGoogleValue(googleComparableDeleteContent(event));
+  const snapshot=tomb.localSnapshot||{},data=snapshot.googleData||{};
+  // Compatibility for series created before parent baselines were saved.
+  // Compare the known series rule and shared content, not an instance's ETag.
+  return !!snapshot.seriesMeta?.rrule&&
+    stableGoogleValue(event.recurrence||[])===stableGoogleValue([snapshot.seriesMeta.rrule])&&
+    (event.summary||'(Bez tytułu)')===snapshot.title&&
+    cleanGoogleDescription(event.description||'')===cleanGoogleDescription(data.description??snapshot.notes??'')&&
+    (event.location||'')===(data.location??snapshot.location??'')&&
+    stableGoogleValue(event.reminders||null)===stableGoogleValue(data.reminders||null)&&
+    stableGoogleValue(event.attendees||[])===stableGoogleValue(data.attendees||[]);
+}
+async function processGoogleSeriesDeletion(tomb){
+  const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(tomb.googleEventId)}`;
+  const response=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
+  if(response.status===404||response.status===410){tomb.state='done';return;}
+  if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');tomb.lastError='401';return;}
+  if(!response.ok){tomb.lastError=String(response.status);return;}
+  const event=await response.json();
+  if(event.status==='cancelled'){tomb.state='done';return;}
+  let first=googleStopBoundary(event.start),boundary=googleStopBoundary(tomb.originalStart);
+  const desired=tomb.seriesRange==='following'?truncatedGoogleRecurrence(event,tomb.originalStart):null;
+  const alreadyShortened=desired&&stableGoogleValue(event.recurrence)===stableGoogleValue(desired);
+  if(alreadyShortened){tomb.state='done';return;}
+  if(!googleSeriesDeleteContentMatches(tomb,event)){
+    tomb.state='conflict';tomb.conflictReason=tomb.baseContent?'remote-content-changed':'missing-baseline';
+    tomb.remoteSnapshot=event;tomb.remoteEtag=event.etag||null;return;
+  }
+  if(!Number.isFinite(first)||!Number.isFinite(boundary)){tomb.lastError='Nieprawidłowa data serii';return;}
+  const method=tomb.seriesRange==='all'||boundary<=first?'DELETE':'PATCH';
+  const headers={Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'};
+  if(event.etag)headers['If-Match']=event.etag;
+  const options={method,headers};
+  if(method==='PATCH')options.body=JSON.stringify({recurrence:desired});
+  const result=await fetch(url,options);
+  if(result.ok||result.status===404||result.status===410){
+    if(result.ok&&method==='PATCH'){
+      const shortened={...event,recurrence:desired};
+      tasks.filter(task=>task.googleSeriesParentId===tomb.googleEventId).forEach(task=>{
+        task.googleSeriesDeleteBaseline=googleComparableDeleteContent(shortened);
+      });
+      saveTasks();
+    }
+    tomb.state='done';return;
+  }
+  if(result.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');}
+  tomb.state='pending';tomb.lastError=String(result.status);
+}
+function queuedGoogleSeriesDeletion(event){
+  return googleDeleteQueue().some(tomb=>tomb.seriesRange&&event.recurringEventId===tomb.googleEventId&&
+    (tomb.seriesRange==='all'||googleStopBoundary(event.originalStartTime)>=googleStopBoundary(tomb.originalStart)));
+}
+
 async function processGoogleDeleteQueue(){
   const q=googleDeleteQueue();
   let conflicts=0,completed=0;
   for(const tomb of q){
     if(tomb.state!=="pending"&&tomb.state!=="conflict")continue;
     try{
+      if(tomb.seriesRange){await processGoogleSeriesDeletion(tomb);continue;}
       const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(tomb.googleEventId)}`;
       const r=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
       if(r.status===401){tomb.lastError="401";continue;}
@@ -123,8 +249,9 @@ async function processGoogleDeleteQueue(){
       if(!r.ok){tomb.lastError=String(r.status);continue;}
       const ev=await r.json();
       if(ev.status==="cancelled"){tomb.state="done";completed++;continue;}
-      // Recheck saved conflicts without approving deletion of a live event.
-      if(tomb.state==="conflict"){tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;continue;}
+      const sameContent=googleDeleteContentMatches(tomb,ev);
+      if(tomb.state==="conflict"&&!sameContent){tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;continue;}
+      if(tomb.state==="conflict"&&sameContent){tomb.state="pending";delete tomb.conflictReason;}
       const snap=tomb.localSnapshot||{},p=googleDateParts(ev);
       const baseEtag=tomb.baseEtag||snap.googleData?.etag||null;
       const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
@@ -132,22 +259,28 @@ async function processGoogleDeleteQueue(){
       // the old Google event. It is not a user delete and must not surface as a
       // delete/edit conflict while the replacement series is being created.
       const recurrenceConversion=tomb.reason==="recurrence-conversion";
-      if(!recurrenceConversion&&!baseEtag&&!baseUpdated){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
+      if(!recurrenceConversion&&!sameContent&&!baseEtag&&!baseUpdated){tomb.conflictReason="missing-baseline";tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
       const changed=baseEtag?ev.etag!==baseEtag:(baseUpdated?ev.updated!==baseUpdated:false);
-      if(!recurrenceConversion&&changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
+      if(!recurrenceConversion&&!sameContent&&changed){tomb.conflictReason="remote-content-changed";tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
       const headers={Authorization:`Bearer ${googleAccessToken}`};
-      const deleteEtag=recurrenceConversion?ev.etag:baseEtag;
+      const deleteEtag=ev.etag||baseEtag;
       if(deleteEtag)headers["If-Match"]=deleteEtag;
       const del=await fetch(url,{method:"DELETE",headers});
       if(del.ok||del.status===404||del.status===410){tomb.state="done";completed++;}
       else if(del.status===412){
         const latest=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
-        if(latest.ok){const remote=await latest.json();tomb.state="conflict";tomb.remoteSnapshot=remote;tomb.remoteEtag=remote.etag||null;conflicts++;}
+        if(latest.ok){
+          const remote=await latest.json();
+          if(remote.status==='cancelled'){tomb.state='done';completed++;}
+          else if(googleDeleteContentMatches(tomb,remote)){tomb.state='pending';tomb.lastError='Wersja zmieniła się podczas usuwania; ponowię przy synchronizacji';}
+          else{tomb.conflictReason='remote-content-changed';tomb.state='conflict';tomb.remoteSnapshot=remote;tomb.remoteEtag=remote.etag||null;conflicts++;}
+        }else if(latest.status===404||latest.status===410){tomb.state='done';completed++;}
       }else tomb.lastError=String(del.status);
     }catch(e){tomb.lastError=String(e);console.error("Delete queue failed",e);}
   }
   const remaining=q.filter(x=>x.state!=="done");
-  saveGoogleDeleteQueue(remaining);
+  const addedWhileSyncing=googleDeleteQueue().filter(item=>!q.some(previous=>previous.googleEventId===item.googleEventId));
+  saveGoogleDeleteQueue([...remaining,...addedWhileSyncing]);
   renderGoogleDeleteConflicts();
   return remaining.filter(x=>x.state==="conflict").length;
 }
@@ -165,7 +298,7 @@ function renderGoogleDeleteConflicts(){
   conflicts.forEach(t=>{
     const row=document.createElement("div");row.style.cssText="margin-top:10px;padding-top:10px;border-top:1px solid #ddd";
     const remote=t.remoteSnapshot||{},local=t.localSnapshot||{};
-    row.innerHTML=`<div><b>${local.title||remote.summary||"Wydarzenie"}</b><br><small>Usunięte w Planerze, ale zmienione w Google.</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="danger del-google">Usuń również z Google</button><button class="secondary restore-local">Przywróć do Planera</button></div>`;
+    row.innerHTML=`<div><b>${local.title||remote.summary||"Wydarzenie"}</b><br><small>Usunięte w Planerze; ${t.conflictReason==="missing-baseline"?"brakuje danych do porównania z Google.":"zapis Google wymaga sprawdzenia przed usunięciem."}</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="danger del-google">Usuń również z Google</button><button class="secondary restore-local">Przywróć do Planera</button></div>`;
     row.querySelector(".del-google").onclick=()=>resolveDeleteConflict(t.googleEventId,"delete");
     row.querySelector(".restore-local").onclick=()=>resolveDeleteConflict(t.googleEventId,"restore");
     box.appendChild(row);
@@ -173,6 +306,35 @@ function renderGoogleDeleteConflicts(){
 }
 async function resolveDeleteConflict(id,choice){
   let q=googleDeleteQueue(),t=q.find(x=>x.googleEventId===id);if(!t)return;
+  if(t.seriesRange){
+    if(choice==='delete'){
+      // Keep the chosen range: resolving "following" must never delete earlier events.
+      t.baseContent=t.remoteSnapshot?googleComparableDeleteContent(t.remoteSnapshot):t.baseContent;
+      t.state='pending';saveGoogleDeleteQueue(q);
+      await processGoogleDeleteQueue();
+      const waiting=googleDeleteQueue().some(item=>item.googleEventId===id);
+      saveTasks();renderAll();renderGoogleDeleteConflicts();
+      toast(waiting?'Usunięcie serii nadal oczekuje':'✓ Usunięto wybrany zakres również z Google');
+      return;
+    }
+    // Restore the linked occurrences, not the Google parent as a fake singleton.
+    const saved=t.localSnapshots||[t.localSnapshot];
+    saveGoogleDeleteQueue(q.filter(item=>item.googleEventId!==id));
+    try{
+      await syncFromGoogle(true);
+      for(const snapshot of saved){
+        if(!snapshot)continue;
+        const restored=tasks.find(task=>task.googleEventId===snapshot.googleEventId||
+          (task.googleSeriesParentId===id&&localOriginalStartKey(task)===localOriginalStartKey(snapshot)));
+        if(restored){
+          restored.seriesId=snapshot.seriesId;restored.recurrence=snapshot.recurrence;
+          restored.seriesMeta=snapshot.seriesMeta;restored.reminder=snapshot.reminder;
+        }
+      }
+      saveTasks();renderAll();renderGoogleDeleteConflicts();toast('✓ Przywrócono serię do Planera');
+    }catch(error){saveGoogleDeleteQueue([...googleDeleteQueue(),t]);renderGoogleDeleteConflicts();toast('Nie udało się przywrócić serii');}
+    return;
+  }
   if(choice==="delete"){
     const headers={Authorization:`Bearer ${googleAccessToken}`};if(t.remoteEtag)headers["If-Match"]=t.remoteEtag;
     const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(id)}`,{method:"DELETE",headers});
@@ -400,6 +562,7 @@ async function pushEditedTaskToGoogle(task){
     const p=googleDateParts(updated);
     if(!p||p.date!==task.date||(task.time?(p.time!==task.time):!!p.time)){console.error('Google returned different event time',updated);return false;}
     task.googleSynced=true;task.googleDirty=false;
+    task.googleDeleteBaseline=googleComparableDeleteContent(updated);
     task.googleData={...(task.googleData||{}),etag:updated.etag||task.googleData?.etag||'',updated:updated.updated||task.googleData?.updated||'',location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
     saveTasks();renderAll();return true;
   }catch(err){console.error('Google event update failed',err);return false;}
@@ -446,6 +609,7 @@ async function pushPlannerTasksToGoogle(){
       if(task.googleSeriesMaster&&task.seriesId&&task.googleSeriesParentId){
         tasks.filter(x=>x.seriesId===task.seriesId&&x.id!==task.id&&x.googleSeriesVirtual).forEach(x=>{
           x.googleSeriesParentId=task.googleSeriesParentId;
+          x.googleSeriesDeleteBaseline=task.googleSeriesDeleteBaseline||null;
           x.googleSynced=true;
           x.googleDirty=false;
           x.source='planner';
@@ -499,9 +663,10 @@ async function syncGoogleCalendar(){
   try{
     await processGoogleSeriesStops();
     if(!googleAccessToken)return;
+    await processGoogleDeleteQueue();
+    if(!googleAccessToken)return;
     const pulled=await syncFromGoogle(true);
     if(!googleAccessToken||pulled===false)return;
-    await processGoogleDeleteQueue();
     const linked=tasks.filter(task=>task.googleEventId&&task.date&&!task.googleConflict&&!task.googleSeriesStopPending);
     for(const task of linked){
       try{
@@ -563,9 +728,11 @@ async function sendTaskToGoogle(task,silent=false){
   const bindResult=result=>{
     if(task.googleSeriesMaster===true){
       task.googleSeriesParentId=result.id||task.googleCreateId;
+      task.googleSeriesDeleteBaseline=googleComparableDeleteContent(result);
       task.googleEventId=null;
     }else task.googleEventId=result.id||task.googleCreateId;
     task.googleSynced=true;task.googleDirty=false;task.source='planner';
+    task.googleDeleteBaseline=googleComparableDeleteContent(result);
     task.googleData={...(task.googleData||{}),etag:result.etag||'',updated:result.updated||'',location:result.location||task.location||'',description:result.description||'',reminders:result.reminders||null,htmlLink:result.htmlLink||''};
     saveTasks();renderAll();
   };
@@ -634,7 +801,7 @@ function reconcileGoogleDeletedTask(task){
 
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
-  if(googleDeleteQueue().some(x=>x.googleEventId===event.id)||googleEventStoppedLocally(event))return false;
+  if(googleDeleteQueue().some(x=>x.googleEventId===event.id)||googleEventStoppedLocally(event)||queuedGoogleSeriesDeletion(event))return false;
   const p=googleDateParts(event);if(!p)return false;
   const parentId=event.recurringEventId||"";
   const originalKey=googleInstanceOriginalKey(event);
@@ -650,6 +817,7 @@ function upsertGoogleEvent(event){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
   }
+  task.googleDeleteBaseline=googleComparableDeleteContent(event);
   // A live event supersedes a previously observed deletion. Keep local edits.
   if(task.googleConflict==='deleted')task.googleConflict=null;
   if(parentId){
