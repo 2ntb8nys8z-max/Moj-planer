@@ -17,15 +17,17 @@ async function processGoogleDeleteQueue(){
   const q=googleDeleteQueue();
   let conflicts=0,completed=0;
   for(const tomb of q){
-    if(tomb.state!=="pending")continue;
+    if(tomb.state!=="pending"&&tomb.state!=="conflict")continue;
     try{
       const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(tomb.googleEventId)}`;
       const r=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
       if(r.status===401){tomb.lastError="401";continue;}
-      if(r.status===410){tomb.state="done";completed++;continue;}
+      if(r.status===404||r.status===410){tomb.state="done";completed++;continue;}
       if(!r.ok){tomb.lastError=String(r.status);continue;}
       const ev=await r.json();
       if(ev.status==="cancelled"){tomb.state="done";completed++;continue;}
+      // Recheck saved conflicts without approving deletion of a live event.
+      if(tomb.state==="conflict"){tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;continue;}
       const snap=tomb.localSnapshot||{},p=googleDateParts(ev);
       const baseEtag=tomb.baseEtag||snap.googleData?.etag||null;
       const baseUpdated=tomb.baseUpdated||snap.googleData?.updated||null;
@@ -37,9 +39,10 @@ async function processGoogleDeleteQueue(){
       const changed=baseEtag?ev.etag!==baseEtag:(baseUpdated?ev.updated!==baseUpdated:false);
       if(!recurrenceConversion&&changed){tomb.state="conflict";tomb.remoteSnapshot=ev;tomb.remoteEtag=ev.etag||null;conflicts++;continue;}
       const headers={Authorization:`Bearer ${googleAccessToken}`};
-      if(baseEtag)headers["If-Match"]=baseEtag;
+      const deleteEtag=recurrenceConversion?ev.etag:baseEtag;
+      if(deleteEtag)headers["If-Match"]=deleteEtag;
       const del=await fetch(url,{method:"DELETE",headers});
-      if(del.ok||del.status===410){tomb.state="done";completed++;}
+      if(del.ok||del.status===404||del.status===410){tomb.state="done";completed++;}
       else if(del.status===412){
         const latest=await fetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
         if(latest.ok){const remote=await latest.json();tomb.state="conflict";tomb.remoteSnapshot=remote;tomb.remoteEtag=remote.etag||null;conflicts++;}
@@ -363,17 +366,19 @@ async function syncGoogleCalendar(){
   try{
     const pulled=await syncFromGoogle(true);
     if(!googleAccessToken||pulled===false)return;
-    const deleteConflicts=await processGoogleDeleteQueue();
+    await processGoogleDeleteQueue();
     const linked=tasks.filter(task=>task.googleEventId&&task.date&&!task.googleConflict);
     for(const task of linked){
       try{
         const check=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
         if(check.status===404||check.status===410){
-          task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;
+          reconcileGoogleDeletedTask(task);
         }else if(check.ok){
           const ev=await check.json();
           if(ev.status==='cancelled'){
-            task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;
+            reconcileGoogleDeletedTask(task);
+          }else if(task.googleConflict==='deleted'){
+            task.googleConflict=null;
           }
         }
       }catch(err){console.error('Google event existence check failed',err);}
@@ -482,6 +487,15 @@ function googleInstanceOriginalKey(event){
   return googleOriginalStartKey(event?.originalStartTime);
 }
 
+function reconcileGoogleDeletedTask(task){
+  // Only an unsent local edit conflicts with a remote deletion.
+  if(task.googleDirty){
+    task.googleConflict='deleted';task.googleSynced=false;
+  }else{
+    tasks=tasks.filter(current=>current!==task);
+  }
+}
+
 function upsertGoogleEvent(event){
   if(!event?.id||event.status==='cancelled')return false;
   if(googleDeleteQueue().some(x=>x.googleEventId===event.id))return false;
@@ -500,6 +514,8 @@ function upsertGoogleEvent(event){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
   }
+  // A live event supersedes a previously observed deletion. Keep local edits.
+  if(task.googleConflict==='deleted')task.googleConflict=null;
   if(parentId){
     if(task.googleSeriesMaster&&task.googleEventId===parentId)task.googleEventId=null;
     task.googleSeriesParentId=parentId;
@@ -546,7 +562,7 @@ async function syncFromGoogle(silent=false){
       (data.items||[]).forEach(event=>{
         if(event?.status==='cancelled'&&event.id){
           const conflict=tasks.find(task=>task.googleEventId===event.id);
-          if(conflict){conflict.googleConflict='deleted';conflict.googleDirty=true;conflict.googleSynced=false;changed++;}
+          if(conflict){reconcileGoogleDeletedTask(conflict);changed++;}
           return;
         }
         if(upsertGoogleEvent(event))changed++;
