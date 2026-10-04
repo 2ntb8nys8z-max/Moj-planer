@@ -359,6 +359,38 @@ async function pushPlannerTasksToGoogle(){
   return {created,updated,pending:pending.length,remaining,dirty:dirty.length};
 }
 
+function renderGoogleSyncResult(pushed){
+  const card=document.getElementById('googleCalendarCard');
+  if(!card)return;
+  let box=document.getElementById('googleSyncResult');
+  if(!box){
+    box=document.createElement('div');box.id='googleSyncResult';
+    box.style.cssText='flex-basis:100%;border-top:1px solid #ddd;padding-top:10px;font-size:14px';
+    card.appendChild(box);
+  }
+  box.textContent='';
+  const conflicts=tasks.filter(task=>task.googleConflict);
+  const deletions=googleDeleteQueue().filter(item=>item.state==='conflict');
+  const summary=document.createElement('div');
+  summary.textContent=`Ostatnia synchronizacja: wysłano ${pushed.created||0}, zaktualizowano ${pushed.updated||0}. Konflikty: ${conflicts.length+deletions.length}.`;
+  box.appendChild(summary);
+  for(const task of conflicts){
+    const row=document.createElement('div');row.style.marginTop='8px';
+    const description=document.createElement('div');
+    description.textContent=`${task.title||'Bez tytułu'} • ${task.date||''} ${task.time||''}: ${task.googleConflict==='deleted'?'Google zgłosił usunięcie; w Planerze pozostała niewysłana zmiana.':'Zapisany konflikt: '+task.googleConflict}`;
+    row.appendChild(description);
+    const button=document.createElement('button');button.className='secondary';button.textContent='Pokaż wydarzenie';
+    button.onclick=()=>openEventActions(task);row.appendChild(button);box.appendChild(row);
+  }
+  for(const item of deletions){
+    const row=document.createElement('div');row.style.marginTop='8px';
+    row.textContent=`${item.localSnapshot?.title||item.remoteSnapshot?.summary||'Bez tytułu'} • ${item.localSnapshot?.date||''}: usunięte w Planerze; Google nadal zwraca wydarzenie. ${item.reason==='recurrence-conversion'?'Zastępowanie wydarzenia serią.':'Oczekuje na decyzję o usunięciu.'}`;
+    box.appendChild(row);
+  }
+  const version=document.createElement('small');version.style.color='#667085';
+  version.textContent='Wersja synchronizacji: 04.10.3';box.appendChild(version);
+}
+
 async function syncGoogleCalendar(){
   if(!googleAccessToken||googleSyncInProgress)return;
   googleSyncInProgress=true;
@@ -399,6 +431,7 @@ async function syncGoogleCalendar(){
     // processGoogleDeleteQueue() runs earlier, so its returned count can be stale
     // by the time a newly-created RRULE series has been rebound.
     const currentDeleteConflicts=googleDeleteQueue().filter(x=>x.state==="conflict").length;
+    renderGoogleSyncResult(pushed);
     if(conflicts||currentDeleteConflicts){
       setGoogleStatus(true,`Połączony • konflikt synchronizacji`);
       toast(`⚠️ Konflikt synchronizacji • wymaga decyzji`);
