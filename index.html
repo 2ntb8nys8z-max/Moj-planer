@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.04.11 · Synchronizacja: ładowanie…</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.04.12 · Synchronizacja: ładowanie…</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabIdeas">💡 Pomysły</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">💡 Pomysły — zobacz do zrobienia i zrealizowane</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Anuluj nagrywanie">✕</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz wydarzenie lub pomysł</div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -105,13 +105,77 @@ function seriesHasFollowing(task){
   else return true;
   return end.getTime()>horizon.getTime();
 }
-function chooseSeriesScope(task,action){
+function chooseSeriesScope(task,action,details=""){
   const following=seriesHasFollowing(task);
   const intro=action==="delete"?"Co chcesz usunąć?":"To wydarzenie należy do serii. Gdzie zastosować zmianę?";
   const options=following?"1 — Tylko to wydarzenie\n2 — To i wszystkie następne\n3 — Cała seria\n\nWpisz 1, 2 lub 3.":"To ostatnie wystąpienie w tej serii.\n\n1 — Tylko to wydarzenie\n2 — Cała seria\n\nWpisz 1 lub 2.";
-  const answer=prompt(intro+"\n\n"+options,action==="delete"?"":"1");
+  const answer=prompt((details?details+"\n\n":"")+intro+"\n\n"+options,action==="delete"?"":"1");
   if(!following)return answer==="1"?"1":answer==="2"?"3":null;
   return ["1","2","3"].includes(answer)?answer:null;
+}
+
+function explicitVoiceEventEdit(text){
+  const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
+  const rules=[
+    ['title',/^(?:zmień|zmien|ustaw|popraw|zastąp)\s+(?:nazwę|nazwe|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i],
+    ['title',/^nazwij\s+(?:(?:to|te|ten)\s+|(?:wydarzenie|spotkanie)\s+)?(.+)$/i],
+    ['title',/^(?:nazwa|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s+(?:ma\s+być|ma\s+byc|powinna\s+być|powinien\s+być|to)\s+(.+)$/i],
+    ['append',/^(?:dodaj|dopisz)\s+(?:(?:do|w)\s+)?(?:notatkę|notatke|notatki|notatce)(?:\s+(?:do|dla)\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*[:—-]?\s*(.+)$/i],
+    ['replace',/^(?:zmień|zmien|ustaw|zastąp)\s+(?:treść\s+)?(?:notatkę|notatke|notatki)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i]
+  ];
+  if(/^(?:usuń|usun|wyczyść|wyczysc|skasuj)\s+(?:(?:tę|te|całą|cala|obecną)\s+)?(?:notatkę|notatke)[.!?]*$/i.test(command))return {changedFields:['notes'],notesAction:'clear',notes:''};
+  for(const [action,pattern] of rules){
+    const match=command.match(pattern);if(!match)continue;
+    const value=match[1].trim();
+    // Multiple operations belong to the AI interpreter, not a partial local match.
+    if(/\s+(?:i|oraz)\s+(?:dodaj|dopisz|zmień|zmien|ustaw|usuń|usun)\s/i.test(value))return null;
+    if(action==='title')return {changedFields:['title'],title:value};
+    return {changedFields:['notes'],notesAction:action,notes:action==='replace'?value:undefined,notesAddition:action==='append'?value:undefined};
+  }
+  return null;
+}
+function voiceEventSnapshot(task){
+  return {type:'event',title:task.title,date:task.date,startTime:task.time||'',endTime:task.endTime||'',notes:task.notes||'',location:task.location||task.googleData?.location||'',reminder:task.reminder??null,recurrence:task.recurrence??null,recurrenceAction:null};
+}
+function appendVoiceNotes(existing,addition){return existing?existing+'\n'+addition:addition;}
+function resolveVoiceEventEdit(task,item,transcription){
+  const direct=explicitVoiceEventEdit(transcription);
+  const edit=direct||item;
+  if(!edit)throw new Error('Brak propozycji zmiany');
+  const result={...voiceEventSnapshot(task),...edit,type:'event'};
+  const allowed=['title','date','startTime','endTime','notes','location','reminder','recurrence'];
+  if(Array.isArray(edit.changedFields)){
+    const fields=edit.changedFields.filter(field=>allowed.includes(field));
+    const preserved=voiceEventSnapshot(task);
+    for(const field of fields){if(edit[field]!==undefined)preserved[field]=edit[field];}
+    Object.assign(result,preserved,{changedFields:fields});
+    result.recurrenceAction=fields.includes('recurrence')?(edit.recurrenceAction||null):null;
+  }else if(edit.type!=='event')throw new Error('Nie rozpoznano zmiany wydarzenia');
+  if(result.notesAction==='append'&&result.changedFields?.includes('notes')){
+    if(typeof result.notesAddition!=='string'||!result.notesAddition.trim())throw new Error('Brak treści notatki do dopisania');
+    result.notes=appendVoiceNotes(task.notes||'',result.notesAddition);
+  }
+  if(result.notesAction==='clear'&&result.changedFields?.includes('notes'))result.notes='';
+  return result;
+}
+function applyVoiceEventFields(task,edit,fields){
+  const map={title:'title',startTime:'time',endTime:'endTime',notes:'notes',location:'location',reminder:'reminder'};
+  for(const field of fields){
+    if(!map[field])continue;
+    task[map[field]]=field==='notes'&&edit.notesAction==='append'?appendVoiceNotes(task.notes||'',edit.notesAddition):edit[field];
+  }
+  if(task.googleEventId){task.googleDirty=true;task.googleSynced=false;}
+}
+function voiceEventChangePreview(before,after,fields,transcription){
+  const labels={title:'Nazwa',date:'Data',startTime:'Od',endTime:'Do',notes:'Notatka',location:'Lokalizacja',reminder:'Przypomnienie'};
+  const lines=[];
+  if(transcription)lines.push('Rozpoznano: '+transcription);
+  for(const field of fields){
+    if(!labels[field])continue;
+    const display=value=>field==='reminder'?(value?String(value.minutesBefore??value)+' min wcześniej':'brak'):String(value??'')||'(puste)';
+    lines.push(labels[field]+': '+display(before[field])+' → '+display(after[field]));
+  }
+  return lines.join('\n\n');
 }
 
 function googleTaskUrl(task){const text=[task?.notes||"",task?.googleData?.description||""].join(" ");const m=text.match(/https:\/\/tasks\.google\.com\/[^\s<>"\']+/i);return m?m[0]:null}
@@ -125,7 +189,7 @@ async function startIdeaVoice(){if(ideaRecorder&&ideaRecorder.state==="recording
 $("ideaVoice").onclick=startIdeaVoice;
 let eventRecorder=null,eventStream=null,eventChunks=[],eventCountdown=null,eventSeconds=15;
 function stopEventCountdown(){if(eventCountdown){clearInterval(eventCountdown);eventCountdown=null}}
-async function startEventVoice(){if(eventRecorder&&eventRecorder.state==="recording"){stopEventCountdown();eventRecorder.stop();return}if(!activeTask)return;const voiceTaskId=activeTask.id;const voiceTask=tasks.find(t=>t.id===voiceTaskId);if(!voiceTask)return;try{eventStream=await navigator.mediaDevices.getUserMedia({audio:true});eventChunks=[];eventRecorder=new MediaRecorder(eventStream);eventRecorder.ondataavailable=e=>{if(e.data&&e.data.size)eventChunks.push(e.data)};eventRecorder.onstart=()=>{$("eventVoice").classList.add("recording");$("eventVoice").textContent="Wyślij";$("eventVoiceHint").textContent="Powiedz zmianę i naciśnij Wyślij";eventSeconds=15;$("eventVoiceCountdown").textContent=eventSeconds;stopEventCountdown();const recorder=eventRecorder;eventCountdown=setInterval(()=>{eventSeconds=Math.max(0,eventSeconds-1);$("eventVoiceCountdown").textContent=eventSeconds;if(eventSeconds===0){stopEventCountdown();eventChunks=[];if(recorder&&recorder.state==="recording")recorder.stop()}},1000);setTimeout(()=>{if(recorder&&recorder.state==="recording"){stopEventCountdown();eventSeconds=0;$("eventVoiceCountdown").textContent="0";eventChunks=[];recorder.stop()}},15500)};eventRecorder.onstop=async()=>{stopEventCountdown();if(eventStream)eventStream.getTracks().forEach(t=>t.stop());$("eventVoice").classList.remove("recording");$("eventVoice").textContent="🎤";$("eventVoiceCountdown").textContent="";const chunks=[...eventChunks];eventRecorder=null;if(!chunks.length){$("eventVoiceHint").textContent="Nagranie anulowane";return}const usage=getVoiceUsageStatus();if(usage.left<=0){toast("Limit 300 nagrań wykorzystany");return}incrementVoiceUsage();$("eventVoiceHint").textContent="⏳ Wprowadzam zmianę…";try{const blob=new Blob(chunks,{type:chunks[0]?.type||"audio/mp4"}),headers={"Content-Type":blob.type,"X-Current-Item":encodeURIComponent(JSON.stringify({type:"event",title:voiceTask.title,date:voiceTask.date,startTime:voiceTask.time||"",endTime:voiceTask.endTime||"",notes:voiceTask.notes||"",reminder:voiceTask.reminder||null,recurrence:voiceTask.recurrence||null,seriesId:voiceTask.seriesId||null,location:voiceTask.location||voiceTask.googleData?.location||""}))};const response=await fetch(API_URL,{method:"POST",headers,body:blob}),result=await response.json();if(!response.ok||!result.success||!result.item)throw new Error(result.error||"Błąd API");if(!validateAiItem(result.item))throw new Error("AI zwróciło nieprawidłowe dane");const targetTask=tasks.find(t=>t.id===voiceTaskId);if(!targetTask){$("eventVoiceHint").textContent="Wydarzenie zostało usunięte";return}const x=result.item;
+async function startEventVoice(){if(eventRecorder&&eventRecorder.state==="recording"){stopEventCountdown();eventRecorder.stop();return}if(!activeTask)return;const voiceTaskId=activeTask.id;const voiceTask=tasks.find(t=>t.id===voiceTaskId);if(!voiceTask)return;try{eventStream=await navigator.mediaDevices.getUserMedia({audio:true});eventChunks=[];eventRecorder=new MediaRecorder(eventStream);eventRecorder.ondataavailable=e=>{if(e.data&&e.data.size)eventChunks.push(e.data)};eventRecorder.onstart=()=>{$("eventVoice").classList.add("recording");$("eventVoice").textContent="Wyślij";$("eventVoiceHint").textContent="Powiedz zmianę i naciśnij Wyślij";eventSeconds=15;$("eventVoiceCountdown").textContent=eventSeconds;stopEventCountdown();const recorder=eventRecorder;eventCountdown=setInterval(()=>{eventSeconds=Math.max(0,eventSeconds-1);$("eventVoiceCountdown").textContent=eventSeconds;if(eventSeconds===0){stopEventCountdown();eventChunks=[];if(recorder&&recorder.state==="recording")recorder.stop()}},1000);setTimeout(()=>{if(recorder&&recorder.state==="recording"){stopEventCountdown();eventSeconds=0;$("eventVoiceCountdown").textContent="0";eventChunks=[];recorder.stop()}},15500)};eventRecorder.onstop=async()=>{stopEventCountdown();if(eventStream)eventStream.getTracks().forEach(t=>t.stop());$("eventVoice").classList.remove("recording");$("eventVoice").textContent="🎤";$("eventVoiceCountdown").textContent="";const chunks=[...eventChunks];eventRecorder=null;if(!chunks.length){$("eventVoiceHint").textContent="Nagranie anulowane";return}const usage=getVoiceUsageStatus();if(usage.left<=0){toast("Limit 300 nagrań wykorzystany");return}incrementVoiceUsage();$("eventVoiceHint").textContent="⏳ Wprowadzam zmianę…";try{const blob=new Blob(chunks,{type:chunks[0]?.type||"audio/mp4"}),headers={"Content-Type":blob.type,"X-Current-Item":encodeURIComponent(JSON.stringify({type:"event",title:voiceTask.title,date:voiceTask.date,startTime:voiceTask.time||"",endTime:voiceTask.endTime||"",notes:voiceTask.notes||"",reminder:voiceTask.reminder||null,recurrence:voiceTask.recurrence||null,seriesId:voiceTask.seriesId||null,location:voiceTask.location||voiceTask.googleData?.location||""}))};const response=await fetch(API_URL,{method:"POST",headers,body:blob}),result=await response.json();if(!response.ok||!result.success||!result.item)throw new Error(result.error||"Błąd API");const targetTask=tasks.find(t=>t.id===voiceTaskId);if(!targetTask){$("eventVoiceHint").textContent="Wydarzenie zostało usunięte";return}const x=resolveVoiceEventEdit(targetTask,result.item,result.transcription);if(!validateAiItem({...x,recurrence:x.changedFields&&!x.changedFields.includes("recurrence")?null:x.recurrence}))throw new Error("AI zwróciło nieprawidłowe dane");
 if(x.recurrenceAction==="remove"&&targetTask.seriesId){
   if(!confirm("Wyłączyć cykliczność?\n\nTo spotkanie pozostanie w kalendarzu. Wszystkie późniejsze wystąpienia tej serii zostaną usunięte.")){ $("eventVoiceHint").textContent="Anulowano zmianę"; return }
   window.stopPlannerSeries(targetTask);
@@ -147,17 +211,22 @@ const oldStart=targetTask.time||"",oldEnd=targetTask.endTime||"",oldDuration=min
 const nextTitle=x.title||targetTask.title,nextDate=x.date||targetTask.date,nextStart=x.startTime??targetTask.time;
 let nextEnd=x.endTime??targetTask.endTime;
 if(nextStart&&oldStart&&nextStart!==oldStart&&oldDuration>0&&(x.endTime==null||x.endTime===""||x.endTime===oldEnd))nextEnd=addMinutes(nextStart,oldDuration);
-const nextNotes=x.notes??targetTask.notes,nextLocation=x.location??targetTask.location??targetTask.googleData?.location??"",nextReminder=x.reminder??null;
+const nextNotes=x.notes??targetTask.notes,nextLocation=x.location??targetTask.location??targetTask.googleData?.location??"",nextReminder=x.reminder===undefined?targetTask.reminder??null:x.reminder;
 const sameReminder=JSON.stringify(nextReminder??null)===JSON.stringify(targetTask.reminder??null);
 const noActualChange=nextTitle===targetTask.title&&nextDate===targetTask.date&&nextStart===(targetTask.time||"")&&nextEnd===(targetTask.endTime||"")&&nextNotes===(targetTask.notes||"")&&nextLocation===(targetTask.location||targetTask.googleData?.location||"")&&sameReminder;
-if(noActualChange){$("eventVoiceHint").textContent="Nie udało się rozpoznać zmiany. Spróbuj ponownie.";toast("Nie rozpoznano żadnej zmiany");return}
-const preview=[nextTitle,nextDate+(nextStart?" • "+nextStart:"")+(nextEnd?"–"+nextEnd:""),nextLocation?"📍 "+nextLocation:""].filter(Boolean).join("\n");
+if(noActualChange){$("eventVoiceHint").textContent="Nie rozpoznano zmiany."+(result.transcription?" Rozpoznano: "+result.transcription:"");toast("Nie rozpoznano żadnej zmiany");return}
+const before=voiceEventSnapshot(targetTask),after={...x,title:nextTitle,date:nextDate,startTime:nextStart,endTime:nextEnd,notes:nextNotes,location:nextLocation,reminder:nextReminder};
+const fields=(x.changedFields||['title','date','startTime','endTime','notes','location','reminder']).filter(field=>JSON.stringify(before[field]??null)!==JSON.stringify(after[field]??null));
+if(fields.includes('startTime')&&nextEnd!==before.endTime&&!fields.includes('endTime'))fields.push('endTime');
+const preview=voiceEventChangePreview(before,after,fields,result.transcription);
 let scope="1";
-if(targetTask.seriesId){scope=prompt("Potwierdź zmianę:\n\n"+preview+"\n\nGdzie zastosować zmianę?\n1 — Tylko to wydarzenie\n2 — To i wszystkie następne\n3 — Całą serię\n\nWpisz 1, 2 lub 3.","1");if(!["1","2","3"].includes(scope)){$("eventVoiceHint").textContent="Anulowano zmianę";return}}
+if(targetTask.seriesId){scope=chooseSeriesScope(targetTask,"edit",preview);if(!scope){$("eventVoiceHint").textContent="Anulowano zmianę";return}}
 else if(!confirm("Potwierdź zmianę wydarzenia:\n\n"+preview)){ $("eventVoiceHint").textContent="Anulowano zmianę"; return }
-const originalDate=targetTask.date;
-const applyVoiceChange=t=>{t.title=nextTitle;t.time=nextStart;t.endTime=nextEnd;t.notes=nextNotes;t.location=nextLocation;t.reminder=nextReminder;if(t.googleEventId){t.googleDirty=true;t.googleSynced=false}};
-if(scope==="1"){targetTask.title=nextTitle;targetTask.date=nextDate;targetTask.time=nextStart;targetTask.endTime=nextEnd;targetTask.notes=nextNotes;targetTask.location=nextLocation;targetTask.reminder=nextReminder}else{const sid=targetTask.seriesId,dayShift=Math.round((new Date(nextDate+"T12:00:00")-new Date(originalDate+"T12:00:00"))/86400000);tasks.filter(t=>t.seriesId===sid&&(scope==="3"||t.date>=originalDate)).forEach(t=>{applyVoiceChange(t);if(dayShift){const td=new Date(t.date+"T12:00:00");td.setDate(td.getDate()+dayShift);t.date=iso(td)}})}
+const originalDate=targetTask.date,originalOrder=seriesOccurrenceOrder(targetTask);
+if(scope==="1"){applyVoiceEventFields(targetTask,after,fields);if(fields.includes('date'))targetTask.date=nextDate}else{
+  const sid=targetTask.seriesId,dayShift=fields.includes('date')?Math.round((new Date(nextDate+"T12:00:00")-new Date(originalDate+"T12:00:00"))/86400000):0;
+  tasks.filter(t=>t.seriesId===sid&&(scope==="3"||seriesOccurrenceOrder(t)>=originalOrder)).forEach(t=>{applyVoiceEventFields(t,after,fields);if(dayShift){const td=new Date(t.date+"T12:00:00");td.setDate(td.getDate()+dayShift);t.date=iso(td)}})
+}
 selected=new Date(nextDate+"T12:00:00");monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=nextDate;saveTasks();renderAll();if(scope==="1"&&window.syncEditedTaskToGoogle)await window.syncEditedTaskToGoogle(targetTask);toast(scope==="1"?"✓ Zmieniono tylko to wydarzenie":scope==="2"?"✓ Zmieniono to i wszystkie następne • oczekuje na synchronizację":"✓ Zmieniono całą serię • oczekuje na synchronizację");openEventActions(targetTask)}catch(e){console.error(e);$("eventVoiceHint").textContent="❌ Nie udało się wprowadzić zmiany";toast("Błąd rozpoznawania")}};eventRecorder.start()}catch(e){console.error(e);$("eventVoiceHint").textContent="❌ Brak dostępu do mikrofonu"}}
 $("eventVoice").onclick=startEventVoice;
 function closeEventRecurrencePreview(){pendingEventRecurrence=null;$("eventRecurrencePreview").classList.add("hidden")}
@@ -170,8 +239,9 @@ let timer=300,interval=null,timerIdea=null;function displayTimer(){$("clock").te
 $("closeCelebrate").onclick=()=>$("celebrate").classList.add("hidden");$("note").value=localStorage.getItem(NOTE_KEY)||"";$("saveNote").onclick=()=>{localStorage.setItem(NOTE_KEY,$("note").value);toast("✓ Zapisano")};$("date").value=iso(selected);displayTimer();renderAll();
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="google-calendar.js?v=20261004-11"></script>
+<script src="google-calendar.js?v=20261004-12"></script>
 </body></html>
+
 
 
 
