@@ -356,8 +356,8 @@ selected=new Date(nextDate+"T12:00:00");monthCursor=new Date(selected.getFullYea
 function plannerInterval(t){
   const startTime=t.startTime??t.time;if(!t.date||!startTime)return null;
   const start=new Date(t.date+'T'+startTime+':00').getTime();
-  let end=t.endTime?new Date(t.date+'T'+t.endTime+':00').getTime():start;
-  if(end<start)end+=86400000;
+  let end=t.endTime?new Date(t.date+'T'+t.endTime+':00').getTime():start+3600000;
+  if(t.endTime&&end<=start)end+=86400000;
   return Number.isFinite(start)&&Number.isFinite(end)?{start,end}:null;
 }
 function plannerLocation(t){return String(t.location||t.googleData?.location||'').trim()}
@@ -401,7 +401,7 @@ async function approvePlannerSchedule(proposed,excluded=[]){
     const overlay=document.createElement('div');overlay.className='modal-backdrop';overlay.style.zIndex='1003';
     const card=document.createElement('div');card.className='action-card';card.style.maxHeight='85vh';card.style.overflowY='auto';overlay.appendChild(card);
     const h=document.createElement('h2');h.textContent='Sprawdź termin przed zapisem';card.appendChild(h);
-    const intro=document.createElement('p');intro.textContent=issues.length+' ostrzeżeń. Niczego jeszcze nie zapisano.';card.appendChild(intro);
+    const intro=document.createElement('p');intro.textContent=issues.length+' ostrzeżeń. Niczego jeszcze nie zapisano. Dla wpisów bez godziny końca przyjmujemy godzinę, tak jak przy wysyłaniu do Google.';card.appendChild(intro);
     issues.slice(0,20).forEach(w=>{const p=document.createElement('p');p.textContent=w.kind==='overlap'?`Termin ${w.proposedDate} nakłada się na „${w.title}”: ${w.date}, ${w.time}${w.endTime?'–'+w.endTime:''}.`:`Spotkania stykają się godzinami (${w.date}, ${w.time}${w.endTime?'–'+w.endTime:''}), ale mają różne lokalizacje: ${w.origin} → ${w.destination}. Nie ma przerwy na dojazd.`;card.appendChild(p);
       if(w.kind==='travel'){const a=document.createElement('a');a.className='secondary';a.textContent='Sprawdź dojazd w mapach';a.href='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(w.origin)+'&destination='+encodeURIComponent(w.destination);a.target='_blank';a.rel='noopener noreferrer';card.appendChild(a)}
     });if(issues.length>20){const p=document.createElement('p');p.textContent='Pokazano pierwsze 20 ostrzeżeń. Potwierdzenie dotyczy wszystkich '+issues.length+'.';card.appendChild(p)}
