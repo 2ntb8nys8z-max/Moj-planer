@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.24
+// Private prototype API protection — 2026.10.05.25
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -207,13 +207,22 @@ function plannerAmbiguousHourQuestion(text,current,dialogue=[]){
 const DIALOGUE_TEXT = Object.freeze({date:'W jakim dniu ma odbyć się wydarzenie?',start:'O której godzinie ma się rozpocząć? Jeśli bez godziny, powiedz „całodniowe”.',end:'Do której godziny ma potrwać albo ile czasu zarezerwować? Możesz też powiedzieć „bez godziny końca”.',place:'Podaj kraj, region, kod pocztowy albo pobliskie większe miasto, żebym ustalił właściwą miejscowość.'});
 function plannerTimingQuestion(item,current,dialogue,text){
   if(item.type!=='event'||current?.type==='event')return null;
-  const userText=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text).join('\n').toLowerCase();
+  // Evidence returned by the model is optional. Its omission must not erase
+  // a date/time already present in the user's conversation.
+  const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text);
+  const userText=messages.join('\n').toLowerCase();
   const timing=item.timing||{};
   const evidence=key=>typeof timing[key]==='string'&&timing[key].trim().length>0&&userText.includes(timing[key].trim().toLowerCase());
-  if(!evidence('dateEvidence'))return DIALOGUE_TEXT.date;
-  if(!item.startTime&&timing.allDay===true&&evidence('startEvidence'))return null;
-  if(!item.startTime||!evidence('startEvidence'))return DIALOGUE_TEXT.start;
-  if(!evidence('endEvidence')||(!item.endTime&&timing.endOpen!==true))return DIALOGUE_TEXT.end;
+  const dateGiven=/(?:dzisiaj|dziś|dzis|jutro|pojutrze|za\s+(?:\d+|jeden|dwa|trzy|cztery|pięć|piec|sześć|szesc|siedem)\s+(?:dni|dzień|dzien|tygodni)|poniedział|poniedzial|wtorek|wtork|środ|srod|czwartek|czwartk|piątek|piatek|piątk|piatk|sobot|niedziel|styczni|lutego|luty|marca|marzec|kwietni|maja|czerwc|lipca|lipiec|sierpni|wrześni|wrzesni|październik|pazdziernik|listopad|grudni|\d{4}-\d{2}-\d{2}|\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?)/i.test(userText);
+  const clockGiven=/(?:\b(?:[01]?\d|2[0-3]):[0-5]\d\b|(?:o|na|od)\s+(?:godzin\S*\s+)?(?:\d{1,2}|pierwsz\S*|drug\S*|trzec\S*|czwart\S*|piąt\S*|piat\S*|szóst\S*|szost\S*|siódm\S*|siodm\S*|ósm\S*|osm\S*|dziewiąt\S*|dziewiat\S*|dziesiąt\S*|dziesiat\S*|jedenast\S*|dwunast\S*)|południ|poludni|północ|polnoc)/i.test(userText);
+  const allDay=/całodniow|calodniow|cały dzień|caly dzien/i.test(userText);
+  const openEnd=/bez (?:godziny )?(?:końca|konca|zakończenia|zakonczenia)/i.test(userText);
+  const durationOrEnd=/(?:do\s+(?:godzin\S*\s+)?(?:\d|\S+ej)|(?:trwa\S*|przez|na)\s+(?:\d+|pół|pol|półtorej|poltorej|jedn\S*|dwi\S*|trzy|cztery)?\s*(?:minut|godzin)|\d{1,2}:\d{2}\s*[-–—]\s*\d{1,2}:\d{2})/i.test(userText);
+  if(!dateGiven&&!evidence('dateEvidence'))return DIALOGUE_TEXT.date;
+  if(!item.startTime&&(allDay||timing.allDay===true&&evidence('startEvidence')))return null;
+  if(!item.startTime||!clockGiven&&!evidence('startEvidence'))return DIALOGUE_TEXT.start;
+  if(!item.endTime&&!openEnd&&!(timing.endOpen===true&&evidence('endEvidence')))return DIALOGUE_TEXT.end;
+  if(item.endTime&&!durationOrEnd&&!evidence('endEvidence'))return DIALOGUE_TEXT.end;
   return null;
 }
 function validateWeatherContext(context){
@@ -269,7 +278,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.24",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.25",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -446,7 +455,7 @@ Historia rozmowy to to samo polecenie; następna odpowiedź uzupełnia pierwotn�
 Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu/zadania. Jeśli użytkownik chce wydarzenie lub przeniesienie do kalendarza, ale nie określił daty i nie ma jej w aktualnym wpisie, zapytaj o datę. Polecenie utworzenia lub ustalenia spotkania/wydarzenia, także bez terminu, oznacza zamiar wpisu do kalendarza: dopytaj, nie zamieniaj go w pomysł. Nie zakładaj dzisiejszej daty ani całodniowości tylko dlatego, że brakuje terminu. Przy NOWYM wydarzeniu i przenoszeniu pomysłu do kalendarza ustal dzień, godzinę rozpoczęcia lub wyraźną całodniowość, a dla godzinowego wydarzenia także koniec/czas trwania lub wyraźne życzenie pozostawienia końca pustego. Pytaj po jednym brakującym szczególe. Nie pytaj o istniejący termin podczas zwykłej edycji notatki, tytułu ani adresu.
 Nie zgaduj, czy „o pierwszej”, „na pierwszą”, „na godzinę pierwszą”, „o godzinie pierwszej” lub „na godzinę 1” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
 Przy tworzeniu nowego wydarzenia samo „dodaj spotkanie” albo „dodaj wydarzenie” nie określa tytułu. Zapytaj konkretnie „Jak chcesz zatytułować dzisiejsze wydarzenie?”, jeśli termin to dzisiaj, albo „Jak chcesz zatytułować wydarzenie?” dla innego dnia. Nie pytaj ogólnie „Jakie chcesz dodać spotkanie?”. Jeśli brakuje tytułu i godzina pierwsza jest niejednoznaczna, najpierw doprecyzuj 01:00 lub 13:00, następnie tytuł. Zachowuj ustaloną datę i godzinę w całej rozmowie.
-POTWIERDZENIE TERMINU NOWEGO WYDARZENIA: w JSON event dodaj timing:{dateEvidence:"dokładny fragment wypowiedzi użytkownika określający dzień",startEvidence:"dokładny fragment określający godzinę lub całodniowość",endEvidence:"dokładny fragment określający koniec/czas trwania lub zgodę na brak końca",allDay:false,endOpen:false}. Cytaty muszą pochodzić z wiadomości użytkownika w historii albo bieżącej wypowiedzi; nie cytuj swoich pytań. Jeśli odpowiedź na pytanie o termin to „tak” lub sam numer, interpretuj ją w kontekście poprzedniego pytania. Brak dowodu oznacza brak informacji: dopytaj zamiast wstawiać datę z kontekstu systemowego. allDay=true tylko przy wyraźnym życzeniu całodniowości, endOpen=true tylko przy świadomym braku końca. Nie dodawaj timing przy edycji istniejącego wydarzenia.
+POTWIERDZENIE TERMINU NOWEGO WYDARZENIA: w JSON event dodaj timing:{dateEvidence:"dokładny fragment wypowiedzi użytkownika określający dzień",startEvidence:"dokładny fragment określający godzinę lub całodniowość",endEvidence:"dokładny fragment określający koniec/czas trwania lub zgodę na brak końca",allDay:false,endOpen:false}. Cytaty muszą pochodzić z wiadomości użytkownika w historii albo bieżącej wypowiedzi; nie cytuj swoich pytań. Jeśli odpowiedź na pytanie o termin to „tak” lub sam numer, interpretuj ją w kontekście poprzedniego pytania. Jeśli termin występuje w dowolnej wcześniejszej wiadomości użytkownika, zachowaj go. Nie pytaj ponownie o datę po otrzymaniu tytułu. Brak pola timing nie oznacza braku daty w rozmowie. Nie wstawiaj daty z kontekstu systemowego bez polecenia użytkownika. allDay=true tylko przy wyraźnym życzeniu całodniowości, endOpen=true tylko przy świadomym braku końca. Nie dodawaj timing przy edycji istniejącego wydarzenia.
 Jeśli polecenie korekty nazwy nie określa, czy chodzi o tytuł czy lokalizację, zapytaj. Wyraźne polecenie poprawienia pisowni, przeliterowanie lub „napisz po niemiecku” pozwala poprawić wskazane pole. Gdy zapis nie jest jasny, poproś o przeliterowanie. Nie twierdź, że miejscowość nie istnieje; nie masz dostępu do weryfikacji mapowej. Nie sprawdzaj każdego adresu ani nie pytaj przy jasnym poleceniu.
 ADRESY I KOREKTY PISOWNI: nazwa miejscowości, kod pocztowy, nazwa ulicy i numer tworzą jeden adres. Wskazówki „przez SZ”, „to jest SZ”, „przez samo S”, „D na końcu”, literowanie i powtórzenie poprawionej nazwy to instrukcje korekty pisowni, a nie część adresu. Zastosuj je do wskazanej nazwy. Zachowaj jedną finalną nazwę ulicy; nie łącz błędnej i poprawionej wersji i nie kopiuj instrukcji pisowni do location ani notes. Nie dodawaj informacji niepodanych przez użytkownika. Jeżeli korekta nie określa jednoznacznie końcowej nazwy, zapytaj o pełną poprawną nazwę ulicy zamiast zgadywać.
 Przykład: „Warszawa, 03-337, ulica Wyszogrodzka, to jest SZ, Wyszogrodzka 7” → location: „ul. Wyszogrodzka 7, 03-337 Warszawa”. Zachowaj tytuł, datę i godzinę; nie dodawaj powtórzonej nazwy ani „to jest SZ”.
@@ -498,7 +507,8 @@ Dla wydarzenia:
   "recurrenceAction": null,
   "changedFields": [],
   "notesAction": null,
-  "notesAddition": null
+  "notesAddition": null,
+  "timing": {"dateEvidence":"", "startEvidence":"", "endEvidence":"", "allDay":false, "endOpen":false}
 }
 
 Dla pomysłu:
