@@ -1,5 +1,5 @@
 // Private prototype API protection — 2026.10.05.28
-const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
+const API_LIMITS = Object.freeze({monthly:3000,daily:500,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
   day_key TEXT NOT NULL, day_count INTEGER NOT NULL,
@@ -43,7 +43,7 @@ async function quotaReserve(env){
   if(row)return quotaView(row,period);
   const usage=await quotaRead(env);
   const reason=usage.monthlyUsed>=API_LIMITS.monthly?'monthly_limit':usage.dailyUsed>=API_LIMITS.daily?'daily_limit':'minute_limit';
-  const message=reason==='monthly_limit'?'Wykorzystano miesięczny limit 300 wywołań AI.':reason==='daily_limit'?'Wykorzystano dzienny limit 100 wywołań AI.':'Za dużo wywołań AI w krótkim czasie. Spróbuj za minutę.';
+  const message=reason==='monthly_limit'?`Wykorzystano miesięczny limit ${API_LIMITS.monthly} wywołań AI.`:reason==='daily_limit'?`Wykorzystano dzienny limit ${API_LIMITS.daily} wywołań AI.`:'Za dużo wywołań AI w krótkim czasie. Spróbuj za minutę.';
   const error=new PlannerApiError(message,429,reason,'quota');error.usage=usage;throw error;
 }
 async function checkApiAccess(request,env){
