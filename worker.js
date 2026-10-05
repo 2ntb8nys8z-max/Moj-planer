@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.23
+// Private prototype API protection — 2026.10.05.24
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -84,6 +84,23 @@ function openAiFailure(status,text,stage){
   return new PlannerApiError(message,status===429?429:502,credit?'openai_billing_limit':status===429?'openai_rate_limit':'openai_error',stage);
 }
 
+// A complete 24-hour range is a start and end, never a choice inside a window.
+function plannerExplicitTimeRange(text){
+const match=String(text||'').trim().match(/^(?:(?:proszę|prosze)\s+)?(?:(?:podaj|ustaw|zmień|zmien)\s+)?(?:(?:godzinę|godzine|godziny|czas|spotkanie)\s+)?(?:od\s+)?([01]?\d|2[0-3]):([0-5]\d)\s*(?:do|[-–—])\s*([01]?\d|2[0-3]):([0-5]\d)[.!?]*$/i);
+if(!match)return null;
+return {startTime:match[1].padStart(2,'0')+':'+match[2],endTime:match[3].padStart(2,'0')+':'+match[4]};
+}
+function plannerTimeRangeInDialogue(dialogue,text){
+const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text);
+let range=null;
+for(const message of messages){const found=plannerExplicitTimeRange(message);if(found)range={...found,evidence:message};}
+return range;
+}
+function plannerOnlyTimeEdit(dialogue,text){
+const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text);
+const reminders=/^(?:no właśnie podałem ci początek i koniec|podaj początek rozpoczęcia spotkania i godzinę zakończenia spotkania)[.!?]*$/i;
+return messages.every(m=>plannerExplicitTimeRange(m)||reminders.test(m.trim()))?plannerTimeRangeInDialogue(dialogue,text):null;
+}
 function explicitVoiceEventEdit(text){
   const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
   const rules=[
@@ -252,7 +269,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.23",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.24",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -361,6 +378,13 @@ export default {
 
       if(weatherContext)return json({success:true,usage:apiUsage,transcription:spokenText,weatherAction:await interpretWeatherReply(spokenText,dialogue,weatherContext,env)});
 
+      const explicitTimeEdit=currentItem?.type==='event'?plannerOnlyTimeEdit(dialogue,spokenText):null;
+      if(explicitTimeEdit){
+        const item=normalizeEventVoiceResult(currentItem,{changedFields:['startTime','endTime'],startTime:explicitTimeEdit.startTime,endTime:explicitTimeEdit.endTime},'');
+        const question=plannerItemQuestion({...item,recurrence:null});
+        if(!question)return json({success:true,usage:apiUsage,transcription:spokenText,utterance:spokenText,item});
+      }
+      const confirmedTimeRange=plannerTimeRangeInDialogue(dialogue,spokenText);
       const hourQuestion=plannerAmbiguousHourQuestion(spokenText,currentItem,dialogue);
       if(hourQuestion)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:hourQuestion}});
       // Preserve an unlabelled narrative rather than guessing its destination.
@@ -411,6 +435,10 @@ export default {
 
                 content:
 `Jesteś inteligentnym parserem polskiego planera.
+
+ZAKRES GODZIN: „Podaj godzinę od 23:30 do 23:45” oznacza startTime="23:30", endTime="23:45". To kompletne polecenie ustawienia początku i końca spotkania. Nie pytaj o wybór godziny w tym przedziale. Zachowuj obie godziny przez kolejne odpowiedzi. Przy nowym wydarzeniu pytaj wyłącznie o inne brakujące dane, np. dzień lub tytuł. Przy edycji zmień oba pola czasu, zachowując datę, tytuł, notatkę i lokalizację. Wyjątek: jeśli użytkownik mówi o dostępności („znajdź wolny termin pomiędzy...”), jest to przedział wyszukiwania. Godziny cytowane jako treść notatki nie zmieniają terminu.
+Ostatni samodzielny zakres godzin podany przez użytkownika (zastosuj do terminu, chyba że historia wyraźnie dotyczy notatki albo dostępności):
+${confirmedTimeRange?JSON.stringify(confirmedTimeRange):"brak"}
 
 DOPYTYWANIE — priorytet dla tworzenia oraz edycji wydarzeń i pomysłów/zadań:
 Jeśli brakuje informacji koniecznej do wykonania polecenia albo nie wiadomo, jakie pole zmienić, zwróć WYŁĄCZNIE {"type":"clarification","question":"jedno konkretne krótkie pytanie po polsku"}. Nie zwracaj wtedy propozycji zmiany ani nie wykonuj części polecenia.
