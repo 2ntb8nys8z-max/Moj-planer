@@ -4,7 +4,7 @@ async function plannerGoogleFetch(...args){
   return fetch(...args);
 }
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.05.20";
+const GOOGLE_SYNC_VERSION="2026.10.05.25";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -516,9 +516,9 @@ function googleEventBody(task){
 }
 
 async function updateTaskInGoogle(task){
-  if(!googleAccessToken||!task?.googleEventId||!task?.date||!task?.time)return false;
+  if(!googleAccessToken||!task?.googleEventId||!task?.date)return false;
   try{
-    const response=await plannerGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEventBody(task))});
+    const response=await plannerGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(response.status===404){task.googleEventId=null;task.googleSynced=false;return false;}
     if(!response.ok)throw new Error(await response.text());
@@ -536,9 +536,9 @@ function googleEditPatch(task){
   let patch;
   if(task.time){
     const {endTime,endDate,timeZone}=googleDateTimeRange(task);
-    patch={summary:task.title,start:{dateTime:`${task.date}T${task.time}:00`,timeZone},end:{dateTime:`${endDate}T${endTime}:00`,timeZone}};
+    patch={summary:task.title,start:{date:null,dateTime:`${task.date}T${task.time}:00`,timeZone},end:{date:null,dateTime:`${endDate}T${endTime}:00`,timeZone}};
   }else{
-    patch={summary:task.title,start:{date:task.date},end:{date:googleNextDate(task.date)}};
+    patch={summary:task.title,start:{dateTime:null,timeZone:null,date:task.date},end:{dateTime:null,timeZone:null,date:googleNextDate(task.date)}};
   }
   if(task.source!=='google'){patch.description=plannerDescription(task);patch.location=task.location||'';}
   else{if(task.notes!==undefined)patch.description=task.notes||'';patch.location=task.location||'';}
@@ -593,8 +593,15 @@ async function syncEditedTaskToGoogle(task){
   return true;
 }
 window.syncEditedTaskToGoogle=syncEditedTaskToGoogle;
+async function googleSyncFailure(response){
+  let reason='';
+  try{const body=await response.json();reason=String(body.error?.message||'').slice(0,250);}catch(_){}
+  return `Google nie zapisało zmiany (HTTP ${response.status}). ${reason||'Spróbuj ponownie.'}`;
+}
 async function pushEditedTaskToGoogle(task){
   if(!googleAccessToken||!task?.googleEventId||!task?.date||task.googleConflict)return false;
+  delete task.googleSyncError;
+  const fail=message=>{task.googleSyncError=message;saveTasks();return false;};
   try{
     const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
     const exists=await plannerGoogleFetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
@@ -602,7 +609,7 @@ async function pushEditedTaskToGoogle(task){
     if(exists.status===404||exists.status===410){
       task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;
     }
-    if(!exists.ok){console.error(await exists.text());return false;}
+    if(!exists.ok)return fail(await googleSyncFailure(exists));
     const existing=await exists.json();
     if(existing.status==='cancelled'){
       task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;
@@ -610,16 +617,16 @@ async function pushEditedTaskToGoogle(task){
     const response=await plannerGoogleFetch(url,{method:'PATCH',headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},body:JSON.stringify(googleEditPatch(task))});
     if(response.status===401){googleAccessToken=null;setGoogleStatus(false,'Połączenie wygasło');toast('Połącz ponownie Google Calendar');return false;}
     if(response.status===404||response.status===410){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;}
-    if(!response.ok){console.error(await response.text());return false;}
+    if(!response.ok)return fail(await googleSyncFailure(response));
     const updated=await response.json();
     if(updated.status==='cancelled'){task.googleConflict='deleted';task.googleDirty=true;task.googleSynced=false;saveTasks();renderAll();return false;}
     const p=googleDateParts(updated);
-    if(!p||p.date!==task.date||(task.time?(p.time!==task.time):!!p.time)){console.error('Google returned different event time',updated);return false;}
+    if(!p||p.date!==task.date||(task.time?(p.time!==task.time):!!p.time)){return fail('Google zwróciło inny termin niż wysłany. Zmiana pozostaje w Planerze.');}
     task.googleSynced=true;task.googleDirty=false;
     task.googleDeleteBaseline=googleComparableDeleteContent(updated);
     task.googleData={...(task.googleData||{}),etag:updated.etag||task.googleData?.etag||'',updated:updated.updated||task.googleData?.updated||'',location:updated.location??task.location??'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
     saveTasks();renderAll();return true;
-  }catch(err){console.error('Google event update failed',err);return false;}
+  }catch(err){console.error('Google event update failed',err);return fail('Nie udało się połączyć z Google lub odczytać odpowiedzi. Spróbuj ponownie.');}
 }
 
 async function deleteTaskFromGoogle(task){
@@ -695,6 +702,9 @@ function renderGoogleSyncResult(pushed){
   const summary=document.createElement('div');
   summary.textContent=`Ostatnia synchronizacja: wysłano ${pushed.created||0}, zaktualizowano ${pushed.updated||0}. Konflikty: ${conflicts.length+deletions.length}.`+(pendingDeletes+pendingStops?` Oczekujące usunięcia lub zmiany cykliczności: ${pendingDeletes+pendingStops}.`:'');
   box.appendChild(summary);
+  for(const task of tasks.filter(t=>t.googleDirty&&t.googleSyncError&&!t.googleConflict)){
+    const row=document.createElement('div');row.style.marginTop='8px';row.textContent=`${task.title||'Bez tytułu'} • ${task.date||''}: ${task.googleSyncError}`;box.appendChild(row);
+  }
   for(const task of conflicts){
     const row=document.createElement('div');row.style.marginTop='8px';
     const description=document.createElement('div');
@@ -759,6 +769,9 @@ async function syncGoogleCalendar(){
     if(conflicts||currentDeleteConflicts){
       setGoogleStatus(true,`Połączony • konflikt synchronizacji`);
       toast(`⚠️ Konflikt synchronizacji • wymaga decyzji`);
+    }else if(tasks.some(t=>t.googleDirty&&t.googleSyncError&&!t.googleConflict)){
+      setGoogleStatus(true,'Połączony • błąd zapisu zmian');
+      toast('Nie wszystkie zmiany zapisano w Google. Szczegóły pod przyciskiem synchronizacji.');
     }else if(waiting){
       setGoogleStatus(true,`Połączony • ${waiting} oczekuje`);
       toast(`⏳ Oczekuje na synchronizację • ${waiting} wydarzeń`);
