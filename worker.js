@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.04.14
+// Private prototype API protection — 2026.10.05.17
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -126,6 +126,48 @@ function normalizeEventVoiceResult(current,parsed,transcription){
   result.applyToSeries=parsed.applyToSeries===true;
   return result;
 }
+function plannerItemQuestion(x){
+  const obj=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  const date=v=>{if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split('-').map(Number),a=new Date(y,m-1,d);return a.getFullYear()===y&&a.getMonth()===m-1&&a.getDate()===d};
+  const time=v=>v==null||v===''||(typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v));
+  if(!obj(x))return 'Co chcesz zapisać lub zmienić?';
+  if(x.type==='idea'){
+    if(x.action!=null&&!['append','replace'].includes(x.action))return 'Czy dopisać treść, czy zastąpić dotychczasową?';
+    if(x.action==='append')return typeof x.addition==='string'&&x.addition.trim()?null:'Co dopisać do zadania lub pomysłu?';
+    return typeof x.text==='string'&&x.text.trim()?null:'Jaką treść zapisać w zadaniu lub pomyśle?';
+  }
+  if(x.type!=='event')return 'Czy chodzi o wydarzenie w kalendarzu, czy zadanie lub pomysł?';
+  if(typeof x.title!=='string'||!x.title.trim())return 'Jak nazwać wydarzenie?';
+  if(!date(x.date))return 'Podaj poprawną datę wydarzenia, na przykład 12 października 2026.';
+  if(!time(x.startTime)||!time(x.endTime))return 'Podaj poprawne godziny wydarzenia w formacie 24-godzinnym.';
+  if(x.endTime&&!x.startTime)return 'O której godzinie zaczyna się wydarzenie?';
+  for(const field of ['notes','location'])if(x[field]!=null&&typeof x[field]!=='string')return field==='notes'?'Jaką treść notatki zapisać?':'Jaką lokalizację wpisać?';
+  if(x.reminder!=null&&(!obj(x.reminder)||typeof x.reminder.minutesBefore!=='number'||!Number.isInteger(x.reminder.minutesBefore)||x.reminder.minutesBefore<0||x.reminder.minutesBefore>10080))return 'Ile minut przed wydarzeniem ustawić przypomnienie (od 0 do 10080)?';
+  if(x.changedFields!=null&&(!Array.isArray(x.changedFields)||x.changedFields.some(v=>!['title','date','startTime','endTime','notes','location','reminder','recurrence'].includes(v))))return 'Co dokładnie zmienić w wydarzeniu?';
+  if(x.notesAction!=null&&!['append','replace','clear'].includes(x.notesAction))return 'Czy dopisać notatkę, zastąpić ją, czy usunąć?';
+  if(x.notesAction==='append'&&(typeof x.notesAddition!=='string'||!x.notesAddition.trim()))return 'Co dopisać do notatki?';
+  if(x.applyToSeries!=null&&typeof x.applyToSeries!=='boolean')return 'Czy zmiana dotyczy jednego wydarzenia, czy całej serii?';
+  if(x.recurrenceAction!=null&&!['create','remove'].includes(x.recurrenceAction))return 'Czy włączyć, czy wyłączyć cykliczność?';
+  if(x.recurrence!=null){const r=x.recurrence;
+    if(!obj(r)||!['daily','weekly','monthly'].includes(r.frequency))return 'Jak często wydarzenie ma się powtarzać: codziennie, co tydzień czy co miesiąc?';
+    if(r.interval!=null&&(!Number.isInteger(r.interval)||r.interval<1||r.interval>365))return 'Co ile dni, tygodni lub miesięcy powtarzać wydarzenie?';
+    if(r.count!=null&&(!Number.isInteger(r.count)||r.count<1||r.count>500))return 'Ile wystąpień ma mieć seria (od 1 do 500)?';
+    if(r.until!=null&&(!date(r.until)||r.until<x.date))return 'Do jakiej daty powtarzać wydarzenie? Koniec serii nie może być przed jej początkiem.';
+    if(r.count!=null&&r.until!=null)return 'Czy zakończyć serię po określonej liczbie wystąpień, czy w konkretnej dacie?';
+  }
+  return null;
+}
+
+function plannerAmbiguousHourQuestion(text,current,dialogue=[]){
+  const combined=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text).join('\n');
+  if(/notatk|dopisz.*treść|dopisz.*tresc/i.test(combined))return null;
+  if(current?.type==='idea'&&!/kalendarz|wydarzeni|spotkani|termin/i.test(combined))return null;
+  if(!/\bo\s+(?:pierwszej|1)(?!\d|:)/i.test(combined))return null;
+  if(/\d{1,2}:\d{2}|po południu|po poludniu|rano|w nocy|wieczor|nad ranem|\b13\b/i.test(text))return null;
+  if(/po południu|po poludniu|rano|w nocy|wieczor|nad ranem/i.test(combined))return null;
+  return 'Czy chodzi o 01:00 w nocy, czy 13:00 po południu?';
+}
+
 export default {
   async fetch(request, env) {
 
@@ -150,7 +192,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.04.14",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.17",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -252,6 +294,13 @@ export default {
       }
 
 
+      const hourQuestion=plannerAmbiguousHourQuestion(spokenText,currentItem,dialogue);
+      if(hourQuestion)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:hourQuestion}});
+      // Preserve an unlabelled narrative rather than guessing its destination.
+      if(currentItem?.type==='event'&&!dialogue.length&&!/(zmień|zmien|ustaw|popraw|przenieś|przenies|dodaj|dopisz|usuń|usun|wyłącz|wylacz|powtarzaj|nazwij|przypomnij|jutro|dzisiaj|pojutrze)|notatk|tytuł|tytul|nazw|godzin|lokalizac|adres|cyklicz|\d{1,2}:\d{2}/i.test(spokenText)){
+        return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki tego wydarzenia, czy chcesz zmienić inne pole?'}});
+      }
+
       /* ===== 3. DZISIEJSZA DATA ===== */
 
       const now = new Date();
@@ -311,7 +360,7 @@ Jeżeli poniżej przekazano AKTUALNY WPIS, wypowiedź użytkownika jest poprawk�
 W takim przypadku zmień WYŁĄCZNIE informacje wskazane przez użytkownika, zachowaj wszystkie pozostałe pola i zwróć kompletny poprawiony JSON.
 Nie twórz nowego wydarzenia i nie usuwaj informacji, których użytkownik nie koryguje.
 PRIORYTET PRZY EDYCJI WYDARZENIA: wynik ma type event, także gdy poprawka nie zawiera daty ani godziny. Zasady tworzenia krótkiego tytułu i domyślnych pustych pól dotyczą wyłącznie NOWYCH wpisów.
-Zwróć changedFields: tablicę nazw WYŁĄCZNIE pól, o których zmianę poprosił użytkownik: title, date, startTime, endTime, notes, location, reminder, recurrence. Nie dodawaj innych pól. Jeśli nie rozpoznajesz zmiany, zwróć changedFields: [].
+Zwróć changedFields: tablicę nazw WYŁĄCZNIE pól, o których zmianę poprosił użytkownik: title, date, startTime, endTime, notes, location, reminder, recurrence. Nie dodawaj innych pól. Jeśli nie rozpoznajesz zamiaru zmiany, zwróć type clarification i konkretne pytanie. Swobodnego opisu przy otwartym wydarzeniu nie zapisuj automatycznie: zapytaj „Czy dopisać tę wypowiedź do notatki tego wydarzenia?”. Po odpowiedzi tak dopisz całą pierwotną wypowiedź, a nie samo „tak”.
 Polecenia „nazwij to”, „zmień nazwę”, „zmień tytuł”, „ustaw nagłówek”, „tytuł ma być” to zmiana title. Zachowaj CAŁĄ podaną nazwę, nawet długą. Nie skracaj jej, nie przeredagowuj i nie przenoś fragmentów do notes. Zachowaj poprzednią notatkę.
 Polecenia „dodaj notatkę”, „dopisz do notatki”, „dodaj w notatce” oznaczają notesAction: append. W notesAddition podaj WYŁĄCZNIE nową treść; nie dodawaj słów komendy ani instrukcji zakresu, np. „dla całej serii”. Notes ma być pełną notatką po dopisaniu, z zachowaniem wcześniejszej treści.
 „Zmień notatkę na”, „zastąp notatkę”, „ustaw treść notatki” oznaczają notesAction: replace i notes z nową pełną treścią. „Usuń notatkę” oznacza notesAction: clear i notes: "".
@@ -466,6 +515,8 @@ Przykłady:
       /* ===== 5. ODPOWIEDŹ ===== */
 
       if (parsed.type === "idea" && currentItem?.type !== "event") {
+        const question=plannerItemQuestion(parsed);
+        if(question)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question}});
 
         return json({
           success: true,
@@ -482,7 +533,12 @@ Przykłady:
       }
 
 
-      const eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;
+      let eventResult;
+      try{eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;}
+      catch(_){return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Co zrobić z tą wypowiedzią: dopisać do notatki czy zmienić tytuł, lokalizację lub termin?'}});}
+      const question=plannerItemQuestion(currentItem?.type==='event'&&eventResult.changedFields&&!eventResult.changedFields.includes('recurrence')?{...eventResult,recurrence:null}:eventResult);
+      if(question)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question}});
+      if(currentItem?.type==='event'&&!eventResult.changedFields?.length)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki wydarzenia? Jeśli nie, wskaż, co zmienić.'}});
       return json({
         success: true,
         usage: apiUsage,
@@ -513,3 +569,4 @@ Przykłady:
     }
   }
 };
+
