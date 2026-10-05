@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.05.27 · Synchronizacja: ładowanie…</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.05.28 · Synchronizacja: ładowanie…</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabIdeas">💡 Pomysły</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">💡 Pomysły — zobacz do zrobienia i zrealizowane</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz wydarzenie lub pomysł</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -97,7 +97,7 @@ const PlannerData=(()=>{
     const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.05.27',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.05.28',createdAt:new Date().toISOString(),data:structuredClone(data)}}
   function exportCurrent(){
     if(locked)download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
     else download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup());
@@ -313,9 +313,10 @@ async function requestVoiceDialogue(session,body){
   session.busy=true;
   try{
     const typed=typeof body==='string',headers={'Content-Type':typed?'application/json':body.type};
-    if(!typed){if(session.currentItem)headers['X-Current-Item']=encodeURIComponent(JSON.stringify(session.currentItem));if(session.history.length)headers['X-Voice-Dialogue']=encodeURIComponent(JSON.stringify(session.history));if(session.weatherContext)headers['X-Weather-Context']=encodeURIComponent(JSON.stringify(session.weatherContext))}
-    const result=await plannerApiRequest('',{method:'POST',headers,body:typed?JSON.stringify({text:body,currentItem:session.currentItem,dialogue:session.history,...(session.weatherContext?{weatherContext:session.weatherContext}:{})}):body});
+    if(!typed){if(session.dialogueState)headers['X-Dialogue-State']=encodeURIComponent(JSON.stringify(session.dialogueState));if(session.currentItem)headers['X-Current-Item']=encodeURIComponent(JSON.stringify(session.currentItem));if(session.history.length)headers['X-Voice-Dialogue']=encodeURIComponent(JSON.stringify(session.history));if(session.weatherContext)headers['X-Weather-Context']=encodeURIComponent(JSON.stringify(session.weatherContext))}
+    const result=await plannerApiRequest('',{method:'POST',headers,body:typed?JSON.stringify({text:body,currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})}):body});
     if(!voiceDialogueValid(session))return null;
+    if(result.dialogueState)session.dialogueState=result.dialogueState;
     const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
     if(result.retryTranscription){
       const question=result.clarification?.question||result.weatherAction?.question||'Nie dosłyszałem. Możesz powtórzyć?';
@@ -325,7 +326,7 @@ async function requestVoiceDialogue(session,body){
     if(session.weatherContext){
       if(!result.weatherAction)throw Error('Miejscowości wymagają nowego Workera w wersji 23.');
       session.history.push({role:'user',content:spoken});renderVoiceConversation(session);
-      if(await session.onWeatherAction(result.weatherAction)){clearVoiceDialogue(session.channel,true);$(voiceDialogueHints[session.channel]).textContent='Miejscowość dla pogody została ustalona';}
+      if(await session.onWeatherAction(result.weatherAction)){const pending=session.pendingLocationResult;clearVoiceDialogue(session.channel,true);if(pending)await applyVoiceDialogueResult(session,pending);else $(voiceDialogueHints[session.channel]).textContent='Zakończono ustalanie lokalizacji';}
       return null;
     }
     const question=(result.clarification?plannerClarificationQuestion(result.clarification.question,spoken,session.currentItem,session.history):plannerVoiceLocationQuestion(result.item,session.currentItem)||plannerItemQuestion(session.currentItem?.type==='event'&&result.item?.changedFields&&!result.item.changedFields.includes('recurrence')?{...result.item,recurrence:null}:result.item));
@@ -333,8 +334,72 @@ async function requestVoiceDialogue(session,body){
     result.dialogueResolved=session.history.length>0;
     session.history.push({role:'user',content:spoken});
     renderVoiceConversation(session);
+    if(await prepareVoiceLocation(session,result))return null;
+    if(!voiceDialogueValid(session))return null;
     clearVoiceDialogue(session.channel,true);return result;
   }finally{session.busy=false}
+}
+
+// Resolve a new spoken location before presenting the calendar write for approval.
+async function prepareVoiceLocation(session,result){
+  const item=result.item,location=String(item?.location||'').trim();
+  if(item?.type!=='event'||!location||session.currentItem?.type==='event'&&(!item.changedFields?.includes('location')||location===session.currentItem.location))return false;
+  let hints=plannerWeatherHints(location),candidates=[];
+  const valid=()=>voiceDialogueValid(session);
+  function finish(place,raw=false){
+    if(!valid())return;
+    item.locationUnresolved=raw?location:null;
+    if(place){
+      // Preserve the user's street/number; append administrative detail for disambiguation.
+      const detail=[place.name,place.admin1,place.country].filter(Boolean).filter(v=>!plannerLocationKey(location).includes(plannerLocationKey(v)));
+      item.location=plannerLocationKey(location)===plannerLocationKey(hints.city)?[place.name,place.admin1,place.country].filter(Boolean).join(', '):[location,...detail].join(', ');
+      item.weatherPlace={...place,location:item.location};
+    }else delete item.weatherPlace;
+    result.dialogueResolved=true;
+    delete session.weatherContext;delete session.onWeatherAction;
+  }
+  function ask(question){
+    session.weatherContext={location,hints,candidates:candidates.map(p=>({id:String(p.id),label:plannerWeatherLabel(p)})),proposedId:candidates.length===1?String(candidates[0].id):null};
+    session.pendingLocationResult=result;
+    showVoiceClarification(session,question+' Możesz też powiedzieć „zapisz tylko '+location+'”.');
+  }
+  async function search(){
+    if(!valid())return false;
+    try{
+      const terms=hints.postcode?[hints.postcode]:[hints.city];let places=[];
+      for(const term of terms.filter(Boolean)){
+        const query=new URLSearchParams({name:term,count:'10',language:'pl',format:'json'});if(hints.countryCode)query.set('countryCode',hints.countryCode);
+        const data=await plannerWeatherJson('https://geocoding-api.open-meteo.com/v1/search?'+query);
+        if(!valid())return false;
+        places=(data.results||[]).filter(p=>p.id!=null&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
+      }
+      candidates=plannerWeatherFilterPlaces(places,hints);
+      if(hints.city&&hints.postcode)candidates=candidates.filter(p=>plannerLocationKey(p.name)===plannerLocationKey(hints.city));
+      if(candidates.length===1&&!hints.nearby&&plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city)){finish(candidates[0]);return true;}
+      if(candidates.length===1)ask('Czy chodzi o '+plannerWeatherLabel(candidates[0])+'?');
+      else ask('Którą miejscowość masz na myśli? Podaj kraj, region, kod pocztowy lub pobliskie większe miasto.');
+    }catch(_){if(valid())ask('Nie udało się sprawdzić miejscowości. Podaj więcej szczegółów albo zapisz samą nazwę.');}
+    return false;
+  }
+  session.onWeatherAction=async action=>{
+    if(!valid())return false;
+    if(action.action==='raw'){finish(null,true);return true;}
+    if(action.action==='choose'){
+      const place=candidates.find(p=>String(p.id)===action.id);
+      if(place){finish(place);return true;}
+    }
+    if(action.action==='query'){
+      for(const k of ['city','countryCode','region','district','postcode','nearby'])if(typeof action[k]==='string')hints[k]=action[k];
+      return await search();
+    }
+    ask(action.question||'Podaj więcej szczegółów lokalizacji.');return false;
+  };
+  if(await search()){delete session.pendingLocationResult;return false;}
+  return true;
+}
+function applyVoicePlaceMetadata(task,item){
+  if(item.weatherPlace?.location===task.location){task.weatherPlace=item.weatherPlace;delete task.locationUnresolved;}
+  if(item.locationUnresolved===task.location){task.locationUnresolved=task.location;delete task.weatherPlace;}
 }
 async function applyVoiceDialogueResult(session,result){
   if(session.channel==='main')return processMainVoiceResult(result,!!session.currentItem);
@@ -350,7 +415,7 @@ function askEventVoiceClarification(result,id,question='Czy dopisać tę wypowie
   session.history.push({role:'user',content:result.transcription||'Zmień ten wpis'});
   showVoiceClarification(session,question);
 }
-async function processEventVoiceResult(result,voiceTaskId){const targetTask=tasks.find(t=>t.id===voiceTaskId);if(!targetTask){$("eventVoiceHint").textContent="Wydarzenie zostało usunięte";return}let x;try{x=resolveVoiceEventEdit(targetTask,result.item,result.dialogueResolved?"":result.transcription)}catch(_){askEventVoiceClarification(result,voiceTaskId);return}const question=plannerItemQuestion({...x,recurrence:x.changedFields&&!x.changedFields.includes("recurrence")?null:x.recurrence});if(question){askEventVoiceClarification(result,voiceTaskId,question);return}
+async function processEventVoiceResult(result,voiceTaskId){const targetTask=tasks.find(t=>t.id===voiceTaskId);if(!targetTask){$("eventVoiceHint").textContent="Wydarzenie zostało usunięte";return}let x;try{x=resolveVoiceEventEdit(targetTask,result.item,"")}catch(_){askEventVoiceClarification(result,voiceTaskId);return}const question=plannerItemQuestion({...x,recurrence:x.changedFields&&!x.changedFields.includes("recurrence")?null:x.recurrence});if(question){askEventVoiceClarification(result,voiceTaskId,question);return}
 if(x.recurrenceAction==="remove"&&targetTask.seriesId){
   if(!confirm("Wyłączyć cykliczność?\n\nTo spotkanie pozostanie w kalendarzu. Wszystkie późniejsze wystąpienia tej serii zostaną usunięte.")){ $("eventVoiceHint").textContent="Anulowano zmianę"; return }
   window.stopPlannerSeries(targetTask);
@@ -371,7 +436,7 @@ if(x.recurrenceAction==="create"&&!targetTask.seriesId&&x.recurrence){
 const oldStart=targetTask.time||"",oldEnd=targetTask.endTime||"",oldDuration=minutesBetween(oldStart,oldEnd);
 const nextTitle=x.title||targetTask.title,nextDate=x.date||targetTask.date,nextStart=x.startTime??targetTask.time;
 let nextEnd=x.endTime??targetTask.endTime;
-if(nextStart&&oldStart&&nextStart!==oldStart&&oldDuration>0&&(x.endTime==null||x.endTime===""||x.endTime===oldEnd))nextEnd=addMinutes(nextStart,oldDuration);
+if(!x.changedFields?.includes('endTime')&&nextStart&&oldStart&&nextStart!==oldStart&&oldDuration>0&&(x.endTime==null||x.endTime===""||x.endTime===oldEnd))nextEnd=addMinutes(nextStart,oldDuration);
 const nextNotes=x.notes??targetTask.notes,nextLocation=x.location??targetTask.location??targetTask.googleData?.location??"",nextReminder=x.reminder===undefined?targetTask.reminder??null:x.reminder;
 const sameReminder=JSON.stringify(nextReminder??null)===JSON.stringify(targetTask.reminder??null);
 const noActualChange=nextTitle===targetTask.title&&nextDate===targetTask.date&&nextStart===(targetTask.time||"")&&nextEnd===(targetTask.endTime||"")&&nextNotes===(targetTask.notes||"")&&nextLocation===plannerLocation(targetTask)&&sameReminder;
@@ -389,6 +454,7 @@ if(scope==="1"){applyVoiceEventFields(targetTask,after,fields);if(fields.include
   const sid=targetTask.seriesId,dayShift=fields.includes('date')?Math.round((new Date(nextDate+"T12:00:00")-new Date(originalDate+"T12:00:00"))/86400000):0;
   tasks.filter(t=>t.seriesId===sid&&(scope==="3"||seriesOccurrenceOrder(t)>=originalOrder)).forEach(t=>{applyVoiceEventFields(t,after,fields);if(dayShift){const td=new Date(t.date+"T12:00:00");td.setDate(td.getDate()+dayShift);t.date=iso(td)}})
 }
+if(x.changedFields?.includes('location')){for(const t of tasks.filter(t=>t.id===targetTask.id||scope!=='1'&&t.seriesId===targetTask.seriesId&&t.location===nextLocation))applyVoicePlaceMetadata(t,x);}
 selected=new Date(nextDate+"T12:00:00");monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=nextDate;saveTasks();renderAll();if(scope==="1"&&window.syncEditedTaskToGoogle)await window.syncEditedTaskToGoogle(targetTask);toast(scope==="1"?"✓ Zmieniono tylko to wydarzenie":scope==="2"?"✓ Zmieniono to i wszystkie następne • oczekuje na synchronizację":"✓ Zmieniono całą serię • oczekuje na synchronizację");openEventActions(targetTask)}
 
 // Warnings are local and run before any mutation or outbound Google request.
@@ -460,7 +526,7 @@ const plannerWeatherCache=new Map();let plannerWeatherSequence=0,plannerWeatherA
 function plannerWeatherLabel(p){return [...new Set([p.name,p.admin1,p.admin2,p.country].filter(Boolean))].join(', ')}
 async function plannerWeatherJson(url,signal){const cached=plannerWeatherCache.get(url);if(cached&&Date.now()-cached.at<300000)return cached.data;const response=await fetch(url,{signal});if(!response.ok)throw Error('Pogoda jest teraz niedostępna.');const data=await response.json();plannerWeatherCache.set(url,{at:Date.now(),data});return data}
 function plannerWeatherRows(hourly,task){
-  const wanted=[-1,0,1].map(offset=>{const d=new Date(task.date+'T'+task.time+':00');d.setHours(d.getHours()+offset);return {label:offset===-1?'Godzinę przed':offset===0?'Początek':'Godzinę po początku',key:iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':00'}});
+  const wanted=[-1,0,1].map(offset=>{const d=new Date(task.date+'T'+(task.time||'12:00')+':00');d.setHours(d.getHours()+offset);return {label:!task.time?(offset===0?'Południe':offset<0?'Przed południem':'Po południu'):(offset===-1?'Godzinę przed':offset===0?'Początek':'Godzinę po początku'),key:iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':00'}});
   return wanted.map(w=>{const i=hourly.time.indexOf(w.key);return {...w,index:i,temperature:i>=0?hourly.temperature_2m?.[i]:null,rain:i>=0?hourly.precipitation_probability?.[i]:null,wind:i>=0?hourly.wind_speed_10m?.[i]:null,code:i>=0?hourly.weather_code?.[i]:null}});
 }
 function plannerWeatherSymbol(code){
@@ -507,7 +573,7 @@ async function showPlannerWeather(task){
   const body=document.createElement('div');body.setAttribute('role','status');panel.appendChild(body);
   const current=()=>sequence===plannerWeatherSequence&&activeTask?.id===task.id&&tasks.includes(task)&&plannerLocation(task)===location&&!signal.aborted;
   const say=text=>{if(current())body.textContent=text};
-  if(!task.time){say('Prognoza godzinowa wymaga godziny rozpoczęcia wydarzenia.');return}
+  if(task.locationUnresolved===location){say('Zapisano samą nazwę miejsca. Pogoda wymaga doprecyzowania lokalizacji.');return}
   const days=(new Date(task.date+'T12:00:00')-today())/86400000;
   if(days<0||days>15){say(days<0?'Prognoza dla minionego wydarzenia jest niedostępna.':'Prognoza dla tego terminu jest jeszcze niedostępna.');return}
   let session=null,candidates=[],hints=plannerWeatherHints(location);
@@ -519,6 +585,7 @@ async function showPlannerWeather(task){
       session.history.push({role:'user',content:'Lokalizacja wydarzenia: '+location});
       session.onWeatherAction=async action=>{
         if(!current()||!voiceDialogueValid(session))return false;
+        if(action.action==='raw'){task.locationUnresolved=location;delete task.weatherPlace;saveTasks();say('Zapisano samą nazwę miejsca.');return true;}
         if(action.action==='choose'){
           const place=candidates.find(p=>String(p.id)===action.id);
           if(!place){ask(WEATHER_TEXT.details);return false}
@@ -542,7 +609,7 @@ async function showPlannerWeather(task){
       const data=await plannerWeatherJson('https://api.open-meteo.com/v1/forecast?'+query,signal);if(!current())return;
       if(!Array.isArray(data.hourly?.time))throw Error('Brak prognozy godzinowej.');
       const rows=plannerWeatherRows(data.hourly,task);if(rows.every(r=>r.index<0)){say('Prognoza dla tego terminu jest jeszcze niedostępna.');return}
-      body.textContent='';const info=document.createElement('div');info.className='weather-place';info.textContent=plannerWeatherLabel(place);body.appendChild(info);
+      body.textContent='';const info=document.createElement('div');info.className='weather-place';info.textContent=plannerWeatherLabel(place)+(!task.time?' · Prognoza w okolicach południa':'');body.appendChild(info);
       const strip=document.createElement('div');strip.className='weather-strip';body.appendChild(strip);
       for(const r of rows){const cell=document.createElement('div');cell.className='weather-period';const label=document.createElement('div');label.className='weather-period-label';label.textContent=r.label+' · '+r.key.slice(11);cell.appendChild(label);
         const symbol=plannerWeatherSymbol(r.index<0?null:r.code);const icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.textContent=symbol.icon;cell.appendChild(icon);
@@ -591,7 +658,7 @@ function cancelVoiceRecording(){cancelPlannerRecording('main')}
 $("voice").onclick=()=>startVoiceRecording(false);$("recordCancel").onclick=cancelVoiceRecording;$("correctVoice").onclick=()=>{if(pendingVoiceItem)startVoiceRecording(true)};
 function formatReminder(reminder){if(!reminder)return "";const m=Number(reminder.minutesBefore??reminder);if(!Number.isFinite(m))return "Przypomnienie";if(m===0)return "o czasie wydarzenia";if(m===60)return "1 godz. wcześniej";if(m===120)return "2 godz. wcześniej";if(m%60===0)return `${m/60} godz. wcześniej`;return `${m} min wcześniej`}
 function showVoicePreview(item){$("aiPreview").classList.remove("hidden");if(item.type==="idea"){$("previewType").textContent="💡 POMYSŁ";$("previewTitle").textContent=item.text;$("previewInfo").textContent="Zostanie zapisany w zakładce Pomysły."}else{$("previewType").textContent="📅 WYDARZENIE";$("previewTitle").textContent=item.title;let info=item.date||"";if(item.startTime)info+=" • "+item.startTime;if(item.endTime)info+="–"+item.endTime;if(item.location)info+=" • 📍 "+item.location;if(item.notes)info+=" • 📝 "+item.notes;if(item.reminder)info+=" • 🔔 "+formatReminder(item.reminder);if(item.recurrence)info+=" • 🔁 "+formatRecurrence(item.recurrence);$("previewInfo").textContent=info}}
-$("confirmVoice").onclick=async()=>{if(voiceDialogues.main||!pendingVoiceItem)return;if(pendingVoiceItem.type==="idea"){addIdea(pendingVoiceItem.text);showView("ideas");toast("💡 Pomysł zapisany")}else{if(!pendingVoiceItem.date){toast("Brak daty wydarzenia");return}const candidate=pendingVoiceItem;if(!await approvePlannerSchedule(plannerSeriesCandidates(candidate)))return;if(pendingVoiceItem!==candidate)return;const made=pendingVoiceItem.recurrence?addRecurringTasks(pendingVoiceItem):(addTask(pendingVoiceItem.title,pendingVoiceItem.date,pendingVoiceItem.startTime||"",pendingVoiceItem.endTime||"","Osobiste",pendingVoiceItem.notes||"",pendingVoiceItem.reminder||null,null,pendingVoiceItem.location||""),1);if(pendingIdeaConversion){const idea=ideas.find(i=>i.id===pendingIdeaConversion.ideaId);if(idea){idea.done=false;idea.status="calendar";idea.calendarEventTitle=pendingVoiceItem.title;idea.calendarEventDate=pendingVoiceItem.date;saveIdeas();renderAll()}pendingIdeaConversion=null}showView("day");toast(pendingVoiceItem.recurrence?`🔁 Zapisano serię: ${made} wydarzeń`:"📅 Wydarzenie zapisane")}clearVoicePreview()};$("cancelVoice").onclick=()=>{pendingIdeaConversion=null;clearVoicePreview();toast("Usunięto")};function clearVoicePreview(){cancelPlannerRecording("main");clearVoiceDialogue("main");pendingVoiceItem=null;$("aiPreview").classList.add("hidden");$("previewTitle").textContent="";$("previewInfo").textContent="";$("voiceHint").textContent="Naciśnij mikrofon i powiedz wydarzenie lub pomysł"}
+$("confirmVoice").onclick=async()=>{if(voiceDialogues.main||!pendingVoiceItem)return;if(pendingVoiceItem.type==="idea"){addIdea(pendingVoiceItem.text);showView("ideas");toast("💡 Pomysł zapisany")}else{if(!pendingVoiceItem.date){toast("Brak daty wydarzenia");return}const candidate=pendingVoiceItem;if(!await approvePlannerSchedule(plannerSeriesCandidates(candidate)))return;if(pendingVoiceItem!==candidate)return;const priorTaskIds=new Set(tasks.map(t=>t.id));const made=pendingVoiceItem.recurrence?addRecurringTasks(pendingVoiceItem):(addTask(pendingVoiceItem.title,pendingVoiceItem.date,pendingVoiceItem.startTime||"",pendingVoiceItem.endTime||"","Osobiste",pendingVoiceItem.notes||"",pendingVoiceItem.reminder||null,null,pendingVoiceItem.location||""),1);for(const t of tasks)if(!priorTaskIds.has(t.id))applyVoicePlaceMetadata(t,pendingVoiceItem);saveTasks();if(pendingIdeaConversion){const idea=ideas.find(i=>i.id===pendingIdeaConversion.ideaId);if(idea){idea.done=false;idea.status="calendar";idea.calendarEventTitle=pendingVoiceItem.title;idea.calendarEventDate=pendingVoiceItem.date;saveIdeas();renderAll()}pendingIdeaConversion=null}showView("day");toast(pendingVoiceItem.recurrence?`🔁 Zapisano serię: ${made} wydarzeń`:"📅 Wydarzenie zapisane")}clearVoicePreview()};$("cancelVoice").onclick=()=>{pendingIdeaConversion=null;clearVoicePreview();toast("Usunięto")};function clearVoicePreview(){cancelPlannerRecording("main");clearVoiceDialogue("main");pendingVoiceItem=null;$("aiPreview").classList.add("hidden");$("previewTitle").textContent="";$("previewInfo").textContent="";$("voiceHint").textContent="Naciśnij mikrofon i powiedz wydarzenie lub pomysł"}
 function minutesBetween(start,end){if(!start||!end)return 0;const [sh,sm]=start.split(":").map(Number),[eh,em]=end.split(":").map(Number);let n=(eh*60+em)-(sh*60+sm);if(n<0)n+=1440;return n}
 function seriesOccurrenceOrder(task){
   const start=task.googleOriginalStart||task.googleData?.originalStartTime;
@@ -641,9 +708,10 @@ function chooseSeriesScope(task,action,details=""){
 
 function explicitVoiceEventEdit(text){
   const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
+  if(/(?:[.!?]\s+|\b(?:nie|jednak|właściwie|poprawka)\s*[,;:]|\bnie,?\s+(?:nazwij|zmień|zmien|ustaw))/i.test(command))return null;
   const rules=[
     ['title',/^(?:zmień|zmien|ustaw|popraw|zastąp)\s+(?:nazwę|nazwe|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i],
-    ['title',/^nazwij\s+(?:(?:to|te|ten)\s+|(?:wydarzenie|spotkanie)\s+)?(.+)$/i],
+    ['title',/^nazwij\s+(?:(?:to|te|ten)\s+)?(?:(?:wydarzenie|spotkanie)\s+)?(.+)$/i],
     ['title',/^(?:nazwa|tytuł|tytul|nagłówek|naglowek)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s+(?:ma\s+być|ma\s+byc|powinna\s+być|powinien\s+być|to)\s+(.+)$/i],
     ['append',/^(?:dodaj|dopisz)\s+(?:(?:do|w)\s+)?(?:notatkę|notatke|notatki|notatce)(?:\s+(?:do|dla)\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*[:—-]?\s*(.+)$/i],
     ['replace',/^(?:zmień|zmien|ustaw|zastąp)\s+(?:treść\s+)?(?:notatkę|notatke|notatki)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i]
