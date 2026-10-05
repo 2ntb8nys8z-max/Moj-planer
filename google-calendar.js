@@ -4,7 +4,7 @@ async function plannerGoogleFetch(...args){
   return fetch(...args);
 }
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.05.18";
+const GOOGLE_SYNC_VERSION="2026.10.05.19";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
