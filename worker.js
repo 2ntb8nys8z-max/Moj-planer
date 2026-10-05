@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.18
+// Private prototype API protection — 2026.10.05.19
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -158,6 +158,13 @@ function plannerItemQuestion(x){
   return null;
 }
 
+function plannerVoiceLocationQuestion(item,current){
+  if(current?.type==='event'&&!item?.changedFields?.includes('location'))return null;
+  if(typeof item?.location!=='string')return null;
+  if(/(?:^|[\s,;])(?:to jest|przez|pisane|pisz|napisz)\s+(?:liter[ęeya]\s+)?(?:sz|rz|ch|[a-z])(?=[\s,.;!?]|$)/i.test(item.location))return 'Jak dokładnie zapisać lokalizację? Podaj sam adres z poprawioną nazwą ulicy.';
+  return null;
+}
+
 function plannerClarificationQuestion(question,text,current,dialogue=[]){
   const q=String(question||'').trim();
   if(!current && /^(?:jakie (?:chcesz |mam )?(?:dodać |dodac |zapisać |zapisac )?(?:spotkanie|wydarzenie)|jak (?:nazwać|nazwac|zatytułować|zatytulowac))/i.test(q)){
@@ -201,7 +208,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.18",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.19",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -361,6 +368,9 @@ Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu
 Nie zgaduj, czy „o pierwszej”, „na pierwszą”, „na godzinę pierwszą”, „o godzinie pierwszej” lub „na godzinę 1” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
 Przy tworzeniu nowego wydarzenia samo „dodaj spotkanie” albo „dodaj wydarzenie” nie określa tytułu. Zapytaj konkretnie „Jak chcesz zatytułować dzisiejsze wydarzenie?”, jeśli termin to dzisiaj, albo „Jak chcesz zatytułować wydarzenie?” dla innego dnia. Nie pytaj ogólnie „Jakie chcesz dodać spotkanie?”. Jeśli brakuje tytułu i godzina pierwsza jest niejednoznaczna, najpierw doprecyzuj 01:00 lub 13:00, następnie tytuł. Zachowuj ustaloną datę i godzinę w całej rozmowie.
 Jeśli polecenie korekty nazwy nie określa, czy chodzi o tytuł czy lokalizację, zapytaj. Wyraźne polecenie poprawienia pisowni, przeliterowanie lub „napisz po niemiecku” pozwala poprawić wskazane pole. Gdy zapis nie jest jasny, poproś o przeliterowanie. Nie twierdź, że miejscowość nie istnieje; nie masz dostępu do weryfikacji mapowej. Nie sprawdzaj każdego adresu ani nie pytaj przy jasnym poleceniu.
+ADRESY I KOREKTY PISOWNI: nazwa miejscowości, kod pocztowy, nazwa ulicy i numer tworzą jeden adres. Wskazówki „przez SZ”, „to jest SZ”, „przez samo S”, „D na końcu”, literowanie i powtórzenie poprawionej nazwy to instrukcje korekty pisowni, a nie część adresu. Zastosuj je do wskazanej nazwy. Zachowaj jedną finalną nazwę ulicy; nie łącz błędnej i poprawionej wersji i nie kopiuj instrukcji pisowni do location ani notes. Nie dodawaj informacji niepodanych przez użytkownika. Jeżeli korekta nie określa jednoznacznie końcowej nazwy, zapytaj o pełną poprawną nazwę ulicy zamiast zgadywać.
+Przykład: „Warszawa, 03-337, ulica Wyszogrodzka, to jest SZ, Wyszogrodzka 7” → location: „ul. Wyszogrodzka 7, 03-337 Warszawa”. Zachowaj tytuł, datę i godzinę; nie dodawaj powtórzonej nazwy ani „to jest SZ”.
+Przykład: „dodaj adres Warszawa, ulica Wysogrodzka, popraw: Wyszogrodzka przez SZ, numer 7” → location: „ul. Wyszogrodzka 7, Warszawa”.
 Przykład: „dodaj notatkę” bez treści → pytanie „Co dopisać do notatki?”; odpowiedź „Zabrać dokumenty” → zmiana notes z notesAction append, notesAddition „Zabrać dokumenty”, pozostałe pola bez zmian.
 
 Dzisiejsza data w strefie Europe/Berlin:
@@ -546,7 +556,7 @@ Przykłady:
       let eventResult;
       try{eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;}
       catch(_){return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Co zrobić z tą wypowiedzią: dopisać do notatki czy zmienić tytuł, lokalizację lub termin?'}});}
-      const question=plannerItemQuestion(currentItem?.type==='event'&&eventResult.changedFields&&!eventResult.changedFields.includes('recurrence')?{...eventResult,recurrence:null}:eventResult);
+      const question=plannerVoiceLocationQuestion(eventResult,currentItem)||plannerItemQuestion(currentItem?.type==='event'&&eventResult.changedFields&&!eventResult.changedFields.includes('recurrence')?{...eventResult,recurrence:null}:eventResult);
       if(question)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question}});
       if(currentItem?.type==='event'&&!eventResult.changedFields?.length)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki wydarzenia? Jeśli nie, wskaż, co zmienić.'}});
       return json({
