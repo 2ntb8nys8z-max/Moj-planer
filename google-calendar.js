@@ -4,7 +4,7 @@ async function plannerGoogleFetch(...args){
   return fetch(...args);
 }
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.05.25";
+const GOOGLE_SYNC_VERSION="2026.10.05.27";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -488,7 +488,8 @@ function plannerDescription(task){
 }
 
 function googleDateTimeRange(task){
-  const endTime=task.endTime||addMinutes(task.time,60);
+  if(!task.endTime)throw new Error('Uzupełnij godzinę zakończenia wydarzenia w Planerze.');
+  const endTime=task.endTime;
   const timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
   let endDate=task.date;
   if(endTime<=task.time){
@@ -602,6 +603,7 @@ async function pushEditedTaskToGoogle(task){
   if(!googleAccessToken||!task?.googleEventId||!task?.date||task.googleConflict)return false;
   delete task.googleSyncError;
   const fail=message=>{task.googleSyncError=message;saveTasks();return false;};
+  if(task.time&&!task.endTime)return fail('Uzupełnij godzinę zakończenia wydarzenia w Planerze.');
   try{
     const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(task.googleEventId)}`;
     const exists=await plannerGoogleFetch(url,{headers:{Authorization:`Bearer ${googleAccessToken}`}});
@@ -787,6 +789,8 @@ async function syncGoogleCalendar(){
 
 async function sendTaskToGoogle(task,silent=false){
   if(!googleAccessToken||!task?.date||task.source==='google')return false;
+  if(task.time&&!task.endTime){task.googleSyncError='Uzupełnij godzinę zakończenia wydarzenia w Planerze.';saveTasks();if(!silent)toast(task.googleSyncError);return false;}
+  delete task.googleSyncError;
   if(!task.googleCreateId){
     const bytes=new Uint8Array(12);crypto.getRandomValues(bytes);
     task.googleCreateId='mp'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
