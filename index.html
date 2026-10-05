@@ -7,11 +7,12 @@
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f8fc;color:#172033}button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:1100px;margin:auto;padding:20px 16px 100px}h1{margin:0;font-size:30px}h2{margin-top:0}.subtitle{color:#667085;margin-top:4px}.card{background:#fff;border:1px solid #e1e5ec;border-radius:18px;padding:16px;margin-bottom:16px}.tabs{display:flex;gap:6px;background:#eef1f6;padding:5px;border-radius:14px;margin:18px 0 16px}.tabs button{flex:1;border:0;background:transparent;padding:11px 6px;border-radius:10px;color:#246bfd}.tabs button.active{background:#fff;font-weight:700}.row{display:flex;gap:10px;flex-wrap:wrap}.field{flex:1;min-width:145px}label{display:block;font-size:13px;margin:0 0 5px 3px;color:#667085}input,select,textarea{width:100%;border:1px solid #d8dde6;border-radius:12px;padding:12px;background:#fff}.primary,.secondary,.danger{border-radius:12px;padding:13px 18px;font-weight:700}.primary{border:0;background:#172033;color:#fff}.secondary{border:1px solid #d8dde6;background:#fff;color:#172033}.danger{border:0;background:#f2f4f7;color:#b42318}.voice-area{text-align:center;padding:22px 16px}.voice-button{width:118px;height:118px;border-radius:50%;border:0;background:#172033;color:#fff;font-size:48px;box-shadow:0 8px 24px rgba(23,32,51,.18)}.voice-button:not(.recording){font-size:30px}.voice-button.recording{background:#b42318;font-size:30px}.voice-countdown{font-size:26px;font-weight:800;min-height:34px;margin-bottom:8px;color:#b42318}.voice-controls{display:flex;justify-content:center;align-items:center;gap:12px}.voice-cancel{min-width:84px;height:52px;padding:8px;border-radius:12px;border:1px solid #d8dde6;background:#fff;color:#b42318;font-size:16px;font-weight:800}#voiceHint{margin-top:14px;color:#667085;min-height:24px;font-size:15px}.preview{border:2px solid #246bfd;border-radius:16px;padding:16px;margin-top:18px;text-align:left}.preview-type{display:inline-block;font-size:12px;font-weight:800;background:#eef4ff;color:#175cd3;padding:5px 9px;border-radius:20px;margin-bottom:10px}.preview-title{font-size:20px;font-weight:750;margin-bottom:6px}.preview-info{color:#667085;line-height:1.5}.preview-actions,.action-buttons{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}.preview-actions button,.action-buttons button{flex:1;min-width:120px}.daybar{display:flex;justify-content:space-between;align-items:center;gap:8px}.navbutton{border:1px solid #dfe3ea;background:#fff;border-radius:10px;padding:8px 12px}.task{display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;padding:14px 2px;cursor:pointer}.task:last-child{border-bottom:0}.task-time{width:125px;font-weight:750}.task-title{flex:1}.task.done .task-title{text-decoration:line-through;opacity:.5}.delete{border:0;background:transparent;font-size:20px;color:#246bfd}.empty{padding:30px 5px;text-align:center;color:#98a2b3}.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.week-day{border:1px solid #e1e5ec;border-radius:12px;padding:8px;min-height:110px;font-size:12px}.week-event,.week-idea{display:block;padding:5px 4px;margin:2px 0;border-radius:7px;cursor:pointer}.week-event:hover,.week-idea:hover{background:#eef4ff}.week-event.done{text-decoration:line-through;opacity:.5}.week-idea{color:#7a5a00;background:#fff8df}.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.month-day{border:1px solid #e1e5ec;border-radius:10px;min-height:80px;padding:7px;font-size:12px}.today{border:2px solid #172033}.idea{border-bottom:1px solid #eee;padding:15px 2px;display:flex;gap:12px;align-items:flex-start}.idea:last-child{border-bottom:0}.idea-content{flex:1}.idea-text{font-size:17px;line-height:1.4}.idea-date{margin-top:6px;color:#98a2b3;font-size:13px}.idea.done .idea-text{text-decoration:line-through;opacity:.5}.idea-actions{display:flex;gap:6px;flex-wrap:wrap}.idea-actions button{border:1px solid #d8dde6;background:#fff;border-radius:9px;padding:7px 10px}.idea-actions .delete{border:0;background:transparent}.hidden{display:none!important}.timer{display:flex;align-items:center;justify-content:space-between}#clock{font-size:30px;font-weight:700}textarea{min-height:120px;resize:vertical}.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#172033;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:999}.toast.show{opacity:1}.modal-backdrop{position:fixed;inset:0;background:rgba(23,32,51,.35);display:flex;align-items:flex-end;justify-content:center;padding:16px;z-index:1000}.action-card{max-height:90vh;overflow-y:auto;width:min(620px,100%);background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.2)}.action-card h2{margin-bottom:5px}.action-meta{color:#667085;margin-bottom:12px}.reschedule-box,.timer-box,.event-edit-box{margin-top:16px;padding-top:16px;border-top:1px solid #eee}.event-voice{margin:16px 0;text-align:center}.event-mic{width:76px;height:76px;border-radius:50%;border:0;background:#172033;color:#fff;font-size:32px}.event-mic.recording{background:#b42318;font-size:18px}.event-voice-hint{margin-top:8px;color:#667085;font-size:14px;min-height:20px}.close-x{float:right;border:0;background:transparent;font-size:24px}.timer-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.timer-presets button{border:1px solid #d8dde6;background:#fff;border-radius:10px;padding:10px 13px}@media(max-width:700px){.week-grid{grid-template-columns:1fr}.month-day{min-height:55px}.tabs button{font-size:13px}.voice-button{width:105px;height:105px}}
 .voice-conversation{height:calc(3 * 1.5em + 16px);overflow-y:scroll;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;border:1px solid #d8dde6;border-radius:12px;padding:8px 10px;margin-top:10px;text-align:left;font-size:15px;line-height:1.5;background:#f7f8fc}.voice-message{white-space:pre-wrap;overflow-wrap:anywhere}.voice-message strong{color:#172033}.voice-reply{margin-top:8px;text-align:left}.voice-reply .preview-actions{margin-top:8px}
+.weather-place{font-size:14px;margin-bottom:8px;color:#667085}.weather-strip{display:flex;gap:0;border:1px solid #e1e5ec;border-radius:12px;background:#f7f8fc;margin-bottom:8px;overflow-x:auto}.weather-period{flex:1;min-width:135px;padding:10px;text-align:center}.weather-period+.weather-period{border-left:1px solid #e1e5ec}.weather-period-label,.weather-detail{font-size:12px;color:#667085}.weather-icon{display:inline-block;font-size:27px;margin:5px 7px}.weather-temperature{font-size:20px}.weather-detail{line-height:1.5}
 </style>
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.05.22 · Synchronizacja: ładowanie…</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.05.23 · Synchronizacja: ładowanie…</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabIdeas">💡 Pomysły</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">💡 Pomysły — zobacz do zrobienia i zrealizowane</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz wydarzenie lub pomysł</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -96,7 +97,7 @@ const PlannerData=(()=>{
     const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.05.22',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.05.23',createdAt:new Date().toISOString(),data:structuredClone(data)}}
   function exportCurrent(){
     if(locked)download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
     else download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup());
@@ -276,7 +277,7 @@ function voiceDialogueCurrent(channel,id){
   return pendingVoiceItem;
 }
 function voiceDialogueValid(session){
-  if(voiceDialogues[session.channel]!==session)return false;
+  if(voiceDialogues[session.channel]!==session||session.isCurrent&&!session.isCurrent())return false;
   if(session.channel==='event'&&activeTask?.id!==session.id)return false;
   if(session.channel==='idea'&&activeIdea?.id!==session.id)return false;
   return JSON.stringify(voiceDialogueCurrent(session.channel,session.id))===session.snapshot;
@@ -320,13 +321,19 @@ async function requestVoiceDialogue(session,body){
   session.busy=true;
   try{
     const typed=typeof body==='string',headers={'Content-Type':typed?'application/json':body.type};
-    if(!typed){if(session.currentItem)headers['X-Current-Item']=encodeURIComponent(JSON.stringify(session.currentItem));if(session.history.length)headers['X-Voice-Dialogue']=encodeURIComponent(JSON.stringify(session.history))}
-    const result=await plannerApiRequest('',{method:'POST',headers,body:typed?JSON.stringify({text:body,currentItem:session.currentItem,dialogue:session.history}):body});
+    if(!typed){if(session.currentItem)headers['X-Current-Item']=encodeURIComponent(JSON.stringify(session.currentItem));if(session.history.length)headers['X-Voice-Dialogue']=encodeURIComponent(JSON.stringify(session.history));if(session.weatherContext)headers['X-Weather-Context']=encodeURIComponent(JSON.stringify(session.weatherContext))}
+    const result=await plannerApiRequest('',{method:'POST',headers,body:typed?JSON.stringify({text:body,currentItem:session.currentItem,dialogue:session.history,...(session.weatherContext?{weatherContext:session.weatherContext}:{})}):body});
     if(!voiceDialogueValid(session))return null;
-    const spoken=typeof result.transcription==='string'?result.transcription:(typed?body:'');
+    const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
+    if(session.weatherContext){
+      if(!result.weatherAction)throw Error('Miejscowości wymagają nowego Workera w wersji 23.');
+      session.history.push({role:'user',content:spoken});renderVoiceConversation(session);
+      if(await session.onWeatherAction(result.weatherAction)){clearVoiceDialogue(session.channel,true);$(voiceDialogueHints[session.channel]).textContent='Miejscowość dla pogody została ustalona';}
+      return null;
+    }
     const question=plannerAmbiguousHourQuestion(spoken,session.currentItem,session.history)
       ||(result.clarification?plannerClarificationQuestion(result.clarification.question,spoken,session.currentItem,session.history):plannerVoiceLocationQuestion(result.item,session.currentItem)||plannerItemQuestion(session.currentItem?.type==='event'&&result.item?.changedFields&&!result.item.changedFields.includes('recurrence')?{...result.item,recurrence:null}:result.item));
-    if(question){session.history.push({role:'user',content:typeof result.transcription==='string'?result.transcription:(typed?body:'Polecenie głosowe')},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
+    if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
     result.dialogueResolved=session.history.length>0;
     session.history.push({role:'user',content:spoken});
     renderVoiceConversation(session);
@@ -451,13 +458,24 @@ async function approvePlannerSchedule(proposed,excluded=[]){
   if(approved&&snapshot!==JSON.stringify(tasks)){toast('Kalendarz zmienił się podczas potwierdzania. Sprawdź termin ponownie.');return false}return approved;
 }
 
-// Prototype weather: Open-Meteo, with explicit place selection on ambiguous results.
+// Weather uses the same dialogue panel; verified coordinates stay separate from the address.
+const WEATHER_TEXT=Object.freeze({details:'Podaj kraj, region, kod pocztowy albo pobliskie większe miasto, żebym ustalił właściwą miejscowość.',missing:'Nie znalazłem jednoznacznego dopasowania. Podaj kod pocztowy, kraj lub region.',waiting:'Doprecyzuj miejscowość w rozmowie poniżej.'});
 const plannerWeatherCache=new Map();let plannerWeatherSequence=0,plannerWeatherAbort=null;
-function plannerWeatherLabel(p){return [p.name,p.admin1,p.country].filter(Boolean).join(', ')}
-async function plannerWeatherJson(url,signal){const key=url,cached=plannerWeatherCache.get(key);if(cached&&Date.now()-cached.at<300000)return cached.data;const response=await fetch(url,{signal});if(!response.ok)throw Error('Pogoda jest teraz niedostępna.');const data=await response.json();plannerWeatherCache.set(key,{at:Date.now(),data});return data}
+function plannerWeatherLabel(p){return [...new Set([p.name,p.admin1,p.admin2,p.country].filter(Boolean))].join(', ')}
+async function plannerWeatherJson(url,signal){const cached=plannerWeatherCache.get(url);if(cached&&Date.now()-cached.at<300000)return cached.data;const response=await fetch(url,{signal});if(!response.ok)throw Error('Pogoda jest teraz niedostępna.');const data=await response.json();plannerWeatherCache.set(url,{at:Date.now(),data});return data}
 function plannerWeatherRows(hourly,task){
-  const wanted=[-1,0,1].map(offset=>{const d=new Date(task.date+'T'+task.time+':00');d.setHours(d.getHours()+offset);return {label:offset===-1?'Godzinę przed':offset===0?'Początek spotkania':'Godzinę po rozpoczęciu',key:iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':00'}});
-  return wanted.map(w=>{const i=hourly.time.indexOf(w.key);return {...w,index:i,temperature:i>=0?hourly.temperature_2m?.[i]:null,rain:i>=0?hourly.precipitation_probability?.[i]:null,wind:i>=0?hourly.wind_speed_10m?.[i]:null}});
+  const wanted=[-1,0,1].map(offset=>{const d=new Date(task.date+'T'+task.time+':00');d.setHours(d.getHours()+offset);return {label:offset===-1?'Godzinę przed':offset===0?'Początek':'Godzinę po początku',key:iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':00'}});
+  return wanted.map(w=>{const i=hourly.time.indexOf(w.key);return {...w,index:i,temperature:i>=0?hourly.temperature_2m?.[i]:null,rain:i>=0?hourly.precipitation_probability?.[i]:null,wind:i>=0?hourly.wind_speed_10m?.[i]:null,code:i>=0?hourly.weather_code?.[i]:null}});
+}
+function plannerWeatherSymbol(code){
+  if(code==null)return {icon:'❔',label:'Brak danych o zachmurzeniu'};
+  if(code===0)return {icon:'☀️',label:'Bezchmurnie'};
+  if(code<=2)return {icon:'🌤️',label:'Częściowe zachmurzenie'};
+  if(code===3)return {icon:'☁️',label:'Pochmurno'};
+  if(code===45||code===48)return {icon:'🌫️',label:'Mgła'};
+  if(code>=95)return {icon:'⛈️',label:'Burza'};
+  if(code>=71&&code<=77||code===85||code===86)return {icon:'🌨️',label:'Śnieg'};
+  return {icon:'🌧️',label:'Opady'};
 }
 function plannerWeatherCityQueries(location){
   const parts=String(location||'').split(/[,;\n]/).map(p=>p.trim()).filter(Boolean),queries=[];
@@ -466,51 +484,102 @@ function plannerWeatherCityQueries(location){
     part=part.replace(/\b\d{2}-\d{3}\b|\b\d{5}\b/g,'').replace(/\s+/g,' ').trim();
     if(!part||/\d/.test(part)||/^(?:Polska|Poland|Niemcy|Germany|Deutschland)$/i.test(part))continue;
     if(!queries.some(q=>plannerLocationKey(q)===plannerLocationKey(part)))queries.push(part);
-  }
-  return queries;
+  }return queries;
+}
+function plannerWeatherHints(location){
+  const hints={city:'',countryCode:'',region:'',district:'',postcode:'',nearby:''};
+  hints.postcode=String(location).match(/\b\d{2}-\d{3}\b|\b\d{5}\b|\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i)?.[0]||'';
+  const countries=[['PL',/(?:^|[\s,])(?:Polska|Poland)(?:$|[\s,])/i],['DE',/(?:^|[\s,])(?:Niemcy|Germany|Deutschland)(?:$|[\s,])/i],['GB',/(?:Wielka Brytania|United Kingdom|England|Szkocja|Scotland)/i]];
+  hints.countryCode=countries.find(([,pattern])=>pattern.test(location))?.[0]||'';
+  hints.city=plannerWeatherCityQueries(location)[0]||'';
+  return hints;
+}
+function plannerWeatherFilterPlaces(places,hints){
+  const key=v=>plannerLocationKey(v).replace(/\s+/g,' ').trim();
+  return places.filter(p=>(!hints.countryCode||p.country_code===hints.countryCode)
+    &&(!hints.region||key(p.admin1)===key(hints.region))
+    &&(!hints.district||[p.admin2,p.admin3,p.admin4].some(v=>key(v).includes(key(hints.district))))
+    &&(!hints.postcode||(p.postcodes||[]).some(v=>key(v).replace(/\s/g,'')===key(hints.postcode).replace(/\s/g,''))));
 }
 async function showPlannerWeather(task){
   const panel=$('eventWeather');if(!panel)return;
   const sequence=++plannerWeatherSequence;plannerWeatherAbort?.abort();plannerWeatherAbort=new AbortController();const signal=plannerWeatherAbort.signal;
+  if(voiceDialogues.event?.purpose==='weather')clearVoiceDialogue('event');
   panel.textContent='';panel.classList.add('hidden');
   const location=plannerLocation(task);if(!location)return;panel.classList.remove('hidden');
   const heading=document.createElement('h3');heading.textContent='Pogoda w miejscu wydarzenia';panel.appendChild(heading);
   const body=document.createElement('div');body.setAttribute('role','status');panel.appendChild(body);
-  const current=()=>sequence===plannerWeatherSequence&&activeTask?.id===task.id&&plannerLocation(task)===location&&!signal.aborted;
+  const current=()=>sequence===plannerWeatherSequence&&activeTask?.id===task.id&&tasks.includes(task)&&plannerLocation(task)===location&&!signal.aborted;
   const say=text=>{if(current())body.textContent=text};
   if(!task.time){say('Prognoza godzinowa wymaga godziny rozpoczęcia wydarzenia.');return}
   const days=(new Date(task.date+'T12:00:00')-today())/86400000;
   if(days<0||days>15){say(days<0?'Prognoza dla minionego wydarzenia jest niedostępna.':'Prognoza dla tego terminu jest jeszcze niedostępna.');return}
-  function searchBox(message){if(!current())return;body.textContent=message;const input=document.createElement('input');input.placeholder='Miejscowość dla prognozy, np. Dresden';input.setAttribute('aria-label','Miejscowość dla prognozy pogody');body.appendChild(input);const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='Znajdź miejscowość';b.onclick=()=>{if(input.value.trim())search(input.value.trim(),true)};body.appendChild(b)}
+  let session=null,candidates=[],hints=plannerWeatherHints(location);
+  function ask(question){
+    if(!current())return;
+    if(!session||voiceDialogues.event!==session){
+      if(voiceDialogues.event){say('Zakończ obecną rozmowę, następnie otwórz wydarzenie ponownie, żeby ustalić miejscowość dla pogody.');return}
+      session=beginVoiceDialogue('event',task.id,voiceDialogueCurrent('event',task.id));session.purpose='weather';session.isCurrent=current;
+      session.history.push({role:'user',content:'Lokalizacja wydarzenia: '+location});
+      session.onWeatherAction=async action=>{
+        if(!current()||!voiceDialogueValid(session))return false;
+        if(action.action==='choose'){
+          const place=candidates.find(p=>String(p.id)===action.id);
+          if(!place){ask(WEATHER_TEXT.details);return false}
+          await select(place);if(!current())return false;
+          session.history.push({role:'assistant',content:'Pogoda dla: '+plannerWeatherLabel(place)+'.'});renderVoiceConversation(session);return true;
+        }
+        if(action.action==='query'){
+          for(const k of ['city','countryCode','region','district','postcode','nearby'])if(typeof action[k]==='string')hints[k]=action[k];
+          return await search(true);
+        }
+        ask(action.question||WEATHER_TEXT.details);return false;
+      };
+    }
+    session.weatherContext={location,hints,candidates:candidates.slice(0,10).map(p=>({id:String(p.id),label:plannerWeatherLabel(p)})),proposedId:candidates.length?String(candidates[0].id):null};
+    say(WEATHER_TEXT.waiting);showVoiceClarification(session,question);
+  }
   async function forecast(place){
     if(!current())return;say('Pobieram prognozę dla '+plannerWeatherLabel(place)+'…');
-    try{const query=new URLSearchParams({latitude:String(place.latitude),longitude:String(place.longitude),hourly:'temperature_2m,precipitation_probability,wind_speed_10m',timezone:place.timezone||'auto',forecast_days:'16'});
+    try{
+      const query=new URLSearchParams({latitude:String(place.latitude),longitude:String(place.longitude),hourly:'temperature_2m,precipitation_probability,wind_speed_10m,weather_code',timezone:place.timezone||'auto',forecast_days:'16'});
       const data=await plannerWeatherJson('https://api.open-meteo.com/v1/forecast?'+query,signal);if(!current())return;
       if(!Array.isArray(data.hourly?.time))throw Error('Brak prognozy godzinowej.');
-      body.textContent='';const info=document.createElement('p');info.textContent=plannerWeatherLabel(place)+'. Godziny lokalne miejsca: '+(data.timezone||place.timezone||'')+'. Prognoza godzinowa, przybliżona do pełnej godziny.';body.appendChild(info);
-      const rows=plannerWeatherRows(data.hourly,task);
-      if(rows.every(r=>r.index<0)){say('Prognoza dla tego terminu jest jeszcze niedostępna.');return}
-      rows.forEach(r=>{const p=document.createElement('p');p.textContent=r.label+' ('+r.key.replace('T',' ')+'): '+(r.index<0?'prognoza niedostępna':(r.temperature==null?'—':Math.round(r.temperature)+'°C')+', szansa opadów '+(r.rain==null?'—':r.rain+'%')+', wiatr '+(r.wind==null?'—':Math.round(r.wind)+' km/h'));body.appendChild(p)});
-      const source=document.createElement('a');source.href='https://open-meteo.com/';source.textContent='Prognoza: Open-Meteo';source.target='_blank';source.rel='noopener noreferrer';body.appendChild(source);
-      const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='Zmień miejscowość dla pogody';button.onclick=()=>searchBox('Wybierz miejscowość. Lokalizacja wydarzenia pozostanie bez zmian.');body.appendChild(button);
-    }catch(e){if(current())say(e.message||'Nie udało się pobrać pogody. Wydarzenie pozostaje dostępne.')}
+      const rows=plannerWeatherRows(data.hourly,task);if(rows.every(r=>r.index<0)){say('Prognoza dla tego terminu jest jeszcze niedostępna.');return}
+      body.textContent='';const info=document.createElement('div');info.className='weather-place';info.textContent=plannerWeatherLabel(place);body.appendChild(info);
+      const strip=document.createElement('div');strip.className='weather-strip';body.appendChild(strip);
+      for(const r of rows){const cell=document.createElement('div');cell.className='weather-period';const label=document.createElement('div');label.className='weather-period-label';label.textContent=r.label+' · '+r.key.slice(11);cell.appendChild(label);
+        const symbol=plannerWeatherSymbol(r.index<0?null:r.code);const icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.textContent=symbol.icon;cell.appendChild(icon);
+        const temperature=document.createElement('strong');temperature.className='weather-temperature';temperature.textContent=r.index<0||r.temperature==null?'—':Math.round(r.temperature)+'°C';cell.appendChild(temperature);
+        const detail=document.createElement('div');detail.className='weather-detail';detail.textContent=r.index<0?'Prognoza niedostępna':'Opady '+(r.rain==null?'—':r.rain+'%')+' · Wiatr '+(r.wind==null?'—':Math.round(r.wind)+' km/h');cell.appendChild(detail);strip.appendChild(cell);
+      }
+      const source=document.createElement('a');source.href='https://open-meteo.com/';source.textContent='Open-Meteo';source.target='_blank';source.rel='noopener noreferrer';body.appendChild(source);
+      const note=document.createElement('small');note.textContent=' · Godziny miejscowe, prognoza dla pełnych godzin ('+(data.timezone||place.timezone||'')+').';body.appendChild(note);
+    }catch(e){if(current())say(e.message||'Nie udało się pobrać pogody.')}
   }
-  async function select(place){if(!current())return;task.weatherPlace={location,name:place.name,admin1:place.admin1||'',country:place.country||'',latitude:place.latitude,longitude:place.longitude,timezone:place.timezone||''};saveTasks();await forecast(task.weatherPlace)}
-  async function search(query,explicit=false,remaining=[]){
-    say('Szukam miejscowości dla prognozy…');try{
-      const params=new URLSearchParams({name:query,count:'5',language:'pl',format:'json'});
-      const data=await plannerWeatherJson('https://geocoding-api.open-meteo.com/v1/search?'+params,signal);if(!current())return;
-      const places=(data.results||[]).filter(p=>Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
-      if(!places.length){if(remaining.length){await search(remaining[0],false,remaining.slice(1));return}searchBox('Nie rozpoznano miejscowości. Podaj jej nazwę; nie trzeba wpisywać ulicy.');return}
-      if(places.length===1&&plannerLocationKey(query)===plannerLocationKey(places[0].name)){await select(places[0]);return}
-      body.textContent='Wybierz miejscowość dla prognozy. Nie zmienimy adresu wydarzenia.';
-      places.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=plannerWeatherLabel(p);b.onclick=()=>select(p);body.appendChild(b)});
-      const other=document.createElement('button');other.type='button';other.className='secondary';other.textContent='Inna miejscowość';other.onclick=()=>searchBox('Wpisz nazwę miejscowości dla prognozy.');body.appendChild(other);
-    }catch(e){if(current())searchBox('Nie udało się rozpoznać lokalizacji. Możesz spróbować ponownie.')}
+  async function select(place){
+    if(!current())return;
+    task.weatherPlace={location,id:place.id,name:place.name,admin1:place.admin1||'',admin2:place.admin2||'',country:place.country||'',country_code:place.country_code||'',latitude:place.latitude,longitude:place.longitude,timezone:place.timezone||''};saveTasks();await forecast(task.weatherPlace);
+  }
+  async function search(refined=false){
+    if(!current())return false;say('Szukam miejscowości dla prognozy…');
+    try{
+      const terms=hints.postcode?[hints.postcode]:[hints.city,...(refined?[]:plannerWeatherCityQueries(location).slice(1))];let places=[];
+      for(const term of terms.filter(Boolean)){
+        const params=new URLSearchParams({name:term+(hints.region&&!hints.postcode?', '+hints.region:''),count:'10',language:'pl',format:'json'});if(hints.countryCode)params.set('countryCode',hints.countryCode);
+        const data=await plannerWeatherJson('https://geocoding-api.open-meteo.com/v1/search?'+params,signal);if(!current())return false;
+        places=(data.results||[]).filter(p=>p.id!=null&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));if(places.length)break;
+      }
+      candidates=plannerWeatherFilterPlaces(places,hints);
+      if(hints.city&&hints.postcode)candidates=candidates.filter(p=>plannerLocationKey(p.name)===plannerLocationKey(hints.city));
+      if(!candidates.length){ask(WEATHER_TEXT.missing);return false}
+      if(candidates.length===1&&!hints.nearby&&(hints.postcode||plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city))){await select(candidates[0]);if(session&&current()){session.history.push({role:'assistant',content:'Pogoda dla: '+plannerWeatherLabel(candidates[0])+'.'});renderVoiceConversation(session)}return true}
+      ask('Czy chodzi o '+plannerWeatherLabel(candidates[0])+'? Jeśli nie, podaj kod pocztowy, kraj lub region.'+(hints.nearby?' Nie mogę potwierdzić odległości od „'+hints.nearby+'” na podstawie tych wyników.':''));return false;
+    }catch(e){if(current())ask('Nie udało się sprawdzić miejscowości. Możesz spróbować ponownie lub na razie anulować.');return false}
   }
   const saved=task.weatherPlace;
   if(saved&&saved.location===location&&Number.isFinite(saved.latitude)&&Number.isFinite(saved.longitude))await forecast(saved);
-  else {const cities=plannerWeatherCityQueries(location);if(cities.length)await search(cities[0],false,cities.slice(1));else searchBox('Nie udało się wyodrębnić miejscowości z adresu. Podaj jej nazwę dla pogody.');}
+  else await search();
 }
 
 const RECORDING_SECONDS=25;
@@ -660,6 +729,7 @@ $("closeCelebrate").onclick=()=>$("celebrate").classList.add("hidden");$("note")
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="google-calendar.js?v=20261005-17"></script>
 </body></html>
+
 
 
 
