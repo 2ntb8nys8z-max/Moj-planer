@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.17
+// Private prototype API protection — 2026.10.05.18
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -158,13 +158,22 @@ function plannerItemQuestion(x){
   return null;
 }
 
+function plannerClarificationQuestion(question,text,current,dialogue=[]){
+  const q=String(question||'').trim();
+  if(!current && /^(?:jakie (?:chcesz |mam )?(?:dodać |dodac |zapisać |zapisac )?(?:spotkanie|wydarzenie)|jak (?:nazwać|nazwac|zatytułować|zatytulowac))/i.test(q)){
+    const combined=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text).join('\n');
+    return /(?:^|\s)(?:dzisiaj|dziś|dzis)(?=\s|[,.!?]|$)/i.test(combined)?'Jak chcesz zatytułować dzisiejsze wydarzenie?':'Jak chcesz zatytułować wydarzenie?';
+  }
+  return q;
+}
+
 function plannerAmbiguousHourQuestion(text,current,dialogue=[]){
   const combined=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text).join('\n');
   if(/notatk|dopisz.*treść|dopisz.*tresc/i.test(combined))return null;
   if(current?.type==='idea'&&!/kalendarz|wydarzeni|spotkani|termin/i.test(combined))return null;
-  if(!/\bo\s+(?:pierwszej|1)(?!\d|:)/i.test(combined))return null;
+  if(!/\b(?:o\s+(?:godzinie\s+)?(?:pierwszej|1)|na\s+(?:godzin[ęe]\s+)?(?:pierwsz[ąa]|1))(?![\w:]|\s*[:.,]\s*\d)/i.test(combined))return null;
   if(/\d{1,2}:\d{2}|po południu|po poludniu|rano|w nocy|wieczor|nad ranem|\b13\b/i.test(text))return null;
-  if(/po południu|po poludniu|rano|w nocy|wieczor|nad ranem/i.test(combined))return null;
+  if(/\d{1,2}:\d{2}|po południu|po poludniu|rano|w nocy|wieczor|nad ranem/i.test(combined))return null;
   return 'Czy chodzi o 01:00 w nocy, czy 13:00 po południu?';
 }
 
@@ -192,7 +201,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.17",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.18",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -349,7 +358,8 @@ DOPYTYWANIE — priorytet dla tworzenia oraz edycji wydarzeń i pomysłów/zada�
 Jeśli brakuje informacji koniecznej do wykonania polecenia albo nie wiadomo, jakie pole zmienić, zwróć WYŁĄCZNIE {"type":"clarification","question":"jedno konkretne krótkie pytanie po polsku"}. Nie zwracaj wtedy propozycji zmiany ani nie wykonuj części polecenia.
 Historia rozmowy to to samo polecenie; następna odpowiedź uzupełnia pierwotną operację na AKTUALNYM WPISIE. Uwzględnij wszystkie wcześniejsze odpowiedzi, a changedFields i notesAddition opisują całą uzgodnioną operację, nie tylko ostatnią odpowiedź.
 Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu/zadania. Jeśli użytkownik chce wydarzenie lub przeniesienie do kalendarza, ale nie określił daty i nie ma jej w aktualnym wpisie, zapytaj o datę. Brak godziny może oznaczać wydarzenie całodniowe.
-Nie zgaduj, czy „o pierwszej” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
+Nie zgaduj, czy „o pierwszej”, „na pierwszą”, „na godzinę pierwszą”, „o godzinie pierwszej” lub „na godzinę 1” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
+Przy tworzeniu nowego wydarzenia samo „dodaj spotkanie” albo „dodaj wydarzenie” nie określa tytułu. Zapytaj konkretnie „Jak chcesz zatytułować dzisiejsze wydarzenie?”, jeśli termin to dzisiaj, albo „Jak chcesz zatytułować wydarzenie?” dla innego dnia. Nie pytaj ogólnie „Jakie chcesz dodać spotkanie?”. Jeśli brakuje tytułu i godzina pierwsza jest niejednoznaczna, najpierw doprecyzuj 01:00 lub 13:00, następnie tytuł. Zachowuj ustaloną datę i godzinę w całej rozmowie.
 Jeśli polecenie korekty nazwy nie określa, czy chodzi o tytuł czy lokalizację, zapytaj. Wyraźne polecenie poprawienia pisowni, przeliterowanie lub „napisz po niemiecku” pozwala poprawić wskazane pole. Gdy zapis nie jest jasny, poproś o przeliterowanie. Nie twierdź, że miejscowość nie istnieje; nie masz dostępu do weryfikacji mapowej. Nie sprawdzaj każdego adresu ani nie pytaj przy jasnym poleceniu.
 Przykład: „dodaj notatkę” bez treści → pytanie „Co dopisać do notatki?”; odpowiedź „Zabrać dokumenty” → zmiana notes z notesAction append, notesAddition „Zabrać dokumenty”, pozostałe pola bez zmian.
 
@@ -504,7 +514,7 @@ Przykłady:
       const parsed = parseApiJson(content,"interpretation");
       if (parsed.type === "clarification") {
         if (typeof parsed.question !== "string" || !parsed.question.trim() || parsed.question.length > 500) throw new Error("Nieprawidłowe pytanie AI");
-        return json({success:true, usage:apiUsage, transcription:spokenText, clarification:{question:parsed.question.trim()}});
+        return json({success:true, usage:apiUsage, transcription:spokenText, clarification:{question:plannerClarificationQuestion(parsed.question,spokenText,currentItem,dialogue)}});
       }
       if (parsed.type === "event" && !parsed.date && !currentItem?.date) {
         return json({success:true, usage:apiUsage, transcription:spokenText, clarification:{question:"Na jaki dzień zapisać to wydarzenie?"}});
@@ -569,4 +579,5 @@ Przykłady:
     }
   }
 };
+
 
