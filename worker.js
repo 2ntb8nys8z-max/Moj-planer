@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.26
+// Private prototype API protection — 2026.10.05.27
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -101,6 +101,60 @@ const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text
 const reminders=/^(?:no właśnie podałem ci początek i koniec|podaj początek rozpoczęcia spotkania i godzinę zakończenia spotkania)[.!?]*$/i;
 return messages.every(m=>plannerExplicitTimeRange(m)||reminders.test(m.trim()))?plannerTimeRangeInDialogue(dialogue,text):null;
 }
+
+const EVENT_END_QUESTION='Ile czasu zarezerwować albo do której godziny ma potrwać spotkanie?';
+function plannerMinutes(time){if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time||''))return null;const [h,m]=time.split(':').map(Number);return h*60+m;}
+function plannerClock(minutes){minutes=((minutes%1440)+1440)%1440;return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');}
+function plannerCompleteEditTime(item,current){
+  const fields=item.changedFields||[];
+  if(current?.type==='event'&&fields.includes('startTime')&&!fields.includes('endTime')){
+    if(!item.startTime){item.endTime='';fields.push('endTime');}
+    else if(current.startTime&&current.endTime){
+      const a=plannerMinutes(current.startTime),b=plannerMinutes(current.endTime),next=plannerMinutes(item.startTime);
+      if(a!==null&&b!==null&&next!==null){item.endTime=plannerClock(next+((b-a+1440)%1440||1440));fields.push('endTime');}
+    }else item.endTime='';
+  }
+  return item;
+}
+// Only complete, single-purpose time utterances use this deterministic path.
+// Complex instructions and names remain the interpreter's responsibility.
+function plannerSimpleTimeInstruction(text){
+  let t=String(text||'').toLowerCase().trim().replace(/[.!?]+$/,'');
+  const range=plannerExplicitTimeRange(t);if(range)return {kind:'range',...range};
+  t=t.replace(/\b(do|od) godziny,?\s+\1 godziny/g,'$1 godziny');
+  t=t.replace(/^(?:nie,?\s*|poprawka,?\s*|proszę\s+)/,'');
+  const prefix='(?:(?:to )?(?:spotkanie|wydarzenie) (?:będzie |ma |powinno )?(?:trwało|trwać|potrwać|zaczynać się|zaczyna się|rozpoczyna się|zakończyć się)\\s+|(?:ustaw|zmień|zmien|podaj)\\s+(?:(?:godzinę|godzine|czas|koniec|początek)\\s+)?)?';
+  let m=t.match(new RegExp('^'+prefix+'(?:(od|do|na|o)\\s+(?:godziny?\\s+|godzinę\\s+)?)?([01]?\\d|2[0-3])(?::([0-5]\\d))?$'));
+  if(m)return {kind:m[1]==='do'?'end':'start',time:m[2].padStart(2,'0')+':'+(m[3]||'00')};
+  m=t.match(new RegExp('^'+prefix+'(?:przez |na )?(\\d+)\\s*(minut(?:y|ę)?|godzin(?:y|ę)?)$'));
+  if(m){const minutes=Number(m[1])*(m[2].startsWith('godzin')?60:1);return minutes>0&&minutes<1440?{kind:'duration',minutes}:null;}
+  m=t.match(new RegExp('^'+prefix+'(?:przez |na )?(pół godziny|półtorej godziny|godzinę|dwie godziny)$'));
+  if(m)return {kind:'duration',minutes:{'pół godziny':30,'półtorej godziny':90,'godzinę':60,'dwie godziny':120}[m[1]]};
+  return null;
+}
+function plannerSimpleTimeEdit(current,dialogue,text){
+  if(current?.type!=='event')return null;
+  const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text);
+  const instructions=messages.map(plannerSimpleTimeInstruction);
+  if(instructions.some(x=>!x))return null;
+  // Let the model disambiguate bare 1..12; HH:MM and 13..23 are explicit.
+  if(instructions.some((x,i)=>x.kind==='start'&&Number(x.time.slice(0,2))<=12&&!/\d:\d/.test(messages[i])))return null;
+  let start=current.startTime||'',end=current.endTime||'',fields=[];
+  for(let i=0;i<instructions.length;i++){
+    const op=instructions[i];
+    if(op.kind==='range'){start=op.startTime;end=op.endTime;fields=['startTime','endTime'];}
+    if(op.kind==='start'){start=op.time;fields=['startTime'];const moved=plannerCompleteEditTime({startTime:start,endTime:end,changedFields:fields},current);end=moved.endTime;}
+    if(op.kind==='end'){
+      // A following "do" corrects an earlier "od" in this same pending operation.
+      if(i&&instructions[i-1].kind==='start'&&(instructions[i-1].time===op.time||/nie|poprawka/i.test(messages[i]))){start=current.startTime||'';fields=[];}
+      end=op.time;fields=[...new Set([...fields,'endTime'])];
+    }
+    if(op.kind==='duration'){if(!start)return {question:'O której godzinie ma się rozpocząć spotkanie?'};end=plannerClock(plannerMinutes(start)+op.minutes);fields=[...new Set([...fields,'endTime'])];}
+  }
+  const item=normalizeEventVoiceResult(current,{changedFields:fields,startTime:start,endTime:end},'');
+  return {item,question:plannerItemQuestion({...item,recurrence:null})};
+}
+
 function explicitVoiceEventEdit(text){
   const command=String(text||'').trim().replace(/^(?:proszę|prosze)\s*,?\s*/i,'');
   const rules=[
@@ -158,6 +212,8 @@ function plannerItemQuestion(x){
   if(typeof x.title!=='string'||!x.title.trim())return 'Jak nazwać wydarzenie?';
   if(!date(x.date))return 'Podaj poprawną datę wydarzenia, na przykład 12 października 2026.';
   if(!time(x.startTime)||!time(x.endTime))return 'Podaj poprawne godziny wydarzenia w formacie 24-godzinnym.';
+  if(x.startTime&&!x.endTime)return EVENT_END_QUESTION;
+  if(x.endTime===x.startTime&&x.startTime)return 'Początek i koniec są takie same. Ile czasu ma potrwać spotkanie?';
   if(x.endTime&&!x.startTime)return 'O której godzinie zaczyna się wydarzenie?';
   for(const field of ['notes','location'])if(x[field]!=null&&typeof x[field]!=='string')return field==='notes'?'Jaką treść notatki zapisać?':'Jaką lokalizację wpisać?';
   if(x.reminder!=null&&(!obj(x.reminder)||typeof x.reminder.minutesBefore!=='number'||!Number.isInteger(x.reminder.minutesBefore)||x.reminder.minutesBefore<0||x.reminder.minutesBefore>10080))return 'Ile minut przed wydarzeniem ustawić przypomnienie (od 0 do 10080)?';
@@ -211,9 +267,11 @@ function plannerSuspectTranscription(text){
 }
 
 // Questions are kept apart from interpretation rules for future translations.
-const DIALOGUE_TEXT = Object.freeze({date:'W jakim dniu ma odbyć się wydarzenie?',start:'O której godzinie ma się rozpocząć? Możesz też zapisać je bez godzin, jako całodniowe.',end:'Do której godziny ma potrwać albo ile czasu zarezerwować? Możesz też powiedzieć „bez godziny końca”.',place:'Podaj kraj, region, kod pocztowy albo pobliskie większe miasto, żebym ustalił właściwą miejscowość.'});
+const DIALOGUE_TEXT = Object.freeze({date:'W jakim dniu ma odbyć się wydarzenie?',start:'O której godzinie ma się rozpocząć? Możesz też zapisać je bez godzin, jako całodniowe.',end:EVENT_END_QUESTION,place:'Podaj kraj, region, kod pocztowy albo pobliskie większe miasto, żebym ustalił właściwą miejscowość.'});
 function plannerTimingQuestion(item,current,dialogue,text){
-  if(item.type!=='event'||current?.type==='event')return null;
+  if(item.type!=='event')return null;
+  if(item.startTime&&!item.endTime)return EVENT_END_QUESTION;
+  if(current?.type==='event')return null;
   // Evidence returned by the model is optional. Its omission must not erase
   // a date/time already present in the user's conversation.
   const messages=dialogue.filter(m=>m.role==='user').map(m=>m.content).concat(text);
@@ -223,12 +281,11 @@ function plannerTimingQuestion(item,current,dialogue,text){
   const dateGiven=/(?:dzisiaj|dziś|dzis|jutro|pojutrze|za\s+(?:\d+|jeden|dwa|trzy|cztery|pięć|piec|sześć|szesc|siedem)\s+(?:dni|dzień|dzien|tygodni)|poniedział|poniedzial|wtorek|wtork|środ|srod|czwartek|czwartk|piątek|piatek|piątk|piatk|sobot|niedziel|styczni|lutego|luty|marca|marzec|kwietni|maja|czerwc|lipca|lipiec|sierpni|wrześni|wrzesni|październik|pazdziernik|listopad|grudni|\d{4}-\d{2}-\d{2}|\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?)/i.test(userText);
   const clockGiven=/(?:\b(?:[01]?\d|2[0-3]):[0-5]\d\b|(?:o|na|od)\s+(?:godzin\S*\s+)?(?:\d{1,2}|pierwsz\S*|drug\S*|trzec\S*|czwart\S*|piąt\S*|piat\S*|szóst\S*|szost\S*|siódm\S*|siodm\S*|ósm\S*|osm\S*|dziewiąt\S*|dziewiat\S*|dziesiąt\S*|dziesiat\S*|jedenast\S*|dwunast\S*)|południ|poludni|północ|polnoc)/i.test(userText);
   const allDay=/całodniow|calodniow|cały dzień|caly dzien|bez godzin(?!y końca|y konca)|nie ustalaj godziny/i.test(userText);
-  const openEnd=/bez (?:godziny )?(?:końca|konca|zakończenia|zakonczenia)/i.test(userText);
   const durationOrEnd=/(?:do\s+(?:godzin\S*\s+)?(?:\d|\S+ej)|(?:trwa\S*|przez|na)\s+(?:\d+|pół|pol|półtorej|poltorej|jedn\S*|dwi\S*|trzy|cztery)?\s*(?:minut|godzin)|\d{1,2}:\d{2}\s*[-–—]\s*\d{1,2}:\d{2})/i.test(userText);
   if(!dateGiven&&!evidence('dateEvidence'))return DIALOGUE_TEXT.date;
   if(!item.startTime&&(allDay||timing.allDay===true&&evidence('startEvidence')))return null;
   if(!item.startTime||!clockGiven&&!evidence('startEvidence'))return DIALOGUE_TEXT.start;
-  if(!item.endTime&&!openEnd&&!(timing.endOpen===true&&evidence('endEvidence')))return DIALOGUE_TEXT.end;
+  if(!item.endTime)return DIALOGUE_TEXT.end;
   if(item.endTime&&!durationOrEnd&&!evidence('endEvidence'))return DIALOGUE_TEXT.end;
   return null;
 }
@@ -285,7 +342,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.26",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.27",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -401,6 +458,11 @@ export default {
 
       if(weatherContext)return json({success:true,usage:apiUsage,transcription:spokenText,weatherAction:await interpretWeatherReply(spokenText,dialogue,weatherContext,env)});
 
+      const simpleTime=plannerSimpleTimeEdit(currentItem,dialogue,spokenText);
+      if(simpleTime){
+        if(simpleTime.question)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:simpleTime.question}});
+        return json({success:true,usage:apiUsage,transcription:spokenText,utterance:spokenText,item:simpleTime.item});
+      }
       const explicitTimeEdit=currentItem?.type==='event'?plannerOnlyTimeEdit(dialogue,spokenText):null;
       if(explicitTimeEdit){
         const item=normalizeEventVoiceResult(currentItem,{changedFields:['startTime','endTime'],startTime:explicitTimeEdit.startTime,endTime:explicitTimeEdit.endTime},'');
@@ -411,7 +473,7 @@ export default {
       const hourQuestion=plannerAmbiguousHourQuestion(spokenText,currentItem,dialogue);
       if(hourQuestion)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:hourQuestion}});
       // Preserve an unlabelled narrative rather than guessing its destination.
-      if(currentItem?.type==='event'&&!dialogue.length&&!/(zmień|zmien|ustaw|popraw|przenieś|przenies|dodaj|dopisz|usuń|usun|wyłącz|wylacz|powtarzaj|nazwij|przypomnij|jutro|dzisiaj|pojutrze)|notatk|tytuł|tytul|nazw|godzin|lokalizac|adres|cyklicz|\d{1,2}:\d{2}/i.test(spokenText)){
+      if(currentItem?.type==='event'&&!dialogue.length&&!/(zmień|zmien|ustaw|popraw|przesuń|przesun|przenieś|przenies|dodaj|dopisz|usuń|usun|wyłącz|wylacz|powtarzaj|nazwij|przypomnij|jutro|dzisiaj|pojutrze)|notatk|tytuł|tytul|nazw|godzin|lokalizac|adres|cyklicz|\d{1,2}:\d{2}/i.test(spokenText)){
         return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki, czy zmienić tytuł wydarzenia?'}});
       }
 
@@ -458,6 +520,8 @@ export default {
 
                 content:
 `Jesteś inteligentnym parserem polskiego planera.
+EDYCJA CZASU: jeśli AKTUALNY WPIS jest wydarzeniem, jego tytuł i data są już ustalone. "Spotkanie będzie trwało od godziny 15:00" jest zmianą początku, nie prośbą o utworzenie nowego spotkania ani nowym tytułem. "Do godziny 15:00" zmienia tylko koniec. Gdy po błędnym "od 15:00" użytkownik poprawia na "do 15:00", cofnij proponowaną zmianę początku i ustaw endTime=15:00 przy oryginalnym początku. Nie traktuj odpowiedzi dotyczącej terminu jako odpowiedzi o tytule, nawet gdy wcześniejsze pytanie AI błędnie dotyczyło nazwy.
+DŁUGOŚĆ: każde godzinowe wydarzenie musi mieć koniec. Zapytaj "Ile czasu zarezerwować albo do której godziny ma potrwać spotkanie?". "25 minut", "półtorej godziny" są pełnymi odpowiedziami: oblicz endTime względem uzgodnionego startTime. Przy przesuwaniu istniejącego początku zachowaj poprzednią długość, jeśli istnieje; przy braku poprzedniego końca lub zmianie całodniowego na godzinowe dopytaj o długość. Nie zakładaj domyślnie 60 minut. Przy zmianie tylko końca zachowaj początek. Jeśli użytkownik chce bez godzin, usuń obie godziny; "bez godziny końca" nie oznacza całodniowości, wymaga ustalenia czasu trwania.
 JĘZYK: odpowiadaj i dopytuj po polsku. Obca nazwa własna nie zmienia języka rozmowy. Używaj oryginalnej pisowni miejsc i ulic zgodnej z krajem podanym przez użytkownika, np. Bad Schandau w Niemczech. Nie tłumacz fonetycznie całego adresu. Przy niepewnej nazwie zapytaj o pisownię, kraj lub pobliskie miasto; nie twierdź, że zweryfikowałeś miejsce na mapie. Niejasnej obcojęzycznej transkrypcji nie traktuj jako pewnego polecenia: poproś po polsku o powtórzenie. Fragment przed prośbą o powtórzenie, który był błędną transkrypcją, nie jest ustaleniem.
 ODPOWIEDZI NA PYTANIA: interpretuj krótką odpowiedź w kontekście ostatniego pytania i całej operacji. Późniejsze doprecyzowanie zastępuje wcześniejszą niejasność; nie pytaj ponownie o ustaloną rzecz. Po pytaniu „01:00 czy 13:00?” odpowiedzi „trzynasta”, „trzynasta, trzynasta”, „po południu” oznaczają 13:00, a „w nocy” oznacza 01:00. Odpowiedź „tak” na takie pytanie nie rozstrzyga wyboru. Jeśli użytkownik później zmieni zdanie, zastosuj ostatnią jednoznaczną odpowiedź. Zachowaj inne uzgodnione zmiany i pola wydarzenia.
 
@@ -469,10 +533,10 @@ ${confirmedTimeRange?JSON.stringify(confirmedTimeRange):"brak"}
 DOPYTYWANIE — priorytet dla tworzenia oraz edycji wydarzeń i pomysłów/zadań:
 Jeśli brakuje informacji koniecznej do wykonania polecenia albo nie wiadomo, jakie pole zmienić, zwróć WYŁĄCZNIE {"type":"clarification","question":"jedno konkretne krótkie pytanie po polsku"}. Nie zwracaj wtedy propozycji zmiany ani nie wykonuj części polecenia.
 Historia rozmowy to to samo polecenie; następna odpowiedź uzupełnia pierwotną operację na AKTUALNYM WPISIE. Uwzględnij wszystkie wcześniejsze odpowiedzi, a changedFields i notesAddition opisują całą uzgodnioną operację, nie tylko ostatnią odpowiedź.
-Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu/zadania. Jeśli użytkownik chce wydarzenie lub przeniesienie do kalendarza, ale nie określił daty i nie ma jej w aktualnym wpisie, zapytaj o datę. Polecenie utworzenia lub ustalenia spotkania/wydarzenia, także bez terminu, oznacza zamiar wpisu do kalendarza: dopytaj, nie zamieniaj go w pomysł. Nie zakładaj dzisiejszej daty ani całodniowości tylko dlatego, że brakuje terminu. Przy NOWYM wydarzeniu i przenoszeniu pomysłu do kalendarza ustal dzień, godzinę rozpoczęcia lub wyraźną całodniowość, a dla godzinowego wydarzenia także koniec/czas trwania lub wyraźne życzenie pozostawienia końca pustego. Pytaj po jednym brakującym szczególe. Nie pytaj o istniejący termin podczas zwykłej edycji notatki, tytułu ani adresu.
+Nie pytaj o opcjonalne informacje ani nie wymagaj terminu dla zwykłego pomysłu/zadania. Jeśli użytkownik chce wydarzenie lub przeniesienie do kalendarza, ale nie określił daty i nie ma jej w aktualnym wpisie, zapytaj o datę. Polecenie utworzenia lub ustalenia spotkania/wydarzenia, także bez terminu, oznacza zamiar wpisu do kalendarza: dopytaj, nie zamieniaj go w pomysł. Nie zakładaj dzisiejszej daty ani całodniowości tylko dlatego, że brakuje terminu. Przy NOWYM wydarzeniu i przenoszeniu pomysłu do kalendarza ustal dzień, godzinę rozpoczęcia lub wyraźną całodniowość, a dla godzinowego wydarzenia także koniec/czas trwania ; koniec jest obowiązkowy dla wydarzenia godzinowego. Pytaj po jednym brakującym szczególe. Nie pytaj o istniejący termin podczas zwykłej edycji notatki, tytułu ani adresu.
 Nie zgaduj, czy „o pierwszej”, „na pierwszą”, „na godzinę pierwszą”, „o godzinie pierwszej” lub „na godzinę 1” znaczy 01:00 czy 13:00; zapytaj, chyba że użytkownik wskazał porę dnia albo format 24-godzinny. Nie analizuj w ten sposób godzin będących tylko treścią notatki.
-Przy tworzeniu nowego wydarzenia samo „dodaj spotkanie” albo „dodaj wydarzenie” nie określa tytułu. Zapytaj konkretnie „Jak chcesz zatytułować dzisiejsze wydarzenie?”, jeśli termin to dzisiaj, albo „Jak chcesz zatytułować wydarzenie?” dla innego dnia. Nie pytaj ogólnie „Jakie chcesz dodać spotkanie?”. Jeśli brakuje tytułu i godzina pierwsza jest niejednoznaczna, najpierw doprecyzuj 01:00 lub 13:00, następnie tytuł. Zachowuj ustaloną datę i godzinę w całej rozmowie.
-POTWIERDZENIE TERMINU NOWEGO WYDARZENIA: w JSON event dodaj timing:{dateEvidence:"dokładny fragment wypowiedzi użytkownika określający dzień",startEvidence:"dokładny fragment określający godzinę lub całodniowość",endEvidence:"dokładny fragment określający koniec/czas trwania lub zgodę na brak końca",allDay:false,endOpen:false}. Cytaty muszą pochodzić z wiadomości użytkownika w historii albo bieżącej wypowiedzi; nie cytuj swoich pytań. Jeśli odpowiedź na pytanie o termin to „tak” lub sam numer, interpretuj ją w kontekście poprzedniego pytania. Jeśli termin występuje w dowolnej wcześniejszej wiadomości użytkownika, zachowaj go. Nie pytaj ponownie o datę po otrzymaniu tytułu. Brak pola timing nie oznacza braku daty w rozmowie. Nie wstawiaj daty z kontekstu systemowego bez polecenia użytkownika. allDay=true tylko przy wyraźnym życzeniu całodniowości, endOpen=true tylko przy świadomym braku końca. Nie dodawaj timing przy edycji istniejącego wydarzenia.
+Wyłącznie gdy AKTUALNY WPIS nie jest wydarzeniem: przy tworzeniu nowego wydarzenia samo „dodaj spotkanie” albo „dodaj wydarzenie” nie określa tytułu. Zapytaj konkretnie „Jak chcesz zatytułować dzisiejsze wydarzenie?”, jeśli termin to dzisiaj, albo „Jak chcesz zatytułować wydarzenie?” dla innego dnia. Nie pytaj ogólnie „Jakie chcesz dodać spotkanie?”. Jeśli brakuje tytułu i godzina pierwsza jest niejednoznaczna, najpierw doprecyzuj 01:00 lub 13:00, następnie tytuł. Zachowuj ustaloną datę i godzinę w całej rozmowie.
+POTWIERDZENIE TERMINU NOWEGO WYDARZENIA: w JSON event dodaj timing:{dateEvidence:"dokładny fragment wypowiedzi użytkownika określający dzień",startEvidence:"dokładny fragment określający godzinę lub całodniowość",endEvidence:"dokładny fragment określający koniec lub czas trwania",allDay:false,endOpen:false}. Cytaty muszą pochodzić z wiadomości użytkownika w historii albo bieżącej wypowiedzi; nie cytuj swoich pytań. Jeśli odpowiedź na pytanie o termin to „tak” lub sam numer, interpretuj ją w kontekście poprzedniego pytania. Jeśli termin występuje w dowolnej wcześniejszej wiadomości użytkownika, zachowaj go. Nie pytaj ponownie o datę po otrzymaniu tytułu. Brak pola timing nie oznacza braku daty w rozmowie. Nie wstawiaj daty z kontekstu systemowego bez polecenia użytkownika. allDay=true tylko przy wyraźnym życzeniu całodniowości, endOpen zawsze false; wydarzenie godzinowe wymaga końca. Nie dodawaj timing przy edycji istniejącego wydarzenia.
 Jeśli polecenie korekty nazwy nie określa, czy chodzi o tytuł czy lokalizację, zapytaj. Wyraźne polecenie poprawienia pisowni, przeliterowanie lub „napisz po niemiecku” pozwala poprawić wskazane pole. Gdy zapis nie jest jasny, poproś o przeliterowanie. Nie twierdź, że miejscowość nie istnieje; nie masz dostępu do weryfikacji mapowej. Nie sprawdzaj każdego adresu ani nie pytaj przy jasnym poleceniu.
 ADRESY I KOREKTY PISOWNI: nazwa miejscowości, kod pocztowy, nazwa ulicy i numer tworzą jeden adres. Wskazówki „przez SZ”, „to jest SZ”, „przez samo S”, „D na końcu”, literowanie i powtórzenie poprawionej nazwy to instrukcje korekty pisowni, a nie część adresu. Zastosuj je do wskazanej nazwy. Zachowaj jedną finalną nazwę ulicy; nie łącz błędnej i poprawionej wersji i nie kopiuj instrukcji pisowni do location ani notes. Nie dodawaj informacji niepodanych przez użytkownika. Jeżeli korekta nie określa jednoznacznie końcowej nazwy, zapytaj o pełną poprawną nazwę ulicy zamiast zgadywać.
 Przykład: „Warszawa, 03-337, ulica Wyszogrodzka, to jest SZ, Wyszogrodzka 7” → location: „ul. Wyszogrodzka 7, 03-337 Warszawa”. Zachowaj tytuł, datę i godzinę; nie dodawaj powtórzonej nazwy ani „to jest SZ”.
@@ -572,7 +636,7 @@ ZASADY:
 - "półtorej godziny" = 90 minut.
 - Jeśli podano zakres od X do Y, zachowaj obie godziny.
 
-- Przy NOWYM wpisie bez końca ani czasu trwania: dopytaj o koniec lub czas trwania. Dopiero po wyraźnej odpowiedzi „bez godziny końca” ustaw endTime = "". Przy EDYCJI bez zmiany czasu zachowaj endTime.
+- Przy NOWYM wpisie bez końca ani czasu trwania: dopytaj o koniec lub czas trwania. Nie dopuszczaj pustego końca przy ustawionym początku. Przy EDYCJI bez zmiany czasu zachowaj endTime.
 
 - Przy NOWYM wpisie bez godziny: dopytaj o godzinę albo całodniowość. Po wyraźnym życzeniu całodniowości, także „bez godzin”, „na cały dzień”, „nie ustalaj godziny”, ustaw startTime = "" i endTime = "". Przy EDYCJI bez zmiany czasu zachowaj startTime.
 
@@ -665,6 +729,7 @@ Przykłady:
       let eventResult;
       try{eventResult=currentItem?.type==='event'?normalizeEventVoiceResult(currentItem,parsed,dialogue.length ? "" : spokenText):parsed;}
       catch(_){return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Co zrobić z tą wypowiedzią: dopisać do notatki czy zmienić tytuł, lokalizację lub termin?'}});}
+      eventResult=plannerCompleteEditTime(eventResult,currentItem);
       const question=plannerTimingQuestion(eventResult,currentItem,dialogue,spokenText)||plannerVoiceLocationQuestion(eventResult,currentItem)||plannerItemQuestion(currentItem?.type==='event'&&eventResult.changedFields&&!eventResult.changedFields.includes('recurrence')?{...eventResult,recurrence:null}:eventResult);
       if(question)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question}});
       if(currentItem?.type==='event'&&!eventResult.changedFields?.length)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki wydarzenia? Jeśli nie, wskaż, co zmienić.'}});
