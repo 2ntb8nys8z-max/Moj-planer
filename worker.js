@@ -1,4 +1,4 @@
-// Private prototype API protection — 2026.10.05.19
+// Private prototype API protection — 2026.10.05.20
 const API_LIMITS = Object.freeze({monthly:300,daily:100,minute:10,audioBytes:4*1024*1024,jsonBytes:64*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -94,6 +94,7 @@ function explicitVoiceEventEdit(text){
     ['replace',/^(?:zmień|zmien|ustaw|zastąp)\s+(?:treść\s+)?(?:notatkę|notatke|notatki)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?\s*(?:na\s+|[:—-]\s*)(.+)$/i]
   ];
   if(/^(?:usuń|usun|wyczyść|wyczysc|skasuj)\s+(?:(?:tę|te|całą|cala|obecną)\s+)?(?:notatkę|notatke)[.!?]*$/i.test(command))return {changedFields:['notes'],notesAction:'clear',notes:''};
+  if(/^(?:usuń|usun|wyczyść|wyczysc|skasuj)\s+(?:(?:tę|te|całą|cala|obecną)\s+)?(?:lokalizację|lokalizacje|adres|miejsce)(?:\s+(?:tego\s+)?(?:wydarzenia|spotkania))?[.!?]*$/i.test(command))return {changedFields:['location'],location:''};
   for(const [action,pattern] of rules){
     const match=command.match(pattern);if(!match)continue;
     const value=match[1].trim();
@@ -208,13 +209,13 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.05.19",requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.05.20",requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
     }
 
-    let apiUsage=null;
+    let apiUsage=null, spokenText="";
     try {
       if(request.method!=="POST" && !(request.method==="GET" && new URL(request.url).pathname==="/usage")){
         return json({success:false,error:"Użyj POST do rozpoznawania wypowiedzi.",code:"method_not_allowed"},405);
@@ -223,7 +224,7 @@ export default {
       if(request.method==="GET")return json({success:true,usage:await quotaRead(env)});
       /* ===== 1. AUDIO ===== */
 
-      let spokenText = "", dialogue = [];
+      let dialogue = [];
       let currentItem = null;
       let bodyCurrent = null;
       if ((request.headers.get("Content-Type") || "").includes("application/json")) {
@@ -314,7 +315,7 @@ export default {
       if(hourQuestion)return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:hourQuestion}});
       // Preserve an unlabelled narrative rather than guessing its destination.
       if(currentItem?.type==='event'&&!dialogue.length&&!/(zmień|zmien|ustaw|popraw|przenieś|przenies|dodaj|dopisz|usuń|usun|wyłącz|wylacz|powtarzaj|nazwij|przypomnij|jutro|dzisiaj|pojutrze)|notatk|tytuł|tytul|nazw|godzin|lokalizac|adres|cyklicz|\d{1,2}:\d{2}/i.test(spokenText)){
-        return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki tego wydarzenia, czy chcesz zmienić inne pole?'}});
+        return json({success:true,usage:apiUsage,transcription:spokenText,clarification:{question:'Czy dopisać tę wypowiedź do notatki, czy zmienić tytuł wydarzenia?'}});
       }
 
       /* ===== 3. DZISIEJSZA DATA ===== */
@@ -381,6 +382,7 @@ W takim przypadku zmień WYŁĄCZNIE informacje wskazane przez użytkownika, zac
 Nie twórz nowego wydarzenia i nie usuwaj informacji, których użytkownik nie koryguje.
 PRIORYTET PRZY EDYCJI WYDARZENIA: wynik ma type event, także gdy poprawka nie zawiera daty ani godziny. Zasady tworzenia krótkiego tytułu i domyślnych pustych pól dotyczą wyłącznie NOWYCH wpisów.
 Zwróć changedFields: tablicę nazw WYŁĄCZNIE pól, o których zmianę poprosił użytkownik: title, date, startTime, endTime, notes, location, reminder, recurrence. Nie dodawaj innych pól. Jeśli nie rozpoznajesz zamiaru zmiany, zwróć type clarification i konkretne pytanie. Swobodnego opisu przy otwartym wydarzeniu nie zapisuj automatycznie: zapytaj „Czy dopisać tę wypowiedź do notatki tego wydarzenia?”. Po odpowiedzi tak dopisz całą pierwotną wypowiedź, a nie samo „tak”.
+Polecenie „usuń lokalizację” lub „usuń adres” oznacza changedFields:["location"] i location:"". Nie zachowuj poprzedniego adresu.
 Polecenia „nazwij to”, „zmień nazwę”, „zmień tytuł”, „ustaw nagłówek”, „tytuł ma być” to zmiana title. Zachowaj CAŁĄ podaną nazwę, nawet długą. Nie skracaj jej, nie przeredagowuj i nie przenoś fragmentów do notes. Zachowaj poprzednią notatkę.
 Polecenia „dodaj notatkę”, „dopisz do notatki”, „dodaj w notatce” oznaczają notesAction: append. W notesAddition podaj WYŁĄCZNIE nową treść; nie dodawaj słów komendy ani instrukcji zakresu, np. „dla całej serii”. Notes ma być pełną notatką po dopisaniu, z zachowaniem wcześniejszej treści.
 „Zmień notatkę na”, „zastąp notatkę”, „ustaw treść notatki” oznaczają notesAction: replace i notes z nową pełną treścią. „Usuń notatkę” oznacza notesAction: clear i notes: "".
@@ -585,9 +587,10 @@ Przykłady:
 
       const known=error instanceof PlannerApiError;
       console.log("WORKER ERROR:",known?error.code:"processing_failed");
-      return json({success:false,error:known?error.message:"Nie udało się przetworzyć wypowiedzi. Spróbuj ponownie.",code:known?error.code:"processing_failed",stage:known?error.stage:"processing",usage:error.usage||apiUsage},known?error.status:502);
+      return json({success:false,error:known?error.message:"Nie udało się przetworzyć wypowiedzi. Spróbuj ponownie.",code:known?error.code:"processing_failed",stage:known?error.stage:"processing",usage:error.usage||apiUsage,...(spokenText?{transcription:spokenText}:{})},known?error.status:502);
     }
   }
 };
+
 
 
