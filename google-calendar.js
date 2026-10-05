@@ -4,7 +4,7 @@ async function plannerGoogleFetch(...args){
   return fetch(...args);
 }
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.05.19";
+const GOOGLE_SYNC_VERSION="2026.10.05.20";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -617,7 +617,7 @@ async function pushEditedTaskToGoogle(task){
     if(!p||p.date!==task.date||(task.time?(p.time!==task.time):!!p.time)){console.error('Google returned different event time',updated);return false;}
     task.googleSynced=true;task.googleDirty=false;
     task.googleDeleteBaseline=googleComparableDeleteContent(updated);
-    task.googleData={...(task.googleData||{}),etag:updated.etag||task.googleData?.etag||'',updated:updated.updated||task.googleData?.updated||'',location:updated.location||task.location||'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
+    task.googleData={...(task.googleData||{}),etag:updated.etag||task.googleData?.etag||'',updated:updated.updated||task.googleData?.updated||'',location:updated.location??task.location??'',description:updated.description||'',reminders:updated.reminders||task.googleData?.reminders||null,htmlLink:updated.htmlLink||task.googleData?.htmlLink||''};
     saveTasks();renderAll();return true;
   }catch(err){console.error('Google event update failed',err);return false;}
 }
@@ -789,7 +789,7 @@ async function sendTaskToGoogle(task,silent=false){
     }else task.googleEventId=result.id||task.googleCreateId;
     task.googleSynced=true;task.googleDirty=false;task.source='planner';
     task.googleDeleteBaseline=googleComparableDeleteContent(result);
-    task.googleData={...(task.googleData||{}),etag:result.etag||'',updated:result.updated||'',location:result.location||task.location||'',description:result.description||'',reminders:result.reminders||null,htmlLink:result.htmlLink||''};
+    task.googleData={...(task.googleData||{}),etag:result.etag||'',updated:result.updated||'',location:result.location??task.location??'',description:result.description||'',reminders:result.reminders||null,htmlLink:result.htmlLink||''};
     saveTasks();renderAll();
   };
   try{
@@ -1002,6 +1002,7 @@ addTask=function(title,date,time='',endTime='',category='Osobiste',notes='',remi
   if(googleAccessToken)sendTaskToGoogle(task);
   return task;
 };
+
 
 
 
