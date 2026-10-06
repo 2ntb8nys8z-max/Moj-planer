@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.06.31 · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.06.32 · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabIdeas">💡 Pomysły</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">💡 Pomysły — zobacz do zrobienia i zrealizowane</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz wydarzenie lub pomysł</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -99,7 +99,7 @@ const PlannerData=(()=>{
     const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.06.31',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.06.32',createdAt:new Date().toISOString(),data:structuredClone(data)}}
   function exportCurrent(){
     if(locked)download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
     else download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup());
@@ -261,7 +261,7 @@ async function plannerAudioPayload(blob){
 }
 async function plannerApiRequest(path,options={}){
   PlannerData.assertWritable();
-  const info=await getApiInfo();if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
+  const info=await getApiInfo();if(path===''&&!info.conversationEngines?.includes(3))throw Error('Rozmowa wymaga Workera 32. Wgraj odpowiadającą wersję Workera.');if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
   let token=readApiAccess();
   if(info.requiresAccess&&!token){token=await askApiAccess();if(!token){const e=new Error('Anulowano dostęp do AI. Niczego nie zmieniono.');e.cancelled=true;throw e}}
   if(token)headers.Authorization='Bearer '+token;
@@ -327,16 +327,19 @@ function showVoiceClarification(session,question){
 }
 async function requestVoiceDialogue(session,body){
   if(!voiceDialogueValid(session)||session.busy)return null;
-  if(session.history.length>=24)throw new Error('Rozmowa jest za długa. Anuluj i zacznij ponownie.');
+  // Keep recent exchanges; structured draft and focus survive history trimming.
+  if(session.history.length>22)session.history=session.history.slice(-22);
   session.busy=true;
   try{
     const typed=typeof body==='string';
-    const payload={protocolVersion:2,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})};
+    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})};
     if(!typed)payload.audio=await plannerAudioPayload(body);
     if(!voiceDialogueValid(session))return null;
     const result=await plannerApiRequest('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!voiceDialogueValid(session))return null;
+    if(!session.weatherContext&&result.engine!==3&&!result.retryTranscription)throw new Error('Ta wersja rozmowy wymaga Workera 32.');
     if(result.dialogueState)session.dialogueState=result.dialogueState;
+    if(result.dialogueState?.lastOperation)session.lastOperation=result.dialogueState.lastOperation;
     const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
     if(result.retryTranscription){
       const question=result.clarification?.question||result.weatherAction?.question||'Nie dosłyszałem. Możesz powtórzyć?';
@@ -349,14 +352,23 @@ async function requestVoiceDialogue(session,body){
       if(await session.onWeatherAction(result.weatherAction)){const pending=session.pendingLocationResult;clearVoiceDialogue(session.channel,true);if(pending)await applyVoiceDialogueResult(session,pending);else $(voiceDialogueHints[session.channel]).textContent='Zakończono ustalanie lokalizacji';}
       return null;
     }
-    const question=result.clarification?.question||null;
+    const question=result.status==='continue'?result.reply:result.clarification?.question||null;
     if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
     result.dialogueResolved=session.history.length>0;
     session.history.push({role:'user',content:spoken});
+    if(result.reply)session.history.push({role:'assistant',content:result.reply});
     renderVoiceConversation(session);
     if(await prepareVoiceLocation(session,result))return null;
     if(!voiceDialogueValid(session))return null;
     clearVoiceDialogue(session.channel,true);return result;
+  }catch(error){
+    session.lastOperation={status:'failed',code:typeof error.code==='string'?error.code:'request_failed'};
+    if(voiceDialogueValid(session)){
+      const utterance=typeof body==='string'?body:error.transcription;
+      if(utterance)session.history.push({role:'user',content:utterance});
+      session.history.push({role:'assistant',content:'Operacja nie powiodła się. Nie zapisano zmian.'});
+    }
+    throw error;
   }finally{session.busy=false}
 }
 
