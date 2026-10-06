@@ -2,16 +2,20 @@
 
 Planer wydarzeń, zadań i pomysłów z rozmową głosową, pogodą, kopiami danych i opcjonalną synchronizacją Google Calendar.
 
-## Wydanie 29
+## Wydanie 30
 
-Frontend i moduł synchronizacji: `2026.10.06.29`. Worker: ta sama wersja, protokół 2. W `release.json` zapisany jest identyfikator zbudowanego Workera; `/api-info` wdrożonego Workera musi zwracać ten sam `workerBuildId` jako `buildId`.
+Poprawka rozmowy: wybór miejscowości wymaga potwierdzenia lub jednoznacznej nazwy w ostatniej wypowiedzi; odpowiedź modelu sama w sobie nie wystarcza. Komentarze bez danych miejsca pozostawiają pytanie otwarte. Krótkie daty w odpowiedzi na pytanie o tytuł wymagają rozstrzygnięcia tytuł/termin; przypomnienie terminu jest potwierdzane przed kolejnym pytaniem. Synchronizacja pozostaje w wersji 29.
+
+### Podstawa: wydanie 29
+
+Frontend i Worker: `2026.10.06.30`. Moduł synchronizacji: `2026.10.06.29`, protokół 2. W `release.json` zapisany jest identyfikator zbudowanego Workera; `/api-info` wdrożonego Workera musi zwracać ten sam `workerBuildId` jako `buildId`.
 
 ### Wdrożenie na iPadzie
 
 1. Otwórz `worker-code.html` na stronie Planera lub pobierz `worker.txt`.
 2. W Cloudflare otwórz `moj-planer-api` → **Edit code**. Zastąp cały kod zawartością TXT i wybierz **Deploy**.
 3. Zachowaj sekrety `OPENAI_API_KEY`, `PLANNER_ACCESS_TOKEN` oraz binding D1 `API_LIMITS_DB`. Nigdy nie wpisuj sekretów do plików repozytorium.
-4. Odśwież Planer. Frontend 29 wymaga protokołu 2; ze starszym Workerem pokaże instrukcję aktualizacji zamiast wysyłać niezgodne nagranie.
+4. Odśwież Planer. Frontend 30 wymaga protokołu 2; ze starszym Workerem pokaże instrukcję aktualizacji zamiast wysyłać niezgodne nagranie.
 
 Limity Workera: 500 dziennie, 3000 miesięcznie, 10 na minutę. Źródłem obowiązujących limitów jest Worker. Nieudane płatne próby także mogą zużyć wywołanie. Baza liczników inicjalizowana jest przez Worker jak wcześniej.
 
@@ -48,6 +52,7 @@ node tests/dialogue-28.mjs
 node tests/dialogue-29.mjs
 node tests/sync-29.mjs
 node tests/api-29.mjs
+node tests/dialogue-30.mjs
 ```
 
 Testy używają fikcyjnych odpowiedzi AI i Google. Nie sprawdzają rzeczywistej transkrypcji, zachowania modelu ani OAuth. Stary test 28 zachowano jako regresję, z jego ograniczeniami wycinania fragmentów frontendu. Nowsze testy sprawdzają publiczny handler Workera i błędy współbieżności synchronizacji.
