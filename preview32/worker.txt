@@ -85,7 +85,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
   const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,today,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft),lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:text}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
-    const response=await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
+    const response=await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
     const raw=await response.text();if(!response.ok)throw openAiFailure(response.status,raw,'interpretation');
     let answer,candidate;
     try{
@@ -142,7 +142,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="7dbd604c269bee64";
+const BUILD_ID="b80e64291534f8c3";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -207,7 +207,7 @@ function dialogueResolveHour(text,pending){
 function dialogueHourQuestion(mention){return {kind:'hour',field:mention.field,choices:mention.choices,question:`Czy chodzi o ${mention.choices[0]} w nocy/rano, czy ${mention.choices[1]} po południu/wieczorem?`}}
 
 // END DIALOGUE CORE
-// Private prototype API protection — 2026.10.06.32
+// Private prototype API protection — 2026.10.06.32.2
 const API_LIMITS = Object.freeze({monthly:3000,daily:500,minute:10,audioBytes:4*1024*1024,jsonBytes:6*1024*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -614,7 +614,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.06.32",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.06.32.2",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

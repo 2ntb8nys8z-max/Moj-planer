@@ -7,7 +7,8 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/dialogue-28.mjs && node tests/dialogue-29.mjs && node tests/sync-29.mjs && node tests/api-29.mjs && node tests/dom-29.cjs && node tests/dialogue-30.mjs && node tests/dialogue-31.mjs"
+    "test": "node tests/dialogue-28.mjs && node tests/dialogue-29.mjs && node tests/sync-29.mjs && node tests/api-29.mjs && node tests/dom-29.cjs && node tests/dialogue-30.mjs && node tests/dialogue-31.mjs",
+    "test:preview32": "node tests/preview32-model.cjs && node tests/preview32.cjs"
   },
   "devDependencies": {
     "jsdom": "30.1.2"

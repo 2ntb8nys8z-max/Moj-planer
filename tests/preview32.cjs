@@ -23,9 +23,11 @@ assert.match(worker32,/semantycznie potwierdzać wcześniej uzgodniony szkic/);
 assert.match(worker32,/Przygotowałem zmianę\. Sprawdź ją i potwierdź\./);
 assert.match(worker32,/Niczego jeszcze nie zapisano\./);
 
-console.log('Preview32: complete scripts load; production data untouched; preview data persists; storage events isolated; Google connection and HTTP disabled; matching Worker bundled.');dom.window.close();
-})().catch(e=>{console.error(e);process.exitCode=1});
-
 assert.match(worker32,/instrukcję znakową/);
 assert.match(worker32,/zamień u na ó/);
 assert.match(worker32,/dodaję\|zapisuję\|zmieniam\|ustawiam/);
+
+
+console.log('Preview32: complete scripts load; production data untouched; preview data persists; storage events isolated; Google connection and HTTP disabled; matching Worker bundled.');dom.window.close();
+})().catch(e=>{console.error(e);process.exitCode=1});
+
