@@ -386,9 +386,11 @@ async function prepareVoiceLocation(session,result){
   if(item?.type!=='event'||!location||session.currentItem?.type==='event'&&(!item.changedFields?.includes('location')||location===session.currentItem.location))return false;
   let hints=plannerWeatherHints(location),candidates=[];
   const valid=()=>voiceDialogueValid(session);
-  function finish(place,raw=false){
+  function finish(place,raw=false,rawLocation=''){
     if(!valid())return;
-    item.locationUnresolved=raw?location:null;
+    const resolvedLocation=raw&&String(rawLocation||'').trim()?String(rawLocation).trim():location;
+    if(raw&&resolvedLocation!==location)item.location=resolvedLocation;
+    item.locationUnresolved=raw?resolvedLocation:null;
     if(place){
       // Preserve the user's street/number; append administrative detail for disambiguation.
       const detail=[place.name,place.admin1,place.country].filter(Boolean).filter(v=>!plannerLocationKey(location).includes(plannerLocationKey(v)));
@@ -423,7 +425,7 @@ async function prepareVoiceLocation(session,result){
   }
   session.onWeatherAction=async action=>{
     if(!valid())return false;
-    if(action.action==='raw'){finish(null,true);return true;}
+    if(action.action==='raw'){finish(null,true,action.location);return true;}
     if(action.action==='choose'){
       const place=candidates.find(p=>String(p.id)===action.id);
       if(place){finish(place);return true;}
