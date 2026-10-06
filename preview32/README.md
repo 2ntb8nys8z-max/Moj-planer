@@ -1,17 +1,40 @@
-# Test rozmowy 32
+# Test rozmowy 32.3
 
-Snapshot gałęzi conversation-engine-32, commit eb3af7b8b544596a2e8787fd3fb876fa5b35c109.
-Adres: /Moj-planer/preview32/.
+Gałąź fix/conversation32-save-truth. Baza: b96a557da176843a23a73ddb7394c240a5796d74 (32.2).
+Frontend i Worker: 2026.10.06.32.3. Worker build: 4280e57cf622290b.
+Engine 3: gpt-6-luna, reasoning_effort none. Transkrypcja bez zmian.
 
-Ta kopia ma osobne klucze localStorage z prefiksem planner-preview-32:.
-Nie migruje danych zwykłej aplikacji ani jej kodu dostępu; użytkownik wpisuje ten sam kod ponownie.
-Google OAuth nie jest ładowany; inicjalizacja i przywrócenie połączenia są wyłączone, a warstwa HTTP Google odrzuca operacje.
-Główna aplikacja pozostaje wersją 31. Wspólny Worker 32 obsługuje oba silniki: stary klient używa 2, testowy 3.
-Limity AI są wspólne. W Cloudflare należy podmienić cały kod Workera na worker.txt z tego folderu; sekrety i D1 pozostają.
+## Zmiany
 
-Worker nie jest wdrażany przez GitHub Pages. Użytkownik wdraża go ręcznie.
-Przed próbą rozmowy można użyć przycisku Sprawdź limit AI, aby sprawdzić połączenie.
-Szkic rozmowy jest sesyjny. Nowe zakresy przez północ/wiele dni są jeszcze blokowane.
-Resolver lokalizacji korzysta ze starszego przepływu.
+Model klasyfikuje znaczenie jako execute, modify, propose, accept, reject albo continue.
+Kod wybiera review po jednoznacznym poleceniu lub poprawce, jeśli szkic jest kompletny.
+Propozycja pozostaje w pendingProposal; accept/reject muszą wskazać aktualny proposalId.
+Odrzucenie przywraca szkic sprzed propozycji. Pytanie nie może stosować operacji.
+Gotowy podgląd i komunikaty wykonania polecenia pochodzą z programu, nie swobodnej odpowiedzi modelu.
+Zapis nadal następuje tylko po potwierdzeniu przyciskiem we frontendzie.
 
-Test lokalny z głównego katalogu repo: node tests/preview32.cjs (wymaga npm ci).
+Pogoda nie przejmuje rozmowy i nie blokuje podglądu. Wyszukiwanie następuje po otwarciu
+wydarzenia; niepewny wynik pokazuje informację o ręcznej korekcie, bez pytań o region.
+Zaakceptowana nazwa pozostaje bez zmian. Znalezione współrzędne są osobnymi metadanymi.
+Stary resolver Workera pozostaje dla klienta Engine 2.
+
+## Izolacja i wdrożenie
+
+Osobne dane localStorage z prefiksem planner-preview-32:. Google wyłączony.
+Główna aplikacja pozostaje 31. Nie zmieniać main.
+Worker wdraża się ręcznie do Cloudflare; zachować sekrety i D1.
+Frontend preview32/index.html trzeba opublikować jako kopię testową, niezależnie od Workera.
+Samo wdrożenie Workera nie aktualizuje strony z GitHub Pages.
+
+## Testy
+
+npm ci, następnie npm run test:preview32.
+Testy z podstawionym API obejmują usunięcie lokalizacji, review, propozycję/akceptację,
+odrzucenie, nieaktualną zgodę, pytanie bez mutacji, brakujące dane i odrzucenie błędnej próby.
+Test DOM sprawdza izolację danych oraz brak rozmowy i zmiany nazwy przy niepewnym geokoderze.
+Nie wykonują płatnych wywołań; jakość klasyfikacji Luny wymaga testów rzeczywistych.
+
+preview32/worker.txt jest samodzielnym źródłem eksperymentu, nie wynikiem głównego builda.
+scripts/build.mjs generuje tylko głównego Workera 31.
+BUILD_ID to pierwsze 16 znaków SHA-256 pliku z const BUILD_ID="development"; przed wstawieniem ID.
+Numer wersji jest także w pierwszej linii pliku.
