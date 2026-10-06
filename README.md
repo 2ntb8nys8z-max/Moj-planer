@@ -2,13 +2,17 @@
 
 Planer wydarzeń, zadań i pomysłów z rozmową głosową, pogodą, kopiami danych i opcjonalną synchronizacją Google Calendar.
 
-## Wydanie 30
+## Wydanie 31
+
+AI może zwrócić odpowiedź rozmowną bez operacji zapisu. Pytanie użytkownika nie jest zastępowane stałym pytaniem formularza. Szkic i typ oczekiwanej informacji pozostają zachowane; odpowiedź rozmowna nie może mutować danych. Krótkie jednoznaczne odpowiedzi (np. długość) nadal mogą być rozwiązywane lokalnie. Testy 31 używają podstawionych odpowiedzi modelu; rzeczywistą jakość językową trzeba sprawdzić po wdrożeniu.
+
+### Wydanie 30
 
 Poprawka rozmowy: wybór miejscowości wymaga potwierdzenia lub jednoznacznej nazwy w ostatniej wypowiedzi; odpowiedź modelu sama w sobie nie wystarcza. Komentarze bez danych miejsca pozostawiają pytanie otwarte. Krótkie daty w odpowiedzi na pytanie o tytuł wymagają rozstrzygnięcia tytuł/termin; przypomnienie terminu jest potwierdzane przed kolejnym pytaniem. Synchronizacja pozostaje w wersji 29.
 
 ### Podstawa: wydanie 29
 
-Frontend i Worker: `2026.10.06.30`. Moduł synchronizacji: `2026.10.06.29`, protokół 2. W `release.json` zapisany jest identyfikator zbudowanego Workera; `/api-info` wdrożonego Workera musi zwracać ten sam `workerBuildId` jako `buildId`.
+Frontend i Worker: `2026.10.06.31`. Moduł synchronizacji: `2026.10.06.29`, protokół 2. W `release.json` zapisany jest identyfikator zbudowanego Workera; `/api-info` wdrożonego Workera musi zwracać ten sam `workerBuildId` jako `buildId`.
 
 ### Wdrożenie na iPadzie
 
