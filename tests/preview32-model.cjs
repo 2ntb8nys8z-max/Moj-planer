@@ -24,7 +24,7 @@ context.turn = {
   env:{OPENAI_API_KEY:'mock'},today:'2026-10-06'
 };
 const answer = action => ({reply:'Sprawdź propozycję.',kind:'event',action,
-  operations:[],focus:'',ambiguity:null});
+  operations:[],focus:'',ambiguity:null,intent:action==='review'?'execute':'continue',proposalId:null});
 
 (async () => {
   const before = JSON.stringify(context.turn);
@@ -55,8 +55,49 @@ const answer = action => ({reply:'Sprawdź propozycję.',kind:'event',action,
   assert.equal(result.location,'Wólka Kosowska');
   assert.equal(calls.at(-1).body.model,'gpt-4o-mini','Resolver model must remain unchanged');
   assert.match(source,/gpt-4o-mini-transcribe/);
+  // Direct deletion reaches review even when the model requests continue.
+  context.turn.original.location='Wólka Kosowska';
+  context.turn.state={};context.turn.text='Usuń lokalizację.';
+  responses.push({...answer('continue'),intent:'execute',operations:[{op:'clear',field:'location'}]});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'review');assert.equal(result.item.location,'');
+  assert.equal(result.dialogueState.lastOperation.status,'preview_ready');
+  assert.match(result.reply,/Sprawdź/);
+
+  // A proposal does not advance until acceptance of that exact proposal.
+  responses.push({...answer('continue'),intent:'propose',operations:[{op:'clear',field:'location'}]});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'continue');assert.ok(result.dialogueState.pendingProposal.id);
+  const proposed=result.dialogueState;
+  context.turn.state=proposed;context.turn.text='Tak, zrób to.';
+  responses.push({...answer('continue'),intent:'accept',proposalId:proposed.pendingProposal.id});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'review');assert.equal(result.item.location,'');
+  assert.equal(result.dialogueState.pendingProposal,null);
+
+  // Reject restores the state before the proposal; stale acceptance fails closed.
+  responses.push({...answer('continue'),intent:'reject',proposalId:proposed.pendingProposal.id});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'continue');assert.equal(result.dialogueState.draft.location,'Wólka Kosowska');
+  assert.equal(result.dialogueState.pendingProposal,null);
+  responses.push({...answer('continue'),intent:'accept',proposalId:'stale'},
+    {...answer('continue'),intent:'accept',proposalId:'stale'});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'continue');assert.equal(result.item,undefined);
+  assert.equal(result.dialogueState.lastOperation.status,'failed');
+
+  // A question cannot review or mutate even if the model attaches legacy review.
+  context.turn.state={};context.turn.text='Czy mogę usunąć lokalizację?';
+  responses.push({...answer('review'),intent:'continue'});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'continue');assert.equal(result.dialogueState.draft.location,'Wólka Kosowska');
+  context.turn.original=null;context.turn.state={};context.turn.text='Dodaj spotkanie.';
+  responses.push({...answer('continue'),intent:'execute',operations:[{op:'set',field:'title',value:'Spotkanie'}]});
+  result=await vm.runInContext('runConversationTurn(turn)',context);
+  assert.equal(result.status,'continue');assert.equal(result.item,undefined);
+
   const normalized = source.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
   assert.equal(source.match(/const BUILD_ID="([^"]*)";/)[1],createHash('sha256').update(normalized).digest('hex').slice(0,16));
-  assert.match(source,/apiVersion:"2026\.10\.06\.32\.2"/);
-  console.log('Preview32.2 model contract: request parameters, review isolation, retry rollback, unchanged resolver and transcription, build identity passed. No live API calls.');
+  assert.match(source,/apiVersion:"2026\.10\.06\.32\.3"/);
+  console.log('Preview32.3 model contract: request parameters, review isolation, retry rollback, unchanged resolver and transcription, build identity passed. No live API calls.');
 })().catch(error => {console.error(error);process.exitCode=1;});

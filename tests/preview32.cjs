@@ -16,6 +16,17 @@ assert.ok(w.localStorage.getItem('planner-preview-32:moj-planer-data-v1'));
 w.dispatchEvent(new w.StorageEvent('storage',{key:'moj-planer-data-v1',newValue:'other production change'}));assert.equal(vm.runInContext('PlannerData.isLocked()',ctx),false);
 await assert.rejects(()=>w.plannerGoogleFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events'),/wyłączona/);
 w.dispatchEvent(new w.StorageEvent('storage',{key:'planner-preview-32:moj-planer-data-v1',newValue:'other preview change'}));assert.equal(vm.runInContext('PlannerData.isLocked()',ctx),true);
+// Optional weather never rewrites the accepted location or opens a resolver dialogue.
+const weatherResult={item:{type:'event',location:'Wólka Kosowska'}};
+w.weatherResult=weatherResult;
+assert.equal(await vm.runInContext('prepareVoiceLocation({},weatherResult)',ctx),false);
+assert.equal(weatherResult.item.location,'Wólka Kosowska');
+vm.runInContext("activeTask=tasks[0];activeTask.location='Wólka Kosowska';activeTask.date=new Date().toISOString().slice(0,10);plannerWeatherJson=async()=>({results:[{id:1,name:'Wola Kosowska',latitude:52,longitude:21,country:'Polska',country_code:'PL'}]});",ctx);
+await vm.runInContext('showPlannerWeather(activeTask)',ctx);
+assert.equal(vm.runInContext('voiceDialogues.event',ctx),null);
+assert.match(w.document.getElementById('eventWeather').textContent,/ręcznie poprawić lokalizację/);
+assert.equal(vm.runInContext('activeTask.location',ctx),'Wólka Kosowska');
+
 assert.match(html,/conversationEngine:3/);assert.match(fs.readFileSync('preview32/worker.txt','utf8'),/conversationEngines:\[2,3\]/);
 
 const worker32=fs.readFileSync('preview32/worker.txt','utf8');
@@ -25,7 +36,7 @@ assert.match(worker32,/Niczego jeszcze nie zapisano\./);
 
 assert.match(worker32,/instrukcję znakową/);
 assert.match(worker32,/zamień u na ó/);
-assert.match(worker32,/dodaję\|zapisuję\|zmieniam\|ustawiam/);
+assert.match(worker32,/invalid_semantic_intent/);
 
 
 console.log('Preview32: complete scripts load; production data untouched; preview data persists; storage events isolated; Google connection and HTTP disabled; matching Worker bundled.');dom.window.close();

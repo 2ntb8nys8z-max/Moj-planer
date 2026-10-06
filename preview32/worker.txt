@@ -1,3 +1,4 @@
+// MÓJ PLANER — WORKER 32.3 — GPT-6 Luna
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -10,6 +11,8 @@ Godziny 1–12 bez jasnej pory wymagają doprecyzowania. Nie wnioskuj 14:00 z wc
 Nazwę Wydarzenie można wybrać po odmowie własnego tytułu; nie wstawiaj jej automatycznie. Lokalizacja opcjonalna, zachowaj sam poprawiony adres bez dyktowanych instrukcji literowania. Jeśli użytkownik poprawia pisownię aktualnej lub proponowanej lokalizacji przez instrukcję znakową, np. „zamień u na ó”, „przez rz”, „dopisz h” albo „usuń ostatnią literę”, zastosuj tę korektę do istniejącej wartości location i zwróć pełną poprawioną wartość przez set location. Nie zgaduj, którego znaku dotyczy polecenie, jeśli wskazanie nie jest jednoznaczne — wtedy krótko dopytaj. Miejscowość weryfikuje odrębny resolver; nie twierdź, że sprawdziłeś mapę. Zagraniczne nazwy zachowuj w oryginalnej pisowni. Przypomnienia pozostają tylko w Planerze: reminder {minutesBefore:0..10080}. Serie: recurrence {frequency:daily|weekly|monthly,interval:1..365,count:1..500 lub null,until:YYYY-MM-DD lub null}; count i until nie jednocześnie. Edycja dotyczy pojedynczego wystąpienia; nie obiecuj zmian całej serii.
 Jeśli celem jest zadanie/pomysł bez terminu, kind idea i dodatkowo idea {type:idea,text:pełna treść,action:replace|append,addition:nowa treść lub null}; operations puste. Dla wyjaśnienia dotyczącego pomysłu action continue i idea null. Istniejące wydarzenie nie staje się pomysłem bez osobnego przepływu konwersji.
 lastOperation mówi o wyniku technicznym poprzedniego kroku. Jeśli wystąpił błąd, nie zaprzeczaj mu i nie zapewniaj, że zapis działa. Wolno powiedzieć tylko to, co wynika z kontekstu. Nie masz dostępu do testów systemu, całego kalendarza ani potwierdzenia synchronizacji. Nigdy nie ogłaszaj zapisania zmian: kończysz na podglądzie. Słowa użytkownika typu „dodaj”, „zapisz”, „wprowadź”, „tak”, „zgadza się” mogą semantycznie potwierdzać wcześniej uzgodniony szkic; jeśli szkic jest kompletny i nie ma ambiguity, przejdź wtedy do action review bez ponownego ustawiania już uzgodnionych pól. review nadal oznacza wyłącznie podgląd do zatwierdzenia przez aplikację, nie wykonany zapis. Odrzucenie lub poprawka użytkownika pozostaje continue i odpowiednio zmienia szkic. missing zawiera braki danych, nie gotowe pytania ani wymaganą kolejność rozmowy.
+
+PROTOKÓŁ 32.3: Zwróć także intent: execute|accept|reject|modify|propose|continue oraz proposalId (identyfikator pendingProposal przy accept/reject, inaczej null). To klasyfikacja znaczenia, nie dopasowanie słów. execute oznacza bezpośrednie polecenie wykonania zmiany; modify jednoznaczną poprawkę; propose niepewną propozycję wymagającą zgody; accept/reject odnoszą się wyłącznie do przekazanego pendingProposal. Pytanie o możliwość albo wyjaśnienie to continue, operations []. execute/modify MUSZĄ zawierać operacje wynikające z wypowiedzi, chyba że użytkownik zleca przygotowanie już zmienionego szkicu do potwierdzenia. propose może zawierać operacje propozycji. accept/reject operations [], proposalId dokładnie z kontekstu. Nie odtwarzaj dawnych operacji. Jeśli użytkownik akceptuje i jednocześnie poprawia, użyj modify z korektą. Program sam wybiera review: zawsze zwracaj action continue. Nie mów o skoroszycie ani publikacji. Dla continue odpowiedz na pytanie; dla propozycji wyjaśnij zmianę i poproś o zgodę. Nigdy nie sugeruj wykonania zapisu.
 Jeśli otrzymasz validationFeedback, popraw WYŁĄCZNIE swoją odpowiedź na tę samą wypowiedź użytkownika. Nie odtwarzaj dawnych operacji ani nie zgaduj intencji, by ominąć błąd. Przy nieobsługiwanej zmianie wyjaśnij ograniczenie, operations [], action continue. Gdy danych brak, możesz nadal odpowiadać na pytania; do review potrzebne są kompletne dane.`;
 
 function conversationFault(code){const e=new Error(code);e.conversationCode=code;return e;}
@@ -82,29 +85,42 @@ function conversationCandidate(original,state,answer){
 }
 async function runConversationTurn({text,history,original,state,env,today,lastOperation}){
   const draft={...(original?.type==='event'?original:{}),...(state.draft||{}),type:'event'};
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,today,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft),lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:text}];
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,today,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft),lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:text}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
     const response=await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
     const raw=await response.text();if(!response.ok)throw openAiFailure(response.status,raw,'interpretation');
-    let answer,candidate;
+    let answer,candidate,pendingProposal=null,ready=false;
     try{
       const outer=JSON.parse(raw),content=outer.choices?.[0]?.message?.content;
-      answer=JSON.parse(content);candidate=conversationCandidate(original,state,answer);
+      answer=JSON.parse(content);
+      if(!['execute','accept','reject','modify','propose','continue'].includes(answer.intent))throw conversationFault('invalid_semantic_intent');
+      if(['accept','reject'].includes(answer.intent)&&(!state.pendingProposal||answer.proposalId!==state.pendingProposal.id))throw conversationFault('proposal_not_current');
+      if(['accept','reject','continue'].includes(answer.intent)&&answer.operations?.length)throw conversationFault('intent_cannot_mutate');
+      let appliedState=state;
+      if(answer.intent==='reject')appliedState={...state,draft:state.pendingProposal.baseDraft,allDay:state.pendingProposal.baseAllDay};
+      answer.action='continue';
+      candidate=conversationCandidate(original,appliedState,answer);
+      const hasChange=answer.kind==='idea'?!!answer.idea:(original?.type==='event'?candidate.draft.changedFields.length>0:true);
+      ready=['execute','modify','accept'].includes(answer.intent)&&hasChange&&!candidate.missing.length&&!candidate.ambiguity;
+      if(answer.kind==='idea')ready=['execute','modify','accept'].includes(answer.intent)&&!!(answer.idea||state.pendingProposal?.idea);
+      if(answer.intent==='accept'&&answer.kind!==state.pendingProposal.kind)throw conversationFault('proposal_kind_changed');
+      if(answer.intent==='accept'&&answer.kind==='idea')answer.idea=state.pendingProposal.idea;
+      if(ready)candidate=conversationCandidate(original,appliedState,{...answer,action:'review'});
+      if(!ready&&answer.intent!=='reject'){
+        pendingProposal=answer.intent==='continue'?state.pendingProposal||null:{id:crypto.randomUUID(),kind:answer.kind,draft:plannerCleanDraft(candidate.draft),idea:answer.idea||null,baseDraft:plannerCleanDraft(draft),baseAllDay:state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft};
+      }
     }catch(error){
       failure=error.conversationCode||'invalid_json_response';
       // Retry from the same immutable draft, never from partially applied operations.
       messages.push({role:'user',content:JSON.stringify({validationFeedback:failure,rejectedResponse:answer||null,previousAttemptApplied:false,instruction:'Return a corrected response to the same user utterance, or discuss the limitation without operations.'})});
       continue;
     }
-    const ready=answer.action==='review';
-    // The model may propose a preview, but it never owns persistence truth. Rewrite any
-    // premature success wording before the frontend has actually saved the event.
-    let reply=answer.reply.trim();
-    if(/(?:zosta(?:ł|ła|ło|ły)\s+(?:dod|zapis|zmien|ustaw)|(?:doda|zapis|zmieni|ustawi)(?:łem|łam|liśmy)|(?:dodano|zapisano|zmieniono|ustawiono)|(?:dodaję|zapisuję|zmieniam|ustawiam))/i.test(reply)){
-      reply=ready?'Przygotowałem zmianę. Sprawdź ją i potwierdź.':'Przygotowałem tę zmianę w szkicu. Niczego jeszcze nie zapisano.';
-    }
-    const next={engine:3,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'}};
+    // Persistence wording and review transitions belong to the application.
+    const reply=ready?'Przygotowałem zmianę. Sprawdź ją i potwierdź.':
+      answer.intent==='reject'?'Odrzucono propozycję. Niczego jeszcze nie zapisano.':
+      ['execute','modify'].includes(answer.intent)?'Zmiana jest w szkicu. Potrzebuję jeszcze doprecyzowania: '+(candidate.missing.map(k=>({title:'nazwa wydarzenia',date:'dzień wydarzenia',startTime_or_allDay:'godzina rozpoczęcia lub wydarzenie całodniowe',endTime_or_durationMinutes:'godzina zakończenia lub długość'}[k]||k)).join(', ')||answer.focus||'niejednoznaczne dane')+'.':answer.reply.trim();
+    const next={engine:3,pendingProposal,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'}};
     return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft}:{})};
   }
   return {engine:3,success:true,status:'continue',reply:'Nie udało mi się poprawnie przygotować tej zmiany. Dotychczasowe ustalenia pozostają w rozmowie; niczego nie zapisano. Możesz doprecyzować polecenie albo spróbować ponownie.',dialogueState:{...state,engine:3,draft:plannerCleanDraft(draft),lastOperation:{status:'failed',code:failure},revision:(Number(state.revision)||0)+1}};
@@ -142,7 +158,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="b80e64291534f8c3";
+const BUILD_ID="4280e57cf622290b";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -207,7 +223,7 @@ function dialogueResolveHour(text,pending){
 function dialogueHourQuestion(mention){return {kind:'hour',field:mention.field,choices:mention.choices,question:`Czy chodzi o ${mention.choices[0]} w nocy/rano, czy ${mention.choices[1]} po południu/wieczorem?`}}
 
 // END DIALOGUE CORE
-// Private prototype API protection — 2026.10.06.32.2
+// Private prototype API protection — 2026.10.06.32.3
 const API_LIMITS = Object.freeze({monthly:3000,daily:500,minute:10,audioBytes:4*1024*1024,jsonBytes:6*1024*1024,textChars:4000});
 const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS planner_api_quota (
   id TEXT PRIMARY KEY, month_key TEXT NOT NULL, month_count INTEGER NOT NULL,
@@ -614,7 +630,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.06.32.2",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.06.32.3",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
