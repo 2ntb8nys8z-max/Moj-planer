@@ -17,5 +17,11 @@ w.dispatchEvent(new w.StorageEvent('storage',{key:'moj-planer-data-v1',newValue:
 await assert.rejects(()=>w.plannerGoogleFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events'),/wyłączona/);
 w.dispatchEvent(new w.StorageEvent('storage',{key:'planner-preview-32:moj-planer-data-v1',newValue:'other preview change'}));assert.equal(vm.runInContext('PlannerData.isLocked()',ctx),true);
 assert.match(html,/conversationEngine:3/);assert.match(fs.readFileSync('preview32/worker.txt','utf8'),/conversationEngines:\[2,3\]/);
+
+const worker32=fs.readFileSync('preview32/worker.txt','utf8');
+assert.match(worker32,/semantycznie potwierdzać wcześniej uzgodniony szkic/);
+assert.match(worker32,/Przygotowałem zmianę\. Sprawdź ją i potwierdź\./);
+assert.match(worker32,/Niczego jeszcze nie zapisano\./);
+
 console.log('Preview32: complete scripts load; production data untouched; preview data persists; storage events isolated; Google connection and HTTP disabled; matching Worker bundled.');dom.window.close();
 })().catch(e=>{console.error(e);process.exitCode=1});
