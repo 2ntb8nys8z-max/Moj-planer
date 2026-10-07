@@ -1,5 +1,18 @@
 # Mój Planer
 
+## Jedno źródło Conversation 33
+
+Gałąź `integration/conversation33` jest jedyną bazą dalszego rozwoju wersji 33.
+
+- Frontend edytujemy wyłącznie w `index.html`.
+- Worker edytujemy wyłącznie w `worker.js` oraz w jego blokach źródłowych `dialogue-core.js` i `prompts.js`.
+- `npm run build` generuje `preview33/index.html`, oba pliki `worker.txt` oraz manifesty wydania.
+- `npm run check:generated` kończy się błędem, jeśli którykolwiek artefakt jest nieaktualny.
+- `npm test` zaczyna od tej kontroli, a następnie uruchamia testy aplikacji.
+- Push na `integration/conversation33` publikuje na `main` wyłącznie trzy artefakty katalogu `preview33/`. Produkcyjny `main/index.html` pozostaje Planerem 31.
+
+Preview33 używa prefiksu danych `planner-preview-33:`. Google Calendar nie jest izolowany; do testów synchronizacji należy używać konta lub kalendarza testowego.
+
 Planer wydarzeń, zadań i pomysłów z rozmową głosową, pogodą, kopiami danych i opcjonalną synchronizacją Google Calendar.
 
 ## Integracja rozmowy 33

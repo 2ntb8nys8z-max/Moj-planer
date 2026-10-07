@@ -1,0 +1,62 @@
+name: Publish Preview33
+
+on:
+  push:
+    branches: [integration/conversation33]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview33-publication
+  cancel-in-progress: true
+
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out canonical integration source
+        uses: actions/checkout@v4
+        with:
+          ref: integration/conversation33
+          path: integration
+
+      - name: Install dependencies
+        working-directory: integration
+        run: npm ci
+
+      - name: Verify generated files and tests
+        working-directory: integration
+        run: npm test
+
+      - name: Stage publication artifacts
+        run: |
+          mkdir -p "$RUNNER_TEMP/preview33"
+          cp integration/preview33/index.html "$RUNNER_TEMP/preview33/index.html"
+          cp integration/preview33/release.json "$RUNNER_TEMP/preview33/release.json"
+          cp integration/preview33/worker.txt "$RUNNER_TEMP/preview33/worker.txt"
+
+      - name: Check out GitHub Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: pages
+
+      - name: Publish only Preview33 artifacts
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          cp "$RUNNER_TEMP/preview33/index.html" pages/preview33/index.html
+          cp "$RUNNER_TEMP/preview33/release.json" pages/preview33/release.json
+          cp "$RUNNER_TEMP/preview33/worker.txt" pages/preview33/worker.txt
+          cd pages
+          if git diff --quiet -- preview33/index.html preview33/release.json preview33/worker.txt; then
+            echo "Preview33 is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add preview33/index.html preview33/release.json preview33/worker.txt
+          git commit -m "Publish Preview33 from ${SOURCE_SHA} [skip ci]"
+          git push origin HEAD:main
