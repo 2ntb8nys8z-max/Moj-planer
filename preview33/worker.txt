@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.0 TEST — GPT-6 Luna
+// MÓJ PLANER — WORKER 33.1-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -12,7 +12,7 @@ Nazwę Wydarzenie można wybrać po odmowie własnego tytułu; nie wstawiaj jej 
 Jeśli celem jest zadanie/pomysł bez terminu, kind idea i dodatkowo idea {type:idea,text:pełna treść,action:replace|append,addition:nowa treść lub null}; operations puste. Dla wyjaśnienia dotyczącego pomysłu action continue i idea null. Istniejące wydarzenie nie staje się pomysłem bez osobnego przepływu konwersji.
 lastOperation mówi o wyniku technicznym poprzedniego kroku. Jeśli wystąpił błąd, nie zaprzeczaj mu i nie zapewniaj, że zapis działa. Wolno powiedzieć tylko to, co wynika z kontekstu. Nie masz dostępu do testów systemu, całego kalendarza ani potwierdzenia synchronizacji. Nigdy nie ogłaszaj zapisania zmian: kończysz na podglądzie. Słowa użytkownika typu „dodaj”, „zapisz”, „wprowadź”, „tak”, „zgadza się” mogą semantycznie potwierdzać wcześniej uzgodniony szkic; jeśli szkic jest kompletny i nie ma ambiguity, przejdź wtedy do action review bez ponownego ustawiania już uzgodnionych pól. review nadal oznacza wyłącznie podgląd do zatwierdzenia przez aplikację, nie wykonany zapis. Odrzucenie lub poprawka użytkownika pozostaje continue i odpowiednio zmienia szkic. missing zawiera braki danych, nie gotowe pytania ani wymaganą kolejność rozmowy.
 
-PROTOKÓŁ 33.0: Zwróć także intent: execute|accept|reject|modify|propose|continue oraz proposalId (identyfikator pendingProposal przy accept/reject, inaczej null). To klasyfikacja znaczenia, nie dopasowanie słów. execute oznacza bezpośrednie polecenie wykonania zmiany; modify jednoznaczną poprawkę; propose niepewną propozycję wymagającą zgody; accept/reject odnoszą się wyłącznie do przekazanego pendingProposal. Pytanie o możliwość albo wyjaśnienie to continue, operations []. execute/modify MUSZĄ zawierać operacje wynikające z wypowiedzi, chyba że użytkownik zleca przygotowanie już zmienionego szkicu do potwierdzenia. propose może zawierać operacje propozycji. accept/reject operations [], proposalId dokładnie z kontekstu. Nie odtwarzaj dawnych operacji. Jeśli użytkownik akceptuje i jednocześnie poprawia, użyj modify z korektą. Program sam wybiera review: zawsze zwracaj action continue. Nie mów o skoroszycie ani publikacji. Dla continue odpowiedz na pytanie; dla propozycji wyjaśnij zmianę i poproś o zgodę. Nigdy nie sugeruj wykonania zapisu.
+PROTOKÓŁ 32.3: Zwróć także intent: execute|accept|reject|modify|propose|continue oraz proposalId (identyfikator pendingProposal przy accept/reject, inaczej null). To klasyfikacja znaczenia, nie dopasowanie słów. execute oznacza bezpośrednie polecenie wykonania zmiany; modify jednoznaczną poprawkę; propose niepewną propozycję wymagającą zgody; accept/reject odnoszą się wyłącznie do przekazanego pendingProposal. Pytanie o możliwość albo wyjaśnienie to continue, operations []. execute/modify MUSZĄ zawierać operacje wynikające z wypowiedzi, chyba że użytkownik zleca przygotowanie już zmienionego szkicu do potwierdzenia. propose może zawierać operacje propozycji. accept/reject operations [], proposalId dokładnie z kontekstu. Nie odtwarzaj dawnych operacji. Jeśli użytkownik akceptuje i jednocześnie poprawia, użyj modify z korektą. Program sam wybiera review: zawsze zwracaj action continue. Nie mów o skoroszycie ani publikacji. Dla continue odpowiedz na pytanie; dla propozycji wyjaśnij zmianę i poproś o zgodę. Nigdy nie sugeruj wykonania zapisu.
 Jeśli otrzymasz validationFeedback, popraw WYŁĄCZNIE swoją odpowiedź na tę samą wypowiedź użytkownika. Nie odtwarzaj dawnych operacji ani nie zgaduj intencji, by ominąć błąd. Przy nieobsługiwanej zmianie wyjaśnij ograniczenie, operations [], action continue. Gdy danych brak, możesz nadal odpowiadać na pytania; do review potrzebne są kompletne dane.`;
 
 function conversationFault(code){const e=new Error(code);e.conversationCode=code;return e;}
@@ -158,7 +158,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="0897fbda6678473c";
+const BUILD_ID="5975e9211a3cdbf2";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -625,7 +625,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.07.33.0-dev",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.07.33.1-test",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -785,6 +785,14 @@ export default {
 
       if(weatherContext)return json({success:true,usage:apiUsage,transcription:spokenText,weatherAction:await interpretWeatherReply(spokenText,dialogue,weatherContext,env)});
 
+      // Engine 3 owns the whole conversational turn. Dispatch it before the
+      // deterministic Engine 2 date/time shortcuts so both engines keep their
+      // own state protocol and response shape.
+      if(conversationEngine===3){
+        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation});
+        return json({...turn,usage:apiUsage,transcription:spokenText,utterance:spokenText});
+      }
+
       const base=dialogueReduce(currentItem,dialogueState,[]);
       const pending=dialogueState.pendingQuestion;
       const relativeDate=dialogueRelativeDate(spokenText,quotaPeriod().day);
@@ -834,12 +842,6 @@ export default {
       } // Questions go to the conversational model with the same draft and pending question.
       const confirmedTimeRange=null;
       const currentDate=quotaPeriod().day;
-
-      // Engine 3 is the preview-tested conversational interpreter. Engine 2 remains intact for rollback.
-      if(conversationEngine===3&&!weatherContext){
-        const result=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:currentDate,lastOperation});
-        return json({...result,usage:apiUsage,transcription:spokenText,utterance:spokenText});
-      }
 
       /* ===== 4. AI ROZUMIE WYPOWIEDŹ ===== */
 
@@ -961,7 +963,6 @@ export default {
     }
   }
 };
-
 
 
 
