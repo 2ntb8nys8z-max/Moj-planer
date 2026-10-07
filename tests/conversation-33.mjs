@@ -17,6 +17,19 @@ try{
  model={reply:'Tak.',kind:'event',action:'continue',intent:'accept',proposalId:pid,operations:[],focus:'',ambiguity:null};
  r=await post('Tak',r.dialogueState,original);assert.equal(r.status,'review');assert.equal(r.item.location,'Zielona Góra');
 
+ model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów: jajka, awokado, chleb, masło, kefir, pomidory',action:'replace',addition:null}};
+ r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.match(r.item.text,/awokado/);
+
+ const idea={type:'idea',text:'Wyjazd',additions:[]};
+ model={reply:'Dodaję lokalizację jako dopisek.',kind:'idea',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Wyjazd',action:'append',addition:'Lokalizacja: Czechowice-Dziedzice, Polska'}};
+ r=await post('Dodaj lokalizację Czechowice-Dziedzice w Polsce.',null,idea);assert.equal(r.status,'review');assert.equal(r.item.action,'append');assert.equal(r.item.addition,'Lokalizacja: Czechowice-Dziedzice, Polska');
+
+ model={reply:'Otwieram tworzenie nowego wydarzenia.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:null}};
+ r=await post('Otwórz nowe wydarzenie.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:null});assert.equal(r.item,undefined);
+
+ model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
+ r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_event',query:'Spotkanie z Zosią'});
+
  // Engine 3 must receive short turns before legacy Engine 2 shortcuts.
  for(const test of [
   {text:'Jutro',operations:[{op:'set',field:'date',value:'2026-10-08'}]},
