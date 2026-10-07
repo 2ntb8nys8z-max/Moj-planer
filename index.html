@@ -268,7 +268,7 @@ async function plannerApiRequest(path,options={}){
   let {response,result}=await plannerReadApi(path,{...options,headers});
   // Handles the transition from the previous Worker without repeating a paid call.
   if(response.status===401&&['access_required','access_denied'].includes(result.code)){
-    saveApiAccess('');apiInfoCache={requiresAccess:true};apiInfoAt=Date.now();token=await askApiAccess(true);
+    saveApiAccess('');apiInfoCache={...info,requiresAccess:true};apiInfoAt=Date.now();token=await askApiAccess(true);
     if(!token){const e=new Error('Anulowano dostęp do AI. Niczego nie zmieniono.');e.cancelled=true;throw e}
     headers.Authorization='Bearer '+token;({response,result}=await plannerReadApi(path,{...options,headers}));
   }
