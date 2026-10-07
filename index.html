@@ -724,6 +724,7 @@ function applyVoiceEventFields(task,edit,fields){
     if(!map[field])continue;
     task[map[field]]=field==='notes'&&edit.notesAction==='append'?appendVoiceNotes(task.notes||'',edit.notesAddition):edit[field];
   }
+  if(fields.includes('location')&&plannerLocation(task)!==previousLocation)clearPlannerWeatherResolution(task);
   if(task.googleEventId){task.googleDirty=true;task.googleSynced=false;}
 }
 function voiceEventChangePreview(before,after,fields,transcription){
