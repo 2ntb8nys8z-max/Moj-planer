@@ -17,6 +17,6 @@ assert.doesNotMatch(preview,/apiInfoCache=\{requiresAccess:true\}/);
 assert.equal(workerText,worker,'published test Worker must exactly match canonical worker.js');
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.2-TEST — CONVERSATION 33/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.07.33.2-test');
+assert.equal(release.version,'2026.10.07.33.3-test');
 
-console.log('Preview 33.2: isolated UI, canonical Worker and release identity are aligned.');
+console.log('Preview 33.3: isolated UI, canonical Worker and release identity are aligned.');
