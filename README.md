@@ -2,6 +2,26 @@
 
 Planer wydarzeń, zadań i pomysłów z rozmową głosową, pogodą, kopiami danych i opcjonalną synchronizacją Google Calendar.
 
+## Integracja rozmowy 33
+
+Gałąź `integration/conversation33` służy do chirurgicznej migracji sprawdzonej warstwy rozmowy z preview 32.4 do pełnego Planera. Bazą funkcjonalną pozostaje główna aplikacja 31: Google Calendar, synchronizacja, RRULE, konflikty, UI i istniejący model danych nie są zastępowane kodem preview.
+
+### Zakres migracji
+
+1. Przenieść Engine 3 i klasyfikację `execute / modify / propose / accept / reject / continue` wraz z trwałym draftem i `pendingProposal`.
+2. Zachować kanały kontekstu `main / event / idea` i przekazywanie aktualnie edytowanego obiektu.
+3. Nie przenosić uproszczenia preview `task = idea`. Przed implementacją osobnego `task` ustalić i zachować semantykę istniejących danych produkcyjnych; interpreter nie może sam zmieniać typu obiektu.
+4. Zmiany lokalizacji mają unieważniać pochodne metadane miejsca/pogody i uruchamiać ponowne rozpoznanie dla nowej wartości, bez blokowania zapisu wydarzenia przez pogodę.
+5. Dopiero po testach lokalnych podłączyć nową rozmowę do istniejącej synchronizacji Google; nie zmieniać kontraktu synchronizacji, kolejek ani obsługi serii w pierwszym etapie.
+
+### Granice odpowiedzialności
+
+AI interpretuje wypowiedź i zwraca intencję oraz operacje na dozwolonych polach. Kod Planera pozostaje właścicielem walidacji, danych, zapisu, pogody, Google Calendar, konfliktów i potwierdzenia operacji. Polecenie sterujące (np. „utwórz zadanie”) nie może automatycznie stać się treścią wpisu.
+
+### Bramka przed scaleniem
+
+Wymagane są regresje: tworzenie i edycja wydarzeń, rozmowa wieloturowa, propozycja/akceptacja/odrzucenie, zadanie kontra wydarzenie, edycja otwartego wpisu, lokalizacja invalid→valid i valid→valid, anulowanie bez przecieku stanu, all-day, RRULE (pojedyncze / od tego miejsca / cała seria), kolejka zmian, konflikty i synchronizacja Google w obu kierunkach. Do czasu przejścia tej bramki gałąź nie jest przeznaczona do wdrożenia produkcyjnego.
+
 ## Wydanie 31
 
 AI może zwrócić odpowiedź rozmowną bez operacji zapisu. Pytanie użytkownika nie jest zastępowane stałym pytaniem formularza. Szkic i typ oczekiwanej informacji pozostają zachowane; odpowiedź rozmowna nie może mutować danych. Krótkie jednoznaczne odpowiedzi (np. długość) nadal mogą być rozwiązywane lokalnie. Testy 31 używają podstawionych odpowiedzi modelu; rzeczywistą jakość językową trzeba sprawdzić po wdrożeniu.
