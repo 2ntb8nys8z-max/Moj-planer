@@ -785,6 +785,14 @@ export default {
 
       if(weatherContext)return json({success:true,usage:apiUsage,transcription:spokenText,weatherAction:await interpretWeatherReply(spokenText,dialogue,weatherContext,env)});
 
+      // Engine 3 owns the whole conversational turn. Dispatch it before the
+      // deterministic Engine 2 date/time shortcuts so both engines keep their
+      // own state protocol and response shape.
+      if(conversationEngine===3){
+        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation});
+        return json({...turn,usage:apiUsage,transcription:spokenText,utterance:spokenText});
+      }
+
       const base=dialogueReduce(currentItem,dialogueState,[]);
       const pending=dialogueState.pendingQuestion;
       const relativeDate=dialogueRelativeDate(spokenText,quotaPeriod().day);
@@ -834,12 +842,6 @@ export default {
       } // Questions go to the conversational model with the same draft and pending question.
       const confirmedTimeRange=null;
       const currentDate=quotaPeriod().day;
-
-      // Engine 3 is the preview-tested conversational interpreter. Engine 2 remains intact for rollback.
-      if(conversationEngine===3&&!weatherContext){
-        const result=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:currentDate,lastOperation});
-        return json({...result,usage:apiUsage,transcription:spokenText,utterance:spokenText});
-      }
 
       /* ===== 4. AI ROZUMIE WYPOWIEDŹ ===== */
 
@@ -961,7 +963,6 @@ export default {
     }
   }
 };
-
 
 
 
