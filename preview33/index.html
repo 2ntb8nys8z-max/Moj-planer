@@ -349,10 +349,12 @@ async function requestVoiceDialogue(session,body){
       showVoiceClarification(session,question);return null;
     }
     if(session.weatherContext){
-      if(!result.weatherAction)throw Error('Miejscowości wymagają nowego Workera w wersji 23.');
-      session.history.push({role:'user',content:spoken});renderVoiceConversation(session);
-      if(await session.onWeatherAction(result.weatherAction)){const pending=session.pendingLocationResult;clearVoiceDialogue(session.channel,true);if(pending)await applyVoiceDialogueResult(session,pending);else $(voiceDialogueHints[session.channel]).textContent='Zakończono ustalanie lokalizacji';}
-      return null;
+      // Conversation 33 follows preview 32.4: a clarification is still normal
+      // dialogue. A correction such as "nie, chodzi mi o Wólkę Kosowską pod
+      // Warszawą" must be allowed to replace the draft location instead of
+      // being trapped in the old geocoder question.
+      delete session.weatherContext;delete session.onWeatherAction;delete session.pendingLocationResult;
+      if(result.engine!==3&&!result.retryTranscription)throw new Error('Rozmowa 33 wymaga Workera z Engine 3.');
     }
     const question=result.status==='continue'?result.reply:result.clarification?.question||null;
     if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
@@ -367,60 +369,10 @@ async function requestVoiceDialogue(session,body){
 
 // Resolve a new spoken location before presenting the calendar write for approval.
 async function prepareVoiceLocation(session,result){
-  const item=result.item,location=String(item?.location||'').trim();
-  if(item?.type!=='event'||!location||session.currentItem?.type==='event'&&(!item.changedFields?.includes('location')||location===session.currentItem.location))return false;
-  let hints=plannerWeatherHints(location),candidates=[];
-  const valid=()=>voiceDialogueValid(session);
-  function finish(place,raw=false){
-    if(!valid())return;
-    item.locationUnresolved=raw?location:null;
-    if(place){
-      // Preserve the user's street/number; append administrative detail for disambiguation.
-      const detail=[place.name,place.admin1,place.country].filter(Boolean).filter(v=>!plannerLocationKey(location).includes(plannerLocationKey(v)));
-      item.location=plannerLocationKey(location)===plannerLocationKey(hints.city)?[place.name,place.admin1,place.country].filter(Boolean).join(', '):[location,...detail].join(', ');
-      item.weatherPlace={...place,location:item.location};
-    }else delete item.weatherPlace;
-    result.dialogueResolved=true;
-    delete session.weatherContext;delete session.onWeatherAction;
-  }
-  function ask(question){
-    session.weatherContext={location,hints,candidates:candidates.map(p=>({id:String(p.id),label:plannerWeatherLabel(p)})),proposedId:candidates.length===1?String(candidates[0].id):null};
-    session.pendingLocationResult=result;
-    showVoiceClarification(session,question+' Możesz też powiedzieć „zapisz tylko '+location+'”.');
-  }
-  async function search(){
-    if(!valid())return false;
-    try{
-      const terms=hints.postcode?[hints.postcode]:[hints.city];let places=[];
-      for(const term of terms.filter(Boolean)){
-        const query=new URLSearchParams({name:term,count:'10',language:'pl',format:'json'});if(hints.countryCode)query.set('countryCode',hints.countryCode);
-        const data=await plannerWeatherJson('https://geocoding-api.open-meteo.com/v1/search?'+query);
-        if(!valid())return false;
-        places=(data.results||[]).filter(p=>p.id!=null&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
-      }
-      candidates=plannerWeatherFilterPlaces(places,hints);
-      if(hints.city&&hints.postcode)candidates=candidates.filter(p=>plannerLocationKey(p.name)===plannerLocationKey(hints.city));
-      if(candidates.length===1&&!hints.nearby&&plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city)){finish(candidates[0]);return true;}
-      if(candidates.length===1)ask('Czy chodzi o '+plannerWeatherLabel(candidates[0])+'?');
-      else ask('Którą miejscowość masz na myśli? Podaj kraj, region, kod pocztowy lub pobliskie większe miasto.');
-    }catch(_){if(valid())ask('Nie udało się sprawdzić miejscowości. Podaj więcej szczegółów albo zapisz samą nazwę.');}
-    return false;
-  }
-  session.onWeatherAction=async action=>{
-    if(!valid())return false;
-    if(action.action==='raw'){finish(null,true);return true;}
-    if(action.action==='choose'){
-      const place=candidates.find(p=>String(p.id)===action.id);
-      if(place){finish(place);return true;}
-    }
-    if(action.action==='query'){
-      for(const k of ['city','countryCode','region','district','postcode','nearby'])if(typeof action[k]==='string')hints[k]=action[k];
-      return await search();
-    }
-    ask(action.question||'Podaj więcej szczegółów lokalizacji.');return false;
-  };
-  if(await search()){delete session.pendingLocationResult;return false;}
-  return true;
+  // Match preview 32.4: geocoding/weather is derived metadata and must never
+  // take ownership of the editing dialogue. Engine 3 remains responsible for
+  // corrections and replacements of the spoken location.
+  return false;
 }
 function applyVoicePlaceMetadata(task,item){
   if(item.weatherPlace?.location===task.location){task.weatherPlace=item.weatherPlace;delete task.locationUnresolved;}
