@@ -35,5 +35,5 @@ f.iso=d=>d.toISOString().slice(0,10);f.plannerLocationKey=v=>String(v||'').toLow
 const times=['2026-10-06T11:00','2026-10-06T12:00','2026-10-06T13:00'];const task={date:'2026-10-06',time:''};assert.deepEqual(Array.from(f.plannerWeatherRows({time:times},task),x=>x.index),[0,1,2]);assert.equal(task.time,'');
 let session={currentItem:original},result={item:{...original,location:'Wólka',changedFields:['location']}};
 assert.equal(await f.prepareVoiceLocation(session,result),false);assert.equal(result.item.location,'Wólka');assert.equal(session.weatherContext,undefined);
-let t={location:'Wólka'},resolved={weatherPlace:{id:1,location:'Wólka'}};f.applyVoicePlaceMetadata(t,resolved);assert.equal(t.weatherPlace.id,1);
+let t={location:'Wólka'},resolved={weatherPlace:{id:1,location:'Wólka',latitude:52,longitude:21}};f.applyVoicePlaceMetadata(t,resolved);assert.equal(t.weatherPlace.id,1);
 console.log('Frontend: all-day 11/12/13 and post-approval location metadata passed.');
