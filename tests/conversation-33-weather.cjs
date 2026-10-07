@@ -16,8 +16,7 @@ const assert=require('node:assert/strict');
       if(value.includes('geocoding-api.open-meteo.com')){
         geocodingUrl=value;
         return new Response(JSON.stringify({results:[
-          {id:101,name:'Wólka Kosowska',admin1:'Mazowieckie',admin2:'piaseczyński',country:'Polska',country_code:'PL',latitude:52.058,longitude:20.854,population:1200,timezone:'Europe/Warsaw'},
-          {id:202,name:'Wólka Kosowska',admin1:'Lubelskie',country:'Polska',country_code:'PL',latitude:51.2,longitude:22.4,population:100,timezone:'Europe/Warsaw'}
+          {id:101,name:'Wola Kosowska',admin1:'Województwo mazowieckie',admin2:'Powiat piaseczyński',country:'Polska',country_code:'PL',latitude:52.05683,longitude:20.84012,population:1200,timezone:'Europe/Warsaw'}
         ]}),{status:200});
       }
       if(value.includes('api.open-meteo.com/v1/forecast'))return new Response(JSON.stringify({timezone:'Europe/Warsaw',hourly:{
@@ -41,8 +40,9 @@ const assert=require('node:assert/strict');
   assert.match(geocodingUrl,/name=W%[0-9A-F]{2}lka\+Kosowska|name=W%C3%B3lka\+Kosowska/i);
   assert.doesNotMatch(geocodingUrl,/Warszaw/);
   assert.equal(vm.runInContext('testWeatherTask.weatherPlace.id',ctx),101);
-  assert.match(w.document.getElementById('eventWeather').textContent,/Pogoda dla: Wólka Kosowska, Mazowieckie/);
+  assert.equal(vm.runInContext('testWeatherTask.location',ctx),'Wólka Kosowska pod Warszawą');
+  assert.match(w.document.getElementById('eventWeather').textContent,/Pogoda dla: Wola Kosowska, Województwo mazowieckie/);
 
-  console.log('Conversation 33 weather: nearby wording is separated and the strongest exact place receives coordinates.');
+  console.log('Conversation 33 weather: the sole Open-Meteo place supplies coordinates without replacing the user location label.');
   dom.window.close();
 })().catch(error=>{console.error(error);process.exitCode=1});
