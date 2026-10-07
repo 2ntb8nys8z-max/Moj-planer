@@ -1,7 +1,8 @@
-# Test rozmowy 32.3
+# Test rozmowy 32.4
 
 Gałąź fix/conversation32-save-truth. Baza: b96a557da176843a23a73ddb7394c240a5796d74 (32.2).
-Frontend i Worker: 2026.10.06.32.3. Worker build: 4280e57cf622290b.
+Frontend: 2026.10.07.32.4. Kompatybilny Worker pozostaje w wersji 2026.10.06.32.3,
+build 4280e57cf622290b — ta zmiana nie wymaga ponownego wdrożenia Workera.
 Engine 3: gpt-6-luna, reasoning_effort none. Transkrypcja bez zmian.
 
 ## Zmiany
@@ -14,8 +15,11 @@ Gotowy podgląd i komunikaty wykonania polecenia pochodzą z programu, nie swobo
 Zapis nadal następuje tylko po potwierdzeniu przyciskiem we frontendzie.
 
 Pogoda nie przejmuje rozmowy i nie blokuje podglądu. Wyszukiwanie następuje po otwarciu
-wydarzenia; niepewny wynik pokazuje informację o ręcznej korekcie, bez pytań o region.
-Zaakceptowana nazwa pozostaje bez zmian. Znalezione współrzędne są osobnymi metadanymi.
+wydarzenia. Geocoder dostaje prostą nazwę oraz osobny countryCode; region nie jest dopisywany
+do tekstu zapytania. Dokładna nazwa ma pierwszeństwo, a podobna nazwa nie jest automatycznie
+akceptowana. Nazwa użytkownika pozostaje bez zmian, a współrzędne są osobnymi metadanymi.
+Prognoza jest zapisywana przy wydarzeniu na 2 godziny. Zmiana lokalizacji unieważnia stare
+współrzędne i prognozę. Nieudane geokodowanie jest ponawiane po godzinie.
 Stary resolver Workera pozostaje dla klienta Engine 2.
 
 ## Izolacja i wdrożenie
