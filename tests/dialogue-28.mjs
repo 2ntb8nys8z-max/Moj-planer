@@ -27,17 +27,13 @@ r=await post('Nazwij to wydarzenie Spotkanie z psami. Nie, nazwij to wydarzenie 
 r=await post('Zapisz tylko Wólka',original,[],null,{weatherContext:{location:'Wólka',candidates:[]}});assert.equal(r.weatherAction.action,'raw');
 model={...original,startTime:'19:00',changedFields:['startTime']};r=await post('Przesuń początek na dziewiętnastą');assert.equal(r.item.endTime,'19:15');
 console.log('Worker: duration, pending state, all-day, optional title, self-correction, raw location and duration preservation passed (model mocked).');
-// Frontend helper tests, with real location resolution code and stub geocoding.
+// Frontend helper tests. Engine 3 owns location corrections; weather resolves only after approval.
 const html=fs.readFileSync('index.html','utf8');const f={URLSearchParams,Date,Set,Number,console};vm.createContext(f);
 const segment=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
 vm.runInContext(segment('function plannerWeatherRows','function plannerWeatherSymbol')+segment('function plannerWeatherCityQueries','async function showPlannerWeather')+segment('async function prepareVoiceLocation','async function applyVoiceDialogueResult'),f);
 f.iso=d=>d.toISOString().slice(0,10);f.plannerLocationKey=v=>String(v||'').toLowerCase().trim();f.plannerWeatherLabel=p=>[p.name,p.admin1,p.country].join(', ');f.voiceDialogueValid=s=>!s.cancelled;f.showVoiceClarification=(s,q)=>s.question=q;
 const times=['2026-10-06T11:00','2026-10-06T12:00','2026-10-06T13:00'];const task={date:'2026-10-06',time:''};assert.deepEqual(Array.from(f.plannerWeatherRows({time:times},task),x=>x.index),[0,1,2]);assert.equal(task.time,'');
-const places=[{id:1,name:'Wólka',admin1:'Mazowieckie',country:'Polska',country_code:'PL',latitude:52,longitude:21},{id:2,name:'Wólka',admin1:'Lubelskie',country:'Polska',country_code:'PL',latitude:51,longitude:22}];
-f.plannerWeatherJson=async()=>({results:places});let session={currentItem:original},result={item:{...original,location:'Wólka',changedFields:['location']}};
-assert.equal(await f.prepareVoiceLocation(session,result),true);assert.equal(result.item.location,'Wólka');assert.match(session.question,/Którą/);
-assert.equal(await session.onWeatherAction({action:'raw'}),true);assert.equal(result.item.locationUnresolved,'Wólka');assert.equal(result.item.weatherPlace,undefined);
-session={currentItem:original};result={item:{...original,location:'Wólka',changedFields:['location']}};await f.prepareVoiceLocation(session,result);assert.equal(await session.onWeatherAction({action:'choose',id:'1'}),true);assert.equal(result.item.weatherPlace.id,1);assert.match(result.item.location,/Mazowieckie/);
-let t={location:result.item.location};f.applyVoicePlaceMetadata(t,result.item);assert.equal(t.weatherPlace.id,1);
-session={currentItem:original};result={item:{...original,location:'Wólka',changedFields:['location']}};await f.prepareVoiceLocation(session,result);session.cancelled=true;assert.equal(await session.onWeatherAction({action:'choose',id:'1'}),false);assert.equal(result.item.weatherPlace,undefined);
-console.log('Frontend: all-day 11/12/13, ambiguous location, raw override, metadata, cancellation passed.');
+let session={currentItem:original},result={item:{...original,location:'Wólka',changedFields:['location']}};
+assert.equal(await f.prepareVoiceLocation(session,result),false);assert.equal(result.item.location,'Wólka');assert.equal(session.weatherContext,undefined);
+let t={location:'Wólka'},resolved={weatherPlace:{id:1,location:'Wólka'}};f.applyVoicePlaceMetadata(t,resolved);assert.equal(t.weatherPlace.id,1);
+console.log('Frontend: all-day 11/12/13 and post-approval location metadata passed.');

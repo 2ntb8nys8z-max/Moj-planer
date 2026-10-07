@@ -332,12 +332,15 @@ async function requestVoiceDialogue(session,body){
   session.busy=true;
   try{
     const typed=typeof body==='string';
-    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})};
+    // Location corrections belong to Engine 3. A stale weather resolver must not
+    // create a second dialogue that freezes the previous location.
+    delete session.weatherContext;delete session.onWeatherAction;delete session.pendingLocationResult;
+    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState};
     if(!typed)payload.audio=await plannerAudioPayload(body);
     if(!voiceDialogueValid(session))return null;
     const result=await plannerApiRequest('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!voiceDialogueValid(session))return null;
-    if(!session.weatherContext&&result.engine!==3&&!result.retryTranscription)throw new Error('Rozmowa 33 wymaga Workera z Engine 3.');
+    if(result.engine!==3&&!result.retryTranscription)throw new Error('Rozmowa 33 wymaga Workera z Engine 3.');
     if(result.dialogueState)session.dialogueState=result.dialogueState;
     if(result.dialogueState?.lastOperation)session.lastOperation=result.dialogueState.lastOperation;
     const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
@@ -345,12 +348,6 @@ async function requestVoiceDialogue(session,body){
       const question=result.clarification?.question||result.weatherAction?.question||'Nie dosłyszałem. Możesz powtórzyć?';
       // Retain prior context and append the retry prompt without corrupt transcription.
       showVoiceClarification(session,question);return null;
-    }
-    if(session.weatherContext){
-      if(!result.weatherAction)throw Error('Miejscowości wymagają nowego Workera w wersji 23.');
-      session.history.push({role:'user',content:spoken});renderVoiceConversation(session);
-      if(await session.onWeatherAction(result.weatherAction)){const pending=session.pendingLocationResult;clearVoiceDialogue(session.channel,true);if(pending)await applyVoiceDialogueResult(session,pending);else $(voiceDialogueHints[session.channel]).textContent='Zakończono ustalanie lokalizacji';}
-      return null;
     }
     const question=result.status==='continue'?result.reply:result.clarification?.question||null;
     if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
@@ -363,62 +360,9 @@ async function requestVoiceDialogue(session,body){
   }finally{session.busy=false}
 }
 
-// Resolve a new spoken location before presenting the calendar write for approval.
+// Engine 3 updates the spoken label; weather resolution happens after Planner approval.
 async function prepareVoiceLocation(session,result){
-  const item=result.item,location=String(item?.location||'').trim();
-  if(item?.type!=='event'||!location||session.currentItem?.type==='event'&&(!item.changedFields?.includes('location')||location===session.currentItem.location))return false;
-  let hints=plannerWeatherHints(location),candidates=[];
-  const valid=()=>voiceDialogueValid(session);
-  function finish(place,raw=false){
-    if(!valid())return;
-    item.locationUnresolved=raw?location:null;
-    if(place){
-      // Preserve the user's street/number; append administrative detail for disambiguation.
-      const detail=[place.name,place.admin1,place.country].filter(Boolean).filter(v=>!plannerLocationKey(location).includes(plannerLocationKey(v)));
-      item.location=plannerLocationKey(location)===plannerLocationKey(hints.city)?[place.name,place.admin1,place.country].filter(Boolean).join(', '):[location,...detail].join(', ');
-      item.weatherPlace={...place,location:item.location};
-    }else delete item.weatherPlace;
-    result.dialogueResolved=true;
-    delete session.weatherContext;delete session.onWeatherAction;
-  }
-  function ask(question){
-    session.weatherContext={location,hints,candidates:candidates.map(p=>({id:String(p.id),label:plannerWeatherLabel(p)})),proposedId:candidates.length===1?String(candidates[0].id):null};
-    session.pendingLocationResult=result;
-    showVoiceClarification(session,question+' Możesz też powiedzieć „zapisz tylko '+location+'”.');
-  }
-  async function search(){
-    if(!valid())return false;
-    try{
-      const terms=hints.postcode?[hints.postcode]:[hints.city];let places=[];
-      for(const term of terms.filter(Boolean)){
-        const query=new URLSearchParams({name:term,count:'10',language:'pl',format:'json'});if(hints.countryCode)query.set('countryCode',hints.countryCode);
-        const data=await plannerWeatherJson('https://geocoding-api.open-meteo.com/v1/search?'+query);
-        if(!valid())return false;
-        places=(data.results||[]).filter(p=>p.id!=null&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
-      }
-      candidates=plannerWeatherFilterPlaces(places,hints);
-      if(hints.city&&hints.postcode)candidates=candidates.filter(p=>plannerLocationKey(p.name)===plannerLocationKey(hints.city));
-      if(candidates.length===1&&!hints.nearby&&plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city)){finish(candidates[0]);return true;}
-      if(candidates.length===1)ask('Czy chodzi o '+plannerWeatherLabel(candidates[0])+'?');
-      else ask('Którą miejscowość masz na myśli? Podaj kraj, region, kod pocztowy lub pobliskie większe miasto.');
-    }catch(_){if(valid())ask('Nie udało się sprawdzić miejscowości. Podaj więcej szczegółów albo zapisz samą nazwę.');}
-    return false;
-  }
-  session.onWeatherAction=async action=>{
-    if(!valid())return false;
-    if(action.action==='raw'){finish(null,true);return true;}
-    if(action.action==='choose'){
-      const place=candidates.find(p=>String(p.id)===action.id);
-      if(place){finish(place);return true;}
-    }
-    if(action.action==='query'){
-      for(const k of ['city','countryCode','region','district','postcode','nearby'])if(typeof action[k]==='string')hints[k]=action[k];
-      return await search();
-    }
-    ask(action.question||'Podaj więcej szczegółów lokalizacji.');return false;
-  };
-  if(await search()){delete session.pendingLocationResult;return false;}
-  return true;
+  return false;
 }
 function applyVoicePlaceMetadata(task,item){
   if(item.weatherPlace?.location===task.location){task.weatherPlace=item.weatherPlace;delete task.locationUnresolved;}
@@ -602,31 +546,10 @@ async function showPlannerWeather(task){
   if(task.locationUnresolved===location){say('Zapisano samą nazwę miejsca. Pogoda wymaga doprecyzowania lokalizacji.');return}
   const days=(new Date(task.date+'T12:00:00')-today())/86400000;
   if(days<0||days>15){say(days<0?'Prognoza dla minionego wydarzenia jest niedostępna.':'Prognoza dla tego terminu jest jeszcze niedostępna.');return}
-  let session=null,candidates=[],hints=plannerWeatherHints(location);
+  let candidates=[],hints=plannerWeatherHints(location);
   function ask(question){
     if(!current())return;
-    if(!session||voiceDialogues.event!==session){
-      if(voiceDialogues.event){say('Zakończ obecną rozmowę, następnie otwórz wydarzenie ponownie, żeby ustalić miejscowość dla pogody.');return}
-      session=beginVoiceDialogue('event',task.id,voiceDialogueCurrent('event',task.id));session.purpose='weather';session.isCurrent=current;
-      session.history.push({role:'user',content:'Lokalizacja wydarzenia: '+location});
-      session.onWeatherAction=async action=>{
-        if(!current()||!voiceDialogueValid(session))return false;
-        if(action.action==='raw'){task.locationUnresolved=location;delete task.weatherPlace;saveTasks();say('Zapisano samą nazwę miejsca.');return true;}
-        if(action.action==='choose'){
-          const place=candidates.find(p=>String(p.id)===action.id);
-          if(!place){ask(WEATHER_TEXT.details);return false}
-          await select(place);if(!current())return false;
-          session.history.push({role:'assistant',content:'Pogoda dla: '+plannerWeatherLabel(place)+'.'});renderVoiceConversation(session);return true;
-        }
-        if(action.action==='query'){
-          for(const k of ['city','countryCode','region','district','postcode','nearby'])if(typeof action[k]==='string')hints[k]=action[k];
-          return await search(true);
-        }
-        ask(action.question||WEATHER_TEXT.details);return false;
-      };
-    }
-    session.weatherContext={location,hints,candidates:candidates.slice(0,10).map(p=>({id:String(p.id),label:plannerWeatherLabel(p)})),proposedId:candidates.length?String(candidates[0].id):null};
-    say(WEATHER_TEXT.waiting);showVoiceClarification(session,question);
+    say('Nie udało się jednoznacznie dobrać miejsca dla pogody. Popraw lokalizację wydarzenia, aby spróbować ponownie.');
   }
   async function forecast(place){
     if(!current())return;say('Pobieram prognozę dla '+plannerWeatherLabel(place)+'…');
@@ -662,7 +585,7 @@ async function showPlannerWeather(task){
       candidates=plannerWeatherFilterPlaces(places,hints);
       if(hints.city&&hints.postcode)candidates=candidates.filter(p=>plannerLocationKey(p.name)===plannerLocationKey(hints.city));
       if(!candidates.length){ask(WEATHER_TEXT.missing);return false}
-      if(candidates.length===1&&!hints.nearby&&(hints.postcode||plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city))){await select(candidates[0]);if(session&&current()){session.history.push({role:'assistant',content:'Pogoda dla: '+plannerWeatherLabel(candidates[0])+'.'});renderVoiceConversation(session)}return true}
+      if(candidates.length===1&&!hints.nearby&&(hints.postcode||plannerLocationKey(candidates[0].name)===plannerLocationKey(hints.city))){await select(candidates[0]);return true}
       ask('Czy chodzi o '+plannerWeatherLabel(candidates[0])+'? Jeśli nie, podaj kod pocztowy, kraj lub region.'+(hints.nearby?' Nie mogę potwierdzić odległości od „'+hints.nearby+'” na podstawie tych wyników.':''));return false;
     }catch(e){if(current())ask('Nie udało się sprawdzić miejscowości. Możesz spróbować ponownie lub na razie anulować.');return false}
   }
