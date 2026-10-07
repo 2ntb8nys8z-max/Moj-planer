@@ -261,7 +261,7 @@ async function plannerAudioPayload(blob){
 }
 async function plannerApiRequest(path,options={}){
   PlannerData.assertWritable();
-  const info=await getApiInfo();if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
+  const info=await getApiInfo();if(path===''&&!info.conversationEngines?.includes(3))throw Error('Rozmowa 33 wymaga Workera z Engine 3.');if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
   let token=readApiAccess();
   if(info.requiresAccess&&!token){token=await askApiAccess();if(!token){const e=new Error('Anulowano dostęp do AI. Niczego nie zmieniono.');e.cancelled=true;throw e}}
   if(token)headers.Authorization='Bearer '+token;
@@ -327,16 +327,19 @@ function showVoiceClarification(session,question){
 }
 async function requestVoiceDialogue(session,body){
   if(!voiceDialogueValid(session)||session.busy)return null;
-  if(session.history.length>=24)throw new Error('Rozmowa jest za długa. Anuluj i zacznij ponownie.');
+  // Engine 3 keeps the structured draft even when old natural-language turns are trimmed.
+  if(session.history.length>22)session.history=session.history.slice(-22);
   session.busy=true;
   try{
     const typed=typeof body==='string';
-    const payload={protocolVersion:2,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})};
+    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:session.dialogueState,...(session.weatherContext?{weatherContext:session.weatherContext}:{})};
     if(!typed)payload.audio=await plannerAudioPayload(body);
     if(!voiceDialogueValid(session))return null;
     const result=await plannerApiRequest('',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!voiceDialogueValid(session))return null;
+    if(!session.weatherContext&&result.engine!==3&&!result.retryTranscription)throw new Error('Rozmowa 33 wymaga Workera z Engine 3.');
     if(result.dialogueState)session.dialogueState=result.dialogueState;
+    if(result.dialogueState?.lastOperation)session.lastOperation=result.dialogueState.lastOperation;
     const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
     if(result.retryTranscription){
       const question=result.clarification?.question||result.weatherAction?.question||'Nie dosłyszałem. Możesz powtórzyć?';
@@ -349,7 +352,7 @@ async function requestVoiceDialogue(session,body){
       if(await session.onWeatherAction(result.weatherAction)){const pending=session.pendingLocationResult;clearVoiceDialogue(session.channel,true);if(pending)await applyVoiceDialogueResult(session,pending);else $(voiceDialogueHints[session.channel]).textContent='Zakończono ustalanie lokalizacji';}
       return null;
     }
-    const question=result.clarification?.question||null;
+    const question=result.status==='continue'?result.reply:result.clarification?.question||null;
     if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
     result.dialogueResolved=session.history.length>0;
     session.history.push({role:'user',content:spoken});
