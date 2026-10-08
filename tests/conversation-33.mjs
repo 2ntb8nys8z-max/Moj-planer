@@ -11,6 +11,13 @@ try{
  let r=await post('Nazwij Dentysta');assert.equal(r.engine,3);assert.equal(r.status,'continue');assert.equal(r.dialogueState.draft.title,'Dentysta');assert.match(r.reply,/Zmiana jest w szkicu/);
  model={reply:'Ustalam termin i godziny.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'date',value:'2026-10-08'},{op:'set',field:'startTime',value:'15:00'},{op:'set',field:'endTime',value:'15:45'}],focus:'',ambiguity:null};
  r=await post('Jutro od 15 do 15:45',r.dialogueState);assert.equal(r.status,'review');assert.equal(r.item.title,'Dentysta');assert.equal(r.item.startTime,'15:00');
+ model={reply:'Przygotowałem wydarzenie do północy.',kind:'event',action:'review',intent:'execute',proposalId:null,operations:[{op:'set',field:'title',value:'Kolacja'},{op:'set',field:'date',value:'2026-10-08'},{op:'set',field:'startTime',value:'23:00'},{op:'set',field:'endTime',value:'00:00'}],focus:'',ambiguity:null};
+ r=await post('Kolacja dziś od 23:00 do północy.');assert.equal(r.status,'review');assert.equal(r.item.endTime,'00:00');assert.equal(r.item.endDate,'2026-10-09');
+ model={reply:'Wyliczyłem koniec spotkania.',kind:'event',action:'review',intent:'modify',proposalId:null,operations:[{op:'set',field:'startTime',value:'23:30'},{op:'set',field:'durationMinutes',value:30}],focus:'',ambiguity:null};
+ r=await post('Zacznij o 23:30 i zarezerwuj pół godziny.',{engine:3,revision:1,draft:{type:'event',title:'Kolacja',date:'2026-10-08'}});assert.equal(r.status,'review');assert.equal(r.item.endTime,'00:00');assert.equal(r.item.endDate,'2026-10-09');
+ const overnight={type:'event',title:'Kolacja',date:'2026-10-08',startTime:'23:00',endTime:'23:30',endDate:'2026-10-08'};
+ model={reply:'Zmieniłem godzinę zakończenia.',kind:'event',action:'review',intent:'modify',proposalId:null,operations:[{op:'set',field:'endTime',value:'00:00'}],focus:'',ambiguity:null};
+ r=await post('Przesuń koniec na północ.',null,overnight);assert.equal(r.status,'review');assert.equal(r.item.endDate,'2026-10-09');assert.ok(r.item.changedFields.includes('endDate'));
  model={reply:'Może Zielona Góra?',kind:'event',action:'continue',intent:'propose',proposalId:null,operations:[{op:'set',field:'location',value:'Zielona Góra'}],focus:'potwierdzenie lokalizacji',ambiguity:null};
  const original={type:'event',title:'Test',date:'2026-10-08',startTime:'15:00',endTime:'15:45',location:''};
  r=await post('Może Zielona Góra',null,original);assert.equal(r.status,'continue');assert.ok(r.dialogueState.pendingProposal?.id);assert.equal(r.dialogueState.draft.location,'Zielona Góra');

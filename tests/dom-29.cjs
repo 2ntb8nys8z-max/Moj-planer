@@ -12,9 +12,11 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  assert.equal(vm.runInContext('tasks[0].endTime',ctx),'15:00');assert.equal(vm.runInContext('tasks[0].title',ctx),'Test DOM');
  await vm.runInContext("processEventVoiceResult({transcription:'całodniowe',item:{...voiceEventSnapshot(tasks[0]),startTime:'',endTime:'',changedFields:['startTime','endTime']}},123)",ctx);
  assert.equal(vm.runInContext('tasks[0].time',ctx),'');assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-07');
+ vm.runInContext("tasks=[];addTask('Kolacja','2026-10-08','23:00','00:00')",ctx);assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-09','a new midnight event ends on the next calendar date');
+ const midnightId=vm.runInContext('tasks[0].id',ctx);await vm.runInContext(`processEventVoiceResult({transcription:'Do północy',item:{...voiceEventSnapshot(tasks[0]),endTime:'00:00',changedFields:['endTime']}},${JSON.stringify(midnightId)})`,ctx);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'00:00');assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-09','voice edits preserve midnight as the following day');
  vm.runInContext(`saveGoogleDeleteQueue([{googleEventId:'fake',state:'conflict',localSnapshot:{title:'<img src=x onerror="window.xssExecuted=true">'}}]);renderGoogleDeleteConflicts();`,ctx);
  assert.equal(w.document.querySelectorAll('#googleDeleteConflicts img').length,0);assert.match(w.document.getElementById('googleDeleteConflicts').textContent,/<img/);
- const record=JSON.parse(w.localStorage.getItem('moj-planer-data-v1'));assert.equal(record.data.tasks[0].endDate,'2026-10-07');
+ const record=JSON.parse(w.localStorage.getItem('moj-planer-data-v1'));assert.equal(record.data.tasks[0].endDate,'2026-10-09','the next-day end date is persisted');
  await vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:['jajka','chleb']});applyVoiceUiAction({}, {type:'find_entry',query:'lista zakupów'});",ctx);
  assert.equal(w.document.getElementById('entryResultsModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);w.document.querySelector('#entryResults .entry-result').click();
  assert.equal(w.document.getElementById('ideaModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#ideaText .shopping-list li').length,2);

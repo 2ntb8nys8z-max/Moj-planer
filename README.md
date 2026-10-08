@@ -152,3 +152,7 @@ Production root files on main are not published by this branch's preview workflo
 ### Preview33 33.13 — wolny czas w kalendarzu
 
 Dodaje polecenie głosowe do pokazania wolnych przedziałów w wybranym dniu. Planer oblicza przerwy lokalnie z wydarzeń już zapisanych lub zsynchronizowanych, scala nachodzące spotkania, uwzględnia wydarzenia całodniowe i przechodzące przez północ. Domyślne godziny dnia to 08:00–22:00; można je ograniczyć, podając własne granice. Wyszukiwanie nie wysyła treści kalendarza do AI.
+
+### Preview33 33.14 — spotkania do północy
+
+Obsługuje wydarzenia kończące się dokładnie o 00:00 następnego dnia. Data końca jest zapisywana jawnie, pokazywana w podglądzie i synchronizowana z Google Calendar. Dotyczy tworzenia wydarzenia oraz zmiany jego godziny lub czasu trwania.
