@@ -1,9 +1,10 @@
 const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('node:vm');const assert=require('node:assert/strict');
+const {command,idea:ideaReply}=require('./model-fixtures.cjs');
 (async()=>{
  const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
  const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KEY:'dummy',API_LIMITS_DB:{prepare(){return {run:async()=>{},bind(){return this},first:async()=>({})}}}};
  let model={reply:'Na który dzień wydarzenie?',kind:'event',action:'continue',intent:'continue',proposalId:null,operations:[],focus:'',ambiguity:null};
- const oldFetch=globalThis.fetch;globalThis.fetch=async()=>new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}));
+ const oldFetch=globalThis.fetch;globalThis.fetch=async(url,opts)=>{const payload=JSON.parse(opts.body);const data=JSON.parse(payload.messages.find(m=>m.role==='user').content);const reply=data.records?{matches:data.records.filter(r=>{const q=data.query.toLowerCase();return (r.title+' '+r.content).toLowerCase().includes(q)}).map(r=>r.key)}:model;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(reply)}}]}))};
  const html=fs.readFileSync('index.html','utf8');
  function boot(initial={}){
   const dom=new JSDOM(html,{url:'https://planner.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,ctx=dom.getInternalVMContext();
@@ -14,17 +15,17 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
   w.testApi=async(path,opts)=>{const response=await worker.fetch(new Request('https://worker/',{...opts,headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN}}),env);assert.equal(response.status,200);return response.json()};
   vm.runInContext('plannerApiRequest=testApi',ctx);
   const run=code=>vm.runInContext(code,ctx),json=code=>JSON.parse(run('JSON.stringify('+code+')'));
-  async function turn(text){w.testText=text;return run(`(async()=>{const session=voiceDialogues.main||beginVoiceDialogue('main',null,null);const result=await requestVoiceDialogue(session,testText);if(result)await applyVoiceDialogueResult(session,result);return result;})()`)}
+  async function turn(text){const fixtures={'Utwórz nowe zadanie, nie w kalendarzu':()=>({reply:'Jak nazwać wpis?',kind:'idea',action:'continue',intent:'continue',operations:[],focus:'nazwa',ambiguity:null}),'Masaż pleców':()=>({...ideaReply('Masaż pleców'),intent:'propose',reply:'Utworzyć wpis „Masaż pleców”?'}),'utwórz notatkę Dokumenty do księgowej':()=>(ideaReply('Dokumenty do księgowej')),'utwórz pomysł Weekend w górach':()=>(ideaReply('Weekend w górach')),'Nie w kalendarzu':()=>(ideaReply('Poprawiony masaż')),'Pokaż wszystkie listy zakupów, które mam':()=>(command({type:'find_entry',query:'lista zakupów'})),'Wyszukaj listy zakupów':()=>(command({type:'find_entry',query:'lista zakupów'})),'znajdź mleko':()=>(command({type:'find_entry',query:'mleko'})),'znajdź bursztyn':()=>(command({type:'find_entry',query:'bursztyn'})),'Pokaż wpisy utworzone 8 października 2026':()=>(command({type:'list_entries',scope:'entries',createdOn:'2026-10-08'})),'Pokaż wydarzenia 8 października 2026':()=>(command({type:'list_entries',scope:'calendar',scheduledOn:'2026-10-08'})),'Pokaż wydarzenia utworzone 8 października 2026':()=>(command({type:'list_entries',scope:'calendar',createdOn:'2026-10-08'})),'Pokaż wpisy utworzone dzisiaj':()=>(command({type:'list_entries',scope:'entries',createdOn:'today'})),'Pokaż wpisy utworzone 07.10.2026':()=>(command({type:'list_entries',scope:'entries',createdOn:'2026-10-07'})),'Znajdź zadanie Nieistniejący pingwin':()=>(command({type:'find_entry',query:'Nieistniejący pingwin'})),'Znajdź wydarzenie Nieistniejący pingwin':()=>(command({type:'find_entry',query:'Nieistniejący pingwin'})),'utwórz wpis Niezapisany':()=>(ideaReply('Niezapisany'))};if(fixtures[text])model=fixtures[text]();w.testText=text;return run(`(async()=>{const session=voiceDialogues.main||beginVoiceDialogue('main',null,null);const result=await requestVoiceDialogue(session,testText);if(result)await applyVoiceDialogueResult(session,result);return result;})()`)}
   return {dom,w,run,json,turn};
  }
  const app=boot(),{w,run,json,turn}=app;
  try{
-  // Full transport + reducer + persistent client state + real DOM save, with a deliberately wrong model reply.
+  // Full transport + reducer + persistent client state + real DOM save, with explicit model response fixtures.
   assert.equal(await turn('Utwórz nowe zadanie, nie w kalendarzu'),null);
   assert.match(w.document.querySelector('#mainConversation').textContent,/Jak nazwać wpis/);
   assert.doesNotMatch(w.document.querySelector('#mainConversation').textContent,/dzień wydarzenia|godzin|Zmiana jest w szkicu/);
   assert.equal(await turn('Masaż pleców'),null);assert.match(w.document.querySelector('#mainConversation').textContent,/Utworzyć wpis „Masaż pleców”/);
-  await turn('tak');assert.equal(json('ideas').length,1);assert.equal(json('ideas')[0].text,'Masaż pleców');assert.ok(json('ideas')[0].createdAt);assert.equal(json('tasks').length,0);
+  model={...ideaReply('Masaż pleców'),intent:'accept',proposalId:run('voiceDialogues.main.dialogueState.pendingProposal.id')};await turn('tak');assert.equal(json('ideas').length,1);assert.equal(json('ideas')[0].text,'Masaż pleców');assert.ok(json('ideas')[0].createdAt);assert.equal(json('tasks').length,0);
   assert.match(w.document.querySelector('#ideasList').textContent,/Masaż pleców/);assert.equal(w.document.querySelector('#toast').textContent,'Wpis zapisany');assert.equal(w.document.querySelectorAll('#ideasList .entry-result-type').length,0);
   assert.equal(JSON.parse(w.localStorage.getItem('moj-planer-data-v1')).data.ideas[0].text,'Masaż pleców');
   await turn('utwórz notatkę Dokumenty do księgowej');await turn('utwórz pomysł Weekend w górach');
@@ -48,7 +49,7 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
   await turn('Wyszukaj listy zakupów');assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,2);
   await turn('znajdź mleko');assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);
   await turn('znajdź bursztyn');assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,2,'default includes entry additions and calendar notes');
-  run("applyVoiceUiAction({}, {type:'find_entry',query:'mleko',entryType:'note'})");assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1,'legacy entryType never blocks a match');
+  await run("applyVoiceUiAction({}, {type:'find_entry',query:'mleko',entryType:'note'})");assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1,'legacy entryType never blocks a match');
   // Separate creation and schedule filters, historical dates and unknown dates.
   await turn('Pokaż wpisy utworzone 8 października 2026');assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);assert.match(w.document.querySelector('#entryResults').textContent,/Lista zakupów/);
   await turn('Pokaż wydarzenia 8 października 2026');assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);assert.match(w.document.querySelector('#entryResults').textContent,/Wizyta/);

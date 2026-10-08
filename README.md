@@ -115,3 +115,35 @@ Przed szerszą dystrybucją konieczne są testy na osobnym kalendarzu Google: ko
 Wpisy i kolejki są zapisane lokalnie w przeglądarce wraz z poprzednią wersją. Kopia JSON obejmuje dane kalendarza i metadane synchronizacji; może zawierać informacje o uczestnikach. Nie obejmuje sekretu OpenAI ani tokenu Google. Import odłącza Google przed przywróceniem.
 
 Nagranie i ograniczony kontekst rozmowy trafiają do Workera i dostawcy AI. W protokole 2 są w treści żądania, nie w nagłówkach. Worker nie loguje treści wypowiedzi. Kod dostępu prototypu jest przechowywany lokalnie. Pełne konta użytkowników, migracja do IndexedDB i produkcyjna polityka prywatności są dalszymi zadaniami, a nie funkcjami ukończonymi w wydaniu 29.
+
+### Preview33 33.12 — semantic entry search
+
+Engine 3 no longer overrides model intent with Polish creation/search/rename regexes.
+Search commands clear the transient draft and return a read-only UI action. An empty
+calendar mutation is rejected and retried rather than rendered as a request for an
+invented event's date/time. This removes identified failure paths; model intent
+accuracy still requires live evaluation.
+
+The frontend applies scope/creation/schedule filters locally. Date-only listing
+requires no matching call. Text queries send complete searchable entry content
+(title, body, products and additions, or event notes) to the existing authenticated
+Worker/OpenAI service for semantic matching. This is a bounded initial implementation,
+not an embedding index: up to 80 records / 24,000 serialized characters per batch,
+long content in overlapping chunks, maximum eight batches. No top-k truncation.
+Oversized searches ask for narrower scope; errors never appear as zero matches.
+Each batch is a metered API request and counts against the existing quota. Full
+searchable text is sent to the API, not only titles. Audio itself is not sent by
+this search path; only any stored searchable text is available.
+
+Matching returns only batch-local keys validated on the Worker and frontend.
+Search cannot invoke writes. Changed/deleted/added records during a search invalidate
+its results, and cancelled/superseded responses cannot reopen the result window.
+All matches are shown for user selection; semantic recall is not guaranteed.
+
+`npm test` includes state transitions in both languages, transport/DOM regressions,
+ID rejection, all-eight-list rendering, full-content chunking, date-only listing,
+limits and stale-result checks. AI replies in these tests are fixtures, not live
+language-quality measurements. Before acceptance, test real PL/EN paraphrases,
+shopping and unrelated topics, changed intent, and searches inside long notes.
+Install the matching 33.12 Worker before using the published Preview33 frontend.
+Production root files on main are not published by this branch's preview workflow.
