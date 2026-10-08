@@ -19,6 +19,8 @@ try{
 
  model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'replace',items:['jajka','awokado','chleb','masło','kefir','pomidory']}};
  r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.deepEqual(r.item.items.slice(0,2),['jajka','awokado']);
+ model={reply:'Przygotowałem pustą listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'replace',items:[]}};
+ r=await post('Utwórz pustą listę zakupów.');assert.equal(r.status,'review');assert.equal(r.item.listAction,'replace');assert.deepEqual(r.item.items,[]);
 
  // Explicit task titles are complete tasks and skip the idea/calendar clarification loop.
  model={reply:'Pytanie testowe powinno zostać zastąpione regułą deterministyczną.',kind:'event',action:'continue',intent:'continue',proposalId:null,operations:[],focus:'',ambiguity:null};
@@ -40,12 +42,14 @@ try{
 
  model={reply:'Otwieram tworzenie nowego wydarzenia.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:null}};
  r=await post('Otwórz nowe wydarzenie.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:null});assert.equal(r.item,undefined);
+ model={reply:'Przygotowuję formularz wydarzenia.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'}};
+ r=await post('Utwórz spotkanie o wynajmie mieszkania 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'});
 
  model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
  r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_event',query:'Spotkanie z Zosią'});
 
- model={reply:'Szukam istniejącej listy zakupów.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'find_entry',query:'Lista zakupów'}};
- r=await post('Tak, istniejący zapis, lista zakupów.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'Lista zakupów'});
+ model={reply:'Szukam spotkania z Wojtkiem z 9 października.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'find_entry',query:'Spotkanie z Wojtkiem',date:'2026-10-09'}};
+ r=await post('Znajdź spotkanie z Wojtkiem 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'Spotkanie z Wojtkiem',date:'2026-10-09'});
 
  // Engine 3 must receive short turns before legacy Engine 2 shortcuts.
  for(const test of [

@@ -15,7 +15,17 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  assert.equal(w.document.querySelectorAll('#googleDeleteConflicts img').length,0);assert.match(w.document.getElementById('googleDeleteConflicts').textContent,/<img/);
  const record=JSON.parse(w.localStorage.getItem('moj-planer-data-v1'));assert.equal(record.data.tasks[0].endDate,'2026-10-07');
  vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:['jajka','chleb']});applyVoiceUiAction({}, {type:'find_entry',query:'lista zakupów'});",ctx);
+ assert.equal(w.document.getElementById('entryResultsModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);w.document.querySelector('#entryResults .entry-result').click();
  assert.equal(w.document.getElementById('ideaModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#ideaText .shopping-list li').length,2);
+ vm.runInContext("for(let i=0;i<12;i++)ideas.push({id:'s'+i,type:'idea',entryType:'task',text:'Spotkanie z Wojtkiem',title:'Spotkanie z Wojtkiem',createdAt:new Date().toISOString(),done:false,history:[]});tasks.push({id:'match',title:'Spotkanie z Wojtkiem',date:'2026-10-09',time:'10:00',createdAt:new Date().toISOString()},{id:'other-date',title:'Spotkanie z Wojtkiem',date:'2026-10-10',time:'10:00',createdAt:new Date().toISOString()});applyVoiceUiAction({}, {type:'find_entry',query:'spotkanie z Wojtkiem'});",ctx);
+ assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,12,'all matching entries should remain available in the scrollable results list');
+ assert.equal(w.document.querySelector('#entryResults').style.maxHeight,'55vh');
+ vm.runInContext("applyVoiceUiAction({}, {type:'find_entry',query:'spotkanie z Wojtkiem',date:'2026-10-09'});",ctx);assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1,'date and person filters should reduce broad title matches');
+ vm.runInContext("applyVoiceUiAction({}, {type:'find_entry',query:'spotkanie o wynajmie mieszkania',date:'2026-10-09'});",ctx);
+ assert.equal(w.document.getElementById('entryResultsModal').classList.contains('hidden'),true);assert.equal(w.document.getElementById('title').value,'spotkanie o wynajmie mieszkania');assert.equal(w.document.getElementById('date').value,'2026-10-09');
+ assert.equal(vm.runInContext("plannerItemQuestion({type:'idea',text:'Lista zakupów',listAction:'replace',items:[]})",ctx),null,'an empty shopping list is a valid draft');
+ vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:[]});addIdea({type:'idea',entryType:'note',text:'Notatka na próbę'});ideasTypeMode='all';renderIdeas();",ctx);
+ assert.equal(w.document.querySelectorAll('#ideasList .idea').length,15,'one combined view should contain ideas, tasks, shopping lists and notes');
  const ideaId=vm.runInContext('ideas[0].id',ctx);await vm.runInContext(`processIdeaVoiceResult({transcription:'usuń chleb',item:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'remove',items:['chleb']}},${JSON.stringify(ideaId)})`,ctx);
  assert.equal(vm.runInContext('JSON.stringify(ideas[0].list.items.map(x=>x.text))',ctx),'["jajka"]');assert.ok(vm.runInContext('ideas[0].history.length>=2',ctx));
  vm.runInContext("showEntryHistory(ideas[0])",ctx);assert.match(w.document.getElementById('historyList').textContent,/Usunięto: chleb/);
