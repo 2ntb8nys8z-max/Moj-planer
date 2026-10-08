@@ -29,7 +29,7 @@ for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','promp
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
 worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.7-TEST — CONVERSATION 33');
-worker=worker.replace(/const API_VERSION="[^"]*";/,`const API_VERSION="${WORKER_VERSION}";`);
+worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
 worker=worker.replace('const BUILD_ID="development";',`const BUILD_ID="${workerBuildId}";`);

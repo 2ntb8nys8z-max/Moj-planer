@@ -31,6 +31,7 @@ assert.match(root,/historyModal/);
 assert.equal(rootWorkerText,worker,'root worker.txt must exactly match canonical worker.js');
 assert.equal(previewWorkerText,worker,'published test Worker must exactly match canonical worker.js');
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.7-TEST — CONVERSATION 33/);
+assert.match(worker,/apiVersion:"2026\.10\.08\.33\.7-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
 assert.equal(release.version,'2026.10.08.33.7-test');
 assert.equal(release.source,'integration/conversation33/index.html');
