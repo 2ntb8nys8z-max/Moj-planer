@@ -17,6 +17,8 @@ PROTOKÓŁ 32.3: Zwróć także intent: execute|accept|reject|modify|propose|con
 Jeśli otrzymasz validationFeedback, popraw WYŁĄCZNIE swoją odpowiedź na tę samą wypowiedź użytkownika. Nie odtwarzaj dawnych operacji ani nie zgaduj intencji, by ominąć błąd. Przy nieobsługiwanej zmianie wyjaśnij ograniczenie, operations [], action continue. Gdy danych brak, możesz nadal odpowiadać na pytania; do review potrzebne są kompletne dane.`;
 
 function conversationFault(code){const e=new Error(code);e.conversationCode=code;return e;}
+function isExplicitShoppingListRename(text){const value=String(text||'').toLocaleLowerCase('pl-PL').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');return /\b(?:zmien|ustaw|nazwij|nadaj)\b.{0,60}\b(?:nazwe|tytul)\b.{0,60}\blista\s+zakupow\b/.test(value);}
+function resolveExplicitShoppingListRename(text,original,answer){if(original?.type==='event'||!isExplicitShoppingListRename(text))return answer;return {...answer,reply:'Przygotowałem nazwę „Lista zakupów” do sprawdzenia.',kind:'idea',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null}};}
 function conversationDate(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
 function conversationMissing(draft,allDay){
   const missing=[];
@@ -99,7 +101,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     let answer,candidate,pendingProposal=null,ready=false;
     try{
       const outer=JSON.parse(raw),content=outer.choices?.[0]?.message?.content;
-      answer=JSON.parse(content);
+      answer=resolveExplicitShoppingListRename(text,original,JSON.parse(content));
       if(!['execute','accept','reject','modify','propose','continue'].includes(answer.intent))throw conversationFault('invalid_semantic_intent');
       if(['accept','reject'].includes(answer.intent)&&(!state.pendingProposal||answer.proposalId!==state.pendingProposal.id))throw conversationFault('proposal_not_current');
       if(['accept','reject','continue'].includes(answer.intent)&&answer.operations?.length)throw conversationFault('intent_cannot_mutate');
@@ -168,7 +170,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="fc5daa050b8a418f";
+const BUILD_ID="ece2cd9439fc3e15";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -639,7 +641,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.07.33.2-test",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.08.33.6-test",protocolVersion:2,conversationEngines:[2,3],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

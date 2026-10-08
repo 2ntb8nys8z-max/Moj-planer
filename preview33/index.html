@@ -301,7 +301,7 @@ const voiceDialogues={main:null,event:null,idea:null};
 const voiceDialogueHints={main:'voiceHint',event:'eventVoiceHint',idea:'ideaVoiceHint'};
 function voiceDialogueCurrent(channel,id){
   if(channel==='event'){const t=tasks.find(t=>t.id===id);return t?{...voiceEventSnapshot(t),seriesId:t.seriesId||null}:null}
-  if(channel==='idea'){const t=ideas.find(t=>t.id===id);return t?{type:'idea',text:t.text,additions:t.additions||[]}:null}
+  if(channel==='idea'){const t=ideas.find(t=>t.id===id);return t?{type:'idea',text:t.text,list:t.list||null,additions:t.additions||[]}:null}
   return pendingVoiceItem;
 }
 function voiceDialogueValid(session){
@@ -426,7 +426,7 @@ async function processIdeaVoiceResult(result,ideaId){
   }
   if((x.action==='append'&&!x.addition)||(x.action!=='append'&&(!x.text||x.text===current.text))){const session=beginVoiceDialogue('idea',ideaId,voiceDialogueCurrent('idea',ideaId));session.history.push({role:'user',content:result.transcription||'Zmień ten wpis'});showVoiceClarification(session,'Co zmienić albo dopisać w tym zadaniu/pomyśle? Podaj treść.');return}
   if(!confirm('Potwierdź zmianę zadania/pomysłu:\n\n'+(x.action==='append'?'Dopisz: '+x.addition:x.text)))return;
-  if(x.action==='append'&&x.addition){if(!Array.isArray(current.additions))current.additions=[];current.additions.push({text:x.addition,createdAt:new Date().toISOString()})}else current.text=x.text||current.text;
+  if(x.action==='append'&&x.addition){if(!Array.isArray(current.additions))current.additions=[];current.additions.push({text:x.addition,createdAt:new Date().toISOString()})}else{current.text=x.text||current.text;if(current.text==='Lista zakupów'&&!current.list)current.list={type:'shopping',items:[]}}
   historyAdd(current,'conversation',x.action==='append'?'Dopisano notatkę: '+x.addition:'Zmieniono treść na: '+current.text,beginVoiceDialogue('idea',ideaId,voiceDialogueCurrent('idea',ideaId)).history);saveIdeas();toast(x.action==='append'?'✓ Dopisano do pomysłu':'✓ Pomysł zaktualizowany');renderAll();openIdeaActions(current)
 }
 function askEventVoiceClarification(result,id,question='Czy dopisać tę wypowiedź do notatki, czy zmienić tytuł wydarzenia?'){

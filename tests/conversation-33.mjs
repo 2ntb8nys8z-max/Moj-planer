@@ -20,6 +20,12 @@ try{
  model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'replace',items:['jajka','awokado','chleb','masło','kefir','pomidory']}};
  r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.deepEqual(r.item.items.slice(0,2),['jajka','awokado']);
 
+ // A clear shopping-list rename must not be turned into an incomplete calendar event, even if the model misclassifies it.
+ model={reply:'Ustalam nazwę wydarzenia.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'title',value:'Lista zakupów'}],focus:'termin i godziny',ambiguity:null};
+ r=await post('Zmień nazwę na lista zakupów.',{engine:3,revision:1,draft:{type:'event',title:'Wydarzenie'},pendingProposal:null});assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.text,'Lista zakupów');assert.doesNotMatch(r.reply,/dzień wydarzenia|godzina rozpoczęcia/);
+ const existingShoppingIdea={type:'idea',text:'Zakupy',list:{type:'shopping',items:[{id:'1',text:'mleko',done:false}]},additions:[]};
+ r=await post('Zmień nazwę na lista zakupów.',null,existingShoppingIdea);assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.text,'Lista zakupów');assert.equal(r.item.listAction,undefined);
+
  const idea={type:'idea',text:'Wyjazd',additions:[]};
  model={reply:'Dodaję lokalizację jako dopisek.',kind:'idea',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Wyjazd',action:'append',addition:'Lokalizacja: Czechowice-Dziedzice, Polska'}};
  r=await post('Dodaj lokalizację Czechowice-Dziedzice w Polsce.',null,idea);assert.equal(r.status,'review');assert.equal(r.item.action,'append');assert.equal(r.item.addition,'Lokalizacja: Czechowice-Dziedzice, Polska');
