@@ -17,8 +17,8 @@ try{
  model={reply:'Tak.',kind:'event',action:'continue',intent:'accept',proposalId:pid,operations:[],focus:'',ambiguity:null};
  r=await post('Tak',r.dialogueState,original);assert.equal(r.status,'review');assert.equal(r.item.location,'Zielona Góra');
 
- model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów: jajka, awokado, chleb, masło, kefir, pomidory',action:'replace',addition:null}};
- r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.match(r.item.text,/awokado/);
+ model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'replace',items:['jajka','awokado','chleb','masło','kefir','pomidory']}};
+ r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.deepEqual(r.item.items.slice(0,2),['jajka','awokado']);
 
  const idea={type:'idea',text:'Wyjazd',additions:[]};
  model={reply:'Dodaję lokalizację jako dopisek.',kind:'idea',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Wyjazd',action:'append',addition:'Lokalizacja: Czechowice-Dziedzice, Polska'}};
@@ -29,6 +29,9 @@ try{
 
  model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
  r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_event',query:'Spotkanie z Zosią'});
+
+ model={reply:'Szukam istniejącej listy zakupów.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'find_entry',query:'Lista zakupów'}};
+ r=await post('Tak, istniejący zapis, lista zakupów.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'Lista zakupów'});
 
  // Engine 3 must receive short turns before legacy Engine 2 shortcuts.
  for(const test of [

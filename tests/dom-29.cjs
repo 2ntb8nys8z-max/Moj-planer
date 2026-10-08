@@ -14,5 +14,10 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  vm.runInContext(`saveGoogleDeleteQueue([{googleEventId:'fake',state:'conflict',localSnapshot:{title:'<img src=x onerror="window.xssExecuted=true">'}}]);renderGoogleDeleteConflicts();`,ctx);
  assert.equal(w.document.querySelectorAll('#googleDeleteConflicts img').length,0);assert.match(w.document.getElementById('googleDeleteConflicts').textContent,/<img/);
  const record=JSON.parse(w.localStorage.getItem('moj-planer-data-v1'));assert.equal(record.data.tasks[0].endDate,'2026-10-07');
- console.log('DOM: complete scripts initialize; event edits/all-day persist; conflict HTML remains text.');dom.window.close();
+ vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:['jajka','chleb']});applyVoiceUiAction({}, {type:'find_entry',query:'lista zakupów'});",ctx);
+ assert.equal(w.document.getElementById('ideaModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#ideaText .shopping-list li').length,2);
+ const ideaId=vm.runInContext('ideas[0].id',ctx);await vm.runInContext(`processIdeaVoiceResult({transcription:'usuń chleb',item:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'remove',items:['chleb']}},${JSON.stringify(ideaId)})`,ctx);
+ assert.equal(vm.runInContext('JSON.stringify(ideas[0].list.items.map(x=>x.text))',ctx),'["jajka"]');assert.ok(vm.runInContext('ideas[0].history.length>=2',ctx));
+ vm.runInContext("showEntryHistory(ideas[0])",ctx);assert.match(w.document.getElementById('historyList').textContent,/Usunięto: chleb/);
+ console.log('DOM: event edits, shopping lists, cross-type search, history and conflict safety passed.');dom.window.close();
 })().catch(e=>{console.error(e);process.exitCode=1});
