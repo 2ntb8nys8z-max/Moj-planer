@@ -2,6 +2,7 @@ const {JSDOM}=require('jsdom');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
+const release=JSON.parse(fs.readFileSync('release.json','utf8'));
 
 (async()=>{
   const html=fs.readFileSync('index.html','utf8');
@@ -12,7 +13,7 @@ const assert=require('node:assert/strict');
     structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,
     confirm:()=>true,alert(){},
     fetch:async(url,options={})=>{
-      if(String(url).endsWith('/api-info'))return new Response(JSON.stringify({success:true,requiresAccess:false,protocolVersion:2,conversationEngines:[2,3]}),{status:200});
+      if(String(url).endsWith('/api-info'))return new Response(JSON.stringify({success:true,requiresAccess:false,protocolVersion:2,conversationEngines:[2,3],apiVersion:release.workerVersion,buildId:release.workerBuildId}),{status:200});
       if(String(url).endsWith('.workers.dev')){
         sentPayload=JSON.parse(options.body);
         return new Response(JSON.stringify({

@@ -2,6 +2,7 @@ const {JSDOM}=require('jsdom');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
+const release=JSON.parse(fs.readFileSync('release.json','utf8'));
 
 (async()=>{
   const html=fs.readFileSync('index.html','utf8');
@@ -16,7 +17,7 @@ const assert=require('node:assert/strict');
     fetch:async(url,options={})=>{
       if(String(url).endsWith('/api-info')){
         apiInfoCalls++;
-        return new Response(JSON.stringify({success:true,requiresAccess:true,protocolVersion:2,conversationEngines:[2,3],apiVersion:'2026.10.07.33-test'}),{status:200});
+        return new Response(JSON.stringify({success:true,requiresAccess:true,protocolVersion:2,conversationEngines:[2,3],apiVersion:release.workerVersion,buildId:release.workerBuildId}),{status:200});
       }
       if(String(url).endsWith('.workers.dev')){
         conversationCalls++;

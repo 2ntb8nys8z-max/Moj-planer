@@ -549,7 +549,7 @@ function googleLocalSnapshot(task){
 function googleRememberRemote(task,event){
   task.googleDeleteBaseline=googleComparableDeleteContent(event);
   task.googleEditBaseline={summary:event.summary||'',description:event.description||'',location:event.location||'',start:event.start,end:event.end};
-  task.googleData={...(task.googleData||{}),etag:event.etag||'',updated:event.updated||'',location:event.location||'',description:event.description||'',reminders:event.reminders||null,htmlLink:event.htmlLink||''};
+  task.googleData={...(task.googleData||{}),etag:event.etag||'',updated:event.updated||'',created:event.created||task.googleData?.created||'',location:event.location||'',description:event.description||'',reminders:event.reminders||null,htmlLink:event.htmlLink||''};
 }
 function googleAcknowledge(task,event,sent){
   if(!tasks.includes(task)){
@@ -957,6 +957,7 @@ function upsertGoogleEvent(event){
     task={id:Date.now()+Math.random(),done:false};
     tasks.push(task);
   }
+  if(!task.createdAt){const created=event.created||task.googleData?.created;if(created&&Number.isFinite(Date.parse(created)))task.createdAt=new Date(created).toISOString()}
   if(!wasDirty)googleRememberRemote(task,event);
   // A live event supersedes a previously observed deletion. Keep local edits.
   if(task.googleConflict==='deleted')task.googleConflict=null;
