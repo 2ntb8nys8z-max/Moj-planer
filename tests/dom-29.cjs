@@ -26,8 +26,8 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  assert.equal(vm.runInContext("plannerItemQuestion({type:'idea',text:'Lista zakupów',listAction:'replace',items:[]})",ctx),null,'an empty shopping list is a valid draft');
  vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:[]});addIdea({type:'idea',entryType:'note',text:'Notatka na próbę'});ideasTypeMode='all';renderIdeas();",ctx);
  assert.equal(w.document.querySelectorAll('#ideasList .idea').length,15,'one combined view should contain ideas, tasks, shopping lists and notes');
- const ideaId=vm.runInContext('ideas[0].id',ctx);await vm.runInContext(`processIdeaVoiceResult({transcription:'usuń chleb',item:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'remove',items:['chleb']}},${JSON.stringify(ideaId)})`,ctx);
- assert.equal(vm.runInContext('JSON.stringify(ideas[0].list.items.map(x=>x.text))',ctx),'["jajka"]');assert.ok(vm.runInContext('ideas[0].history.length>=2',ctx));
- vm.runInContext("showEntryHistory(ideas[0])",ctx);assert.match(w.document.getElementById('historyList').textContent,/Usunięto: chleb/);
+ const ideaId=vm.runInContext("ideas.find(i=>i.list?.items.some(x=>x.text==='jajka'))?.id",ctx);await vm.runInContext(`processIdeaVoiceResult({transcription:'usuń chleb',item:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'remove',items:['chleb']}},${JSON.stringify(ideaId)})`,ctx);
+ assert.equal(vm.runInContext(`JSON.stringify(ideas.find(i=>i.id===${JSON.stringify(ideaId)}).list.items.map(x=>x.text))`,ctx),'["jajka"]');assert.ok(vm.runInContext(`ideas.find(i=>i.id===${JSON.stringify(ideaId)}).history.length>=2`,ctx));
+ vm.runInContext(`showEntryHistory(ideas.find(i=>i.id===${JSON.stringify(ideaId)}))`,ctx);assert.match(w.document.getElementById('historyList').textContent,/Usunięto: chleb/);
  console.log('DOM: event edits, shopping lists, cross-type search, history and conflict safety passed.');dom.window.close();
 })().catch(e=>{console.error(e);process.exitCode=1});
