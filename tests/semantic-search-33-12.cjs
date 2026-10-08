@@ -25,6 +25,10 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('nod
   await run(`applyVoiceUiAction(null,{type:'find_entry',query:'co miałem kupić'})`);assert.equal(w.document.querySelectorAll('.entry-result').length,8);
   // Exact date listing does not need matching API and unknown creation dates stay excluded.
   w.responses=0;await run(`applyVoiceUiAction(null,{type:'list_entries',createdOn:'2026-10-08'})`);assert.equal(w.responses,0);assert.equal(w.document.querySelectorAll('.entry-result').length,8);
+  run(`tasks=[{id:'early',title:'Rano',date:'2026-10-09',time:'09:00',endTime:'10:00'},{id:'late-night',title:'Noc',date:'2026-10-08',time:'23:00',endTime:'09:00',endDate:'2026-10-09'},{id:'midday',title:'Obiad',date:'2026-10-09',time:'12:00',endTime:'13:00'},{id:'overlap',title:'Równoległe',date:'2026-10-09',time:'09:30',endTime:'10:30'},{id:'afternoon',title:'Spotkanie',date:'2026-10-09',time:'14:00',endTime:'15:00'}];`);
+  const freeSlots=run(`plannerFreeTimeSlots('2026-10-09',tasks)`);assert.deepEqual(JSON.parse(JSON.stringify(freeSlots)),[[630,720],[780,840],[900,1320]],'free slots merge overlaps and include events crossing midnight');
+  await run(`applyVoiceUiAction(null,{type:'find_free_time',date:'2026-10-09'})`);assert.match(w.document.querySelector('#entryResultsTitle').textContent,/Wolny czas/);assert.match(w.document.querySelector('#entryResults').textContent,/10:30–12:00/);assert.match(w.document.querySelector('#entryResults').textContent,/13:00–14:00/);
+  run(`tasks=[{id:'allday',title:'Zajęty dzień',date:'2026-10-09',time:'',endDate:'2026-10-10'}]`);assert.deepEqual(JSON.parse(JSON.stringify(run(`plannerFreeTimeSlots('2026-10-09',tasks)`))),[]);
   // No truncation: long content is chunked including its final search term.
   const batches=run(`plannerSearchBatches([{key:'long',title:'Dziennik',content:'a'.repeat(16000)+'mleko'}])`);assert.ok(batches.flat().some(r=>r.content.endsWith('mleko')));assert.ok(batches.every(b=>JSON.stringify(b).length<=24000));
   assert.throws(()=>run(`plannerSearchBatches([{key:'huge',title:'x',content:'x'.repeat(100000)}])`),/Zakres/);

@@ -147,3 +147,8 @@ language-quality measurements. Before acceptance, test real PL/EN paraphrases,
 shopping and unrelated topics, changed intent, and searches inside long notes.
 Install the matching 33.12 Worker before using the published Preview33 frontend.
 Production root files on main are not published by this branch's preview workflow.
+
+
+### Preview33 33.13 — wolny czas w kalendarzu
+
+Dodaje polecenie głosowe do pokazania wolnych przedziałów w wybranym dniu. Planer oblicza przerwy lokalnie z wydarzeń już zapisanych lub zsynchronizowanych, scala nachodzące spotkania, uwzględnia wydarzenia całodniowe i przechodzące przez północ. Domyślne godziny dnia to 08:00–22:00; można je ograniczyć, podając własne granice. Wyszukiwanie nie wysyła treści kalendarza do AI.

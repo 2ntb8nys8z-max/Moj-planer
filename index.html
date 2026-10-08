@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.08.33.12-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.08.33.13-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -106,7 +106,7 @@ const PlannerData=(()=>{
     const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.08.33.12-integration',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.08.33.13-integration',createdAt:new Date().toISOString(),data:structuredClone(data)}}
   function exportCurrent(){
     if(locked)download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
     else download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup());
@@ -150,7 +150,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.10.08.33.12-test',EXPECTED_WORKER_BUILD_ID='fd4dbfeda0610376';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.10.08.33.13-test',EXPECTED_WORKER_BUILD_ID='31ca8105283f0e10';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -415,6 +415,26 @@ function plannerEntryCreatedOn(entry,day){const value=plannerCreatedAt(entry.typ
 function plannerSearchTitle(action){return String(action.query||'').trim()}
 function plannerEntryLabel(type){return type==='event'?'Wydarzenie w kalendarzu':''}
 function showEntryResults(entries,title,emptyText='Brak pasujących wpisów.'){const modal=$('entryResultsModal'),list=$('entryResults');$('entryResultsTitle').textContent=title;list.innerHTML='';$('entryResultsCount').textContent=entries.length?`Znaleziono ${entries.length}. Przewiń listę i wybierz wpis.`:emptyText;if(!entries.length){list.innerHTML=`<div class="empty">${escapeHtml(emptyText)}</div>`;modal.classList.remove('hidden');return}for(const entry of entries){const button=document.createElement('button');button.type='button';button.className='entry-result';const kind=document.createElement('div');kind.className='entry-result-type';kind.textContent=plannerEntryLabel(entry.type);const name=document.createElement('div');name.className='entry-result-title';name.textContent=entry.title;const meta=document.createElement('div');meta.className='entry-result-meta';meta.textContent=entry.type==='event'?`${entry.item.date}${entry.item.time?' · '+entry.item.time:''}`:(plannerCreatedAt(entry.type,entry.item)?`Utworzono ${new Date(plannerCreatedAt(entry.type,entry.item)).toLocaleString('pl-PL')}`:'Data utworzenia nieznana');if(entry.type==='event')button.appendChild(kind);button.append(name,meta);button.onclick=()=>{modal.classList.add('hidden');if(entry.type==='event'){if(activeIdea)closeIdeaActions();showView('day');selected=new Date(entry.item.date+'T12:00:00');$('date').value=entry.item.date;renderAll();openEventActions(entry.item)}else{if(activeTask)closeEventActions();showView('ideas');ideasTypeMode='all';renderIdeas();openIdeaActions(entry.item)}};list.appendChild(button)}modal.classList.remove('hidden')}
+function plannerDayNumber(day){const m=String(day||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?Math.floor(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]))/86400000):NaN}
+function plannerFreeTimeSlots(day,items,start='08:00',end='22:00'){
+  const minute=value=>{const m=String(value||'').match(/^([01]\d|2[0-3]):([0-5]\d)$/);return m?Number(m[1])*60+Number(m[2]):NaN},dayNo=plannerDayNumber(day),from=minute(start),to=minute(end);
+  if(!Number.isFinite(dayNo)||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw Error('Nieprawidłowy dzień lub zakres godzin.');
+  const busy=[];
+  for(const item of items){const beginDay=plannerDayNumber(item.date);if(!Number.isFinite(beginDay))continue;
+    if(!item.time){const until=item.endDate?plannerDayNumber(item.endDate):beginDay+1;if(dayNo>=beginDay&&dayNo<until)busy.push([from,to]);continue}
+    const beginMinute=minute(item.time),finishMinute=minute(item.endTime);if(!Number.isFinite(beginMinute)||!Number.isFinite(finishMinute))continue;
+    let finishDay=item.endDate?plannerDayNumber(item.endDate):beginDay+(finishMinute<=beginMinute?1:0);if(!Number.isFinite(finishDay))continue;
+    const absStart=(beginDay-dayNo)*1440+beginMinute,absEnd=(finishDay-dayNo)*1440+finishMinute;if(absEnd<=absStart)continue;
+    const clippedStart=Math.max(from,absStart),clippedEnd=Math.min(to,absEnd);if(clippedEnd>clippedStart)busy.push([clippedStart,clippedEnd]);
+  }
+  busy.sort((a,b)=>a[0]-b[0]);const merged=[];for(const interval of busy){const last=merged[merged.length-1];if(last&&interval[0]<=last[1])last[1]=Math.max(last[1],interval[1]);else merged.push([...interval])}
+  const slots=[];let cursor=from;for(const [a,b] of merged){if(a>cursor)slots.push([cursor,a]);cursor=Math.max(cursor,b)}if(cursor<to)slots.push([cursor,to]);return slots;
+}
+function showFreeTimeResults(day,slots,start='08:00',end='22:00'){
+  const clock=n=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`,modal=$('entryResultsModal'),list=$('entryResults'),date=new Date(day+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});$('entryResultsTitle').textContent=`Wolny czas: ${date}`;list.innerHTML='';$('entryResultsCount').textContent=slots.length?`Wolne przedziały między ${start} a ${end}.`:`Brak wolnych przerw między ${start} a ${end}.`;
+  if(!slots.length)list.innerHTML='<div class="empty">Kalendarz jest zajęty w całym wybranym zakresie.</div>';
+  for(const [from,to] of slots){const row=document.createElement('div');row.className='entry-result';const title=document.createElement('div');title.className='entry-result-title';title.textContent=`${clock(from)}–${clock(to)}`;const meta=document.createElement('div');meta.className='entry-result-meta';meta.textContent=`${to-from} min`;row.append(title,meta);list.appendChild(row)}modal.classList.remove('hidden');
+}
 function plannerSearchBatches(records){
   const chunks=[];
   for(const r of records){const content=r.content||'';for(let offset=0;offset<Math.max(1,content.length);offset+=7000)chunks.push({...r,content:content.slice(offset,offset+7500)});}
@@ -437,9 +457,15 @@ async function applyVoiceUiAction(session,action,reply=''){
   if(action.type==='open_create_event'){
     startEventCreationConversation({...action,date:action.date||plannerSearchDate(action.query)||recentEntrySearchDate(action.query)},session);return;
   }
-  if(!['list_entries','find_entry','open_event'].includes(action.type))throw new Error('Nieobsługiwana akcja interfejsu');
+  if(!['list_entries','find_entry','open_event','find_free_time'].includes(action.type))throw new Error('Nieobsługiwana akcja interfejsu');
   pendingVoiceItem=null;$('aiPreview').classList.add('hidden');
   if(session?.channel){session.dialogueState={engine:3,mode:'search',draft:{},pendingProposal:null,lastOperation:{status:'searching'}};if(session.channel==='main'){session.currentItem=null;session.snapshot=JSON.stringify(null);}voiceDialogues[session.channel]=session;}
+  if(action.type==='find_free_time'){
+    const start=action.windowStart||'08:00',end=action.windowEnd||'22:00',slots=plannerFreeTimeSlots(action.date,tasks,start,end);
+    showFreeTimeResults(action.date,slots,start,end);
+    if(session){const clock=n=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;session.lastOperation={status:'free_time_complete',date:action.date,count:slots.length};if(session.dialogueState)session.dialogueState.lastOperation=session.lastOperation;session.history.push({role:'assistant',content:slots.length?`Znalazłem ${slots.length} wolnych przedziałów ${slots.map(([a,b])=>`${clock(a)}–${clock(b)}`).join(', ')}.`:`Nie ma wolnych przedziałów między ${start} a ${end}.`});renderVoiceConversation(session);}
+    return;
+  }
   const scope=action.scope||(action.type==='open_event'?'calendar':'all'),createdDay=action.createdOn==='today'?iso(today()):action.createdOn||null,scheduledDay=action.scheduledOn||action.date||null,query=String(action.query||'').trim();
   if(action.type==='find_entry'&&scheduledDay)recentEntrySearch={query,date:scheduledDay,at:Date.now()};
   const candidates=plannerEntryRecords().filter(entry=>scope==='all'||(scope==='calendar'?entry.type==='event':entry.type==='entry'))
