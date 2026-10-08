@@ -22,6 +22,11 @@ jobs:
           ref: integration/conversation33
           path: integration
 
+      - name: Use the supported Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install dependencies
         working-directory: integration
         run: npm ci
@@ -36,6 +41,7 @@ jobs:
           cp integration/preview33/index.html "$RUNNER_TEMP/preview33/index.html"
           cp integration/preview33/release.json "$RUNNER_TEMP/preview33/release.json"
           cp integration/preview33/worker.txt "$RUNNER_TEMP/preview33/worker.txt"
+          cp integration/preview33/google-calendar.js integration/preview33/sync-core.js "$RUNNER_TEMP/preview33/"
 
       - name: Check out GitHub Pages branch
         uses: actions/checkout@v4
@@ -50,13 +56,14 @@ jobs:
           cp "$RUNNER_TEMP/preview33/index.html" pages/preview33/index.html
           cp "$RUNNER_TEMP/preview33/release.json" pages/preview33/release.json
           cp "$RUNNER_TEMP/preview33/worker.txt" pages/preview33/worker.txt
+          cp "$RUNNER_TEMP/preview33/google-calendar.js" "$RUNNER_TEMP/preview33/sync-core.js" pages/preview33/
           cd pages
-          if git diff --quiet -- preview33/index.html preview33/release.json preview33/worker.txt; then
+          if git diff --quiet -- preview33/index.html preview33/release.json preview33/worker.txt preview33/google-calendar.js preview33/sync-core.js; then
             echo "Preview33 is already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add preview33/index.html preview33/release.json preview33/worker.txt
+          git add preview33/index.html preview33/release.json preview33/worker.txt preview33/google-calendar.js preview33/sync-core.js
           git commit -m "Publish Preview33 from ${SOURCE_SHA} [skip ci]"
           git push origin HEAD:main

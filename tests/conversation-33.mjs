@@ -24,16 +24,16 @@ try{
 
  // Explicit task titles are complete tasks and skip the idea/calendar clarification loop.
  model={reply:'Pytanie testowe powinno zostać zastąpione regułą deterministyczną.',kind:'event',action:'continue',intent:'continue',proposalId:null,operations:[],focus:'',ambiguity:null};
- r=await post('Utwórz mi task pod tytułem Test 33.6.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.entryType,'task');assert.equal(r.item.text,'Test 33.6');
+ r=await post('Utwórz mi task pod tytułem Test 33.6.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.entryType,undefined);assert.equal(r.item.text,'Test 33.6');
  // Creation-date list requests become typed list actions instead of a single-entry search.
- r=await post('Pokaż mi pomysły, które dzisiaj utworzyłem.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'idea',createdOn:'today'});
- r=await post('Pokaż mi pomysły z dnia dzisiejszego.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'idea',createdOn:'today'});
- r=await post('Wymień wszystkie wpisy utworzone dzisiaj.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'all',createdOn:'today'});
- r=await post('Pokaż wydarzenia z dnia dzisiejszego, utworzone w dniu dzisiejszym.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'event',createdOn:'today',scheduledOn:new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'})});
+ r=await post('Pokaż mi pomysły, które dzisiaj utworzyłem.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'entries',createdOn:'today'});
+ r=await post('Pokaż mi pomysły z dnia dzisiejszego.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'entries',createdOn:'today'});
+ r=await post('Wymień wszystkie wpisy utworzone dzisiaj.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'entries',createdOn:'today'});
+ r=await post('Pokaż wydarzenia z dnia dzisiejszego, utworzone w dniu dzisiejszym.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'calendar',createdOn:'today',scheduledOn:new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'})});
  const tomorrow=new Date(new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'})+'T12:00:00Z');tomorrow.setUTCDate(tomorrow.getUTCDate()+1);const tomorrowIso=tomorrow.toISOString().slice(0,10);
- r=await post('Pokaż wydarzenia zaplanowane na jutro.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'event',scheduledOn:tomorrowIso});
- r=await post('Pokaż mi dzisiaj utworzone zadania.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'task',createdOn:'today'});
- r=await post('Pokaż wydarzenia w kalendarzu utworzone dzisiaj.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'event',createdOn:'today'});
+ r=await post('Pokaż wydarzenia zaplanowane na jutro.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'calendar',scheduledOn:tomorrowIso});
+ r=await post('Pokaż mi dzisiaj utworzone zadania.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'entries',createdOn:'today'});
+ r=await post('Pokaż wydarzenia w kalendarzu utworzone dzisiaj.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',scope:'calendar',createdOn:'today'});
 
  // A clear shopping-list rename must not be turned into an incomplete calendar event, even if the model misclassifies it.
  model={reply:'Ustalam nazwę wydarzenia.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'title',value:'Lista zakupów'}],focus:'termin i godziny',ambiguity:null};
@@ -51,12 +51,12 @@ try{
  r=await post('Utwórz spotkanie o wynajmie mieszkania 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'});
 
  model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
- r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'spotkanie z Zosią',entryType:'event'});
+ r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'spotkanie z Zosią',scope:'calendar'});
 
  model={reply:'Szukam spotkania z Wojtkiem z 9 października.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'find_entry',query:'spotkanie z Wojtkiem',entryType:'event',date:'2026-10-09'}};
- r=await post('Znajdź spotkanie z Wojtkiem 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'spotkanie z Wojtkiem',entryType:'event',date:'2026-10-09'});
+ r=await post('Znajdź spotkanie z Wojtkiem 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'spotkanie z Wojtkiem',scope:'calendar',scheduledOn:'2026-10-09'});
  model={reply:'Nie mogę teraz wyświetlić listy.',kind:'event',action:'continue',intent:'continue',proposalId:null,operations:[],focus:'',ambiguity:null};
- r=await post('Pokaż zadanie Masaż pleców.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'Masaż pleców',entryType:'task'});
+ r=await post('Pokaż zadanie Masaż pleców.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'Masaż pleców',scope:'entries'});
 
  // Engine 3 must receive short turns before legacy Engine 2 shortcuts.
  for(const test of [

@@ -1,3 +1,13 @@
+## Preview33 — 33.11-test
+
+Wydanie testowe z `integration/conversation33`. Publikacja kopiuje wyłącznie pliki `preview33/`; produkcyjny `index.html` i moduły w katalogu głównym Pages nie są zmieniane. Preview zawiera własne, identyczne z testowanymi kopie modułów Google Calendar i synchronizacji z identyfikatorami zawartości w URL.
+
+Wpisy poza kalendarzem mają wspólną listę i rozmowę, bez etykiet dawnych typów. Wyszukiwanie obejmuje tytuł, treść, dopiski i produkty, a domyślnie także tytuły i notatki wydarzeń. `scope` rozróżnia tylko wszystkie dane, wpisy i kalendarz; `createdOn` filtruje rzeczywistą datę utworzenia, `scheduledOn` termin wydarzenia. Brak wyników niczego nie tworzy. Stare dane i identyfikatory audio są zachowane. Dawne „Wolne myśli” są przenoszone atomowo do wspólnej kolekcji, bez dopisywania nieznanej daty utworzenia.
+
+Jawne tworzenie wpisu i akceptacja bieżącej propozycji zapisują dane; sukces jest pokazywany po sprawdzeniu zapisu oraz obecności wpisu na liście. Kalendarz zachowuje swój przepływ potwierdzenia. Pełne `npm test` obejmuje dotychczasowe regresje kalendarza, synchronizacji, rozmowy, lokalizacji i pogody oraz `tests/entries-33-11.cjs` (wieloturowy Worker → frontend → zapis/DOM, daty, migracja, produkty, historia i błąd zapisu). AI, Google i audio są w testach zastępowane kontrolowanymi odpowiedziami; nie jest to test rzeczywistego mikrofonu, OAuth ani jakości modelu.
+
+Pełny Worker do ręcznego wdrożenia: `preview33/worker.txt`. Publikacja frontendu nie wdraża Workera do Cloudflare. Po ręcznym wdrożeniu należy porównać `/api-info` z `preview33/release.json`.
+
 # Mój Planer
 
 ## Jedno źródło Conversation 33
