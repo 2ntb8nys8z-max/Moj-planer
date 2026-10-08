@@ -20,6 +20,14 @@ try{
  model={reply:'Przygotowałem listę zakupów.',kind:'idea',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:null,idea:{type:'idea',text:'Lista zakupów',action:'replace',addition:null,listAction:'replace',items:['jajka','awokado','chleb','masło','kefir','pomidory']}};
  r=await post('Zrób mi listę zakupów. Potrzebuję kupić jajka, awokado, chleb, masło, kefir, pomidory.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.deepEqual(r.item.items.slice(0,2),['jajka','awokado']);
 
+ // Explicit task titles are complete tasks and skip the idea/calendar clarification loop.
+ model={reply:'Pytanie testowe powinno zostać zastąpione regułą deterministyczną.',kind:'event',action:'continue',intent:'continue',proposalId:null,operations:[],focus:'',ambiguity:null};
+ r=await post('Utwórz mi task pod tytułem Test 33.6.');assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.entryType,'task');assert.equal(r.item.text,'Test 33.6');
+ // Creation-date list requests become typed list actions instead of a single-entry search.
+ r=await post('Pokaż mi pomysły, które dzisiaj utworzyłem.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'idea',createdOn:'today'});
+ r=await post('Pokaż mi dzisiaj utworzone zadania.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'task',createdOn:'today'});
+ r=await post('Pokaż wydarzenia w kalendarzu utworzone dzisiaj.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'list_entries',entryType:'event',createdOn:'today'});
+
  // A clear shopping-list rename must not be turned into an incomplete calendar event, even if the model misclassifies it.
  model={reply:'Ustalam nazwę wydarzenia.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'title',value:'Lista zakupów'}],focus:'termin i godziny',ambiguity:null};
  r=await post('Zmień nazwę na lista zakupów.',{engine:3,revision:1,draft:{type:'event',title:'Wydarzenie'},pendingProposal:null});assert.equal(r.status,'review');assert.equal(r.item.type,'idea');assert.equal(r.item.text,'Lista zakupów');assert.doesNotMatch(r.reply,/dzień wydarzenia|godzina rozpoczęcia/);
