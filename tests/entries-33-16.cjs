@@ -62,6 +62,14 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   }
   run("plannerApiRequest=savedPlannerApiRequest;pendingVoiceItem=null");
   run("closeIdeaActions();standaloneSession=beginVoiceDialogue('main',null,null);voiceDialogues.main=standaloneSession");await run("applyVoiceUiAction(standaloneSession,{type:'set_entry_reminder',date:'2026-11-07',startTime:'08:00',message:'Weź leki'})");assert.equal(get('previewTitle').textContent,'Weź leki');assert.equal(run('voiceDialogues.main'),null);get('confirmVoice').click();assert.equal(run('ideas[0].text'),'Weź leki');assert.equal(run('ideas[0].alarm.date'),'2026-11-07');assert.equal(run('ideas[0].alarm.time'),'08:00');assert.equal(run('tasks.length'),1);
+  // Moving a note to Calendar keeps its title, full text, notes and dated additions in the event draft.
+  run("closeIdeaActions();clearVoiceDialogue('idea');ideas=[{id:'one',title:'Odpowiedź na maila',text:'Odpowiedź na maila',content:'Treść właściwa',notes:'Dodatkowa notatka',additions:[{text:'Dopisek po rozmowie',createdAt:'2026-10-09T11:00:00Z'}]}];activeIdea=ideas[0];sourceSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));startEventCreationConversation({date:'2026-10-12',startTime:'06:00'},sourceSession)");
+  assert.equal(run("voiceDialogues.main.dialogueState.draft.title"),'Odpowiedź na maila');
+  assert.equal(run("voiceDialogues.main.dialogueState.draft.date"),'2026-10-12');
+  assert.equal(run("voiceDialogues.main.dialogueState.draft.startTime"),'06:00');
+  const copiedEventNotes=run("voiceDialogues.main.dialogueState.draft.notes");
+  assert.match(copiedEventNotes,/Treść właściwa/);assert.match(copiedEventNotes,/Dodatkowa notatka/);assert.match(copiedEventNotes,/Dopisek po rozmowie/);
+  run("clearVoiceDialogue('main');clearVoiceDialogue('idea')");
   run("closeIdeaActions();showPlannerWeather=()=>{};tasks[0].sourceEntryId='one';openEventActions(tasks[0])");get('actionMeta').querySelector('button.entry-source-button').click();assert.equal(run('activeIdea.id'),'one');
   run("closeIdeaActions();ideas=[];openEventActions(tasks[0])");assert.equal(get('actionMeta').querySelector('button.entry-source-button').disabled,true);
   console.log('33.17: list append/rename/replacement, deadline, one-time reminder, calendar markers, stale edit/removal, copy block, source navigation passed.');

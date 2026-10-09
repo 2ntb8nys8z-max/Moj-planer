@@ -24,6 +24,9 @@ try{
  assert.equal(edited.status,'command');
  assert.equal(edited.uiAction.date,'2026-11-07');
  assert.equal(edited.uiAction.message,'Wyślij polecony');
+ model=reminderAnswer({date:'',startTime:'',message:''},'modify');
+ const blankPatch=await post('Popraw przypomnienie',null,alarmEntry);
+ assert.equal(blankPatch.status,'command');assert.equal(blankPatch.uiAction.date,'2026-11-07');assert.equal(blankPatch.uiAction.startTime,'09:00');assert.equal(blankPatch.uiAction.message,'Wyślij polecony');
  for(const current of [entry,null]){
   model=reminderAnswer({date:'2026-11-08',message:'Kup mleko'});
   const day=await post('Przypomnij w niedzielę',null,current);
@@ -97,6 +100,9 @@ try{
  r=await post('Otwórz nowe wydarzenie.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:null});assert.equal(r.item,undefined);
  model={reply:'Przygotowuję formularz wydarzenia.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'}};
  r=await post('Utwórz spotkanie o wynajmie mieszkania 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'});
+ model={reply:'Przygotowuję wydarzenie z tego wpisu.',kind:'command',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'odpowiedź na maila',date:'2026-10-12',startTime:'06:00'}};
+ r=await post('Wrzuć tę notatkę do kalendarza na najbliższy poniedziałek na godzinę 6 rano.',null,{type:'idea',title:'odpowiedź na maila',text:'odpowiedź na maila'});assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'odpowiedź na maila',date:'2026-10-12',startTime:'06:00'});
+ r=await post('Wrzuć wpis do kalendarza.',null,null);assert.equal(r.status,'continue');assert.equal(r.dialogueState.lastOperation.code,'invalid_ui_action');
 
  model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
  model=command({type:'find_entry',query:'spotkanie z Zosią',scope:'calendar'});r=await post('Otwórz spotkanie z Zosią.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'find_entry',query:'spotkanie z Zosią',scope:'calendar'});

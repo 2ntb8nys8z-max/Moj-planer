@@ -190,3 +190,7 @@ Podpowiedzi przy mikrofonie zachowują dotychczasowe przykłady i dodają: zmian
 ### Preview33 33.18 — ciągłość powiadomień
 
 Powiadomienia zachowują dzień i własną treść przy zmianie samej godziny. Worker przechowuje osobny szkic powiadomienia i akceptuje częściowe poprawki. Rozmowa pozostaje aktywna także w głównym polu, gdy brakuje danych. Zapis nadal wymaga potwierdzenia. Testy obejmują częściowe odpowiedzi, pytanie pośrednie, poprawki i oba kanały interfejsu (odpowiedzi modelu symulowane). Worker 33.18 z preview33/worker.txt wymaga osobnego wdrożenia w Cloudflare.
+
+### Preview33 33.19 — przeniesienie wpisu do kalendarza
+
+Worker dopuszcza polecenie „wrzuć tę notatkę do kalendarza” jako poprawną komendę zmiany rodzaju wpisu na wydarzenie. Tytuł źródłowego wpisu, data i podane godziny przechodzą do formularza wydarzenia. Test obejmuje częściową poprawkę modelu (intent modify) dla otwartej notatki. Worker 33.19 trzeba wdrożyć oddzielnie w Cloudflare.
