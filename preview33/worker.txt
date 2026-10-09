@@ -190,7 +190,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     // Persistence wording and review transitions belong to the application.
     const reply=ready?'Przygotowałem zmianę. Sprawdź ją i potwierdź.':
       answer.intent==='reject'?'Odrzucono propozycję. Niczego jeszcze nie zapisano.':
-      ['execute','modify'].includes(answer.intent)?'Zmiana jest w szkicu. Potrzebuję jeszcze doprecyzowania: '+(candidate.missing.map(k=>({title:'nazwa wydarzenia',date:'dzień wydarzenia',startTime_or_allDay:'godzina rozpoczęcia lub wydarzenie całodniowe',endTime_or_durationMinutes:'godzina zakończenia lub długość'}[k]||k)).join(', ')||answer.focus||'niejednoznaczne dane')+'.':answer.reply.trim();
+      ['execute','modify'].includes(answer.intent)?'Potrzebuję jeszcze: '+(candidate.missing.map(k=>({title:'nazwa wydarzenia',date:'dzień wydarzenia',startTime_or_allDay:'godzinę rozpoczęcia albo informację, że wydarzenie jest całodniowe',endTime_or_durationMinutes:'godzinę zakończenia albo czas trwania'}[k]||k)).join(', ')||answer.focus||'doprecyzowania')+'.':answer.reply.trim();
     const next={engine:3,mode:answer.kind==='idea'?'entry':answer.operations.length||state.mode==='create'?'create':'idle',pendingProposal,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,pendingField:candidate.missing[0]==='endTime_or_durationMinutes'?'endTime':candidate.missing[0]==='startTime_or_allDay'?'startTime':candidate.missing[0]||null,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'}};
     if(answer.intent==='continue'&&state.reminderDraft){
       next.reminderDraft={...state.reminderDraft};next.mode='reminder';next.pendingField=state.pendingField||null;
@@ -233,7 +233,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="f7b34dbb62a1617b";
+const BUILD_ID="682eb1fadc89fa57";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.

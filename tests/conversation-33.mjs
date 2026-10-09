@@ -59,7 +59,7 @@ try{
  const replace=await post('Zastąp całą listę kawą',null,entry);assert.equal(replace.item.replaceExisting,true);
 
  model={reply:'Ustalam nazwę.',kind:'event',action:'continue',intent:'execute',proposalId:null,operations:[{op:'set',field:'title',value:'Dentysta'}],focus:'termin i godziny',ambiguity:null};
- let r=await post('Nazwij Dentysta');assert.equal(r.engine,3);assert.equal(r.status,'continue');assert.equal(r.dialogueState.draft.title,'Dentysta');assert.match(r.reply,/Zmiana jest w szkicu/);
+ let r=await post('Nazwij Dentysta');assert.equal(r.engine,3);assert.equal(r.status,'continue');assert.equal(r.dialogueState.draft.title,'Dentysta');assert.match(r.reply,/Potrzebuję jeszcze:/);assert.doesNotMatch(r.reply,/w szkicu/);
  model={reply:'Ustalam termin i godziny.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'date',value:'2026-10-08'},{op:'set',field:'startTime',value:'15:00'},{op:'set',field:'endTime',value:'15:45'}],focus:'',ambiguity:null};
  r=await post('Jutro od 15 do 15:45',r.dialogueState);assert.equal(r.status,'review');assert.equal(r.item.title,'Dentysta');assert.equal(r.item.startTime,'15:00');
  model={reply:'Przygotowałem wydarzenie do północy.',kind:'event',action:'review',intent:'execute',proposalId:null,operations:[{op:'set',field:'title',value:'Kolacja'},{op:'set',field:'date',value:'2026-10-08'},{op:'set',field:'startTime',value:'23:00'},{op:'set',field:'endTime',value:'00:00'}],focus:'',ambiguity:null};
