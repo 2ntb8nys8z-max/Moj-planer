@@ -80,6 +80,6 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   run("clearVoiceDialogue('main');clearVoiceDialogue('idea')");
   run("closeIdeaActions();showPlannerWeather=()=>{};tasks[0].sourceEntryId='one';openEventActions(tasks[0])");get('actionMeta').querySelector('button.entry-source-button').click();assert.equal(run('activeIdea.id'),'one');
   run("closeIdeaActions();ideas=[];openEventActions(tasks[0])");assert.equal(get('actionMeta').querySelector('button.entry-source-button').disabled,true);
-  console.log('33.20: lists, deadline, reminder, voice timer/removal, in-entry calendar clarification, copy block and source navigation passed.');
+  console.log('33.21: lists, deadline, reminder, voice timer/removal, in-entry calendar clarification, copy block and source navigation passed.');
  }finally{dom.window.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

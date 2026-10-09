@@ -198,3 +198,7 @@ Worker dopuszcza polecenie „wrzuć tę notatkę do kalendarza” jako poprawn�
 ### Preview33 33.20 — rozmowa z wpisu, minutnik i powiadomienia
 
 Pytania o brakujące dane wydarzenia pozostają w oknie otwartego wpisu; jego tytuł, termin i treść są zachowane. Głosowe „ustaw minutnik” pyta o długość, jeśli jej brakuje, i uruchamia minutnik bez zamykania wpisu. Głosowe usunięcie istniejącego powiadomienia prosi o potwierdzenie i nie usuwa terminu ani wydarzenia. Nieudana interpretacja zwraca krótką prośbę o powtórzenie. Testy obejmują te akcje interfejsu oraz walidację poleceń Engine 3. Worker 33.20 trzeba osobno wkleić i wdrożyć w Cloudflare.
+
+### Preview33 33.21 — krótsze pytania doprecyzowujące
+
+Usunięto powtarzany tekst „Zmiana jest w szkicu”. Planer pyta wprost o brakujące dane. Worker 33.21 trzeba osobno wkleić i wdrożyć w Cloudflare.
