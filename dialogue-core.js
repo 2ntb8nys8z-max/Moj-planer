@@ -1,5 +1,27 @@
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
 const DIALOGUE_FIELDS=['title','date','startTime','endTime','notes','location','reminder','recurrence'];
+function dialogueFollowupFieldExplicit(field,text,state){
+  if(state?.pendingField===field)return true;
+  const t=String(text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');
+  if(field==='title')return /\b(nazw|tytul|zmienic nazwe|zmien nazwe|zatytuluj)\b/.test(t);
+  if(field==='date')return /\b(dzis|dzisiaj|jutro|pojutrze|poniedzial|wtorek|srode|czwartek|piatek|sobote|niedziele|stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|wrzesnia|pazdziernika|listopada|grudnia|dzien|date)\b/.test(t)||/\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/.test(t);
+  if(field==='startTime')return /\b(od|poczatek|rozpoczn|start|godzine rozpoczecia)\b/.test(t)||state?.pendingField==='startTime';
+  if(field==='endTime')return /\b(do|koniec|zakonczen|potrwac|trwac|dlugosc|czas trwania|minut|kwadrans|pol godziny)\b/.test(t)||state?.pendingField==='endTime';
+  if(field==='notes')return /\b(notatk|dopisz|tekst|tresc)\b/.test(t);
+  if(field==='location')return /\b(lokalizac|adres|miejsce)\b/.test(t);
+  if(field==='allDay')return /\b(caly dzien|calodniow|bez godzin)\b/.test(t);
+  return false;
+}
+function dialogueProtectCreateDraft(state,text,operations){
+  if(state?.mode!=='create'&&!state?.pendingField)return operations;
+  const previous=state?.draft||{};
+  return operations.filter(op=>{
+    if(!op||!DIALOGUE_FIELDS.includes(op.field))return true;
+    const existing=previous[op.field];
+    if(existing==null||existing===''||existing===false)return true;
+    return dialogueFollowupFieldExplicit(op.field,text,state);
+  });
+}
 function dialogueReduce(original,state,operations){
   const draft={...(original||{}),...(state?.draft||{}),type:'event'};
   for(const op of operations||[]){

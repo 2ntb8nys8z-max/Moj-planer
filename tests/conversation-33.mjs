@@ -12,6 +12,9 @@ try{
   model={reply:'Sprawdź termin.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:action};
   const result=await post('Ustal termin',null,entry);assert.equal(result.status,'command');assert.deepEqual(result.uiAction,action);
  }
+ model={reply:'Przypomnienie przygotowane.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'}};
+ const reminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,entry);assert.equal(reminder.status,'command');assert.deepEqual(reminder.uiAction,{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'});
+ const standaloneReminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,null);assert.equal(standaloneReminder.status,'command');assert.equal(standaloneReminder.uiAction.type,'set_entry_reminder');
  model={reply:'Nowa nazwa.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',action:'rename',text:'Projekt drona'}};
  const rename=await post('Zmień nazwę',null,entry);assert.equal(rename.status,'review');assert.equal(rename.item.action,'rename');
  model={reply:'Zastąp produkty.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',text:'Pomysł na drony',listAction:'replace',replaceExisting:true,items:['kawa']}};
@@ -86,5 +89,13 @@ try{
   model={reply:'Wprowadzam zmianę.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:test.operations,focus:'',ambiguity:null};
   const before=modelCalls,short=await post(test.text,null,original);assert.equal(short.engine,3);assert.equal(modelCalls,before+1);
  }
+ // A follow-up answer may correct only the missing end time. Model-generated
+ // clears of the already agreed title/date/start must not reset the creation draft.
+ let creationState={engine:3,mode:'create',revision:0,draft:{type:'event',title:'Do exercise',date:'2026-10-10',startTime:'20:00',endTime:''},pendingField:'endTime'};
+ model={reply:'Ustawiłem koniec na 23:00.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'endTime',value:'23:00'},{op:'clear',field:'title'},{op:'clear',field:'date'},{op:'clear',field:'startTime'}],focus:'',ambiguity:null};
+ let retained=await post('Tak, do dwudziestej trzeciej.',creationState===null?null:creationState,null);assert.equal(retained.status,'review');assert.equal(retained.item.title,'Do exercise');assert.equal(retained.item.date,'2026-10-10');assert.equal(retained.item.startTime,'20:00');assert.equal(retained.item.endTime,'23:00');
+ creationState=retained.dialogueState;
+ model={reply:'Poprawiłem koniec na 20:30.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'endTime',value:'20:30'},{op:'clear',field:'title'},{op:'clear',field:'date'},{op:'clear',field:'startTime'}],focus:'',ambiguity:null};
+ retained=await post('Nie, do 20:30.',creationState);assert.equal(retained.status,'review');assert.equal(retained.item.title,'Do exercise');assert.equal(retained.item.date,'2026-10-10');assert.equal(retained.item.startTime,'20:00');assert.equal(retained.item.endTime,'20:30');
  console.log('Conversation 33: Engine 3 opt-in, persistent draft, review readiness and proposal acceptance passed (mocked AI).');
 }finally{globalThis.fetch=old}

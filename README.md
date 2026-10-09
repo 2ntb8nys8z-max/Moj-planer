@@ -177,3 +177,12 @@ Dodawanie produktów do istniejącego wpisu nie zmienia jego nazwy, treści ani 
 Wydarzenie utworzone z wpisu przechowuje lokalne `sourceEntryId` i przycisk otwierający wpis; usunięte źródło jest oznaczone bez błędu. Zewnętrzne linki i współdzielenie nie są implementowane. Daty dopisków są drobne i kursywą; jeden przycisk kopiuje cały blok tekstu z dopiskami chronologicznie. Transkrypcje i OCR zachowują osobne kopiowanie.
 
 Wymagany Worker 33.16 (`preview33/worker.txt`), wdrażany oddzielnie w Cloudflare. Testy `npm test` obejmują scenariusz nadpisywania zakupów, zachowanie danych, rollback, termin i konflikt, usuwanie/stare formularze, nawigację do źródła i protokół głosowy z atrapą modelu. Nie potwierdzają rozpoznawania rzeczywistej mowy ani działania urządzeń Safari.
+
+
+### Preview33 33.17 — rozmowa kalendarzowa i powiadomienia
+
+Szkic tworzenia wydarzenia zachowuje już podane pola między turami; korekta godziny końca nie zeruje nazwy, daty ani początku. Przy konwersji otwartego wpisu domyślnym tytułem jest nazwa wpisu, a jego treść i lokalizacja trafiają do wydarzenia. Po rozpoczęciu konwersji widok wpisu zamyka się, a rozmowa i szkic kalendarza stają się widoczne. Po zapisie otwiera się wybrany dzień; wydarzenie ma lokalny przycisk powrotu do wpisu źródłowego.
+
+„Ustal termin” oznacza punkt w kalendarzu Planera. Jednorazowe „przypomnij mi”/„ustaw powiadomienie”/„alarm” tworzy odrębny wpis z jednym nieblokującym powiadomieniem; można też ustawić alarm na istniejącym wpisie. Ikonka dzwonka odróżnia je od terminu z ikoną dłoni. Gdy Planer jest otwarty, sprawdza termin co 15 sekund i używa powiadomienia przeglądarki, jeśli użytkownik udzielił zgody; jeśli strona była zamknięta, spóźnione powiadomienie pokazuje się po ponownym otwarciu. To nie jest gwarantowany alarm w tle ani wydarzenie Google.
+
+Podpowiedzi przy mikrofonie zachowują dotychczasowe przykłady i dodają: zmianę nazwy, listę/listę zakupów, dopisanie tekstu, lokalizację, minutnik i powiadomienie. Puste nagranie informuje krótko, że nic się nie nagrało. `npm test` pokrywa zachowanie szkicu, komendę powiadomienia, zapis/odroczenie/usunięcie alarmu i jego nieblokujący znacznik w kalendarzu. Worker 33.17 (`preview33/worker.txt`) trzeba wdrożyć oddzielnie w Cloudflare przed testem komend głosowych.
