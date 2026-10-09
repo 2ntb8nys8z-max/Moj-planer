@@ -1,12 +1,12 @@
-// MÓJ PLANER — WORKER 33.21-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.22-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
 const CONVERSATION_ENGINE_PROMPT = `EDYCJA ISTNIEJĄCEGO WPISU: przy original.type idea nazwa, treść i produkty są niezależne. Dodanie listy zakupów do wpisu, również pierwszej, to idea {type:"idea",action:"append",text:original.title||original.text,listAction:"add",items:[nowe produkty]}. Nigdy nie zmieniaj wtedy nazwy ani treści. listAction replace jest dozwolone TYLKO przy jawnym poleceniu zastąpienia CAŁEJ listy, wtedy dołącz replaceExisting:true. Poprawka jednego produktu nie usuwa pozostałych; pokaż pełną poprawioną listę przy zastąpieniu. Zmiana samej nazwy to idea {type:"idea",action:"rename",text:"nowa nazwa"}, bez listAction. Zachowaj treść i załączniki. Te zasady mają pierwszeństwo przed ogólnymi instrukcjami tworzenia nowego wpisu.
-KALENDARZ I PRZYPOMNIENIA: „dodaj/wrzuć do kalendarza” oznacza wydarzenie kalendarzowe. Jeśli użytkownik poda dzień i godzinę początku, zachowaj je; wydarzenie wymaga końca albo czasu trwania. Przy tworzeniu wydarzenia z otwartego wpisu użyj jego nazwy jako tytułu, chyba że użytkownik poda inną. Uzupełniaj tylko brakujące pola. W trybie create traktuj draft jako pamięć rozmowy: nigdy nie kasuj ani nie pytaj ponownie o ustawione pola, gdy użytkownik odpowiada na aktualne pytanie. Poprawka końca („nie, do 20:30”) aktualizuje wyłącznie endTime i zachowuje nazwę, dzień, początek oraz resztę szkicu. Nie powtarzaj pól z missing, jeśli już są w draft.
+KALENDARZ I PRZYPOMNIENIA: „dodaj/wrzuć do kalendarza” oznacza wydarzenie kalendarzowe. Jeśli użytkownik poda dzień i godzinę początku, zachowaj je; wydarzenie wymaga końca albo czasu trwania. Przy tworzeniu wydarzenia z otwartego wpisu użyj jego nazwy jako tytułu, chyba że użytkownik poda inną. Dla open_create_event przekaż również podany endTime i durationMinutes; gdy podano początek i długość, nie pytaj ponownie o koniec. Jeśli podano jednocześnie koniec i długość, sprawdź zgodność; przy sprzeczności dopytaj, której wartości użyć. Uzupełniaj tylko brakujące pola. W trybie create traktuj draft jako pamięć rozmowy: nigdy nie kasuj ani nie pytaj ponownie o ustawione pola, gdy użytkownik odpowiada na aktualne pytanie. Poprawka końca („nie, do 20:30”) aktualizuje wyłącznie endTime i zachowuje nazwę, dzień, początek oraz resztę szkicu. Nie powtarzaj pól z missing, jeśli już są w draft.
 „Ustal termin” samo w sobie jest niejednoznaczne: zapytaj krótko, czy chodzi o wydarzenie w kalendarzu, czy jednorazowe powiadomienie. Dla powiadomienia, jeśli nie zmienia się jawnie któregoś pola, pomiń je albo zwróć null; nie zwracaj pustego tekstu zamiast daty/godziny. Jednorazowe „przypomnij mi”, „ustaw powiadomienie”, „ustaw alarm/budzik” dla otwartego wpisu oznacza kind command, intent execute, operations [], uiAction {type:"set_entry_reminder",date:"YYYY-MM-DD" lub null,startTime:"HH:MM" lub null,message:"krótka treść"}. Prośba o usunięcie istniejącego powiadomienia w otwartym wpisie oznacza kind command, intent modify, uiAction {type:"remove_entry_reminder"}; jeśli wpis nie ma powiadomienia, powiedz to krótko i nie twórz akcji. Komenda minutnika oznacza kind command, intent execute, uiAction {type:"start_timer",minutes:liczba}; jeśli nie podano długości, zwróć start_timer bez minutes, aby frontend dopytał i zachował rozmowę. Gdy mode to timer i użytkownik odpowiada długością („25 minut”, „kwadrans”), użyj start_timer. To punktowe powiadomienie bez końca, nie blokuje czasu i nie jest wydarzeniem Google. Dla „ustal termin” po wyborze punktu kalendarzowego użyj set_entry_deadline; to też nie jest wydarzenie Google. Przy brakującym dniu/godzinie pytaj tylko o brakujące dane, zachowuj je z historii, pokazuj dostępne wolne godziny i pozwól zapisać ręcznie. Gdy dzień jest podany głosem, przyjmij go i nie wymagaj wpisywania daty z palca. Żadna z tych akcji nie zapisuje się automatycznie. Nie twierdź, że powiadomienie zadziała po zamknięciu aplikacji.
 POWIADOMIENIA: original.alarm to zapisane powiadomienie, reminderDraft to jego aktualny szkic. Tworzenie i zmiana korzystają z set_entry_reminder; poprawka może mieć intent modify. Przesyłaj tylko pola jawnie ustalone w aktualnej wypowiedzi. Pominięte pola i null zachowują wcześniejsze wartości. Odpowiedź zawierająca samą godzinę aktualizuje startTime, sam dzień aktualizuje date. Nie zastępuj własnej treści powiadomienia tytułem wpisu. Jeśli użytkownik chce zmienić godzinę, ale nie podał nowej, zapytaj „Na którą godzinę?” z intent continue bez uiAction i operacji. Nie proponuj wtedy zapisania starej godziny. Podobnie dopytaj o niepodaną nową datę. Szkic powiadomienia zachowuje się między turami; inna komenda rozpoczyna osobny przepływ. Usuwaj tylko istniejące original.alarm, nigdy deadline ani wydarzenia kalendarza.
-Przy przenoszeniu otwartego wpisu do kalendarza użyj kind command, uiAction {type:"open_create_event",query:tytuł wpisu,date:YYYY-MM-DD lub null,startTime:HH:MM lub null}. Dla wpisu otwartego intencja może być modify; zwróć operations []. Zachowaj podaną datę i godzinę. Nazwę wydarzenia weź z tytułu wpisu, chyba że użytkownik wyraźnie poda inną.
+Przy tworzeniu wydarzenia przez open_create_event użyj kind command, uiAction {type:"open_create_event",query:tytuł wpisu,date:YYYY-MM-DD lub null,startTime:HH:MM lub null,endTime:HH:MM lub null,durationMinutes:dodatnia liczba całkowita minut lub null}. Dla wpisu otwartego intencja może być modify; zwróć operations []. Zachowaj podaną datę, początek, koniec i długość. Gdy podano początek i długość, przekaż oba. Gdy podano długość bez początku, zachowaj ją do kolejnej tury. Nazwę wydarzenia weź z tytułu wpisu, chyba że użytkownik wyraźnie poda inną.
 Prowadzisz naturalną rozmowę po polsku o Planerze i poza nim. Na zwykłe pytania informacyjne, także spoza funkcji aplikacji, odpowiadaj normalnie i pomocnie. Przy bezpośrednich poleceniach dotyczących Planera odpowiadaj krótko i dopytuj tylko o brak, którego nie da się bezpiecznie wywnioskować. Nie pytaj ponownie o treść, gdy użytkownik podał tytuł zadania i chce je po prostu utworzyć. Każda wypowiedź może być pytaniem, komentarzem, niepewną propozycją, samopoprawką albo poleceniem. Nie wymagaj konkretnej wartości w każdej turze. Możesz rozmawiać wiele tur bez jakiejkolwiek zmiany danych. Najpierw odpowiedz na sens wypowiedzi, nie powtarzaj formularza ani listy gotowych pytań. Sformułuj własną krótką odpowiedź z kontekstu.
 Zwracaj JSON: {"reply":"wypowiedź dla użytkownika","kind":"event|idea|command","action":"continue","operations":[],"focus":"co pozostaje do uzgodnienia","ambiguity":null,"uiAction":null}. action to continue albo review. review oznacza tylko gotowy PODGLĄD do zatwierdzenia, nigdy zapis. W continue można zachować pewne ustalenia w szkicu albo zostawić operations puste. W review focus jest pusty i ambiguity null. Pytania i wyjaśnienia nie mogą same wywołać review. Pośrednia dyskusja nie unieważnia ustaleń.
 Wszystkie rzeczy poza kalendarzem są zwykłymi wpisami w jednej kolekcji. Zadanie, pomysł, lista zakupów, notatka i nagranie nie są kategoriami. Nie wybieraj ścieżki tworzenia ani szukania przez entryType, ikonę lub items. Produkty, checkboxy, dopiski i audio to dane wpisu. Kalendarz pozostaje osobny. Wyszukuj nazwy, tytuły i całą treść wszystkich wpisów oraz notatki wydarzeń, chyba że użytkownik jawnie ogranicza zakres. Brak wyników nigdy nie oznacza tworzenia. „Wszystkie listy zakupów” oznacza wszystkie dopasowania frazy „Lista zakupów”, nie cały kalendarz.
@@ -51,12 +51,13 @@ function conversationReminderDraft(original,state,patch={}){
 function conversationFault(code){const e=new Error(code);e.conversationCode=code;return e;}
 function conversationDate(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
 function conversationDateShift(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
+function conversationDurationEndTime(startTime,durationMinutes){const start=plannerMinutes(startTime);return start===null||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>=1440?null:plannerClock(start+durationMinutes)}
 function conversationMissing(draft,allDay){
   const missing=[];
   if(!draft.title?.trim())missing.push('title');
   if(!draft.date)missing.push('date');
   if(!draft.startTime&&!allDay)missing.push('startTime_or_allDay');
-  if(draft.startTime&&!draft.endTime)missing.push('endTime_or_durationMinutes');
+  if(draft.startTime&&!draft.endTime&&!draft.durationMinutes)missing.push('endTime_or_durationMinutes');
   return missing;
 }
 function conversationCandidate(original,state,answer){
@@ -68,12 +69,20 @@ function conversationCandidate(original,state,answer){
     if(action?.type==='set_entry_reminder'){action={...action};for(const field of ['date','startTime','message'])if(action[field]==='')delete action[field];}
     if(!(answer.intent==='execute'&&(action?.type!=='remove_entry_reminder')||answer.intent==='modify'&&(action?.type==='set_entry_reminder'||action?.type==='remove_entry_reminder'||action?.type==='open_create_event'&&original?.type==='idea'))||answer.action!=='continue'||answer.operations.length||!action)throw conversationFault('invalid_ui_action');
     if(!['list_entries','find_entry','open_event','open_create_event','find_free_time','set_entry_deadline','set_entry_reminder','remove_entry_reminder','start_timer'].includes(action.type))throw conversationFault('invalid_ui_action');
-    if(action.query!=null&&(typeof action.query!=='string'||action.query.length>500)||['find_entry','open_event'].includes(action.type)&&!action.query?.trim()||action.createdOn!=null&&action.createdOn!=='today'&&!conversationDate(action.createdOn)||action.scheduledOn!=null&&!conversationDate(action.scheduledOn)||action.date!=null&&!conversationDate(action.date)||action.type==='find_free_time'&&!conversationDate(action.date)||action.scope!=null&&!['all','entries','calendar'].includes(action.scope)||action.startTime!=null&&plannerMinutes(action.startTime)===null||action.endTime!=null&&plannerMinutes(action.endTime)===null||action.windowStart!=null&&plannerMinutes(action.windowStart)===null||action.windowEnd!=null&&plannerMinutes(action.windowEnd)===null||action.message!=null&&(typeof action.message!=='string'||action.message.length>500)||(action.type==='find_free_time'&&plannerMinutes(action.windowEnd||'22:00')<=plannerMinutes(action.windowStart||'08:00'))||action.allDay!=null&&typeof action.allDay!=='boolean')throw conversationFault('invalid_ui_action');
+    if(action.query!=null&&(typeof action.query!=='string'||action.query.length>500)||['find_entry','open_event'].includes(action.type)&&!action.query?.trim()||action.createdOn!=null&&action.createdOn!=='today'&&!conversationDate(action.createdOn)||action.scheduledOn!=null&&!conversationDate(action.scheduledOn)||action.date!=null&&!conversationDate(action.date)||action.endDate!=null&&!conversationDate(action.endDate)||action.type==='find_free_time'&&!conversationDate(action.date)||action.scope!=null&&!['all','entries','calendar'].includes(action.scope)||action.startTime!=null&&plannerMinutes(action.startTime)===null||action.endTime!=null&&plannerMinutes(action.endTime)===null||action.windowStart!=null&&plannerMinutes(action.windowStart)===null||action.windowEnd!=null&&plannerMinutes(action.windowEnd)===null||action.message!=null&&(typeof action.message!=='string'||action.message.length>500)||(action.type==='find_free_time'&&plannerMinutes(action.windowEnd||'22:00')<=plannerMinutes(action.windowStart||'08:00'))||action.allDay!=null&&typeof action.allDay!=='boolean'||action.durationMinutes!=null&&(action.type!=='open_create_event'||!Number.isInteger(action.durationMinutes)||action.durationMinutes<1||action.durationMinutes>=1440))throw conversationFault('invalid_ui_action');
+    if(action.type==='open_create_event'&&action.allDay&&(action.durationMinutes!=null||action.startTime||action.endTime))throw conversationFault('duration_end_conflict');
+    if(action.type==='open_create_event'&&action.durationMinutes!=null&&action.startTime){
+      const expectedEnd=conversationDurationEndTime(action.startTime,action.durationMinutes);
+      if(action.endTime&&action.endTime!==expectedEnd)throw conversationFault('duration_end_conflict');
+      action.endTime=action.endTime||expectedEnd;
+      if(action.date)action.endDate=conversationDateShift(action.date,plannerMinutes(action.endTime)<=plannerMinutes(action.startTime)?1:0);
+      delete action.durationMinutes;
+    }
     if(action.type==='set_entry_deadline'&&original?.type!=='idea')throw conversationFault('entry_action_requires_open_entry');
     if(action.type==='remove_entry_reminder'&&(original?.type!=='idea'||!original?.alarm))throw conversationFault('entry_reminder_not_found');
     if(action.type==='start_timer'&&action.minutes!=null&&(!Number.isInteger(action.minutes)||action.minutes<1||action.minutes>1440))throw conversationFault('invalid_timer_minutes');
     const uiAction={type:action.type};
-    for(const field of ['query','scope','createdOn','scheduledOn','date','startTime','endTime','windowStart','windowEnd','allDay','message','minutes'])if(action[field]!=null)uiAction[field]=action[field];
+    for(const field of ['query','scope','createdOn','scheduledOn','date','startTime','endTime','endDate','windowStart','windowEnd','allDay','durationMinutes','message','minutes'])if(action[field]!=null)uiAction[field]=action[field];
     if(action.type==='open_create_event'&&action.query==null)uiAction.query=null;
     return {draft:{...(state.draft||{})},allDay:state.allDay===true,missing:[],ambiguity:null,uiAction};
   }
@@ -81,14 +90,14 @@ function conversationCandidate(original,state,answer){
   if(ambiguity!==null&&(!ambiguity||!['startTime','endTime'].includes(ambiguity.field)||!Array.isArray(ambiguity.choices)||ambiguity.choices.length!==2||ambiguity.choices.some(t=>plannerMinutes(t)===null)))throw conversationFault('invalid_ambiguity');
   const base={...(original?.type==='event'?original:{}),...(state.draft||{}),type:'event'};
   const draft={...base};let allDay=state.allDay===true||(!state.draft&&original?.type==='event'&&!original.startTime);
-  let duration=null;const touched=new Set();
+  let duration=Number.isInteger(base.durationMinutes)?base.durationMinutes:null;const durationFromDraft=duration!==null;let durationSetThisTurn=false;const touched=new Set();
   for(const op of answer.operations){
     if(!op||typeof op!=='object'||!['set','clear','revert'].includes(op.op)||![...DIALOGUE_FIELDS,'durationMinutes','allDay'].includes(op.field)||touched.has(op.field))throw conversationFault('invalid_or_duplicate_operation');
     touched.add(op.field);
     if(op.field==='durationMinutes'){
       if(op.op!=='set'||!Number.isInteger(op.value)||op.value<=0)throw conversationFault('invalid_duration');
       if(op.value>=1440)throw conversationFault('multi_day_write_not_supported');
-      duration=op.value;continue;
+      duration=op.value;durationSetThisTurn=true;continue;
     }
     if(op.field==='allDay'){
       if(op.op!=='set'||typeof op.value!=='boolean')throw conversationFault('invalid_all_day');
@@ -105,16 +114,24 @@ function conversationCandidate(original,state,answer){
   }
   if(allDay&&(touched.has('startTime')||touched.has('endTime')||duration!==null)&&touched.has('allDay'))throw conversationFault('conflicting_all_day_and_hours');
   if(touched.has('startTime')&&draft.startTime)allDay=false;
-  if(duration!==null&&touched.has('endTime'))throw conversationFault('conflicting_duration_and_end');
-  if(duration!==null){if(plannerMinutes(draft.startTime)===null)throw conversationFault('duration_needs_start');}
-  else if(touched.has('startTime')&&!touched.has('endTime')&&!touched.has('allDay')){
+  if(duration!==null){
+    if(!Number.isInteger(duration)||duration<=0||duration>=1440)throw conversationFault('invalid_duration');
+    const start=plannerMinutes(draft.startTime);
+    if(start===null){draft.durationMinutes=duration;}
+    else {
+      const expectedEnd=conversationDurationEndTime(draft.startTime,duration);
+      const bothSpecifiedNow=(durationSetThisTurn&&touched.has('endTime'))||(durationFromDraft&&touched.has('startTime')&&!!draft.endTime);
+      if(touched.has('endTime')&&!bothSpecifiedNow&&!durationSetThisTurn){duration=null;delete draft.durationMinutes;}
+      else {
+        const compareEnd=(durationSetThisTurn&&touched.has('endTime'))||(durationFromDraft&&!!base.endTime&&(!touched.has('endTime')||touched.has('startTime')));
+        if(compareEnd&&draft.endTime!==expectedEnd)throw conversationFault('duration_end_conflict');
+        draft.endTime=expectedEnd;delete draft.durationMinutes;
+      }
+    }
+  }
+  if(duration===null&&touched.has('startTime')&&!touched.has('endTime')&&!touched.has('allDay')){
     if(!draft.startTime)draft.endTime='';
     else if(base.startTime&&base.endTime)duration=(plannerMinutes(base.endTime)-plannerMinutes(base.startTime)+1440)%1440||1440;
-  }
-  if(duration!==null){
-    const end=plannerMinutes(draft.startTime)+duration;
-    if(duration<=0||end>1440)throw conversationFault('multi_day_write_not_supported');
-    draft.endTime=plannerClock(end);
   }
   const timingTouched=original?.type!=='event'||['date','startTime','endTime','durationMinutes','allDay'].some(k=>touched.has(k));
   if(draft.startTime&&draft.endTime&&plannerMinutes(draft.endTime)===plannerMinutes(draft.startTime)&&(timingTouched||original?.type!=='event'))throw conversationFault('end_must_follow_start');
@@ -168,7 +185,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
             dialogueState:{engine:3,mode:'reminder',draft:{},reminderDraft,pendingField,pendingProposal:null,
               revision:(Number(state.revision)||0)+1,lastOperation:{status:'reminder_draft'}}};
         }
-        const next={engine:3,mode:candidate.uiAction.type==='open_create_event'?'create':candidate.uiAction.type==='start_timer'?'timer':'search',draft:{},...(candidate.uiAction.type==='start_timer'?{timerDraft:{}}:{}),pendingProposal:null,entryCreation:null,allDay:false,conversationFocus:'',conversationAmbiguity:null,revision:(Number(state.revision)||0)+1,lastOperation:{status:'ui_action_ready'}};
+        const next={engine:3,mode:candidate.uiAction.type==='open_create_event'?'create':candidate.uiAction.type==='start_timer'?'timer':'search',draft:candidate.uiAction.type==='open_create_event'&&candidate.uiAction.durationMinutes!=null?{type:'event',durationMinutes:candidate.uiAction.durationMinutes}: {},...(candidate.uiAction.type==='start_timer'?{timerDraft:{}}:{}),pendingProposal:null,entryCreation:null,allDay:false,conversationFocus:'',conversationAmbiguity:null,revision:(Number(state.revision)||0)+1,lastOperation:{status:'ui_action_ready'}};
         return {engine:3,success:true,status:'command',reply:answer.reply.trim(),uiAction:candidate.uiAction,dialogueState:next};
       }
       if(answer.kind==='event'&&['execute','modify'].includes(answer.intent)&&!answer.operations.length&&!state.draft?.title&&!original)throw conversationFault('missing_action: choose command for search, idea for entry, or ask clarification without execute');
@@ -197,7 +214,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     }
     return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft,...(answer.kind==='idea'&&!original&&['execute','accept'].includes(answer.intent)?{saveEntry:true}:{})}:{})};
   }
-  const failureReply=failure==='entry_reminder_not_found'?'Ten wpis nie ma ustawionego powiadomienia.':'Nie zrozumiałem polecenia. Powiedz to proszę inaczej.';
+  const failureReply=failure==='entry_reminder_not_found'?'Ten wpis nie ma ustawionego powiadomienia.':failure==='duration_end_conflict'?'Podałeś sprzeczny czas trwania i godzinę zakończenia. Którą godzinę końca mam przyjąć?':'Nie zrozumiałem polecenia. Powiedz to proszę inaczej.';
   return {engine:3,success:true,status:'continue',reply:failureReply,dialogueState:{...state,engine:3,draft:plannerCleanDraft(draft),lastOperation:{status:'failed',code:failure},revision:(Number(state.revision)||0)+1}};
 }
 
@@ -233,7 +250,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="c2c14b50128527f1";
+const BUILD_ID="a53be6442da30b2d";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -449,7 +466,7 @@ function plannerDuration(text){
 }
 function plannerCleanDraft(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return null;
-  const out={};for(const k of ['type','title','date','startTime','endTime','endDate','notes','location','reminder','recurrence','changedFields','notesAction','notesAddition','recurrenceAction','applyToSeries','timing'])if(value[k]!==undefined)out[k]=value[k];
+  const out={};for(const k of ['type','title','date','startTime','endTime','endDate','durationMinutes','notes','location','reminder','recurrence','changedFields','notesAction','notesAddition','recurrenceAction','applyToSeries','timing'])if(value[k]!==undefined)out[k]=value[k];
   return JSON.stringify(out).length<=12000?out:null;
 }
 function plannerTitleQuestion(item,current,dialogue,text){
@@ -727,7 +744,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.09.33.21-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.10.33.22-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

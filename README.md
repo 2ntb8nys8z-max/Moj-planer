@@ -202,3 +202,7 @@ Pytania o brakujące dane wydarzenia pozostają w oknie otwartego wpisu; jego ty
 ### Preview33 33.21 — krótsze pytania doprecyzowujące
 
 Usunięto powtarzany tekst „Zmiana jest w szkicu”. Planer pyta wprost o brakujące dane. Worker 33.21 trzeba osobno wkleić i wdrożyć w Cloudflare.
+
+### Preview33 33.22 — czas trwania przy tworzeniu wydarzenia
+
+Komenda `open_create_event` przenosi podaną długość wydarzenia. Gdy znane są początek i długość, koniec jest wyliczany od razu; gdy brakuje początku, długość pozostaje w szkicu rozmowy do kolejnej odpowiedzi. Wyliczanie uwzględnia przejście przez północ, koniec miesiąca i roku. Sprzeczna para końca i długości wywołuje krótkie pytanie zamiast automatycznego wyboru. Wdrożenia Workera i frontendu są oddzielne; Worker 33.22 trzeba wdrożyć w Cloudflare przed testem.

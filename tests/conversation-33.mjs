@@ -111,6 +111,38 @@ try{
  r=await post('Utwórz spotkanie o wynajmie mieszkania 9 października.');assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Spotkanie o wynajmie mieszkania',date:'2026-10-09'});
  model={reply:'Przygotowuję wydarzenie z tego wpisu.',kind:'command',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'odpowiedź na maila',date:'2026-10-12',startTime:'06:00'}};
  r=await post('Wrzuć tę notatkę do kalendarza na najbliższy poniedziałek na godzinę 6 rano.',null,{type:'idea',title:'odpowiedź na maila',text:'odpowiedź na maila'});assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'odpowiedź na maila',date:'2026-10-12',startTime:'06:00'});
+ // Calendar creation commands must carry duration through to a concrete end time.
+ const createFromEntry={type:'idea',title:'Lista zakupów',text:'Lista zakupów'};
+ const createAction=(fields)=>({reply:'Przygotowuję wydarzenie.',kind:'command',action:'continue',intent:'modify',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'Lista zakupów',...fields}});
+ model=createAction({date:'2026-10-12',startTime:'12:00',durationMinutes:15});
+ r=await post('Wrzuć do kalendarza na poniedziałek na 12:00, czas trwania 15 minut.',null,createFromEntry);
+ assert.equal(r.status,'command');assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Lista zakupów',date:'2026-10-12',startTime:'12:00',endTime:'12:15',endDate:'2026-10-12'});
+ model=createAction({date:'2026-10-31',startTime:'23:50',durationMinutes:15});
+ r=await post('Dodaj do kalendarza 31 października od 23:50 na 15 minut.',null,createFromEntry);
+ assert.deepEqual(r.uiAction,{type:'open_create_event',query:'Lista zakupów',date:'2026-10-31',startTime:'23:50',endTime:'00:05',endDate:'2026-11-01'});
+ model=createAction({date:'2026-12-31',startTime:'23:45',durationMinutes:15});
+ r=await post('Dodaj do kalendarza 31 grudnia od 23:45 na 15 minut.',null,createFromEntry);
+ assert.equal(r.uiAction.endTime,'00:00');assert.equal(r.uiAction.endDate,'2027-01-01');
+ model=createAction({date:'2026-10-12',startTime:'12:00',durationMinutes:15,endTime:'12:15'});
+ r=await post('Dodaj wydarzenie od 12:00 na 15 minut, do 12:15.',null,createFromEntry);
+ assert.equal(r.uiAction.endTime,'12:15');
+ model=createAction({date:'2026-10-12',startTime:'12:00',durationMinutes:15,endTime:'13:00'});
+ r=await post('Dodaj wydarzenie od 12:00 na 15 minut, do 13:00.',null,createFromEntry);
+ assert.equal(r.status,'continue');assert.match(r.reply,/sprzeczny czas trwania/);assert.equal(r.dialogueState.lastOperation.code,'duration_end_conflict');
+ model=createAction({date:'2026-10-12',durationMinutes:15});
+ r=await post('Dodaj do kalendarza na 15 minut.',null,createFromEntry);
+ assert.equal(r.uiAction.durationMinutes,15);assert.equal(r.dialogueState.draft.durationMinutes,15);
+ const durationFollowupState={...r.dialogueState,draft:{type:'event',title:'Lista zakupów',date:'2026-10-12',startTime:'',endTime:'',durationMinutes:15},pendingField:'startTime'};
+ model={reply:'Ustawiam początek na 12:00.',kind:'event',action:'continue',intent:'execute',proposalId:null,operations:[{op:'set',field:'startTime',value:'12:00'}],focus:'',ambiguity:null};
+ r=await post('O 12:00.',durationFollowupState,createFromEntry);
+ assert.equal(r.status,'review');assert.equal(r.item.startTime,'12:00');assert.equal(r.item.endTime,'12:15');assert.equal(r.item.endDate,'2026-10-12');assert.equal(r.item.durationMinutes,undefined);
+ model={reply:'Ustawiam długość.',kind:'event',action:'continue',intent:'execute',proposalId:null,operations:[{op:'set',field:'durationMinutes',value:15}],focus:'',ambiguity:null};
+ r=await post('Zarezerwuj 15 minut.',{engine:3,mode:'create',revision:0,draft:{type:'event',title:'Lista zakupów',date:'2026-12-31'}},createFromEntry);
+ assert.equal(r.status,'continue');assert.equal(r.dialogueState.draft.durationMinutes,15);
+ model={reply:'Ustawiam początek.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'startTime',value:'23:45'}],focus:'',ambiguity:null};
+ r=await post('23:45.',r.dialogueState,createFromEntry);
+ assert.equal(r.status,'review');assert.equal(r.item.endTime,'00:00');assert.equal(r.item.endDate,'2027-01-01');assert.equal(r.item.durationMinutes,undefined);
+ model=createAction({});
  r=await post('Wrzuć wpis do kalendarza.',null,null);assert.equal(r.status,'continue');assert.equal(r.dialogueState.lastOperation.code,'invalid_ui_action');
 
  model={reply:'Szukam spotkania z Zosią.',kind:'command',action:'continue',intent:'execute',proposalId:null,operations:[],focus:'',ambiguity:null,uiAction:{type:'open_event',query:'Spotkanie z Zosią'}};
