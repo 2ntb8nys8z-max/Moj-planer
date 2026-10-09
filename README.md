@@ -156,3 +156,13 @@ Dodaje polecenie głosowe do pokazania wolnych przedziałów w wybranym dniu. Pl
 ### Preview33 33.14 — spotkania do północy
 
 Obsługuje wydarzenia kończące się dokładnie o 00:00 następnego dnia. Data końca jest zapisywana jawnie, pokazywana w podglądzie i synchronizowana z Google Calendar. Dotyczy tworzenia wydarzenia oraz zmiany jego godziny lub czasu trwania.
+
+### Preview33 33.15 — mobilny widok wpisu
+
+Nowy widok wspólnego wpisu ma stały nagłówek, przewijaną treść i stały dolny pasek. Długi wpis zajmuje ekran telefonu; krótkie wpisy zachowują formę mniejszego okna. Tytuł, przyciski i tekst zostały dopasowane do telefonu. Historia rozwija się w obrębie wpisu, a aktywna ikona pozwala ją zamknąć. Rozmowa o zmianach jest wyświetlana w przewijanej treści: użytkownik z lewej, AI z prawej.
+
+Działające funkcje: dotychczasowa rozmowa głosowa, edycja ręczna nazwy/treści/lokalizacji i dodawanie notatek lub produktów, lokalne zdjęcia z aparatu/galerii, wiele lokalnych nagrań (pauza/wznowienie/zapis do 3 minut), odtwarzanie z przesuwaniem o 15 sekund, minutnik, kopiowanie tekstu i udostępnianie tekstu. Błąd zapisu nagrania zachowuje dźwięk w pamięci do ponowienia lub anulowania. Metadane są zapisywane atomowo z wpisem; nieudany zapis metadanych usuwa nowy osierocony blob. Dawne `voiceMemoId` są odczytywane bez migracji. Ręczna edycja odrzuca zapis formularza, jeśli wpis zmienił się w międzyczasie.
+
+Transkrypcja audio, OCR i alarmy systemowe są w tym etapie jawnie niedostępne. Przyciski nie wykonują pozornych operacji. Nie dodano nowego wywołania API ani zmiany Workera — frontend 33.15 współpracuje z Workerem 33.14. Udostępnianie obejmuje tekst, a nie pliki. Lokalne nagrania i zdjęcia w IndexedDB nie są dołączane do istniejącej kopii JSON ani synchronizacji Google. Minutnik korzysta z dotychczasowego mechanizmu otwartej aplikacji; nie gwarantuje alarmu przy zamkniętej aplikacji.
+
+`npm test` obejmuje `tests/entry-view-33-15.cjs`: zapis/rollback/stary formularz, stare i nowe załączniki, opóźnione odczyty, anulowanie dostępu do mikrofonu, pauzę/wznowienie i ponowienie zapisu nagrania, historię, rozmowę i minutnik. `tests/entry-view-browser-33-15.cjs` sprawdza Chromium w rozmiarach 390×844, 320×568 i 844×390; wymaga Playwright (`PLANNER_PLAYWRIGHT` może wskazywać istniejącą instalację). Testy nie zastępują próby prawdziwego mikrofonu, aparatu i natywnego arkusza udostępniania w Safari na iPhonie.

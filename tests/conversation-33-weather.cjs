@@ -33,6 +33,8 @@ const assert=require('node:assert/strict');
   assert.equal(hints.nearby,'Warszawą');
 
   await vm.runInContext(`
+    // Keep the forecast fixture in the future regardless of the test execution date.
+    today=()=>new Date('2026-10-08T00:00:00');
     testWeatherTask={id:77,title:'Spotkanie',date:'2026-10-08',time:'15:00',endTime:'15:45',location:'Wólka Kosowska pod Warszawą'};
     tasks=[testWeatherTask];activeTask=testWeatherTask;showPlannerWeather(testWeatherTask)
   `,ctx);
