@@ -15,6 +15,32 @@ try{
  model={reply:'Przypomnienie przygotowane.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'}};
  const reminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,entry);assert.equal(reminder.status,'command');assert.deepEqual(reminder.uiAction,{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'});
  const standaloneReminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,null);assert.equal(standaloneReminder.status,'command');assert.equal(standaloneReminder.uiAction.type,'set_entry_reminder');
+
+ // Partial reminder turns must retain a structured draft, including custom saved content.
+ const alarmEntry={type:'idea',title:'List',text:'List',alarm:{date:'2026-11-07',time:'09:00',message:'Wyślij polecony'}};
+ const reminderAnswer=(fields,intent='execute')=>({reply:'Sprawdź powiadomienie.',kind:'command',intent,operations:[],focus:'',ambiguity:null,uiAction:{type:'set_entry_reminder',...fields}});
+ model=reminderAnswer({startTime:'13:00'},'modify');
+ const edited=await post('Zmień godzinę na 13',null,alarmEntry);
+ assert.equal(edited.status,'command');
+ assert.equal(edited.uiAction.date,'2026-11-07');
+ assert.equal(edited.uiAction.message,'Wyślij polecony');
+ for(const current of [entry,null]){
+  model=reminderAnswer({date:'2026-11-08',message:'Kup mleko'});
+  const day=await post('Przypomnij w niedzielę',null,current);
+  model={reply:'Tak, to jednorazowe powiadomienie.',kind:'idea',intent:'continue',operations:[],focus:'godzina',ambiguity:null,idea:null};
+  const aside=await post('Czy to jednorazowe?',day.dialogueState,current);
+  assert.equal(aside.dialogueState.reminderDraft.date,'2026-11-08');
+  model=reminderAnswer({startTime:'18:00',date:null,message:null},'modify');
+  const hour=await post('O 18',aside.dialogueState,current);
+  assert.equal(hour.status,'command');
+  assert.equal(hour.uiAction.date,'2026-11-08');
+  assert.equal(hour.uiAction.message,'Kup mleko');
+  assert.equal(hour.uiAction.startTime,'18:00');
+  model=reminderAnswer({date:'2026-11-09'},'modify');
+  const correction=await post('Jednak w poniedziałek',hour.dialogueState,current);
+  assert.equal(correction.uiAction.startTime,'18:00');
+  assert.equal(correction.uiAction.date,'2026-11-09');
+ }
  model={reply:'Nowa nazwa.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',action:'rename',text:'Projekt drona'}};
  const rename=await post('Zmień nazwę',null,entry);assert.equal(rename.status,'review');assert.equal(rename.item.action,'rename');
  model={reply:'Zastąp produkty.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',text:'Pomysł na drony',listAction:'replace',replaceExisting:true,items:['kawa']}};

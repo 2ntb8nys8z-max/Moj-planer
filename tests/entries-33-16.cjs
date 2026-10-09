@@ -25,12 +25,42 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   run('openEntryDeadline(ideas[0])');get('entryDeadlineRemove').click();assert.equal(run('ideas[0].deadline'),undefined);assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,0);
   run("openEntryDeadline(ideas[0],{date:'2026-10-10'})");assert.equal(get('entryDeadlineTime').value,'');get('entryDeadlineSave').click();assert.match(get('entryDeadlineError').textContent,/Podaj/);assert.equal(run('ideas[0].deadline'),undefined);
   run("openEntryReminder(ideas[0],{date:'2026-10-09',startTime:'23:59',message:'Kupić mleko'})");get('entryReminderSave').click();assert.deepEqual(JSON.parse(JSON.stringify(run('ideas[0].alarm'))),{date:'2026-10-09',time:'23:59',startTime:'23:59',message:'Kupić mleko',deliveredAt:null});assert.equal(run('tasks.length'),1);assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,1);assert.match(get('ideaText').textContent,/Powiadomienie: 2026-10-09/);
+
+  assert.equal(run("voiceDialogueCurrent('idea','one').alarm.message"),'Kupić mleko');
+  run("openEntryReminder(ideas[0],{startTime:'21:00'})");
+  assert.equal(get('entryReminderDate').value,'2026-10-09');
+  assert.equal(get('entryReminderMessage').value,'Kupić mleko');
+  assert.equal(run('ideas[0].alarm.time'),'23:59');
   run("ideas[0].alarm.time='00:00';ideas[0].alarm.startTime='00:00';ideas[0].alarm.deliveredAt=null;checkDueEntryReminders()");assert.ok(run('ideas[0].alarm.deliveredAt'));assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,0);
   run("openEntryReminder(ideas[0])");get('entryReminderRemove').click();assert.equal(run('ideas[0].alarm'),undefined);assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,0);
   run("const deadlineSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));clearVoiceDialogue('idea',true);deadlineTestSession=deadlineSession");
   await run("applyVoiceUiAction(deadlineTestSession,{type:'set_entry_deadline',date:'2026-10-10'})");assert.equal(run('voiceDialogues.idea===deadlineTestSession'),true);assert.match(get('ideaConversation').textContent,/godzinę/);
   await run("applyVoiceUiAction(deadlineTestSession,{type:'set_entry_deadline',date:'2026-10-10',startTime:'19:00'})");assert.equal(get('entryDeadlineTime').value,'19:00');assert.equal(run('ideas[0].deadline'),undefined);
   await run("applyVoiceUiAction(deadlineTestSession,{type:'set_entry_reminder',date:'2026-11-07',startTime:'08:00',message:'Lek'} )");assert.equal(get('entryReminderDate').value,'2026-11-07');assert.equal(get('entryReminderTime').value,'08:00');assert.equal(get('entryReminderMessage').value,'Lek');assert.equal(run('ideas[0].alarm'),undefined);
+
+  // Exercise request -> session teardown -> command -> next turn in both UI channels.
+  run("savedPlannerApiRequest=plannerApiRequest");
+  for(const channel of ['idea','main']){
+    run("clearVoiceDialogue('idea');clearVoiceDialogue('main');pendingVoiceItem=null");
+    if(channel==='main')run('closeIdeaActions()');
+    run(`partialSession=beginVoiceDialogue('${channel}',${channel==='idea'?"'one'":"null"},voiceDialogueCurrent('${channel}', 'one'))`);
+    run("plannerApiRequest=async()=>({engine:3,status:'command',uiAction:{type:'set_entry_reminder',date:'2026-11-08',message:'Kup mleko'},dialogueState:{engine:3,mode:'reminder',reminderDraft:{date:'2026-11-08',message:'Kup mleko'}}})");
+    await run("requestVoiceDialogue(partialSession,'Przypomnij w niedzielę').then(r=>applyVoiceDialogueResult(partialSession,r))");
+    assert.equal(run('voiceDialogueValid(partialSession)'),true);
+    assert.ok(get(channel==='idea'?'ideaClarification':'mainClarification'));
+    run("plannerApiRequest=async()=>({engine:3,status:'command',uiAction:{type:'set_entry_reminder',startTime:'18:00'},dialogueState:{engine:3,mode:'reminder',reminderDraft:{date:'2026-11-08',startTime:'18:00',message:'Kup mleko'}}})");
+    await run("requestVoiceDialogue(partialSession,'O 18').then(r=>applyVoiceDialogueResult(partialSession,r))");
+    if(channel==='idea'){
+      assert.equal(get('entryReminderDate').value,'2026-11-08');
+      assert.equal(get('entryReminderTime').value,'18:00');
+      assert.equal(run('ideas[0].alarm'),undefined);
+    }else{
+      assert.equal(run('pendingVoiceItem.date'),'2026-11-08');
+      assert.equal(run('pendingVoiceItem.time'),'18:00');
+      assert.equal(run('ideas.length'),1);
+    }
+  }
+  run("plannerApiRequest=savedPlannerApiRequest;pendingVoiceItem=null");
   run("closeIdeaActions();standaloneSession=beginVoiceDialogue('main',null,null);voiceDialogues.main=standaloneSession");await run("applyVoiceUiAction(standaloneSession,{type:'set_entry_reminder',date:'2026-11-07',startTime:'08:00',message:'Weź leki'})");assert.equal(get('previewTitle').textContent,'Weź leki');assert.equal(run('voiceDialogues.main'),null);get('confirmVoice').click();assert.equal(run('ideas[0].text'),'Weź leki');assert.equal(run('ideas[0].alarm.date'),'2026-11-07');assert.equal(run('ideas[0].alarm.time'),'08:00');assert.equal(run('tasks.length'),1);
   run("closeIdeaActions();showPlannerWeather=()=>{};tasks[0].sourceEntryId='one';openEventActions(tasks[0])");get('actionMeta').querySelector('button.entry-source-button').click();assert.equal(run('activeIdea.id'),'one');
   run("closeIdeaActions();ideas=[];openEventActions(tasks[0])");assert.equal(get('actionMeta').querySelector('button.entry-source-button').disabled,true);

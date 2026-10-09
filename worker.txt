@@ -1,10 +1,11 @@
-// MÓJ PLANER — WORKER 33.17-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.18-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
 const CONVERSATION_ENGINE_PROMPT = `EDYCJA ISTNIEJĄCEGO WPISU: przy original.type idea nazwa, treść i produkty są niezależne. Dodanie listy zakupów do wpisu, również pierwszej, to idea {type:"idea",action:"append",text:original.title||original.text,listAction:"add",items:[nowe produkty]}. Nigdy nie zmieniaj wtedy nazwy ani treści. listAction replace jest dozwolone TYLKO przy jawnym poleceniu zastąpienia CAŁEJ listy, wtedy dołącz replaceExisting:true. Poprawka jednego produktu nie usuwa pozostałych; pokaż pełną poprawioną listę przy zastąpieniu. Zmiana samej nazwy to idea {type:"idea",action:"rename",text:"nowa nazwa"}, bez listAction. Zachowaj treść i załączniki. Te zasady mają pierwszeństwo przed ogólnymi instrukcjami tworzenia nowego wpisu.
 KALENDARZ I PRZYPOMNIENIA: „dodaj/wrzuć do kalendarza” oznacza wydarzenie kalendarzowe. Jeśli użytkownik poda dzień i godzinę początku, zachowaj je; wydarzenie wymaga końca albo czasu trwania. Przy tworzeniu wydarzenia z otwartego wpisu użyj jego nazwy jako tytułu, chyba że użytkownik poda inną. Uzupełniaj tylko brakujące pola. W trybie create traktuj draft jako pamięć rozmowy: nigdy nie kasuj ani nie pytaj ponownie o ustawione pola, gdy użytkownik odpowiada na aktualne pytanie. Poprawka końca („nie, do 20:30”) aktualizuje wyłącznie endTime i zachowuje nazwę, dzień, początek oraz resztę szkicu. Nie powtarzaj pól z missing, jeśli już są w draft.
 „Ustal termin” samo w sobie jest niejednoznaczne: zapytaj krótko, czy chodzi o wydarzenie w kalendarzu, czy jednorazowe powiadomienie. Jednorazowe „przypomnij mi”, „ustaw powiadomienie”, „ustaw alarm/budzik” dla otwartego wpisu oznacza kind command, intent execute, operations [], uiAction {type:"set_entry_reminder",date:"YYYY-MM-DD" lub null,startTime:"HH:MM" lub null,message:"krótka treść"}. To punktowe powiadomienie bez końca, nie blokuje czasu i nie jest wydarzeniem Google. Dla „ustal termin” po wyborze punktu kalendarzowego użyj set_entry_deadline; to też nie jest wydarzenie Google. Przy brakującym dniu/godzinie pytaj tylko o brakujące dane, zachowuj je z historii, pokazuj dostępne wolne godziny i pozwól zapisać ręcznie. Gdy dzień jest podany głosem, przyjmij go i nie wymagaj wpisywania daty z palca. Żadna z tych akcji nie zapisuje się automatycznie. Nie twierdź, że powiadomienie zadziała po zamknięciu aplikacji.
+POWIADOMIENIA: original.alarm to zapisane powiadomienie, reminderDraft to jego aktualny szkic. Tworzenie i zmiana korzystają z set_entry_reminder; poprawka może mieć intent modify. Przesyłaj tylko pola jawnie ustalone w aktualnej wypowiedzi. Pominięte pola i null zachowują wcześniejsze wartości. Odpowiedź zawierająca samą godzinę aktualizuje startTime, sam dzień aktualizuje date. Nie zastępuj własnej treści powiadomienia tytułem wpisu. Jeśli użytkownik chce zmienić godzinę, ale nie podał nowej, zapytaj „Na którą godzinę?” z intent continue bez uiAction i operacji. Nie proponuj wtedy zapisania starej godziny. Podobnie dopytaj o niepodaną nową datę. Szkic powiadomienia zachowuje się między turami; inna komenda rozpoczyna osobny przepływ.
 Prowadzisz naturalną rozmowę po polsku o Planerze i poza nim. Na zwykłe pytania informacyjne, także spoza funkcji aplikacji, odpowiadaj normalnie i pomocnie. Przy bezpośrednich poleceniach dotyczących Planera odpowiadaj krótko i dopytuj tylko o brak, którego nie da się bezpiecznie wywnioskować. Nie pytaj ponownie o treść, gdy użytkownik podał tytuł zadania i chce je po prostu utworzyć. Każda wypowiedź może być pytaniem, komentarzem, niepewną propozycją, samopoprawką albo poleceniem. Nie wymagaj konkretnej wartości w każdej turze. Możesz rozmawiać wiele tur bez jakiejkolwiek zmiany danych. Najpierw odpowiedz na sens wypowiedzi, nie powtarzaj formularza ani listy gotowych pytań. Sformułuj własną krótką odpowiedź z kontekstu.
 Zwracaj JSON: {"reply":"wypowiedź dla użytkownika","kind":"event|idea|command","action":"continue","operations":[],"focus":"co pozostaje do uzgodnienia","ambiguity":null,"uiAction":null}. action to continue albo review. review oznacza tylko gotowy PODGLĄD do zatwierdzenia, nigdy zapis. W continue można zachować pewne ustalenia w szkicu albo zostawić operations puste. W review focus jest pusty i ambiguity null. Pytania i wyjaśnienia nie mogą same wywołać review. Pośrednia dyskusja nie unieważnia ustaleń.
 Wszystkie rzeczy poza kalendarzem są zwykłymi wpisami w jednej kolekcji. Zadanie, pomysł, lista zakupów, notatka i nagranie nie są kategoriami. Nie wybieraj ścieżki tworzenia ani szukania przez entryType, ikonę lub items. Produkty, checkboxy, dopiski i audio to dane wpisu. Kalendarz pozostaje osobny. Wyszukuj nazwy, tytuły i całą treść wszystkich wpisów oraz notatki wydarzeń, chyba że użytkownik jawnie ogranicza zakres. Brak wyników nigdy nie oznacza tworzenia. „Wszystkie listy zakupów” oznacza wszystkie dopasowania frazy „Lista zakupów”, nie cały kalendarz.
@@ -34,6 +35,17 @@ async function matchEntryBatch(body,env){
   return [...new Set(result.matches)];
 }
 
+// Reminder patches never clear fields merely because a model omitted them or returned null.
+function conversationReminderDraft(original,state,patch={}){
+  const saved=original?.type==='idea'?original.alarm||{}:{};
+  const prior=state.reminderDraft||saved,result={};
+  for(const field of ['date','startTime','message']){
+    const value=patch[field]??prior[field]??(field==='startTime'?prior.time:null);
+    if(value!=null&&value!=='')result[field]=value;
+  }
+  if(!result.message&&(original?.title||original?.text))result.message=original.title||original.text;
+  return result;
+}
 function conversationFault(code){const e=new Error(code);e.conversationCode=code;return e;}
 function conversationDate(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
 function conversationDateShift(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
@@ -51,7 +63,7 @@ function conversationCandidate(original,state,answer){
   if(answer.uiAction && answer.kind!=='command')throw conversationFault('ui_action_requires_command_kind');
   if(answer.kind==='command'){
     const action=answer.uiAction;
-    if(answer.intent!=='execute'||answer.action!=='continue'||answer.operations.length||!action)throw conversationFault('invalid_ui_action');
+    if(!(answer.intent==='execute'||answer.intent==='modify'&&action?.type==='set_entry_reminder')||answer.action!=='continue'||answer.operations.length||!action)throw conversationFault('invalid_ui_action');
     if(!['list_entries','find_entry','open_event','open_create_event','find_free_time','set_entry_deadline','set_entry_reminder'].includes(action.type))throw conversationFault('invalid_ui_action');
     if(action.query!=null&&(typeof action.query!=='string'||action.query.length>500)||['find_entry','open_event'].includes(action.type)&&!action.query?.trim()||action.createdOn!=null&&action.createdOn!=='today'&&!conversationDate(action.createdOn)||action.scheduledOn!=null&&!conversationDate(action.scheduledOn)||action.date!=null&&!conversationDate(action.date)||action.type==='find_free_time'&&!conversationDate(action.date)||action.scope!=null&&!['all','entries','calendar'].includes(action.scope)||action.startTime!=null&&plannerMinutes(action.startTime)===null||action.endTime!=null&&plannerMinutes(action.endTime)===null||action.windowStart!=null&&plannerMinutes(action.windowStart)===null||action.windowEnd!=null&&plannerMinutes(action.windowEnd)===null||action.message!=null&&(typeof action.message!=='string'||action.message.length>500)||(action.type==='find_free_time'&&plannerMinutes(action.windowEnd||'22:00')<=plannerMinutes(action.windowStart||'08:00'))||action.allDay!=null&&typeof action.allDay!=='boolean')throw conversationFault('invalid_ui_action');
     if(action.type==='set_entry_deadline'&&original?.type!=='idea')throw conversationFault('entry_action_requires_open_entry');
@@ -124,7 +136,7 @@ function conversationCandidate(original,state,answer){
 async function runConversationTurn({text,history,original,state,env,today,lastOperation}){
 
   const draft={...(original||{}),...(state.draft||{})};
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:text}];
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:text}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
     const response=await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
@@ -143,6 +155,14 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
       answer.action='continue';
       candidate=conversationCandidate(original,appliedState,answer);
       if(answer.kind==='command'){
+        if(candidate.uiAction.type==='set_entry_reminder'){
+          const reminderDraft=conversationReminderDraft(original,state,candidate.uiAction);
+          const pendingField=!reminderDraft.date?'date':!reminderDraft.startTime?'startTime':!reminderDraft.message?'message':null;
+          return {engine:3,success:true,status:'command',reply:answer.reply.trim(),
+            uiAction:{type:'set_entry_reminder',...reminderDraft},
+            dialogueState:{engine:3,mode:'reminder',draft:{},reminderDraft,pendingField,pendingProposal:null,
+              revision:(Number(state.revision)||0)+1,lastOperation:{status:'reminder_draft'}}};
+        }
         const next={engine:3,mode:candidate.uiAction.type==='open_create_event'?'create':'search',draft:{},pendingProposal:null,entryCreation:null,allDay:false,conversationFocus:'',conversationAmbiguity:null,revision:(Number(state.revision)||0)+1,lastOperation:{status:'ui_action_ready'}};
         return {engine:3,success:true,status:'command',reply:answer.reply.trim(),uiAction:candidate.uiAction,dialogueState:next};
       }
@@ -167,6 +187,9 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
       answer.intent==='reject'?'Odrzucono propozycję. Niczego jeszcze nie zapisano.':
       ['execute','modify'].includes(answer.intent)?'Zmiana jest w szkicu. Potrzebuję jeszcze doprecyzowania: '+(candidate.missing.map(k=>({title:'nazwa wydarzenia',date:'dzień wydarzenia',startTime_or_allDay:'godzina rozpoczęcia lub wydarzenie całodniowe',endTime_or_durationMinutes:'godzina zakończenia lub długość'}[k]||k)).join(', ')||answer.focus||'niejednoznaczne dane')+'.':answer.reply.trim();
     const next={engine:3,mode:answer.kind==='idea'?'entry':answer.operations.length||state.mode==='create'?'create':'idle',pendingProposal,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,pendingField:candidate.missing[0]==='endTime_or_durationMinutes'?'endTime':candidate.missing[0]==='startTime_or_allDay'?'startTime':candidate.missing[0]||null,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'}};
+    if(answer.intent==='continue'&&state.reminderDraft){
+      next.reminderDraft={...state.reminderDraft};next.mode='reminder';next.pendingField=state.pendingField||null;
+    }
     return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft,...(answer.kind==='idea'&&!original&&['execute','accept'].includes(answer.intent)?{saveEntry:true}:{})}:{})};
   }
   return {engine:3,success:true,status:'continue',reply:'Nie udało mi się poprawnie przygotować tej zmiany. Dotychczasowe ustalenia pozostają w rozmowie; niczego nie zapisano. Możesz doprecyzować polecenie albo spróbować ponownie.',dialogueState:{...state,engine:3,draft:plannerCleanDraft(draft),lastOperation:{status:'failed',code:failure},revision:(Number(state.revision)||0)+1}};
@@ -204,7 +227,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="057cb05c1dca41b8";
+const BUILD_ID="8c923b8169366552";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -698,7 +721,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.09.33.17-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.09.33.18-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
