@@ -7,6 +7,16 @@ let model={},modelCalls=0;const old=globalThis.fetch;
 globalThis.fetch=async(u,o)=>{modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}))};
 async function post(text,state=null,currentItem=null){const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify({protocolVersion:2,conversationEngine:3,text,currentItem,dialogueState:state,dialogue:[]})}),env);assert.equal(response.status,200);return response.json()}
 try{
+ const entry={type:'idea',text:'Pomysł na drony',list:{type:'shopping',items:[{text:'chleb',done:false}]}};
+ for(const action of [{type:'set_entry_deadline'},{type:'set_entry_deadline',date:'2026-10-10'},{type:'set_entry_deadline',date:'2026-10-10',startTime:'17:00'}]){
+  model={reply:'Sprawdź termin.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:action};
+  const result=await post('Ustal termin',null,entry);assert.equal(result.status,'command');assert.deepEqual(result.uiAction,action);
+ }
+ model={reply:'Nowa nazwa.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',action:'rename',text:'Projekt drona'}};
+ const rename=await post('Zmień nazwę',null,entry);assert.equal(rename.status,'review');assert.equal(rename.item.action,'rename');
+ model={reply:'Zastąp produkty.',kind:'idea',intent:'execute',operations:[],focus:'',ambiguity:null,idea:{type:'idea',text:'Pomysł na drony',listAction:'replace',replaceExisting:true,items:['kawa']}};
+ const replace=await post('Zastąp całą listę kawą',null,entry);assert.equal(replace.item.replaceExisting,true);
+
  model={reply:'Ustalam nazwę.',kind:'event',action:'continue',intent:'execute',proposalId:null,operations:[{op:'set',field:'title',value:'Dentysta'}],focus:'termin i godziny',ambiguity:null};
  let r=await post('Nazwij Dentysta');assert.equal(r.engine,3);assert.equal(r.status,'continue');assert.equal(r.dialogueState.draft.title,'Dentysta');assert.match(r.reply,/Zmiana jest w szkicu/);
  model={reply:'Ustalam termin i godziny.',kind:'event',action:'continue',intent:'modify',proposalId:null,operations:[{op:'set',field:'date',value:'2026-10-08'},{op:'set',field:'startTime',value:'15:00'},{op:'set',field:'endTime',value:'15:45'}],focus:'',ambiguity:null};

@@ -166,3 +166,14 @@ Działające funkcje: dotychczasowa rozmowa głosowa, edycja ręczna nazwy/treś
 Transkrypcja audio, OCR i alarmy systemowe są w tym etapie jawnie niedostępne. Przyciski nie wykonują pozornych operacji. Nie dodano nowego wywołania API ani zmiany Workera — frontend 33.15 współpracuje z Workerem 33.14. Udostępnianie obejmuje tekst, a nie pliki. Lokalne nagrania i zdjęcia w IndexedDB nie są dołączane do istniejącej kopii JSON ani synchronizacji Google. Minutnik korzysta z dotychczasowego mechanizmu otwartej aplikacji; nie gwarantuje alarmu przy zamkniętej aplikacji.
 
 `npm test` obejmuje `tests/entry-view-33-15.cjs`: zapis/rollback/stary formularz, stare i nowe załączniki, opóźnione odczyty, anulowanie dostępu do mikrofonu, pauzę/wznowienie i ponowienie zapisu nagrania, historię, rozmowę i minutnik. `tests/entry-view-browser-33-15.cjs` sprawdza Chromium w rozmiarach 390×844, 320×568 i 844×390; wymaga Playwright (`PLANNER_PLAYWRIGHT` może wskazywać istniejącą instalację). Testy nie zastępują próby prawdziwego mikrofonu, aparatu i natywnego arkusza udostępniania w Safari na iPhonie.
+
+
+### Preview33 33.16 — produkty, terminy i powiązanie wpisu
+
+Dodawanie produktów do istniejącego wpisu nie zmienia jego nazwy, treści ani załączników. Starsza operacja `replace` bez jawnego `replaceExisting: true` jest bezpiecznie traktowana jako dopisanie. Zastąpienie całej listy wymaga osobnego, jednoznacznego potwierdzenia usunięcia dotychczasowych produktów. Zmiana nazwy ma oddzielną operację `rename`. Zapis produktów wycofuje zmiany w pamięci przy błędzie trwałego zapisu.
+
+„Ustal termin” zapisuje datę i godzinę we wpisie. Terminy są widoczne w dniu, tygodniu i miesiącu z ikoną dłoni; otwierają źródłowy wpis, nie blokują dostępności i nie są wysyłane do Google jako wydarzenia. Formularz pokazuje wolne przedziały całego dnia oraz konflikt wybranej godziny na podstawie lokalnego kalendarza. Można zmienić lub usunąć termin. Głosowe ustalanie terminu (także z dopytaniem) otwiera ten sam podgląd, bez automatycznego zapisu. Powiadomień systemowych jeszcze nie ma.
+
+Wydarzenie utworzone z wpisu przechowuje lokalne `sourceEntryId` i przycisk otwierający wpis; usunięte źródło jest oznaczone bez błędu. Zewnętrzne linki i współdzielenie nie są implementowane. Daty dopisków są drobne i kursywą; jeden przycisk kopiuje cały blok tekstu z dopiskami chronologicznie. Transkrypcje i OCR zachowują osobne kopiowanie.
+
+Wymagany Worker 33.16 (`preview33/worker.txt`), wdrażany oddzielnie w Cloudflare. Testy `npm test` obejmują scenariusz nadpisywania zakupów, zachowanie danych, rollback, termin i konflikt, usuwanie/stare formularze, nawigację do źródła i protokół głosowy z atrapą modelu. Nie potwierdzają rozpoznawania rzeczywistej mowy ani działania urządzeń Safari.
