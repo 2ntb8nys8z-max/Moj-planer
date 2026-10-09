@@ -194,3 +194,7 @@ Powiadomienia zachowują dzień i własną treść przy zmianie samej godziny. W
 ### Preview33 33.19 — przeniesienie wpisu do kalendarza
 
 Worker dopuszcza polecenie „wrzuć tę notatkę do kalendarza” jako poprawną komendę zmiany rodzaju wpisu na wydarzenie. Tytuł źródłowego wpisu, data i podane godziny przechodzą do formularza wydarzenia. Test obejmuje częściową poprawkę modelu (intent modify) dla otwartej notatki. Worker 33.19 trzeba wdrożyć oddzielnie w Cloudflare.
+
+### Preview33 33.20 — rozmowa z wpisu, minutnik i powiadomienia
+
+Pytania o brakujące dane wydarzenia pozostają w oknie otwartego wpisu; jego tytuł, termin i treść są zachowane. Głosowe „ustaw minutnik” pyta o długość, jeśli jej brakuje, i uruchamia minutnik bez zamykania wpisu. Głosowe usunięcie istniejącego powiadomienia prosi o potwierdzenie i nie usuwa terminu ani wydarzenia. Nieudana interpretacja zwraca krótką prośbę o powtórzenie. Testy obejmują te akcje interfejsu oraz walidację poleceń Engine 3. Worker 33.20 trzeba osobno wkleić i wdrożyć w Cloudflare.

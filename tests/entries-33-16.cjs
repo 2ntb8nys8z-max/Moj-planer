@@ -32,6 +32,11 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(get('entryReminderMessage').value,'Kupić mleko');
   assert.equal(run('ideas[0].alarm.time'),'23:59');
   run("ideas[0].alarm.time='00:00';ideas[0].alarm.startTime='00:00';ideas[0].alarm.deliveredAt=null;checkDueEntryReminders()");assert.ok(run('ideas[0].alarm.deliveredAt'));assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,0);
+  run("ideas[0].alarm={date:'2026-11-07',time:'08:00',message:'Weź leki'};clearVoiceDialogue('idea');timerTestSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));savedStartTimer=startTimer;timerCalls=[];startTimer=(...args)=>timerCalls.push(args)");
+  await run("applyVoiceUiAction(timerTestSession,{type:'start_timer',minutes:25})");assert.equal(run('timerCalls[0][0]'),25);assert.equal(run('timerCalls[0][1].id'),'one');assert.equal(run('timerCalls[0][2]'),true);assert.match(get('ideaConversation').textContent,/25 min/);
+  await run("applyVoiceUiAction(timerTestSession,{type:'start_timer'})");assert.match(get('ideaConversation').textContent,/Na ile minut/);assert.equal(run('voiceDialogueValid(timerTestSession)'),true);run('startTimer=savedStartTimer;clearVoiceDialogue(\'idea\')');
+  run("removeSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));removeSession.history.push({role:'user',content:'Usuń przypomnienie'});voiceDialogues.idea=removeSession");
+  await run("applyVoiceUiAction(removeSession,{type:'remove_entry_reminder'})");assert.equal(run('ideas[0].alarm'),undefined);assert.ok(run("ideas[0].history.at(-1).conversation.some(m=>m.content==='Usuń przypomnienie')"));
   run("openEntryReminder(ideas[0])");get('entryReminderRemove').click();assert.equal(run('ideas[0].alarm'),undefined);assert.equal(get('taskList').querySelectorAll('.entry-deadline-row').length,0);
   run("const deadlineSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));clearVoiceDialogue('idea',true);deadlineTestSession=deadlineSession");
   await run("applyVoiceUiAction(deadlineTestSession,{type:'set_entry_deadline',date:'2026-10-10'})");assert.equal(run('voiceDialogues.idea===deadlineTestSession'),true);assert.match(get('ideaConversation').textContent,/godzinę/);
@@ -63,15 +68,18 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   run("plannerApiRequest=savedPlannerApiRequest;pendingVoiceItem=null");
   run("closeIdeaActions();standaloneSession=beginVoiceDialogue('main',null,null);voiceDialogues.main=standaloneSession");await run("applyVoiceUiAction(standaloneSession,{type:'set_entry_reminder',date:'2026-11-07',startTime:'08:00',message:'Weź leki'})");assert.equal(get('previewTitle').textContent,'Weź leki');assert.equal(run('voiceDialogues.main'),null);get('confirmVoice').click();assert.equal(run('ideas[0].text'),'Weź leki');assert.equal(run('ideas[0].alarm.date'),'2026-11-07');assert.equal(run('ideas[0].alarm.time'),'08:00');assert.equal(run('tasks.length'),1);
   // Moving a note to Calendar keeps its title, full text, notes and dated additions in the event draft.
-  run("closeIdeaActions();clearVoiceDialogue('idea');ideas=[{id:'one',title:'Odpowiedź na maila',text:'Odpowiedź na maila',content:'Treść właściwa',notes:'Dodatkowa notatka',additions:[{text:'Dopisek po rozmowie',createdAt:'2026-10-09T11:00:00Z'}]}];activeIdea=ideas[0];sourceSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));startEventCreationConversation({date:'2026-10-12',startTime:'06:00'},sourceSession)");
-  assert.equal(run("voiceDialogues.main.dialogueState.draft.title"),'Odpowiedź na maila');
-  assert.equal(run("voiceDialogues.main.dialogueState.draft.date"),'2026-10-12');
-  assert.equal(run("voiceDialogues.main.dialogueState.draft.startTime"),'06:00');
-  const copiedEventNotes=run("voiceDialogues.main.dialogueState.draft.notes");
+  run("closeIdeaActions();clearVoiceDialogue('idea');ideas=[{id:'one',title:'Odpowiedź na maila',text:'Odpowiedź na maila',content:'Treść właściwa',notes:'Dodatkowa notatka',additions:[{text:'Dopisek po rozmowie',createdAt:'2026-10-09T11:00:00Z'}]}];activeIdea=ideas[0];openIdeaActions(ideas[0]);sourceSession=beginVoiceDialogue('idea','one',voiceDialogueCurrent('idea','one'));sourceSession.history.push({role:'user',content:'Wrzuć tę notatkę do kalendarza na poniedziałek o 6 rano.'})");await run("applyVoiceUiAction(sourceSession,{type:'open_create_event',date:'2026-10-12',startTime:'06:00'})");
+  assert.equal(run("voiceDialogues.idea.dialogueState.draft.title"),'Odpowiedź na maila');
+  assert.equal(run("voiceDialogues.idea.dialogueState.draft.date"),'2026-10-12');
+  assert.equal(run("voiceDialogues.idea.dialogueState.draft.startTime"),'06:00');
+  assert.equal(run("document.getElementById('ideaModal').classList.contains('hidden')"),false);assert.match(get('ideaConversation').textContent,/skończyć/);
+  const copiedEventNotes=run("voiceDialogues.idea.dialogueState.draft.notes");
   assert.match(copiedEventNotes,/Treść właściwa/);assert.match(copiedEventNotes,/Dodatkowa notatka/);assert.match(copiedEventNotes,/Dopisek po rozmowie/);
+  run("savedPlannerApiRequest=plannerApiRequest;eventRequestPayload=null;eventCreateSession=voiceDialogues.idea;plannerApiRequest=async(path,options)=>{eventRequestPayload=JSON.parse(options.body);return {engine:3,status:'review',item:{type:'event',title:'Odpowiedź na maila',date:'2026-10-12',startTime:'06:00',endTime:'07:00',notes:eventRequestPayload.dialogueState.draft.notes}}}");await run("requestVoiceDialogue(eventCreateSession,'Do 7:00').then(r=>r&&applyVoiceDialogueResult(eventCreateSession,r))");
+  assert.equal(run('eventRequestPayload.dialogueState.draft.date'),'2026-10-12');assert.equal(run('eventRequestPayload.dialogueState.draft.startTime'),'06:00');assert.equal(run('eventRequestPayload.dialogueState.draft.title'),'Odpowiedź na maila');assert.equal(run('pendingVoiceItem.endTime'),'07:00');assert.equal(run("document.getElementById('ideaModal').classList.contains('hidden')"),true);run("plannerApiRequest=savedPlannerApiRequest");
   run("clearVoiceDialogue('main');clearVoiceDialogue('idea')");
   run("closeIdeaActions();showPlannerWeather=()=>{};tasks[0].sourceEntryId='one';openEventActions(tasks[0])");get('actionMeta').querySelector('button.entry-source-button').click();assert.equal(run('activeIdea.id'),'one');
   run("closeIdeaActions();ideas=[];openEventActions(tasks[0])");assert.equal(get('actionMeta').querySelector('button.entry-source-button').disabled,true);
-  console.log('33.17: list append/rename/replacement, deadline, one-time reminder, calendar markers, stale edit/removal, copy block, source navigation passed.');
+  console.log('33.20: lists, deadline, reminder, voice timer/removal, in-entry calendar clarification, copy block and source navigation passed.');
  }finally{dom.window.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

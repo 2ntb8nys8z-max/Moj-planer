@@ -15,6 +15,15 @@ try{
  model={reply:'Przypomnienie przygotowane.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'}};
  const reminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,entry);assert.equal(reminder.status,'command');assert.deepEqual(reminder.uiAction,{type:'set_entry_reminder',date:'2026-10-10',startTime:'17:00',message:'Kupić mleko'});
  const standaloneReminder=await post('Przypomnij mi jutro o 17:00, żeby kupić mleko.',null,null);assert.equal(standaloneReminder.status,'command');assert.equal(standaloneReminder.uiAction.type,'set_entry_reminder');
+ model={reply:'Uruchamiam minutnik.',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type:'start_timer',minutes:25}};
+ const timer=await post('Ustaw minutnik na 25 minut.',null,entry);assert.equal(timer.status,'command');assert.deepEqual(timer.uiAction,{type:'start_timer',minutes:25});assert.equal(timer.dialogueState.mode,'timer');
+ model={reply:'Na ile minut?',kind:'command',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type:'start_timer'}};
+ const timerQuestion=await post('Ustaw minutnik.',null,entry);assert.equal(timerQuestion.status,'command');assert.deepEqual(timerQuestion.uiAction,{type:'start_timer'});assert.equal(timerQuestion.dialogueState.mode,'timer');
+ const alarmEntryForRemoval={...entry,alarm:{date:'2026-10-10',time:'17:00',message:'Kupić mleko'}};
+ model={reply:'Usuwam przypomnienie.',kind:'command',intent:'modify',operations:[],focus:'',ambiguity:null,uiAction:{type:'remove_entry_reminder'}};
+ const removal=await post('Usuń przypomnienie.',null,alarmEntryForRemoval);assert.equal(removal.status,'command');assert.deepEqual(removal.uiAction,{type:'remove_entry_reminder'});
+ model={reply:'Usuwam przypomnienie.',kind:'command',intent:'modify',operations:[],focus:'',ambiguity:null,uiAction:{type:'remove_entry_reminder'}};
+ const missingRemoval=await post('Usuń przypomnienie.',null,entry);assert.equal(missingRemoval.status,'continue');assert.equal(missingRemoval.dialogueState.lastOperation.code,'entry_reminder_not_found');assert.equal(missingRemoval.reply,'Ten wpis nie ma ustawionego powiadomienia.');
 
  // Partial reminder turns must retain a structured draft, including custom saved content.
  const alarmEntry={type:'idea',title:'List',text:'List',alarm:{date:'2026-11-07',time:'09:00',message:'Wyślij polecony'}};
