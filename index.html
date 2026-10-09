@@ -585,7 +585,7 @@ async function applyVoiceUiAction(session,action,reply=''){
     const idea=session?.channel==='idea'&&activeIdea?.id===session.id?activeIdea:null;
     if(!idea){showVoiceClarification(session,'Otwórz wpis, z którego chcesz usunąć powiadomienie.');return}
     if(!idea.alarm){session.history.push({role:'assistant',content:'Ten wpis nie ma ustawionego powiadomienia.'});renderVoiceConversation(session);return}
-    if(!confirm('Usunąć powiadomienie z tego wpisu?')){session.history.push({role:'assistant',content:'Anulowano. Powiadomienie pozostaje ustawione.'});renderVoiceConversation(session);return}
+    if(!confirm('Usunąć powiadomienie z tego wpisu?')){voiceDialogues.idea=session;session.history.push({role:'assistant',content:'Anulowano. Powiadomienie pozostaje ustawione.'});renderVoiceConversation(session);return}
     try{entryLocalUpdate(idea,item=>{delete item.alarm},'Usunięto powiadomienie',session.history);clearVoiceDialogue('idea');$('entryReminderPanel').classList.add('hidden');renderIdeaDetails(idea);renderAll();toast('Usunięto powiadomienie')}catch(error){showVoiceClarification(session,'Nie udało się usunąć powiadomienia. Spróbuj ponownie.')};return;
   }
   if(action.type==='set_entry_reminder'){
