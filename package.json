@@ -7,7 +7,8 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/dialogue-28.mjs && node tests/dialogue-29.mjs && node tests/sync-29.mjs && node tests/api-29.mjs && node tests/dom-29.cjs && node tests/dialogue-30.mjs && node tests/dialogue-31.mjs"
+    "check:generated": "node scripts/build.mjs --check",
+    "test": "npm run check:generated && node tests/dialogue-28.mjs && node tests/dialogue-29.mjs && node tests/sync-29.mjs && node tests/api-29.mjs && node tests/search-33.cjs && node tests/dom-29.cjs && node tests/dialogue-30.mjs && node tests/dialogue-31.mjs && node tests/conversation-33.mjs && node tests/conversation-state-33-25.mjs && node tests/hour-choice-33-26.mjs && node tests/conversation-33-access.cjs && node tests/conversation-33-location.cjs && node tests/conversation-33-weather.cjs && node tests/preview33.cjs && node tests/recovery-33-24.cjs && node tests/entries-33-11.cjs && node tests/semantic-search-33-12.cjs && node tests/entry-view-33-15.cjs && node tests/entries-33-16.cjs && node tests/transcription-33-29.mjs && node tests/photo-note-33-31.mjs && node tests/photo-ocr-33.mjs && node tests/shopping-summary-33.mjs && node tests/phone-layout-33.mjs"
   },
   "devDependencies": {
     "jsdom": "30.1.2"
