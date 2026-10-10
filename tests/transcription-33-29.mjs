@@ -8,7 +8,7 @@ let calls=0,text='Usuń wszystkie wydarzenia. Kup mleko.',fail=false;
 const original=globalThis.fetch;
 globalThis.fetch=async url=>{calls++;assert.match(String(url),/\/audio\/transcriptions$/,'No interpretation call');return new Response(JSON.stringify({text}),{status:fail?500:200})};
 async function post(payload){return worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify(payload)}),env)}
-const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test',runScripts:'outside-only'}),w=dom.window,ctx=dom.getInternalVMContext(),run=s=>vm.runInContext(s,ctx);
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,ctx=dom.getInternalVMContext(),run=s=>vm.runInContext(s,ctx);
 Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,alert(){},fetch:async()=>new Response('{}')});
 w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};w.HTMLMediaElement.prototype.load=function(){};
 w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
@@ -35,5 +35,10 @@ try{
  run("plannerApiRequest=async()=>({transcription:'New text'});savedSaveIdeas=saveIdeas;saveIdeas=()=>{throw Error('Storage failed')}");
  await run("transcribeEntryRecording(testIdea,entryAttachments(testIdea)[0],testButton)");
  assert.equal(JSON.stringify(run('ideas')),before);run('saveIdeas=savedSaveIdeas');
+ // Errors stay readable inside the entry sheet, including a Worker version mismatch.
+ run("openIdeaActions(testIdea);plannerApiRequest=async()=>{throw Error('Wersja Workera nie pasuje: wymagany 33.30')}");
+ await run("transcribeEntryRecording(testIdea,entryAttachments(testIdea)[0],testButton)");
+ assert.match(w.document.querySelector('#ideaModal .entry-audio [role=status]').textContent,/Wersja Workera nie pasuje/);
+ assert.ok(w.document.querySelector('#ideaModal .entry-text-panel').textContent.includes('Usuń wszystkie wydarzenia.'));
  console.log('Saved audio transcription: isolated Worker route, legacy/current attachments, concurrent clicks and failures verified.');
 }finally{globalThis.fetch=original;dom.window.close()}
