@@ -4,7 +4,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,ctx=dom.getInternalVMContext(),run=s=>vm.runInContext(s,ctx),get=id=>w.document.getElementById(id);
  Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,confirm:()=>true,alert(){},fetch:async()=>new Response('{}')});
- w.HTMLElement.prototype.scrollIntoView=function(){};
+ w.HTMLElement.prototype.scrollIntoView=function(){};w.Date.now=()=>Date.parse('2026-10-09T00:00:00Z');
  w.HTMLMediaElement.prototype.pause=function(){};w.HTMLMediaElement.prototype.load=function(){};
  const revoked=[];w.URL.createObjectURL=()=> 'blob:test-'+Math.random();w.URL.revokeObjectURL=url=>revoked.push(url);
  for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
