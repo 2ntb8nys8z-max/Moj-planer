@@ -32,7 +32,7 @@ body.entry-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.10.33.22-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.10.33.23-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -40,7 +40,7 @@ body.entry-open{overflow:hidden}
 <div id="weekView" class="card hidden"><div class="daybar"><button id="weekPrev" class="navbutton">←</button><h2>Tydzień</h2><button id="weekNext" class="navbutton">→</button></div><div id="weekGrid" class="week-grid"></div></div>
 <div id="monthView" class="card hidden"><div class="daybar"><button id="monthPrev" class="navbutton">←</button><h2 id="monthTitle"></h2><button id="monthNext" class="navbutton">→</button></div><div id="monthGrid" class="month-grid"></div></div>
 <div id="ideasView" class="card hidden"><h2 id="ideasHeading">Wpisy</h2><div id="ideasDescription" style="color:#667085;margin-bottom:10px">Zadania, pomysły, listy zakupów, notatki i nagrania w jednym miejscu.</div><div class="row" style="margin-bottom:10px"><button id="recordMemo" class="secondary" type="button">🎙️ Nagraj notatkę głosową</button><button id="stopMemo" class="primary hidden" type="button">Zakończ i zapisz</button><button id="cancelMemo" class="danger hidden" type="button">Anuluj nagranie</button><span id="memoHint" class="action-meta" style="align-self:center;margin:0"></span></div><div class="tabs" style="margin:10px 0 14px"><button id="ideasTodoTab" class="active">Do zrobienia</button><button id="ideasDoneTab">Zrealizowane</button></div><div id="ideasList"></div></div>
-<div id="backupCard" class="card"><h2>Kopia danych</h2><p>Kopia zawiera wydarzenia, pomysły, notatki tekstowe oraz powiązania i kolejkę synchronizacji. Nagrania głosowe są przechowywane na tym urządzeniu i nie trafiają do kopii. Kopia nie zawiera haseł ani kluczy dostępu.</p><div id="dataWarning" role="alert" hidden style="color:#b42318;white-space:pre-wrap;margin:12px 0"></div><div class="row"><button id="exportBackup" class="secondary" type="button">Pobierz kopię danych</button><button id="exportPrevious" class="secondary" type="button">Pobierz poprzedni zapis</button><button id="importBackup" class="secondary" type="button">Przywróć kopię</button></div><input id="backupFile" type="file" accept=".json,application/json" hidden><p style="color:#667085;font-size:13px">Zachowaj pobrany plik w aplikacji Pliki. Przywrócenie zastępuje bieżące dane i odłącza Google. Poprzedni zapis obejmuje ostatnią udaną operację zapisu.</p></div>
+<div id="backupCard" class="card"><h2>Kopia danych</h2><p>Kopia zawiera wydarzenia, pomysły, notatki tekstowe oraz powiązania i kolejkę synchronizacji. Nagrania głosowe są przechowywane na tym urządzeniu i nie trafiają do kopii. Kopia nie zawiera haseł ani kluczy dostępu. Kopia ratunkowa zawiera też diagnostykę i surowy zapis; do przywracania użyj zwykłej kopii danych.</p><div id="dataWarning" role="alert" hidden style="color:#b42318;white-space:pre-wrap;margin:12px 0"></div><div class="row"><button id="exportBackup" class="secondary" type="button">Pobierz kopię danych</button><button id="exportRescue" class="secondary" type="button">Pobierz kopię ratunkową</button><button id="exportPrevious" class="secondary" type="button">Pobierz poprzedni zapis</button><button id="importBackup" class="secondary" type="button">Przywróć kopię</button></div><input id="backupFile" type="file" accept=".json,application/json" hidden><p style="color:#667085;font-size:13px">Zachowaj pobrany plik w aplikacji Pliki. Przywrócenie zastępuje bieżące dane i odłącza Google. Poprzedni zapis obejmuje ostatnią udaną operację zapisu.</p></div>
 <div id="toolsArea"><div class="card timer"><div><div style="color:#667085">Minutnik</div><div id="clock">05:00</div></div><button id="timerBtn" class="primary">▶</button></div><div class="card"><h2>Nowy wpis</h2><textarea id="note" placeholder="Zapisz coś, żeby nie zapomnieć..."></textarea><button id="saveNote" class="primary" style="margin-top:10px">Zapisz</button></div></div>
 </div>
 <div id="toast" class="toast"></div><div id="celebrate" class="modal-backdrop hidden"><div class="action-card" style="text-align:center"><div style="font-size:64px">🎉</div><h2>Świetnie! Zrobione.</h2><button id="closeCelebrate" class="primary">OK</button></div></div>
@@ -72,7 +72,7 @@ const PlannerData=(()=>{
   const keys=['moj-planer-tasks','moj-planer-ideas','moj-planer-note','moj-planer-google-delete-queue'];
   const defaults={tasks:[],ideas:[],note:'',deleteQueue:[]};
   const names=['tasks','ideas','note','deleteQueue'];
-  let state=structuredClone(defaults),previous=null,expected=null,locked=false,reason='',rawRecovery={};
+  let state=structuredClone(defaults),previous=null,expected=null,locked=false,reason='',rawRecovery={},latestDiagnostic=null,hasReadableState=false;
   const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
   function validId(id){return (typeof id==='string'&&id.length>0)||(typeof id==='number'&&Number.isFinite(id))}
   function validate(data){
@@ -99,10 +99,18 @@ const PlannerData=(()=>{
     if(data.deleteQueue.some(x=>!object(x)||typeof x.googleEventId!=='string'))throw Error('Nieprawidłowa kolejka synchronizacji.');
     return structuredClone(data);
   }
-  function fail(message){
+  function failureDetails(error,stage,payload){
+    if(!error)return latestDiagnostic;
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.10.33.23-integration',at:new Date().toISOString()};
+    return latestDiagnostic;
+  }
+  function fail(message,error=null,stage='unknown',payload=null){
     locked=true;reason=message;
+    const diagnostic=failureDetails(error,stage,payload);
     const panel=document.getElementById('dataWarning');
-    if(panel){panel.hidden=false;panel.textContent=message+' Zmiany i synchronizacja są wstrzymane. Pobierz kopię ratunkową i odśwież stronę albo przywróć poprawną kopię.';}
+    if(panel){panel.hidden=false;panel.textContent=message+(diagnostic?' Szczegóły: '+diagnostic.stage+' · '+diagnostic.name+(diagnostic.message?': '+diagnostic.message:'')+(diagnostic.payloadBytes!=null?' · dane: '+diagnostic.payloadBytes+' B':'')+'.':'')+' Zmiany i synchronizacja są wstrzymane. Pobierz kopię danych albo kopię ratunkową.';}
+    const app=document.querySelector('.app');if(app)app.inert=false;
+    document.body.classList.remove('entry-open');
     document.querySelectorAll('.modal-backdrop').forEach(el=>el.classList.add('hidden'));
     document.getElementById('backupCard')?.scrollIntoView({block:'center'});
     try{if(typeof cancelPlannerRecording==='function')['main','event','idea'].forEach(cancelPlannerRecording)}catch(_){}
@@ -113,22 +121,24 @@ const PlannerData=(()=>{
     if(expected!==null){
       const record=JSON.parse(expected);
       if(record.version!==1)throw Error('Nieobsługiwana wersja zapisu.');
-      state=validate(record.data);
+      state=validate(record.data);hasReadableState=true;
       if(record.previous!==null&&record.previous!==undefined)previous=validate(record.previous);
     }else{
       const candidate={};
       keys.forEach(key=>{rawRecovery[key]=localStorage.getItem(key)});keys.forEach((key,i)=>{const raw=rawRecovery[key];candidate[names[i]]=raw===null?structuredClone(defaults[names[i]]):i===2?raw:JSON.parse(raw)});
-      state=validate(candidate);
+      state=validate(candidate);hasReadableState=true;
     }
-  }catch(error){fail('Nie udało się odczytać zapisanych danych. Oryginalny zapis pozostaje zachowany.');}
+  }catch(error){fail('Nie udało się odczytać zapisanych danych. Oryginalny zapis pozostaje zachowany.',error,'read');}
   function commit(next){
     if(locked)throw fail(reason);
     const validated=validate(next);
     const payload=JSON.stringify({version:1,data:validated,previous:state,savedAt:new Date().toISOString()});
+    let stage='verify';
     try{
       if(localStorage.getItem(KEY)!==expected)throw fail('Dane zostały zmienione w innej karcie. Odśwież tę kartę przed dalszą pracą.');
+      stage='write';
       localStorage.setItem(KEY,payload);
-    }catch(error){if(error.plannerStorageError)throw error;throw fail('Nie udało się zapisać danych na urządzeniu. Ostatnia poprawnie zapisana wersja pozostaje zachowana.');}
+    }catch(error){if(error.plannerStorageError)throw error;throw fail('Nie udało się zapisać danych na urządzeniu. Ostatnia poprawnie zapisana wersja pozostaje zachowana.',error,stage,payload);}
     previous=state;state=validated;expected=payload;
   }
   const storage={
@@ -138,27 +148,32 @@ const PlannerData=(()=>{
   };
   function download(name,value){
     const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
-    const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    const a=document.createElement('a');a.href=url;a.download=name;(document.getElementById('backupCard')||document.body).appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.10.33.22-integration',createdAt:new Date().toISOString(),data:structuredClone(data)}}
+  function backup(data=state){return {format:'moj-planer-backup',version:1,appVersion:'2026.10.10.33.23-integration',createdAt:new Date().toISOString(),data:structuredClone(data)}}
   function exportCurrent(){
-    if(locked)download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,reason,raw:rawRecovery,lastReadable:state,previous,unsaved:{tasks:typeof tasks==='undefined'?null:tasks,ideas:typeof ideas==='undefined'?null:ideas,note:document.getElementById('note')?.value??null}});
-    else download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup());
+    if(locked&&!hasReadableState){alert('Nie ma poprawnej wersji danych do zwykłej kopii. Pobierz kopię ratunkową.');return}
+    download('moj-planer-kopia-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup(state));
+  }
+  function exportRescue(){
+    let unsaved={tasks:typeof tasks==='undefined'?null:structuredClone(tasks),ideas:typeof ideas==='undefined'?null:structuredClone(ideas),note:document.getElementById('note')?.value??null,deleteQueue:null};
+    try{if(typeof window.googleDeleteQueue==='function')unsaved.deleteQueue=window.googleDeleteQueue()}catch(_){}
+    download('moj-planer-kopia-ratunkowa-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',{format:'moj-planer-recovery',version:1,appVersion:'2026.10.10.33.23',reason,diagnostic:latestDiagnostic,raw:rawRecovery,lastReadable:hasReadableState?state:null,previous,unsaved});
   }
   function restore(data){
     const validated=validate(data);
     for(const task of validated.tasks){if(task.googleEventId)task.googleBackupRestored=true;}
-    const payload=JSON.stringify({version:1,data:validated,previous:state,savedAt:new Date().toISOString()});
-    // Disconnect first; importing an older snapshot must never restart Google automatically.
-    localStorage.removeItem('moj-planer-google-connected');
+    const payload=JSON.stringify({version:1,data:validated,previous:null,savedAt:new Date().toISOString()});
     const actual=localStorage.getItem(KEY);
     if(actual!==expected)throw Error('Dane zmieniły się w innej karcie. Odśwież stronę i spróbuj ponownie.');
     localStorage.setItem(KEY,payload);
-    state=validated;expected=payload;locked=false;
+    try{localStorage.removeItem('moj-planer-google-connected')}catch(_){}
+    state=validated;previous=null;expected=payload;locked=false;reason='';latestDiagnostic=null;hasReadableState=true;
   }
   function init(){
     if(locked)fail(reason);
     document.getElementById('exportBackup').onclick=exportCurrent;
+    document.getElementById('exportRescue').onclick=exportRescue;
     document.getElementById('exportPrevious').onclick=()=>{if(!previous){alert('Nie ma jeszcze poprzedniej poprawnej wersji.');return}download('moj-planer-poprzedni-zapis-'+iso(new Date())+'_'+new Date().toTimeString().slice(0,8).replaceAll(':','-')+'.json',backup(previous))};
     document.getElementById('importBackup').onclick=()=>document.getElementById('backupFile').click();
     document.getElementById('backupFile').onchange=async e=>{
@@ -167,20 +182,20 @@ const PlannerData=(()=>{
         if((window.googleSyncInProgress||window.plannerGoogleOperations>0)||Object.values(typeof plannerRecordings==='undefined'?{}:plannerRecordings).some(Boolean))throw Error('Poczekaj na zakończenie synchronizacji i nagrywania.');
         if(file.size>20*1024*1024)throw Error('Plik kopii jest za duży (maksymalnie 20 MB).');
         const parsed=JSON.parse(await file.text());
-        if(parsed.format!=='moj-planer-backup'||parsed.version!==1)throw Error('To nie jest obsługiwana kopia Planera. Kopia ratunkowa służy do odzyskiwania danych, nie do bezpośredniego importu.');
+        if(parsed.format!=='moj-planer-backup'||parsed.version!==1)throw Error('To nie jest obsługiwana kopia Planera. Wybierz zwykłą kopię danych; kopię ratunkową zachowaj do analizy.');
         const data=validate(parsed.data);
         if(!confirm('Przywrócić kopię?\n\nWydarzenia: '+data.tasks.length+'\nPomysły: '+data.ideas.length+'\nOperacje usuwania w kolejce: '+data.deleteQueue.length+'\n\nKopia ZASTĄPI dane na tym urządzeniu. Google zostanie odłączone. Po ponownym połączeniu synchronizacja może wykonać zapisane zmiany i usunięcia. Klucz API i kod dostępu nie są importowane.'))return;
         if(window.googleSyncInProgress||window.plannerGoogleOperations>0)throw Error('Synchronizacja trwa. Poczekaj na jej zakończenie.');
         restore(data);location.reload();
-      }catch(error){alert('Nie przywrócono kopii: '+error.message);}
+      }catch(error){if(locked)fail('Nie udało się przywrócić kopii.',error,'restore');alert('Nie przywrócono kopii: '+error.message);}
     };
     ['click','submit','change'].forEach(type=>document.addEventListener(type,e=>{if(locked&&!e.target.closest('#backupCard')){e.preventDefault();e.stopImmediatePropagation();}},true));
     window.addEventListener('error',e=>{if(e.error?.plannerStorageError){e.preventDefault();fail(reason)}});
     window.addEventListener('unhandledrejection',e=>{if(e.reason?.plannerStorageError){e.preventDefault();fail(reason)}});
     window.addEventListener('storage',e=>{if((e.key===KEY&&e.newValue!==expected)||e.key===null)fail('Dane zmieniły się w innej karcie. Odśwież tę kartę.');});
   }
-  function assertWritable(){if(locked)throw fail(reason);try{if(localStorage.getItem(KEY)!==expected)throw fail('Dane zmieniły się w innej karcie. Odśwież stronę.');}catch(error){if(error.plannerStorageError)throw error;throw fail('Nie można odczytać zapisu na urządzeniu.');}}
-  return {storage,init,validate,backup,restore,commit,exportCurrent,assertWritable,isLocked:()=>locked,snapshot:()=>structuredClone(state),previous:()=>structuredClone(previous)};
+  function assertWritable(){if(locked)throw fail(reason);try{if(localStorage.getItem(KEY)!==expected)throw fail('Dane zmieniły się w innej karcie. Odśwież stronę.');}catch(error){if(error.plannerStorageError)throw error;throw fail('Nie można odczytać zapisu na urządzeniu.',error,'read');}}
+  return {storage,init,validate,backup,restore,commit,exportCurrent,assertWritable,isLocked:()=>locked,snapshot:()=>structuredClone(state),previous:()=>structuredClone(previous),diagnostic:()=>structuredClone(latestDiagnostic)};
 })();
 window.PlannerData=PlannerData;
 
