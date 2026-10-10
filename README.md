@@ -206,3 +206,11 @@ Usunięto powtarzany tekst „Zmiana jest w szkicu”. Planer pyta wprost o brak
 ### Preview33 33.22 — czas trwania przy tworzeniu wydarzenia
 
 Komenda `open_create_event` przenosi podaną długość wydarzenia. Gdy znane są początek i długość, koniec jest wyliczany od razu; gdy brakuje początku, długość pozostaje w szkicu rozmowy do kolejnej odpowiedzi. Wyliczanie uwzględnia przejście przez północ, koniec miesiąca i roku. Sprzeczna para końca i długości wywołuje krótkie pytanie zamiast automatycznego wyboru. Wdrożenia Workera i frontendu są oddzielne; Worker 33.22 trzeba wdrożyć w Cloudflare przed testem.
+
+### Preview33 33.25 — zachowanie ustaleń rozmowy
+
+Ponowne `open_create_event` w aktywnej rozmowie scala nowe pola z istniejącym szkicem; pominięte, puste i `null` nie kasują wcześniejszych ustaleń. `query` jest tytułem wydarzenia, także przy tworzeniu z otwartego wpisu. Jawne rozpoczęcie nowego wydarzenia lub powiadomienia używa `uiAction.newFlow: true`; zwykła odpowiedź i korekta kontynuują bieżący przepływ.
+
+Powiadomienie ma jeden szkic w `dialogueState.reminderDraft`. Główne pole dopytuje również o brakującą treść i dopiero po ustaleniu dnia, godziny oraz treści pokazuje podgląd do zatwierdzenia. Zmiana działania usuwa poprzedni szkic przypomnienia. `kind: command`, `intent: continue`, puste `operations` i `uiAction: null` pozwalają dopytać bez wykonania komendy.
+
+`tests/conversation-state-33-25.mjs` przeprowadza kolejne tury przez rzeczywisty Worker i frontend, z kontrolowanymi odpowiedziami modelu. Obejmuje oba kanały, ponowne tworzenie, nowy przepływ, własny tytuł, dzień → godzina → treść, poprawkę zapisanego powiadomienia, dopytanie i zmianę działania. Frontend i Worker mają wersję 33.25; oba wymagają osobnego wdrożenia.
