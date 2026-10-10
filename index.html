@@ -32,7 +32,7 @@ body.entry-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.10.33.23-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.10.33.24-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -101,7 +101,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.10.33.23-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.10.33.24-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -132,13 +132,22 @@ const PlannerData=(()=>{
   function commit(next){
     if(locked)throw fail(reason);
     const validated=validate(next);
-    const payload=JSON.stringify({version:1,data:validated,previous:state,savedAt:new Date().toISOString()});
+    const savedAt=new Date().toISOString();
+    const payload=JSON.stringify({version:1,data:validated,previous:state,savedAt});
     let stage='verify';
     try{
       if(localStorage.getItem(KEY)!==expected)throw fail('Dane zostały zmienione w innej karcie. Odśwież tę kartę przed dalszą pracą.');
       stage='write';
-      localStorage.setItem(KEY,payload);
-    }catch(error){if(error.plannerStorageError)throw error;throw fail('Nie udało się zapisać danych na urządzeniu. Ostatnia poprawnie zapisana wersja pozostaje zachowana.',error,stage,payload);}
+      try{localStorage.setItem(KEY,payload)}catch(error){
+        const quota=error?.name==='QuotaExceededError'||error?.code===22||error?.code===1014;
+        if(!quota)throw error;
+        const compactPayload=JSON.stringify({version:1,data:validated,previous:null,savedAt});
+        try{localStorage.setItem(KEY,compactPayload)}catch(retryError){stage='write_without_previous';throw Object.assign(retryError,{plannerPayload:compactPayload})}
+        previous=null;state=validated;expected=compactPayload;
+        try{window.dispatchEvent(new CustomEvent('planner-storage-saved-without-previous'))}catch(_){}
+        return;
+      }
+    }catch(error){if(error.plannerStorageError)throw error;throw fail('Nie udało się zapisać danych na urządzeniu. Ostatnia poprawnie zapisana wersja pozostaje zachowana.',error,stage,error.plannerPayload||payload);}
     previous=state;state=validated;expected=payload;
   }
   const storage={
@@ -258,7 +267,7 @@ function plannerClarificationQuestion(question,text,current,dialogue=[]){
 }
 
 function validateAiItem(x){return !plannerItemQuestion(x)}
-function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}function saveTasks(){window.preparePlannerSave?.();PlannerData.storage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){PlannerData.storage.setItem(IDEA_KEY,JSON.stringify(ideas))}
+function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}window.addEventListener("planner-storage-saved-without-previous",()=>toast("Zapisano. Usunięto starszą kopię, aby zwolnić miejsce."));function saveTasks(){window.preparePlannerSave?.();PlannerData.storage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){PlannerData.storage.setItem(IDEA_KEY,JSON.stringify(ideas))}
 function voiceUsageMonth(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
 function getVoiceUsage(){let u;try{u=JSON.parse(PlannerData.storage.getItem(VOICE_USAGE_KEY)||"null")}catch(e){}const month=voiceUsageMonth();if(!u||u.month!==month)u={month,count:0};return u}
 function incrementVoiceUsage(){const u=getVoiceUsage();u.count++;PlannerData.storage.setItem(VOICE_USAGE_KEY,JSON.stringify(u));return u}
