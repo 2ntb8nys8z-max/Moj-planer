@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.27-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.28-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -207,13 +207,13 @@ function conversationHourChoice(text,state,history){
   if(!/^(?:(?:na|o|do)\s+)?(?:godzine\s+)?(?:\d{1,2}(?::\d{2})?|[a-z]+)\.?$/.test(t))return null;
   return choices.includes(m.time)?m.time:null;
 }
-function conversationHourMentions(text,state){
+function conversationHourMentions(text,state,inputSource='text'){
   const normalized=String(text).replace(/\b([ap])\s*\.\s*m\s*\.?/gi,'$1m');
   if(/\b[ap]\s*m\b/i.test(normalized))return [];
   if(/\?\s*$/.test(text)||/^(dlaczego|czemu|czy|wyjasnij)\b/.test(dialoguePlain(text)))return [];
   const short=/^(?:(?:na|o|do)\s+)?(?:godzin\w*\s+)?(?:[a-z]+|\d{1,2}(?::\d{2})?)(?:\s+(?:rano|w nocy|po poludniu))?\.?$/.test(dialoguePlain(text));
   const pending={kind:short?'hour':undefined,field:state.activeHourChoice?.field||(state.pendingField==='endTime'?'endTime':'startTime')};
-  return dialogueClockMentions(normalized,pending);
+  return dialogueClockMentions(normalized,pending).map(m=>inputSource==='audio'&&plannerMinutes(m.time)>=60&&plannerMinutes(m.time)<780&&!/rano|w nocy|nad ranem|po poludniu|wieczor/.test(dialoguePlain(text))?{...m,ambiguous:true,choices:[plannerClock(plannerMinutes(m.time)%720),plannerClock(plannerMinutes(m.time)%720+720)]}:m);
 }
 function conversationHourWait(state,choice){
   const reply=`Czy chodzi o ${choice.choices[0]} czy ${choice.choices[1]}?`;
@@ -221,12 +221,14 @@ function conversationHourWait(state,choice){
     conversationAmbiguity:{field:choice.field,choices:choice.choices},pendingField:choice.field,
     revision:(Number(state.revision)||0)+1,lastOperation:{status:'hour_choice_required'}}};
 }
-async function runConversationTurn({text,history,original,state,env,today,lastOperation}){
+async function runConversationTurn({text,history,original,state,env,today,lastOperation,inputSource='text'}){
 
   const draft={...(original||{}),...(state.draft||{})};
-  const selectedHour=conversationHourChoice(text,state,history);
+  const parsedHour=conversationHourChoice(text,state,history);
+  const audioAmbiguous=inputSource==='audio'&&!state.activeHourChoice&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
+  const selectedHour=audioAmbiguous?null:parsedHour;
   const active=state.activeHourChoice;
-  const mentions=conversationHourMentions(text,state);
+  const mentions=conversationHourMentions(text,state,inputSource);
   const unresolved=!selectedHour&&mentions.find(m=>m.ambiguous);
   let forcedAnswer=null;
   if(selectedHour&&(active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
@@ -356,7 +358,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="a72ea10b0657a8dd";
+const BUILD_ID="a1745e455529a15b";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -850,7 +852,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.10.33.27-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.10.33.28-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1019,7 +1021,7 @@ export default {
       // deterministic Engine 2 date/time shortcuts so both engines keep their
       // own state protocol and response shape.
       if(conversationEngine===3){
-        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation});
+        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation,inputSource:uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')?'audio':'text'});
         return json({...turn,usage:apiUsage,transcription:spokenText,utterance:spokenText});
       }
 
