@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.10.33.22-integration';
-const PREVIEW_VERSION='2026.10.10.33.22-test';
+const APP_VERSION='2026.10.10.33.23-integration';
+const PREVIEW_VERSION='2026.10.10.33.23-test';
 const WORKER_VERSION='2026.10.10.33.22-test';
 const WORKER_LABEL='Worker 33.22-test';
 
@@ -40,8 +40,8 @@ canonical=canonical.replace(/appVersion:'2026\.10\.\d{2}\.\d+(?:\.[^']+)?'/,`app
 canonical=canonical.replace(/EXPECTED_WORKER_VERSION='[^']*'/,`EXPECTED_WORKER_VERSION='${WORKER_VERSION}'`).replace(/EXPECTED_WORKER_BUILD_ID='[^']*'/,`EXPECTED_WORKER_BUILD_ID='${workerBuildId}'`);
 
 let preview=canonical;
-preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.22</title>','document title');
-preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.22</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.22</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
+preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.23</title>','document title');
+preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.23</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.23</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
 preview=preview.replaceAll(APP_VERSION,PREVIEW_VERSION);
 preview=replaceOnce(preview,'// Durable planner state: one atomic record, one previous good snapshot.',"// Durable planner state: one atomic record, one previous good snapshot.\nconst PREVIEW33_PREFIX='planner-preview-33:';\nconst PREVIEW33_STORE={key:key=>PREVIEW33_PREFIX+key,getItem:key=>window.localStorage.getItem(PREVIEW33_PREFIX+key),setItem:(key,value)=>window.localStorage.setItem(PREVIEW33_PREFIX+key,value),removeItem:key=>window.localStorage.removeItem(PREVIEW33_PREFIX+key)};",'storage adapter insertion');
 const plannerStart=preview.indexOf('const PlannerData=(()=>{');
