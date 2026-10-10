@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.10.33.30-integration';
-const PREVIEW_VERSION='2026.10.10.33.30-test';
-const WORKER_VERSION='2026.10.10.33.30-test';
-const WORKER_LABEL='Worker 33.30-test';
+const APP_VERSION='2026.10.10.33.31-integration';
+const PREVIEW_VERSION='2026.10.10.33.31-test';
+const WORKER_VERSION='2026.10.10.33.31-test';
+const WORKER_LABEL='Worker 33.31-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -28,7 +28,7 @@ for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','promp
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.30-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.31-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
@@ -40,8 +40,8 @@ canonical=canonical.replace(/appVersion:'2026\.10\.\d{2}\.\d+(?:\.[^']+)?'/,`app
 canonical=canonical.replace(/EXPECTED_WORKER_VERSION='[^']*'/,`EXPECTED_WORKER_VERSION='${WORKER_VERSION}'`).replace(/EXPECTED_WORKER_BUILD_ID='[^']*'/,`EXPECTED_WORKER_BUILD_ID='${workerBuildId}'`);
 
 let preview=canonical;
-preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.30</title>','document title');
-preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.30</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.30</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
+preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.31</title>','document title');
+preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.31</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.31</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
 preview=preview.replaceAll(APP_VERSION,PREVIEW_VERSION);
 preview=replaceOnce(preview,'// Durable planner state: one atomic record, one previous good snapshot.',"// Durable planner state: one atomic record, one previous good snapshot.\nconst PREVIEW33_PREFIX='planner-preview-33:';\nconst PREVIEW33_STORE={key:key=>PREVIEW33_PREFIX+key,getItem:key=>window.localStorage.getItem(PREVIEW33_PREFIX+key),setItem:(key,value)=>window.localStorage.setItem(PREVIEW33_PREFIX+key,value),removeItem:key=>window.localStorage.removeItem(PREVIEW33_PREFIX+key)};",'storage adapter insertion');
 const plannerStart=preview.indexOf('const PlannerData=(()=>{');
@@ -58,7 +58,7 @@ for(const file of ['sync-core.js','google-calendar.js']){
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
-const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261010-33.30-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
+const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261010-33.31-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
 
 output('worker.js',worker);
 output('worker.txt',worker);
