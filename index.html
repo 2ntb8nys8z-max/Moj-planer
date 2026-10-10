@@ -342,36 +342,53 @@ async function transcribeEntryRecording(idea,attachment,button){
 function renderEntryAudio(parent,idea,attachment,index,epoch){const section=document.createElement('section');section.className='entry-audio';const name=document.createElement('div');name.className='entry-audio-name';name.textContent=attachment.name||'Nagranie głosowe '+(index+1);const audio=document.createElement('audio');audio.preload='metadata';audio.className='hidden';const player=document.createElement('div');player.className='entry-audio-player';const back=entryButton('↶ 15',()=>{audio.currentTime=Math.max(0,audio.currentTime-15)},''),play=entryButton('▶',async()=>{try{if(audio.paused){document.querySelectorAll('#ideaText audio').forEach(a=>{if(a!==audio)a.pause()});await audio.play()}else audio.pause()}catch(_){toast('Nie udało się odtworzyć tego pliku.')}},'entry-play'),forward=entryButton('15 ↷',()=>{audio.currentTime=Math.min(Number.isFinite(audio.duration)?audio.duration:audio.currentTime+15,audio.currentTime+15)},''),stop=entryButton('■',()=>{audio.pause();audio.currentTime=0},'');back.setAttribute('aria-label','Cofnij nagranie o 15 sekund');play.setAttribute('aria-label','Odtwórz nagranie');forward.setAttribute('aria-label','Przewiń nagranie o 15 sekund');stop.setAttribute('aria-label','Zatrzymaj nagranie');const seek=document.createElement('input');seek.type='range';seek.min='0';seek.max='1';seek.step='0.1';seek.value='0';seek.className='entry-seek';seek.setAttribute('aria-label','Pozycja odtwarzania');seek.oninput=()=>{audio.currentTime=Number(seek.value)};const times=document.createElement('div');times.className='entry-audio-times';const current=document.createElement('span'),total=document.createElement('span');current.textContent='00:00';total.textContent=entryTime(attachment.duration);times.append(current,total);const update=()=>{const duration=Number.isFinite(audio.duration)?audio.duration:Number(attachment.duration)||0;seek.max=String(duration||1);seek.value=String(audio.currentTime||0);current.textContent=entryTime(audio.currentTime);total.textContent=entryTime(duration);play.textContent=audio.paused?'▶':'Ⅱ';play.setAttribute('aria-label',audio.paused?'Odtwórz nagranie':'Wstrzymaj odtwarzanie')};for(const event of ['loadedmetadata','timeupdate','play','pause','ended'])audio.addEventListener(event,update);player.append(back,play,forward,stop,seek,times);section.append(name,audio,player);const status=entryParagraph('Wczytuję nagranie…','entry-help');section.append(status);const transcribe=entryButton(attachment.transcript?'Tekst zapisany':'Zamień na tekst',()=>transcribeEntryRecording(idea,attachment,transcribe));transcribe.disabled=true;if(entryTranscriptions.has(idea.id+':'+attachment.id))transcribe.textContent='Zamieniam na tekst…';if(!attachment.transcript)section.append(transcribe);const transcriptionStatus=entryParagraph(entryTranscriptionStatus.get(idea.id+':'+attachment.id)||'','entry-help');transcriptionStatus.setAttribute('role','status');section.append(transcriptionStatus);renderEntryTextPanel(section,'Transkrypcja nagrania',attachment.transcript);parent.append(section);[back,play,forward,stop,seek].forEach(b=>b.disabled=true);loadVoiceMemo(attachment.id).then(blob=>{if(epoch!==entryRenderEpoch||activeIdea?.id!==idea.id)return;if(!blob){status.textContent='Plik nagrania nie jest dostępny na tym urządzeniu.';return}const url=URL.createObjectURL(blob);entryMediaUrls.push(url);audio.src=url;status.remove();transcribe.disabled=!!attachment.transcript||entryTranscriptions.has(idea.id+':'+attachment.id);[back,play,forward,stop,seek].forEach(b=>b.disabled=false)}).catch(()=>{if(epoch===entryRenderEpoch)status.textContent='Nie udało się wczytać nagrania.'})}
 let entryOcrLoader=null,entryOcrBusy=false;
 const entryOcrPending=new Set(),entryOcrStatus=new Map();
+function entryOcrWait(promise,ms,message){let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})]).finally(()=>clearTimeout(timer))}
 function loadEntryOcr(){
   if(window.Tesseract)return Promise.resolve(window.Tesseract);
-  if(!entryOcrLoader)entryOcrLoader=new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
-    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(Error('Nie udało się uruchomić odczytu tekstu.'));
-    script.onerror=()=>{script.remove();reject(Error('Nie udało się pobrać odczytu tekstu. Sprawdź połączenie z internetem.'))};document.head.append(script);
-  }).catch(error=>{entryOcrLoader=null;throw error});
+  if(!entryOcrLoader)entryOcrLoader=(async()=>{
+    for(const base of ['https://cdn.jsdelivr.net/npm/','https://unpkg.com/']){
+      const script=document.createElement('script');script.src=base+'tesseract.js@5.1.1/dist/tesseract.min.js';
+      try{await entryOcrWait(new Promise((resolve,reject)=>{script.onload=()=>window.Tesseract?resolve():reject(Error('Brak silnika OCR.'));script.onerror=()=>reject(Error('Nie udało się pobrać silnika OCR.'));document.head.append(script)}),20000,'Pobieranie silnika OCR trwa zbyt długo.');return window.Tesseract}
+      catch(error){script.remove()}
+    }
+    throw Error('Nie udało się pobrać odczytu tekstu. Sprawdź połączenie z internetem i spróbuj ponownie.');
+  })().catch(error=>{entryOcrLoader=null;throw error});
   return entryOcrLoader;
+}
+async function prepareEntryOcrImage(blob){
+  const url=URL.createObjectURL(blob),img=new Image();
+  try{
+    await entryOcrWait(new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Nie można odczytać tego formatu zdjęcia. Użyj JPEG lub PNG.'));img.src=url}),20000,'Nie udało się wczytać zdjęcia do odczytu.');
+    const scale=Math.min(1,2000/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const context=canvas.getContext('2d');if(!context)throw Error('Nie udało się przygotować zdjęcia.');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(img,0,0,canvas.width,canvas.height);return canvas;
+  }finally{URL.revokeObjectURL(url)}
 }
 async function captureEntryPhotoText(idea,attachment,button){
   const key=idea.id+':'+attachment.id;
   if(attachment.ocrText||entryOcrPending.has(key))return;
   if(entryOcrBusy){entryOcrStatus.set(key,'Poczekaj na zakończenie odczytu poprzedniego zdjęcia.');if(activeIdea?.id===idea.id)renderIdeaDetails(idea);return}
-  entryOcrBusy=true;entryOcrPending.add(key);entryOcrStatus.delete(key);button.disabled=true;button.textContent='Przechwytuję tekst…';let worker;
+  entryOcrBusy=true;entryOcrPending.add(key);entryOcrStatus.delete(key);button.disabled=true;button.textContent='Przechwytuję tekst…';let worker,finished=false;
+  const progress=message=>{if(finished)return;entryOcrStatus.set(key,message);if(activeIdea?.id===idea.id){const node=[...document.querySelectorAll('#ideaText [data-ocr-key]')].find(n=>n.dataset.ocrKey===key);if(node)node.textContent=message}};
+  const dispose=value=>{try{Promise.resolve(value.terminate()).catch(()=>{})}catch(_){}};
   try{
-    PlannerData.assertWritable();const blob=await loadVoiceMemo(attachment.id);
-    if(!blob)throw Error('Zdjęcie nie jest dostępne na tym urządzeniu.');
-    const engine=await loadEntryOcr();
-    worker=await engine.createWorker('pol+deu+eng',1,{workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1'});
-    const result=await worker.recognize(blob);const text=String(result.data?.text||'').trim();
+    PlannerData.assertWritable();progress('Przygotowuję zdjęcie…');
+    const blob=await entryOcrWait(loadVoiceMemo(attachment.id),15000,'Nie udało się wczytać zapisanego zdjęcia.');if(!blob)throw Error('Zdjęcie nie jest dostępne na tym urządzeniu.');
+    const image=await prepareEntryOcrImage(blob);progress('Pobieram silnik odczytu tekstu…');const engine=await loadEntryOcr();
+    progress('Ładuję języki odczytu. Pierwsze uruchomienie może potrwać około minuty…');
+    const startup=engine.createWorker('pol+deu+eng',1,{workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',cacheMethod:'none',logger:message=>{if(message.status==='recognizing text')progress('Odczytuję tekst: '+Math.round((message.progress||0)*100)+'%');else if(message.status==='loading language traineddata')progress('Pobieram języki odczytu: '+Math.round((message.progress||0)*100)+'%')},errorHandler:()=>{}});
+    startup.then(value=>{if(finished)dispose(value)},()=>{});
+    worker=await entryOcrWait(startup,90000,'Nie udało się uruchomić OCR w ciągu 90 sekund. Sprawdź połączenie z internetem i spróbuj ponownie.');
+    progress('Odczytuję tekst…');const result=await entryOcrWait(worker.recognize(image),60000,'Odczyt zdjęcia trwał zbyt długo. Spróbuj ze zdjęciem zrobionym bliżej tekstu.');const text=String(result.data?.text||'').trim();
     if(!text)throw Error('Nie znaleziono tekstu na zdjęciu.');
     if(!ideas.includes(idea)||!entryAttachments(idea).some(a=>a.id===attachment.id))throw Error('Zdjęcie zostało usunięte. Tekstu nie zapisano.');
-    entryLocalUpdate(idea,item=>{const target=item.attachments.find(a=>a.id===attachment.id);target.ocrText=text;},'Przechwycono tekst ze zdjęcia');
-  }catch(error){entryOcrStatus.set(key,error.message||'Nie udało się przechwycić tekstu. Spróbuj ponownie.');}
-  finally{if(worker)try{await worker.terminate()}catch(_){}entryOcrBusy=false;entryOcrPending.delete(key);if(activeIdea?.id===idea.id)renderIdeaDetails(idea)}
+    entryLocalUpdate(idea,item=>{const target=item.attachments.find(a=>a.id===attachment.id);target.ocrText=text;},'Przechwycono tekst ze zdjęcia');entryOcrStatus.delete(key);
+  }catch(error){entryOcrStatus.set(key,error?.message||String(error)||'Nie udało się przechwycić tekstu. Spróbuj ponownie.');}
+  finally{finished=true;if(worker)dispose(worker);entryOcrBusy=false;entryOcrPending.delete(key);if(activeIdea?.id===idea.id)renderIdeaDetails(idea)}
 }
 function renderEntryPhoto(parent,idea,attachment,epoch){
   const figure=document.createElement('figure');figure.className='entry-photo';const img=document.createElement('img');img.alt=attachment.name||'Zdjęcie do wpisu';const caption=document.createElement('figcaption');caption.textContent=attachment.name||'Zdjęcie';const status=entryParagraph('Wczytuję zdjęcie…','entry-help');figure.append(img,caption,status);
   const key=idea.id+':'+attachment.id,ocr=entryButton(entryOcrPending.has(key)?'Przechwytuję tekst…':'Przechwyć tekst',()=>captureEntryPhotoText(idea,attachment,ocr));ocr.disabled=true;if(!attachment.ocrText)figure.append(ocr);
-  const message=entryParagraph(entryOcrStatus.get(key)||'','entry-help');message.setAttribute('role','status');figure.append(message);
+  const message=entryParagraph(entryOcrStatus.get(key)||'','entry-help');message.setAttribute('role','status');message.dataset.ocrKey=key;figure.append(message);
   renderEntryTextPanel(figure,'Tekst ze zdjęcia',attachment.ocrText);parent.append(figure);
   loadVoiceMemo(attachment.id).then(blob=>{if(epoch!==entryRenderEpoch||activeIdea?.id!==idea.id)return;if(!blob){status.textContent='Zdjęcie nie jest dostępne na tym urządzeniu.';return}const url=URL.createObjectURL(blob);entryMediaUrls.push(url);img.onload=()=>requestAnimationFrame(fitEntrySheet);img.onerror=()=>{status.textContent='Nie można wyświetlić tego formatu zdjęcia.';figure.append(status)};img.src=url;status.remove();ocr.disabled=entryOcrPending.has(key)}).catch(()=>{if(epoch===entryRenderEpoch)status.textContent='Nie udało się wczytać zdjęcia.'})
 }
