@@ -33,6 +33,44 @@ function begin(channel,entry={}){
  else run("testSession=beginVoiceDialogue('main',null,null)");
 }
 try{
+ // Complete real Worker/frontend turns: model must not choose an unresolved hour.
+ for(const channel of ['main','idea'])for(const wrong of ['01:00','13:00']){
+  begin(channel);
+  await turn('Przypomnij jutro: Zakupy.',command('set_entry_reminder',{date:'2027-01-04',message:'Zakupy'}));
+  await turn('Na pierwszą.',command('set_entry_reminder',{startTime:wrong}));
+  assert.match(get(channel+'Conversation').textContent,/01:00 czy 13:00/);
+  assert.equal(run('testSession.dialogueState.reminderDraft.startTime'),undefined);
+  assert.equal(run('pendingVoiceItem'),null);
+  const count=modelCalls;
+  await turn('Na pierwszą.',command('set_entry_reminder',{startTime:'13:00'}));
+  assert.equal(modelCalls,count,'Code resolves the choice without asking the model');
+  if(channel==='main')assert.deepEqual(read('pendingVoiceItem'),{type:'reminder',date:'2027-01-04',time:'01:00',message:'Zakupy'});
+  else {assert.equal(get('entryReminderTime').value,'01:00');assert.equal(get('entryReminderDate').value,'2027-01-04');}
+ }
+ for(const channel of ['main','idea']){
+  begin(channel);
+  await turn('Utwórz wydarzenie jutro, 15 minut.',command('open_create_event',{query:'Test',date:'2027-01-04',durationMinutes:15}));
+  await turn('Na pierwszą.',command('open_create_event',{startTime:'13:00'}));
+  assert.equal(run('testSession.dialogueState.draft.durationMinutes'),15);
+  await turn('Na trzynastą.',command('open_create_event',{startTime:'01:00'}));
+  const event=read('pendingVoiceItem');assert.equal(event.startTime,'13:00');assert.equal(event.endTime,'13:15');assert.equal(event.date,'2027-01-04');assert.equal(event.title,'Test');
+ }
+ // First full command must retain its day/title/length while removing guessed hours.
+ begin('main');
+ await turn('Dodaj do kalendarza jutro na pierwszą na 15 minut.',command('open_create_event',{query:'Test',date:'2027-01-04',startTime:'13:00',durationMinutes:15}));
+ assert.equal(run('testSession.dialogueState.draft.startTime'),undefined);
+ assert.equal(run('testSession.dialogueState.draft.date'),'2027-01-04');
+ assert.equal(run('testSession.dialogueState.draft.durationMinutes'),15);
+ // Explanatory discussion retains choices, cancellation starts clean.
+ await turn('Dlaczego pytasz?',{reply:'Godzina może oznaczać noc lub popołudnie.',kind:'command',intent:'continue',action:'continue',operations:[],focus:'',ambiguity:null,uiAction:null});
+ assert.equal(run('testSession.dialogueState.activeHourChoice.choices[0]'),'01:00');
+ begin('main');assert.equal(run('testSession.dialogueState?.activeHourChoice'),undefined);
+ // AM/PM is authoritative in full commands, including wrong model guesses.
+ for(const channel of ['main','idea'])for(const [phrase,time] of [['pierwsza p.m.','13:00'],['pierwsza a.m.','01:00'],['12 AM','00:00'],['12 PM','12:00']]){
+  begin(channel);
+  await turn('Ustaw przypomnienie jutro o '+phrase,command('set_entry_reminder',{date:'2027-01-04',message:'Test',startTime:'05:00'}));
+  assert.equal(channel==='main'?run('pendingVoiceItem.time'):get('entryReminderTime').value,time);
+ }
  // Same active flow, despite the model returning open_create_event again with only one field.
  for(const channel of ['main','idea']){
   begin(channel);const source=read('ideas');
@@ -40,7 +78,7 @@ try{
   assert.equal(run('testSession.dialogueState.draft.title'),'Kontrola u dentysty');
   assert.equal(run('voiceDialogueValid(testSession)'),true);
   assert.equal(run('testSession.dialogueState.draft.durationMinutes'),15);
-  await turn('O dwunastej.',command('open_create_event',{startTime:'12:00'},'modify'));
+  await turn('O 12:00.',command('open_create_event',{startTime:'12:00'},'modify'));
   const event=read('pendingVoiceItem');
   assert.equal(lastPayload.dialogueState.draft.durationMinutes,15);
   assert.equal(event.title,'Kontrola u dentysty');assert.equal(event.date,'2027-01-04');assert.equal(event.startTime,'12:00');assert.equal(event.endTime,'12:15');
