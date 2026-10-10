@@ -7,8 +7,8 @@ import {JSDOM} from 'jsdom';
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
 const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KEY:'dummy',API_LIMITS_DB:{prepare(){return {run:async()=>{},bind(){return this},first:async()=>({})}}}};
 const nativeFetch=globalThis.fetch;
-let model,modelCalls=0;
-globalThis.fetch=async()=>{modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}))};
+let model,modelCalls=0,audioTranscript='';
+globalThis.fetch=async(url)=>{if(String(url).includes('/audio/transcriptions'))return new Response(JSON.stringify({text:audioTranscript}));modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}))};
 const command=(type,fields={},intent='execute')=>({reply:'Sprawdź ustalenia.',kind:'command',action:'continue',intent,operations:[],focus:'',ambiguity:null,uiAction:{type,...fields}});
 async function post(payload){
  const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify(payload)}),env);
@@ -33,6 +33,31 @@ function begin(channel,entry={}){
  else run("testSession=beginVoiceDialogue('main',null,null)");
 }
 try{
+ // Audio -> normalized transcript -> Worker -> UI: colon does not settle spoken 1..12.
+ for(const channel of ['main','idea']){
+  begin(channel);
+  await turn('Przypomnij jutro: Test.',command('set_entry_reminder',{date:'2027-01-04',message:'Test'}));
+  assert.equal(get('entryReminderPanel').classList.contains('hidden'),true);
+  audioTranscript='Zmień przypomnienie na godzinę 7:00.';
+  model=command('set_entry_reminder',{startTime:'07:00'});
+  run("plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'})");
+  await run('requestVoiceDialogue(testSession,{}).then(r=>r&&applyVoiceDialogueResult(testSession,r))');
+  assert.match(get(channel+'Conversation').textContent,/07:00 czy 19:00/);
+  assert.equal(run('pendingVoiceItem'),null);
+  await turn('Na dziewiętnastą.',command('set_entry_reminder',{startTime:'07:00'}));
+  if(channel==='main')assert.equal(run('pendingVoiceItem.time'),'19:00');
+  else {
+   assert.equal(get('entryReminderPanel').classList.contains('hidden'),true);
+   assert.match(get('entryReminderPreview').textContent,/Potwierdź/);
+   assert.match(get('ideaConversation').textContent,/2027-01-04 o 19:00/);
+   assert.equal(run('ideas[0].alarm'),undefined,'No save before confirmation');
+   await get('entryReminderPreview').querySelector('button').onclick();
+   assert.equal(run('ideas[0].alarm.time'),'19:00');assert.equal(run('ideas[0].alarm.date'),'2027-01-04');
+  }
+ }
+ // Typed exact time stays exact.
+ begin('main');await turn('Przypomnij jutro o 07:00: Test.',command('set_entry_reminder',{date:'2027-01-04',startTime:'07:00',message:'Test'}));
+ assert.equal(run('pendingVoiceItem.time'),'07:00');
  // Complete real Worker/frontend turns: model must not choose an unresolved hour.
  for(const channel of ['main','idea'])for(const wrong of ['01:00','13:00']){
   begin(channel);

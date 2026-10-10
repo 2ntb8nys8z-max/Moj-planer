@@ -8,8 +8,8 @@ const rootWorkerText=fs.readFileSync('worker.txt','utf8');
 const previewWorkerText=fs.readFileSync('preview33/worker.txt','utf8');
 const release=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
 
-assert.match(root,/Aplikacja: 2026\.10\.10\.33\.27-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.10\.33\.27-test/);
+assert.match(root,/Aplikacja: 2026\.10\.10\.33\.28-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.10\.33\.28-test/);
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
 assert.match(preview,/e\.key===PREVIEW33_STORE\.key\(KEY\)/,'storage events must use the preview-prefixed key');
@@ -39,11 +39,11 @@ assert.match(root,/shopping-list/);
 assert.match(root,/historyModal/);
 assert.equal(rootWorkerText,worker,'root worker.txt must exactly match canonical worker.js');
 assert.equal(previewWorkerText,worker,'published test Worker must exactly match canonical worker.js');
-assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.27-TEST — CONVERSATION 33/);
-assert.match(worker,/apiVersion:"2026\.10\.10\.33\.27-test"/);
+assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.28-TEST — CONVERSATION 33/);
+assert.match(worker,/apiVersion:"2026\.10\.10\.33\.28-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.10.33.27-test');
-assert.equal(release.workerVersion,'2026.10.10.33.27-test');
+assert.equal(release.version,'2026.10.10.33.28-test');
+assert.equal(release.workerVersion,'2026.10.10.33.28-test');
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.27: entry view and Worker are aligned.');
+console.log('Preview 33.28: entry view and Worker are aligned.');
