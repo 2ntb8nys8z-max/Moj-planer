@@ -1,0 +1,21 @@
+const {JSDOM}=require('jsdom'),fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+(async()=>{
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,ctx=dom.getInternalVMContext();
+Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,confirm:()=>true,alert(){},fetch:async()=>new Response(JSON.stringify({requiresAccess:false,protocolVersion:2,apiVersion:'2026.10.06.32'}))});w.HTMLElement.prototype.scrollIntoView=function(){};
+for(const script of w.document.querySelectorAll('script'))if(!script.src)vm.runInContext(script.textContent,ctx);
+vm.runInContext(fs.readFileSync('sync-core.js','utf8'),ctx);vm.runInContext(fs.readFileSync('google-calendar.js','utf8'),ctx);
+vm.runInContext("tasks=[{id:123,title:'Test',date:'2026-10-09',time:'13:00',endTime:'14:00',location:'',notes:''}];saveTasks();renderAll();openEventActions(tasks[0]);session32=beginVoiceDialogue('event',123,voiceDialogueCurrent('event',123));",ctx);
+let payload;
+w.plannerApiRequest=async(path,options)=>{payload=JSON.parse(options.body);return {engine:3,success:true,status:'continue',reply:'Możemy omówić szczegóły, zanim ustalimy długość.',transcription:'Jeszcze nie wiem',dialogueState:{engine:3,draft:payload.currentItem,conversationFocus:'długość',lastOperation:{status:'draft_only'}}}};
+let r=await vm.runInContext("requestVoiceDialogue(session32,'Jeszcze nie wiem')",ctx);assert.equal(r,null);assert.equal(payload.conversationEngine,3);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'14:00');assert.match(w.document.getElementById('eventConversation').textContent,/Możemy omówić/);
+w.plannerApiRequest=async()=>{throw Object.assign(Error('network'),{code:'timeout'})};await assert.rejects(()=>vm.runInContext("requestVoiceDialogue(session32,'Spróbuj')",ctx));assert.equal(vm.runInContext('session32.lastOperation.code',ctx),'timeout');
+w.plannerApiRequest=async(path,options)=>{payload=JSON.parse(options.body);return {engine:3,success:true,status:'continue',reply:'Poprzednie połączenie się nie udało.',dialogueState:{engine:3,draft:payload.currentItem},transcription:'Co się stało?'}};await vm.runInContext("requestVoiceDialogue(session32,'Co się stało?')",ctx);assert.equal(payload.lastOperation.code,'timeout');assert.match(JSON.stringify(payload.dialogue),/Nie zapisano zmian/);
+// Closing and reopening the same event must reject an outstanding response.
+let resolve;w.plannerApiRequest=()=>new Promise(r=>resolve=r);const pending=vm.runInContext("requestVoiceDialogue(session32,'30 minut')",ctx);await Promise.resolve();vm.runInContext("clearVoiceDialogue('event');session32=beginVoiceDialogue('event',123,voiceDialogueCurrent('event',123));",ctx);resolve({engine:3,success:true,status:'review',reply:'Stara odpowiedź',item:{type:'event'}});assert.equal(await pending,null);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'14:00');
+// Long discussion keeps the structured draft; a valid review is still only a proposal.
+vm.runInContext("session32.history=Array.from({length:30},(_,i)=>({role:i%2?'assistant':'user',content:'Rozmowa '+i}));session32.dialogueState={draft:{type:'event',title:'Test',date:'2026-10-09',startTime:'13:00',endTime:'14:00'},conversationFocus:'długość'};",ctx);
+w.plannerApiRequest=async(path,options)=>{payload=JSON.parse(options.body);return {engine:3,success:true,status:'review',reply:'Sprawdź zakres 13:00–20:00.',transcription:'siedem godzin',item:{...payload.currentItem,endTime:'20:00',changedFields:['endTime']}}};
+r=await vm.runInContext("requestVoiceDialogue(session32,'siedem godzin')",ctx);assert.equal(payload.dialogue.length,22);assert.equal(payload.dialogueState.conversationFocus,'długość');assert.equal(vm.runInContext('tasks[0].endTime',ctx),'14:00');assert.equal(r.item.endTime,'20:00');
+await w.processEventVoiceResult(r,123);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'20:00');assert.equal(vm.runInContext('tasks[0].title',ctx),'Test');
+console.log('Conversation DOM32: reply rendering, no save while discussing, structured failure feedback, stale response rejection.');dom.window.close();
+})().catch(e=>{console.error(e);process.exitCode=1});
