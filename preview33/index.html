@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.55</title>
+<title>Mój Planer — test integracji 33.56</title>
 <meta name="theme-color" content="#6954b8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,11 +40,63 @@ body.entry-open{overflow:hidden}
 .shopping-sheet header{padding:18px;border-bottom:1px solid #ddd9eb;display:flex;gap:12px;align-items:flex-start}.shopping-sheet h2{margin:0 0 6px;font-size:20px}.shopping-sheet header>div{flex:1}.shopping-sheet header button{border:0;border-radius:50%;width:36px;height:36px;background:#252334;color:white;font-size:26px;padding:0}.shopping-summary-meta{font-size:12px;color:#646275;line-height:1.5}
 .shopping-summary-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 18px;flex:1}.shopping-summary-row{padding:14px 0;border-bottom:1px solid #e8e4ef}.shopping-summary-row label{display:flex;align-items:center;gap:12px;margin:0;color:#252334;font-size:16px}.shopping-summary-row input{width:22px;height:22px;flex:none;accent-color:#6554c0}.shopping-summary-row:has(input:checked) label span{text-decoration:line-through;color:#847b94}.shopping-summary-sources{margin:6px 0 0 34px;font-size:12px;color:#7a6e85;line-height:1.5}.shopping-summary-sources button{border:0;background:none;text-decoration:underline;color:inherit;padding:3px 0;font-size:12px;text-align:left}
 .shopping-sheet footer{padding:14px 18px;background:#fcfbff;border-top:1px solid #ddd9eb;flex:none}.shopping-sheet footer .row{flex-wrap:nowrap}.shopping-sheet footer .primary{flex:1;background:#6554c0}.shopping-summary-status{font-size:13px;color:#65538b;line-height:1.5;margin:0 0 10px;white-space:pre-wrap}
+
+/* 33.56: fixed header and communication dock, independent event and conversation scrolling. */
+body.event-sheet-open{overflow:hidden}
+#eventModal{padding:0;align-items:stretch;overflow:hidden;background:#29213a55}
+#eventModal .event-sheet{display:flex;flex-direction:column;width:100%;max-width:none;height:100dvh;max-height:100dvh;min-height:0;margin:0;padding:0;overflow:hidden;border:0;border-radius:0;background:#fcfbff;box-shadow:0 0 80px #29213a35}
+#eventHeader{flex:none;display:flex;align-items:flex-start;gap:12px;padding:max(14px,env(safe-area-inset-top)) 16px 12px;border-bottom:1px solid #e4ddef;background:#fcfbff;z-index:4}
+.event-header-copy{min-width:0;flex:1}
+#eventModal #actionTitle{margin:0;font-size:22px;line-height:1.25;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#eventHeaderMeta{color:#766987;font-size:13px;line-height:1.4;margin-top:5px;overflow-wrap:anywhere}
+#eventModal #closeEvent{float:none;flex:none;min-width:44px;min-height:44px;margin:-4px -6px 0 0;color:#6554bc;border-radius:12px}
+#eventMainRegion{position:relative;flex:1;min-height:0;overflow:hidden;isolation:isolate}
+#eventContent{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 16px 76px;scrollbar-gutter:stable}
+#eventModal #actionMeta{line-height:1.6;font-size:14px;margin:0 0 14px;overflow-wrap:anywhere;white-space:normal}
+.event-meta-duplicate{display:none}
+#eventModal #eventWeather{width:100%;margin:0 0 14px!important;padding:12px!important;border:1px solid #e4ddef!important;border-radius:16px;background:#f3eef9;font-size:12px;overflow-wrap:anywhere}
+#eventModal .weather-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;overflow:hidden;margin-bottom:8px;background:#fcfbff}
+#eventModal .weather-period{min-width:0;padding:8px 3px;overflow-wrap:anywhere}
+#eventModal .weather-period-label,#eventModal .weather-detail{font-size:11px}
+#eventModal .weather-icon{font-size:22px;margin:5px 2px}
+#eventModal .weather-temperature{font-size:18px}
+#eventModal .event-location-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px;border:1px solid #e4ddef;border-radius:14px;background:#fff}
+#eventLocationText{flex:1;min-width:0;overflow-wrap:anywhere;color:#51476c;font-size:14px;line-height:1.4}
+#eventModal #navigateBtn{flex:none;width:auto!important;margin:0!important;min-height:44px;padding:9px 12px;border-color:#d4c6e9;color:#6554bc;font-size:13px}
+#eventActionsToggle{position:absolute;right:12px;bottom:12px;width:48px;height:48px;padding:0;border:0;background:transparent;color:#6554bc;font-size:38px;line-height:1;border-radius:50%;z-index:3}
+#eventActionsToggle[aria-expanded=true]{transform:rotate(45deg)}
+#eventActionsMenu{position:absolute;right:14px;bottom:66px;max-width:calc(100% - 28px);width:220px;max-height:calc(100% - 80px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;flex-wrap:nowrap;gap:5px;margin:0;padding:8px;border:1px solid #dfd4ed;border-radius:16px;background:#fcfbff;box-shadow:0 8px 30px #29213a25;z-index:3}
+#eventActionsMenu button{width:100%;flex:none;min-width:0;min-height:44px;text-align:left;font-size:14px;padding:10px 12px}
+#eventModal .event-edit-box,#eventModal .timer-box{margin:10px 0 0;padding-top:12px}
+#eventModal .field{min-width:0}#eventModal #eventEditBox .row{display:grid;grid-template-columns:1fr 1fr}
+#eventConversationPanel{flex:none;display:flex;flex-direction:column;height:clamp(100px,27dvh,220px);max-height:30dvh;min-height:0;border-top:1px solid #e4ddef;background:#f4effb;overflow:hidden}
+.event-conversation-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 12px 3px 16px;flex:none;border-bottom:1px solid #e7def2}
+.event-conversation-header h3{margin:0;font-size:13px;color:#6554bc;font-weight:600}
+#closeEventConversation{border:0;background:transparent;min-width:44px;min-height:36px;font-size:23px;color:#6554bc}
+#eventConversationBody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 16px;-webkit-overflow-scrolling:touch}
+#eventModal #eventConversation{height:auto;max-height:none;overflow:visible;padding:0;margin:0;border:0;background:transparent;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.4}
+#eventModal .voice-message{max-width:94%;align-self:flex-start;border-radius:12px 12px 12px 3px;padding:8px 10px;background:#fff;overflow-wrap:anywhere}
+#eventModal .voice-message.assistant{align-self:flex-end;background:#e7def6;border-radius:12px 12px 3px 12px}
+#eventModal .voice-message strong{display:block;font-size:10px;margin-bottom:3px;color:#766987}
+#eventModal #eventFooter{flex:none;width:100%;max-height:38dvh;overflow-y:auto;margin:0;padding:10px 16px max(10px,env(safe-area-inset-bottom));border-top:1px solid #e4ddef;background:#fcfbff;text-align:left;z-index:4}
+.event-communication-row{display:flex;align-items:center;gap:8px;width:100%}
+#eventModal #eventVoice{flex:1;min-width:0;width:auto;height:48px;border-radius:13px;background:#6954b8;box-shadow:none;font-size:26px}
+#eventModal #eventVoice.event-voice-idle::after{content:' Powiedz, co zmienić';font-size:14px;vertical-align:middle}
+#eventModal #eventRecordCancel{flex:none;min-height:44px;font-size:12px;padding:8px}
+#eventConversationToggle{flex:none;min-width:44px;min-height:44px;border:1px solid #ded3ed;border-radius:12px;color:#6554bc;background:#f3eefb;font-size:21px}
+#eventModal #eventVoiceCountdown{font-size:16px;min-height:0;margin:0 0 3px}
+#eventModal #eventVoiceHint{font-size:12px;line-height:1.4;min-height:0;margin:6px 0 0;color:#766987}
+#eventReplyDock .voice-reply{margin:8px 0 0;padding:0}#eventReplyDock input{min-height:44px;padding:9px 12px;font-size:16px}
+#eventReplyDock .preview-actions{display:flex;gap:5px;margin-top:5px}
+#eventReplyDock .preview-actions button{min-width:0;min-height:40px;flex:1;font-size:11px;padding:6px 4px;overflow-wrap:anywhere}
+#eventModal button:focus-visible{outline:3px solid #b49de5;outline-offset:2px}
+@media(min-width:900px){#eventModal{padding:16px;align-items:center}#eventModal .event-sheet{height:calc(100dvh - 32px);max-width:620px;max-height:900px;border-radius:20px}}
+@media(max-height:500px){#eventHeader{padding:6px 12px}#eventModal #actionTitle{font-size:18px;-webkit-line-clamp:1}#eventHeaderMeta{font-size:12px;margin-top:2px}#eventConversationPanel{height:25dvh;max-height:25dvh}#eventModal #eventFooter{padding:6px 12px;max-height:44dvh}#eventReplyDock .voice-reply{display:grid;grid-template-columns:minmax(80px,1fr) minmax(140px,1.4fr);gap:6px;margin-top:6px}#eventReplyDock .preview-actions{margin-top:0}#eventModal #eventVoiceHint{margin-top:3px}#eventActionsToggle{width:44px;height:44px;bottom:6px}#eventContent{padding-top:10px}}
 </style>
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.55</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.55</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.55-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.56</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.56</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.56-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -76,7 +128,11 @@ body.entry-open{overflow:hidden}
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
 <div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów">×</button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary">Odśwież</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></section></div>
-<div id="eventModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEvent" class="close-x">×</button><h2 id="actionTitle"></h2><div id="actionMeta" class="action-meta"></div><div id="eventWeather" class="hidden" style="border-top:1px solid #eee;margin:12px 0;padding-top:8px"></div><button id="navigateBtn" class="secondary hidden" type="button" style="width:100%;margin:0 0 12px">🧭 Nawiguj</button><div class="event-voice"><div id="eventVoiceCountdown" class="voice-countdown"></div><button id="eventVoice" class="event-mic" type="button">🎤</button><button id="eventRecordCancel" type="button" class="secondary hidden" aria-label="Skasuj nagranie">Skasuj</button><div id="eventVoiceHint" class="event-voice-hint">Powiedz, co chcesz zmienić</div></div><div class="action-buttons"><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div></div>
+<div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
+<header id="eventHeader"><div class="event-header-copy"><h2 id="actionTitle"></h2><div id="eventHeaderMeta"></div></div><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie">×</button></header>
+<div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div id="eventLocationText"></div><button id="navigateBtn" class="secondary hidden" type="button">🧭 Nawiguj</button></div><div id="actionMeta" class="action-meta"></div><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
+<section id="eventConversationPanel" class="hidden" aria-labelledby="eventConversationTitle"><header class="event-conversation-header"><h3 id="eventConversationTitle">Rozmowa</h3><button id="closeEventConversation" type="button" aria-label="Ukryj rozmowę">×</button></header><div id="eventConversationBody"></div></section>
+<footer id="eventFooter" class="event-voice"><div id="eventReplyDock"></div><div id="eventVoiceCountdown" class="voice-countdown"></div><div class="event-communication-row"><button id="eventVoice" class="event-mic" type="button">🎤</button><button id="eventRecordCancel" type="button" class="secondary hidden" aria-label="Skasuj nagranie">Skasuj</button><button id="eventConversationToggle" class="hidden" type="button" aria-label="Pokaż rozmowę" aria-controls="eventConversationPanel" aria-expanded="false">☵</button></div><div id="eventVoiceHint" class="event-voice-hint">Powiedz, co chcesz zmienić</div></footer></section></div>
 <div id="apiAccessModal" class="modal-backdrop hidden" style="z-index:1002"><div class="action-card"><h2>Dostęp do AI</h2><p>Wpisz kod ustawiony w Cloudflare jako PLANNER_ACCESS_TOKEN. To nie jest klucz OpenAI.</p><input id="apiAccessInput" type="password" autocomplete="current-password" maxlength="256" aria-label="Kod dostępu do AI"><p id="apiAccessError" role="status"></p><div class="action-buttons"><button id="apiAccessSave" class="primary" type="button">Zapisz kod</button><button id="apiAccessCancel" class="secondary" type="button">Anuluj</button></div></div></div>
 <script>
 // Durable planner state: one atomic record, one previous good snapshot.
@@ -116,7 +172,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.55-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.56-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1412,4 +1468,55 @@ function initializePhoneSkin(){
 initializePhoneSkin();
 </script>
 
+<script>
+// Event sheet presentation only. Keep original button nodes, dialogue state and recording handlers.
+function initializeEventSheet(){
+ const modal=$('eventModal'),meta=$('actionMeta'),panel=$('eventConversationPanel'),body=$('eventConversationBody'),dock=$('eventReplyDock'),menu=$('eventActionsMenu'),plus=$('eventActionsToggle'),toggle=$('eventConversationToggle');
+ let visible=false,taskId=null,returnFocus=null;
+ function showMenu(open){menu.classList.toggle('hidden',!open);plus.setAttribute('aria-expanded',String(open))}
+ function showConversation(open){panel.classList.toggle('hidden',!open);toggle.setAttribute('aria-expanded',String(open))}
+ plus.onclick=()=>showMenu(menu.classList.contains('hidden'));
+ menu.addEventListener('click',event=>{if(!event.target.closest('button'))return;showMenu(false);requestAnimationFrame(()=>{const target=!$('eventEditBox').classList.contains('hidden')?$('eventEditBox'):!$('timerBox').classList.contains('hidden')?$('timerBox'):null;target?.scrollIntoView({block:'nearest'})})});
+ $('closeEventConversation').onclick=()=>{showConversation(false);toggle.focus()};
+ toggle.onclick=()=>{showConversation(panel.classList.contains('hidden'));if(!panel.classList.contains('hidden'))$('eventConversation')?.focus()};
+ function sync(records=[]){
+  observer.disconnect();
+  try{
+   const open=!modal.classList.contains('hidden'),history=$('eventConversation'),reply=$('eventClarification');
+   $('eventVoice').classList.toggle('event-voice-idle',$('eventVoice').textContent.trim()==='🎤'&&!$('eventVoice').classList.contains('recording'));
+   if(history&&history.parentElement!==body)body.append(history);
+   if(reply&&reply.parentElement!==dock)dock.append(reply);
+   const changed=records.some(record=>record.target===history||history?.contains(record.target)||Array.from(record.addedNodes||[]).some(node=>node===history||node===reply));
+   toggle.classList.toggle('hidden',!history);
+   if(!history)showConversation(false);
+   if(!open){
+    document.body.classList.remove('event-sheet-open');showMenu(false);showConversation(false);
+    if(visible&&!document.querySelector('.modal-backdrop:not(.hidden):not(#eventModal)')){if(returnFocus?.isConnected)returnFocus.focus()}
+    visible=false;taskId=null;return;
+   }
+   if(!visible){returnFocus=document.activeElement;document.body.classList.add('event-sheet-open');$('closeEvent').focus()}
+   if(taskId!==activeTask?.id){taskId=activeTask?.id;$('eventContent').scrollTop=0;showMenu(false);showConversation(!!history)}
+   if(activeTask){
+    const first=meta.firstChild;
+    if(first?.nodeType===Node.TEXT_NODE){$('eventHeaderMeta').textContent=first.textContent;const hidden=document.createElement('span');hidden.className='event-meta-duplicate';hidden.setAttribute('aria-hidden','true');first.before(hidden);hidden.append(first)}
+    const location=plannerLocation(activeTask);$('eventLocationText').textContent=location;$('eventLocationRow').classList.toggle('hidden',!location);
+    for(const node of Array.from(meta.childNodes)){if(node.nodeType!==Node.TEXT_NODE||node.textContent.trim()!=='📍 '+location)continue;const hidden=document.createElement('span');hidden.className='event-meta-duplicate';hidden.setAttribute('aria-hidden','true');node.before(hidden);hidden.append(node)}
+   }
+   const readOnly=$('eventFooter').classList.contains('hidden'),hasActions=Array.from(menu.querySelectorAll('button')).some(button=>!button.classList.contains('hidden'));plus.classList.toggle('hidden',!hasActions);if(!hasActions)showMenu(false);if(readOnly){showConversation(false)}else if(changed&&history){showConversation(true);body.scrollTop=body.scrollHeight}
+   visible=true;
+  }finally{observer.observe(modal,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']})}
+ }
+ const observer=new MutationObserver(sync);sync();
+ document.addEventListener('keydown',event=>{
+  if(modal.classList.contains('hidden')||document.querySelector('.modal-backdrop:not(.hidden):not(#eventModal)'))return;
+  if(event.key==='Escape'){event.preventDefault();if(!menu.classList.contains('hidden'))showMenu(false);else if(!panel.classList.contains('hidden')){showConversation(false);toggle.focus()}else closeEventActions()}
+  if(event.key==='Tab'){
+   const nodes=Array.from(modal.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]')).filter(node=>!node.closest('.hidden')&&node.getClientRects().length);
+   const first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+  }
+ });
+}
+initializeEventSheet();
+
+</script>
 </body></html>
