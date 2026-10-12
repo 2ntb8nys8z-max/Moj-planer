@@ -132,7 +132,7 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    assert.equal(await page.evaluate(()=>tasks.length),0,`${prefix}: the original delete action still runs`);
    await page.evaluate(()=>{tasks=[{id:'google-task',title:'Zadanie Google',date:'2026-10-12',time:'12:00',endTime:'13:00',notes:'https://tasks.google.com/task/example'}];openEventActions(tasks[0]);});
    assert.equal(await page.locator('#eventFooter').isVisible(),false,`${prefix}: communication stays hidden for a read-only Google task`);
-   assert.equal(await page.locator('#eventActionsToggle').isVisible(),true,`${prefix}: original read-only history action remains reachable`);await page.locator('#eventActionsToggle').click();assert.equal(await page.locator('#eventHistory').isVisible(),true);await page.locator('#eventHistory').click();assert.equal(await page.locator('#historyModal').isVisible(),true,`${prefix}: original history handler still runs for read-only Google tasks`);
+   assert.equal(await page.locator('#eventActionsToggle').isVisible(),false,`${prefix}: read-only editing actions remain hidden`);assert.equal(await page.locator('#eventHeader #eventHistory').isVisible(),true,`${prefix}: original history is directly reachable in the header`);await page.locator('#eventHistory').click();assert.equal(await page.locator('#historyModal').isVisible(),true,`${prefix}: original history handler still runs for read-only Google tasks`);
    assert.equal(await page.locator('#eventConversationPanel').isVisible(),false);
    for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(await page.locator('#'+id).isVisible(),false,`${prefix}: ${id} stays hidden for a read-only Google task`);
    await page.close();

@@ -1,8 +1,9 @@
-// MÓJ PLANER — WORKER 33.35-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.36-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
-const CONVERSATION_ENGINE_PROMPT = `EDYCJA ISTNIEJĄCEGO WPISU: przy original.type idea nazwa, treść i produkty są niezależne. Dodanie listy zakupów do wpisu, również pierwszej, to idea {type:"idea",action:"append",text:original.title||original.text,listAction:"add",items:[nowe produkty]}. Nigdy nie zmieniaj wtedy nazwy ani treści. listAction replace jest dozwolone TYLKO przy jawnym poleceniu zastąpienia CAŁEJ listy, wtedy dołącz replaceExisting:true. Poprawka jednego produktu nie usuwa pozostałych; pokaż pełną poprawioną listę przy zastąpieniu. Zmiana samej nazwy to idea {type:"idea",action:"rename",text:"nowa nazwa"}, bez listAction. Zachowaj treść i załączniki. Te zasady mają pierwszeństwo przed ogólnymi instrukcjami tworzenia nowego wpisu.
+const CONVERSATION_ENGINE_PROMPT = `OTWARTE WYDARZENIE — ZASADA NADRZĘDNA: gdy original.type event, wszystkie polecenia tekstowe i głosowe dotyczą wyłącznie tego wydarzenia i original.eventId. Nie twórz osobnego wpisu, notatki, alarmu, przypomnienia osi dnia ani nowego wydarzenia i nie otwieraj ani nie wyszukuj innego wpisu. Notatka/transkrypcja to dopisek do notes tego wydarzenia, z zachowaniem poprzedniej treści. Polecenie ustawienia lub zmiany przypomnienia to kind command, intent execute lub modify, operations [], uiAction {type:"set_event_reminder",minutesBefore:liczba całkowita 0..10080}. Jeśli użytkownik podał liczbę minut przed, zastosuj ją natychmiast: nie pytaj o dzień, godzinę, tytuł ani potwierdzenie. Dane wynikają z otwartego wydarzenia. Gdy minut brak, operations [], uiAction null, intent continue, odpowiedz dokładnie „Ile minut przed wydarzeniem mam przypomnieć?”. eventReminderDraft i requiredNext eventReminderMinutes oznaczają odpowiedź na to pytanie: sama liczba lub długość ustala minutesBefore dla tego samego eventId. Usunięcie przypomnienia to kind command, intent modify, operations [], uiAction {type:"remove_event_reminder"}; nigdy remove_entry_reminder ani usunięcie wydarzenia. Brak przypomnienia wyjaśnij krótko bez tworzenia nowego. Pytania i niepewne propozycje nie wykonują zmian. Te zasady obowiązują także podczas rozmowy wieloetapowej i mają pierwszeństwo przed regułami ogólnych przypomnień poniżej.
+EDYCJA ISTNIEJĄCEGO WPISU: przy original.type idea nazwa, treść i produkty są niezależne. Dodanie listy zakupów do wpisu, również pierwszej, to idea {type:"idea",action:"append",text:original.title||original.text,listAction:"add",items:[nowe produkty]}. Nigdy nie zmieniaj wtedy nazwy ani treści. listAction replace jest dozwolone TYLKO przy jawnym poleceniu zastąpienia CAŁEJ listy, wtedy dołącz replaceExisting:true. Poprawka jednego produktu nie usuwa pozostałych; pokaż pełną poprawioną listę przy zastąpieniu. Zmiana samej nazwy to idea {type:"idea",action:"rename",text:"nowa nazwa"}, bez listAction. Zachowaj treść i załączniki. Te zasady mają pierwszeństwo przed ogólnymi instrukcjami tworzenia nowego wpisu.
 KALENDARZ I PRZYPOMNIENIA: „dodaj/wrzuć do kalendarza” oznacza wydarzenie kalendarzowe. Jeśli użytkownik poda dzień i godzinę początku, zachowaj je; wydarzenie wymaga końca albo czasu trwania. Przy tworzeniu wydarzenia z otwartego wpisu użyj jego nazwy jako tytułu, chyba że użytkownik poda inną. Dla open_create_event przekaż również podany endTime i durationMinutes; gdy podano początek i długość, nie pytaj ponownie o koniec. Jeśli podano jednocześnie koniec i długość, sprawdź zgodność; przy sprzeczności dopytaj, której wartości użyć. Uzupełniaj tylko brakujące pola. W trybie create traktuj draft jako pamięć rozmowy: nigdy nie kasuj ani nie pytaj ponownie o ustawione pola, gdy użytkownik odpowiada na aktualne pytanie. Poprawka końca („nie, do 20:30”) aktualizuje wyłącznie endTime i zachowuje nazwę, dzień, początek oraz resztę szkicu. Nie powtarzaj pól z missing, jeśli już są w draft.
 „Ustal termin” samo w sobie jest niejednoznaczne: zapytaj krótko, czy chodzi o wydarzenie w kalendarzu, czy jednorazowe powiadomienie. Dla powiadomienia, jeśli nie zmienia się jawnie któregoś pola, pomiń je albo zwróć null; nie zwracaj pustego tekstu zamiast daty/godziny. Jednorazowe „przypomnij mi”, „ustaw powiadomienie”, „ustaw alarm/budzik” dla otwartego wpisu oznacza kind command, intent execute, operations [], uiAction {type:"set_entry_reminder",date:"YYYY-MM-DD" lub null,startTime:"HH:MM" lub null,message:"krótka treść"}. Prośba o usunięcie istniejącego powiadomienia w otwartym wpisie oznacza kind command, intent modify, uiAction {type:"remove_entry_reminder"}; jeśli wpis nie ma powiadomienia, powiedz to krótko i nie twórz akcji. Komenda minutnika oznacza kind command, intent execute, uiAction {type:"start_timer",minutes:liczba}; jeśli nie podano długości, zwróć start_timer bez minutes, aby frontend dopytał i zachował rozmowę. Gdy mode to timer i użytkownik odpowiada długością („25 minut”, „kwadrans”), użyj start_timer. To punktowe powiadomienie bez końca, nie blokuje czasu i nie jest wydarzeniem Google. Dla „ustal termin” po wyborze punktu kalendarzowego użyj set_entry_deadline; to też nie jest wydarzenie Google. Przy brakującym dniu/godzinie pytaj tylko o brakujące dane, zachowuj je z historii, pokazuj dostępne wolne godziny i pozwól zapisać ręcznie. Gdy dzień jest podany głosem, przyjmij go i nie wymagaj wpisywania daty z palca. Żadna z tych akcji nie zapisuje się automatycznie. Nie twierdź, że powiadomienie zadziała po zamknięciu aplikacji.
 POWIADOMIENIA: original.alarm to zapisane powiadomienie, reminderDraft to jego aktualny szkic. Tworzenie i zmiana korzystają z set_entry_reminder; poprawka może mieć intent modify. Przesyłaj tylko pola jawnie ustalone w aktualnej wypowiedzi. Pominięte pola i null zachowują wcześniejsze wartości. Odpowiedź zawierająca samą godzinę aktualizuje startTime, sam dzień aktualizuje date. Nie zastępuj własnej treści powiadomienia tytułem wpisu. Jeśli użytkownik chce zmienić godzinę, ale nie podał nowej, zapytaj „Na którą godzinę?” z intent continue bez uiAction i operacji. Nie proponuj wtedy zapisania starej godziny. Podobnie dopytaj o niepodaną nową datę. Szkic powiadomienia zachowuje się między turami; inna komenda rozpoczyna osobny przepływ. W głównym polu nowego powiadomienia ustal także treść message; nie zastępuj jej słowem „Przypomnienie”. Jeśli użytkownik jawnie rozpoczyna nowe powiadomienie zamiast kontynuacji, ustaw uiAction.newFlow:true. Usuwaj tylko istniejące original.alarm, nigdy deadline ani wydarzenia kalendarza.
@@ -53,6 +54,73 @@ function conversationFault(code){const e=new Error(code);e.conversationCode=code
 function conversationDate(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
 function conversationDateShift(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
 function conversationDurationEndTime(startTime,durationMinutes){const start=plannerMinutes(startTime);return start===null||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>=1440?null:plannerClock(start+durationMinutes)}
+// Keep the event identity outside the editable draft. Older stored events may
+// omit endDate even though their date and hours fully determine the interval.
+function conversationEventContext(item){
+  if(item?.type!=='event')return item;
+  const context={...plannerCleanDraft(item)};
+  const eventId=item.eventId??item.id;
+  if(eventId!=null){if(!(typeof eventId==='string'&&eventId.length>0&&eventId.length<=300||typeof eventId==='number'&&Number.isFinite(eventId)))throw conversationFault('invalid_event_target');context.eventId=eventId;}
+  if(!context.endTime&&context.startTime&&context.durationMinutes!=null){
+    const end=conversationDurationEndTime(context.startTime,context.durationMinutes);
+    if(end)context.endTime=end;
+  }
+  if((context.endDate==null||context.endDate==='')&&conversationDate(context.date)){
+    if(!context.startTime&&!context.endTime)context.endDate=conversationDateShift(context.date,1);
+    else if(plannerMinutes(context.startTime)!==null&&plannerMinutes(context.endTime)!==null)context.endDate=conversationDateShift(context.date,plannerMinutes(context.endTime)<=plannerMinutes(context.startTime)?1:0);
+  }
+  return context;
+}
+function conversationEventReminderMinutes(text,pending=false){
+  const t=String(text||'').trim().replace(/[.!?,]+$/g,'').trim();
+  // In an offset correction the value after "na" is the new value; the
+  // earlier "z 15 minut" merely describes the reminder being changed.
+  const target=t.match(/(?:^|\s)(?:na|tylko)\s+(.+)$/i);
+  if(target){const minutes=conversationEventReminderMinutes(target[1],true);if(minutes!=null)return minutes;}
+  if(pending&&/^\d+$/.test(t))return Number(t);
+  const numeric=t.match(/\b(\d+)\s*(minut(?:y|ę|e)?|godzin(?:y|ę|e|a)?|dni|dzień|dzien)\b/i);
+  if(numeric)return Number(numeric[1])*(/^godzin/i.test(numeric[2])?60:/^(dni|dzie)/i.test(numeric[2])?1440:1);
+  const before=t.split(/\s+przed\b/i)[0],words=before.split(/\s+/);
+  for(let count=Math.min(5,words.length);count>=1;count--){
+    const minutes=plannerDuration(words.slice(-count).join(' '));if(minutes!=null)return minutes;
+  }
+  return null;
+}
+function conversationEventReminderNegated(text){
+  const t=String(text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');
+  return /\bnie\s+(?:ustaw(?:iaj)?|dodaj|dodawaj|wlacz(?:aj)?|zmien(?:iaj)?|przestaw(?:iaj)?|przypomnij|przypominaj|usun|usuwaj|skasuj|kasuj|wylacz(?:aj)?|anuluj)\b/.test(t)&&/\b(?:przypomn\w*|przypomnij|przypominaj|powiadom\w*|alarm\w*|budzik\w*)\b/.test(dialoguePlain(text));
+}
+function conversationEventReminderRequest(original,state,text){
+  if(original?.type!=='event')return null;
+  if(conversationEventReminderNegated(text))return null;
+  const plain=dialoguePlain(text);
+  const pending=state.pendingField==='eventReminderMinutes'&&state.eventReminderDraft?.eventId===(original.eventId??null);
+  const reminder=/\b(?:przypomn\w*|przypomnij|powiadom\w*|alarm\w*|budzik\w*)\b/.test(plain);
+  const command=reminder&&/\b(?:ustaw|dodaj|wlacz|zmien|przestaw|przypomnij|usun|skasuj|wylacz|anuluj)\b/.test(plain)&&!/^\s*(?:czy|dlaczego|jak|ile|moze|a moze|proponuje)\b/.test(plain);
+  if(command&&/\b(?:usun|skasuj|wylacz|anuluj)\b/.test(plain))return {type:'remove_event_reminder'};
+  if(command)return {type:'set_event_reminder',minutesBefore:conversationEventReminderMinutes(text,true)};
+  if(pending&&/^(?:\d+|(?:\d+|[\p{L}]+)(?:\s+[\p{L}]+){0,4})(?:\s+przed(?:\s+wydarzeniem)?)?[.!?]*$/u.test(String(text).trim())){
+    const minutes=conversationEventReminderMinutes(text,true);if(minutes!=null)return {type:'set_event_reminder',minutesBefore:minutes};
+  }
+  return null;
+}
+function conversationEventAnswer(original,state,text,answer){
+  if(original?.type!=='event')return answer;
+  if(conversationEventReminderNegated(text)&&(['set_event_reminder','remove_event_reminder','set_entry_reminder','remove_entry_reminder'].includes(answer.uiAction?.type)||answer.operations?.some(op=>op.field==='reminder'))){
+    const operations=Array.isArray(answer.operations)?answer.operations.filter(op=>op.field!=='reminder'):[];
+    return {...answer,kind:operations.length?'event':'command',intent:operations.length?answer.intent:'continue',operations,uiAction:null,focus:operations.length?answer.focus:'',ambiguity:operations.length?answer.ambiguity:null,reply:operations.length?answer.reply:'Nie zmieniam przypomnienia wydarzenia.'};
+  }
+  const request=conversationEventReminderRequest(original,state,text);
+  if(request)return {...answer,reply:request.type==='remove_event_reminder'?'Usuwam przypomnienie wydarzenia.':'Ustawiam przypomnienie wydarzenia.',kind:'command',intent:request.type==='remove_event_reminder'?'modify':'execute',operations:[],focus:'',ambiguity:null,idea:null,uiAction:request};
+  if(answer.uiAction?.type==='set_entry_reminder')return {...answer,kind:'command',operations:[],uiAction:{type:'set_event_reminder',minutesBefore:answer.uiAction.minutesBefore??conversationEventReminderMinutes(text,state.pendingField==='eventReminderMinutes')}};
+  if(answer.uiAction?.type==='remove_entry_reminder')return {...answer,kind:'command',intent:'modify',operations:[],uiAction:{type:'remove_event_reminder'}};
+  // A legacy note response can only become a note on the opened event.
+  if(answer.kind==='idea'&&['execute','modify'].includes(answer.intent)&&answer.idea&&(!answer.idea.listAction||answer.idea.listAction===null)&&/\b(?:notatk\w*|transkrypc\w*|dopisz)\b/.test(dialoguePlain(text))){
+    const addition=answer.idea.addition||answer.idea.text;
+    if(typeof addition==='string'&&addition.trim())return {...answer,kind:'event',idea:null,uiAction:null,operations:[{op:'set',field:'notes',value:appendVoiceNotes(state.draft?.notes??original.notes??'',addition.trim())}]};
+  }
+  return answer;
+}
 // A repeated create command is a patch to the active event, unless a new flow is explicit.
 function conversationCreateAction(state,patch){
   const prior=state.mode==='create'&&patch.newFlow!==true?state.draft||{}:{};
@@ -86,9 +154,20 @@ function conversationCandidate(original,state,answer){
   if(!answer||typeof answer!=='object'||Array.isArray(answer)||typeof answer.reply!=='string'||!answer.reply.trim()||answer.reply.length>1600||!['continue','review'].includes(answer.action)||!['event','idea','command'].includes(answer.kind))throw conversationFault('invalid_response_contract');
   if(!Array.isArray(answer.operations)||answer.operations.length>16||typeof answer.focus!=='string'||answer.focus.length>1000)throw conversationFault('invalid_operations_or_focus');
   if(answer.uiAction && answer.kind!=='command')throw conversationFault('ui_action_requires_command_kind');
+  if(original?.type==='event'&&answer.kind==='idea')throw conversationFault('event_scope_only');
   if(answer.kind==='command'){
     let action=answer.uiAction;
     if(answer.intent==='continue'&&action==null&&!answer.operations.length)return {draft:{...(state.draft||{})},allDay:state.allDay===true,missing:[],ambiguity:null,uiAction:null};
+    if(['set_event_reminder','remove_event_reminder'].includes(action?.type)){
+      if(original?.type!=='event')throw conversationFault('event_action_requires_open_event');
+      if(!['execute','modify'].includes(answer.intent)||answer.action!=='continue'||answer.operations.length)throw conversationFault('invalid_ui_action');
+      if(action.eventId!=null&&action.eventId!==original.eventId)throw conversationFault('invalid_event_target');
+      if(action.minutesBefore!=null&&(!Number.isInteger(action.minutesBefore)||action.minutesBefore<0||action.minutesBefore>10080))throw conversationFault('invalid_event_reminder_minutes');
+      const uiAction={type:action.type,...(original.eventId!=null?{eventId:original.eventId}:{})};
+      if(action.type==='set_event_reminder'&&action.minutesBefore!=null)uiAction.minutesBefore=action.minutesBefore;
+      return {draft:{...(state.draft||{})},allDay:state.allDay===true,missing:[],ambiguity:null,uiAction};
+    }
+    if(original?.type==='event'&&action)throw conversationFault('event_scope_only');
     if(action?.type==='set_entry_reminder'){action={...action};for(const field of ['date','startTime','message'])if(action[field]==='')delete action[field];}
     if(!(answer.intent==='execute'&&(action?.type!=='remove_entry_reminder')||answer.intent==='modify'&&(action?.type==='set_entry_reminder'||action?.type==='remove_entry_reminder'||action?.type==='open_create_event'&&(original?.type==='idea'||state.mode==='create')))||answer.action!=='continue'||answer.operations.length||!action)throw conversationFault('invalid_ui_action');
     if(action.newFlow!=null&&(typeof action.newFlow!=='boolean'||!['open_create_event','set_entry_reminder'].includes(action.type)))throw conversationFault('invalid_ui_action');
@@ -224,7 +303,11 @@ function conversationHourWait(state,choice){
     revision:(Number(state.revision)||0)+1,lastOperation:{status:'hour_choice_required'}}};
 }
 async function runConversationTurn({text,history,original,state,env,today,lastOperation,inputSource='text'}){
-
+  original=conversationEventContext(original);
+  if(original?.type==='event'){
+    if(state.eventContextId!=null&&state.eventContextId!==original.eventId)state={engine:3,revision:state.revision,eventContextId:original.eventId};
+    else state={...state,eventContextId:original.eventId??null};
+  }
   const draft={...(original||{}),...(state.draft||{})};
   const parsedHour=conversationHourChoice(text,state,history);
   const audioAmbiguous=inputSource==='audio'&&!state.activeHourChoice&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
@@ -245,7 +328,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
   }
   if(unresolved&&['reminder','create'].includes(state.mode)&&!/przypom|kalendar|wydarzen|nowe|nowy|anuluj/.test(dialoguePlain(text)))return conversationHourWait(state,{field:unresolved.field,choices:unresolved.choices,mode:state.mode,flowId:active?.flowId||crypto.randomUUID()});
   const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':text;
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false}})},...history,{role:'user',content:interpretedText}];
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
     const response=forcedAnswer?new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(forcedAnswer)}}]})):await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
@@ -253,7 +336,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     let answer,candidate,pendingProposal=null,ready=false;
     try{
       const outer=JSON.parse(raw),content=outer.choices?.[0]?.message?.content;
-      answer=JSON.parse(content);
+      answer=conversationEventAnswer(original,state,text,JSON.parse(content));
 
       // Explicit AM/PM or the active selection is authoritative, not a model suggestion.
       if(selectedHour){
@@ -286,6 +369,18 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
       candidate=conversationCandidate(original,appliedState,answer);
       if(answer.kind==='command'&&!candidate.uiAction)return {engine:3,success:true,status:'continue',reply:answer.reply.trim(),dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1}};
       if(answer.kind==='command'){
+        if(['set_event_reminder','remove_event_reminder'].includes(candidate.uiAction.type)){
+          const uiAction=candidate.uiAction,eventId=original.eventId??null;
+          const pendingField=uiAction.type==='set_event_reminder'&&uiAction.minutesBefore==null?'eventReminderMinutes':null;
+          const next={...state,engine:3,eventContextId:eventId,mode:pendingField?'event_reminder':'event',pendingField,pendingProposal:null,conversationFocus:pendingField?'minutesBefore':'',conversationAmbiguity:null,
+            eventReminderDraft:{eventId,...(uiAction.type==='set_event_reminder'&&uiAction.minutesBefore!=null?{minutesBefore:uiAction.minutesBefore}:{})},
+            revision:(Number(state.revision)||0)+1,lastOperation:{status:pendingField?'event_reminder_minutes_needed':'event_reminder_ready',eventId}};
+          delete next.reminderDraft;delete next.activeHourChoice;
+          if(pendingField)return {engine:3,success:true,status:'continue',reply:'Ile minut przed wydarzeniem mam przypomnieć?',dialogueState:next};
+          if(uiAction.type==='remove_event_reminder'&&!original.reminder&&!state.draft?.reminder&&!state.eventReminderDraft?.minutesBefore&&state.eventReminderDraft?.minutesBefore!==0)return {engine:3,success:true,status:'continue',reply:'To wydarzenie nie ma ustawionego przypomnienia.',dialogueState:next};
+          if(next.draft?.type==='event')next.draft={...next.draft,reminder:uiAction.type==='set_event_reminder'?{minutesBefore:uiAction.minutesBefore}:null};
+          return {engine:3,success:true,status:'command',reply:uiAction.type==='remove_event_reminder'?'Usuwam przypomnienie wydarzenia.':`Ustawiam przypomnienie ${uiAction.minutesBefore} minut przed wydarzeniem.`,uiAction,dialogueState:next};
+        }
         if(candidate.uiAction.type==='set_entry_reminder'){
           const reminderDraft=conversationReminderDraft(original,state,candidate.uiAction);
           const pendingField=!reminderDraft.date?'date':!reminderDraft.startTime?'startTime':!reminderDraft.message?'message':null;
@@ -317,14 +412,15 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     const reply=ready?'Przygotowałem zmianę. Sprawdź ją i potwierdź.':
       answer.intent==='reject'?'Odrzucono propozycję. Niczego jeszcze nie zapisano.':
       ['execute','modify'].includes(answer.intent)?'Potrzebuję jeszcze: '+(candidate.missing.map(k=>({title:'nazwa wydarzenia',date:'dzień wydarzenia',startTime_or_allDay:'godzinę rozpoczęcia albo informację, że wydarzenie jest całodniowe',endTime_or_durationMinutes:'godzinę zakończenia albo czas trwania'}[k]||k)).join(', ')||answer.focus||'doprecyzowania')+'.':answer.reply.trim();
-    const next={engine:3,mode:answer.kind==='idea'?'entry':answer.operations.length||state.mode==='create'?'create':'idle',pendingProposal,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,pendingField:candidate.missing[0]==='endTime_or_durationMinutes'?'endTime':candidate.missing[0]==='startTime_or_allDay'?'startTime':candidate.missing[0]||null,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'}};
+    const next={engine:3,mode:answer.kind==='idea'?'entry':answer.operations.length||state.mode==='create'?'create':'idle',pendingProposal,revision:(Number(state.revision)||0)+1,draft:plannerCleanDraft(candidate.draft),allDay:candidate.allDay,pendingField:candidate.missing[0]==='endTime_or_durationMinutes'?'endTime':candidate.missing[0]==='startTime_or_allDay'?'startTime':candidate.missing[0]||null,conversationFocus:answer.focus,conversationAmbiguity:candidate.ambiguity,lastOperation:{status:ready?'preview_ready':'draft_only'},...(original?.type==='event'?{eventContextId:original.eventId??null}:{})};
     if(answer.intent==='continue'&&state.activeHourChoice){next.activeHourChoice=state.activeHourChoice;next.conversationAmbiguity=state.conversationAmbiguity;next.mode=state.mode;}
     if(answer.intent==='continue'&&state.reminderDraft){
       next.reminderDraft={...state.reminderDraft};next.mode='reminder';next.pendingField=state.pendingField||null;
     }
+    if(answer.intent==='continue'&&state.eventReminderDraft){next.eventReminderDraft={...state.eventReminderDraft};next.pendingField=state.pendingField||null;next.mode=state.mode;}
     return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft,...(answer.kind==='idea'&&!original&&['execute','accept'].includes(answer.intent)?{saveEntry:true}:{})}:{})};
   }
-  const failureReply=failure==='entry_reminder_not_found'?'Ten wpis nie ma ustawionego powiadomienia.':failure==='duration_end_conflict'?'Podałeś sprzeczny czas trwania i godzinę zakończenia. Którą godzinę końca mam przyjąć?':'Nie zrozumiałem polecenia. Powiedz to proszę inaczej.';
+  const failureReply=failure==='event_scope_only'?'W otwartym oknie mogę zmieniać tylko to wydarzenie.':failure==='invalid_event_reminder_minutes'?'Podaj liczbę minut przed wydarzeniem od 0 do 10080.':failure==='entry_reminder_not_found'?'Ten wpis nie ma ustawionego powiadomienia.':failure==='duration_end_conflict'?'Podałeś sprzeczny czas trwania i godzinę zakończenia. Którą godzinę końca mam przyjąć?':'Nie zrozumiałem polecenia. Powiedz to proszę inaczej.';
   return {engine:3,success:true,status:'continue',reply:failureReply,dialogueState:{...state,engine:3,draft:plannerCleanDraft(draft),lastOperation:{status:'failed',code:failure},revision:(Number(state.revision)||0)+1}};
 }
 
@@ -360,7 +456,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="92b8fa5563c6a549";
+const BUILD_ID="23c0806de3a19eeb";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -871,7 +967,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.10.33.35-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.10.12.33.36-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -966,7 +1062,7 @@ export default {
       if(weatherHeader){if((request.headers.get('Content-Type')||'').includes('application/json'))throw new PlannerApiError('Kontekst pogody tekstowej musi być w JSON.');weatherContext=parseApiJson(safeHeaderDecode(weatherHeader));}
       if(weatherContext)validateWeatherContext(weatherContext);
       if(currentItem&&JSON.stringify(currentItem).length>12000)throw new PlannerApiError('Kontekst wpisu jest za duży.',413);
-      if(currentItem?.type==='event')currentItem=plannerCleanDraft(currentItem);
+      if(currentItem?.type==='event')currentItem=conversationEventContext(currentItem);
       if(currentItem!==null&&(typeof currentItem!=="object"||Array.isArray(currentItem)||!["event","idea"].includes(currentItem.type)))throw new PlannerApiError("Nieprawidłowy kontekst wpisu.");
 
       if (!uploadedAudio && (request.headers.get("Content-Type") || "").includes("application/json")) {

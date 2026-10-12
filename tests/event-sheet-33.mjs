@@ -96,13 +96,10 @@ try{
  run(`tasks[0].endDate=tasks[0].date;clearVoiceDialogue('event');openEventActions(tasks[0]);`);await settle();
  await run(`processEventVoiceResult({item:{type:'event',changedFields:['recurrence'],recurrenceAction:'create',recurrence:{frequency:'weekly',interval:1,count:3}}},tasks[0].id)`);
  await settle();
- assert.equal(get('eventModal').classList.contains('hidden'),true);
- assert.equal(get('eventRecurrencePreview').classList.contains('hidden'),false,'the original recurrence confirmation still opens');
- get('closeEventRecurrencePreview').click();await settle();
- assert.equal(get('eventRecurrencePreview').classList.contains('hidden'),true);
- assert.equal(w.document.querySelector('.app').inert,false,'closing recurrence confirmation cannot leave the planner permanently inert');
- assert.equal(w.document.body.classList.contains('event-sheet-open'),false,'the event-only scroll lock is released during the recurrence transition');
- run(`openEventActions(tasks[0]);`);await settle();
+ assert.equal(get('eventModal').classList.contains('hidden'),false,'event-scoped commands stay in the current event interface');
+ assert.equal(get('eventRecurrencePreview').classList.contains('hidden'),true,'a scoped command cannot create a separate recurrence flow');
+ assert.equal(run('tasks.length'),1,'only the open event remains');
+ assert.match(get('eventConversation').textContent,/tylko to wydarzenie/);
 
  get('closeEvent').click();
  assert.equal(get('eventModal').classList.contains('hidden'),true,'the original event close action still closes the sheet');
@@ -118,7 +115,7 @@ try{
 
  run(`tasks=[{id:'google-readonly',title:'Zadanie Google',date:'2026-10-12',time:'12:00',endTime:'13:00',notes:'https://tasks.google.com/task/example'}];openEventActions(tasks[0]);`);await settle();
  assert.equal(footer.classList.contains('hidden'),true,'read-only Google tasks hide the communication footer');
- assert.equal(get('eventActionsToggle').classList.contains('hidden'),false,'read-only Google tasks keep the original history action reachable');get('eventActionsToggle').click();assert.equal(get('eventActionsMenu').classList.contains('hidden'),false);assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
+ assert.equal(get('eventActionsToggle').classList.contains('hidden'),true,'read-only Google tasks hide editing actions');assert.equal(get('eventHeader').contains(get('eventHistory')),true,'read-only history remains directly reachable beside close');assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
  assert.equal(panel.classList.contains('hidden'),true);
  for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(get(id).classList.contains('hidden'),true,`${id} remains hidden for read-only Google tasks`);
  console.log('Event sheet 33.56: separate scrolling regions, fixed communication controls, preserved action IDs and handlers, navigation, idle/recording/send presentation, original dialogue/reply node relocation, close/reopen input and session preservation, new-message reveal, recurrence close without inert leak and read-only Google tasks passed.');

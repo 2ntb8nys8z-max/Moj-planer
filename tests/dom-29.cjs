@@ -4,6 +4,7 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,confirm:()=>true,alert(){},fetch:async()=>new Response(JSON.stringify({requiresAccess:true,protocolVersion:2,apiVersion:'2026.10.06.29'}))});
  w.HTMLElement.prototype.scrollIntoView=function(){};
  for(const script of w.document.querySelectorAll('script'))if(!script.src)vm.runInContext(script.textContent,ctx);
+ vm.runInContext('showEventChangePreview=async()=>true',ctx);
  vm.runInContext(`plannerApiRequest=async(path,opts)=>{const b=JSON.parse(opts.body);return {success:true,matches:b.records.filter(r=>plannerSearchScore(b.query,r.title)>0||plannerSearchScore(b.query,r.content)>0).map(r=>r.key)}}`,ctx);
  vm.runInContext(fs.readFileSync('sync-core.js','utf8'),ctx);vm.runInContext(fs.readFileSync('google-calendar.js','utf8'),ctx);
  vm.runInContext("tasks=[{id:123,title:'Test DOM',date:'2026-10-06',time:'13:00',endTime:'13:15',notes:'',location:''}];saveTasks();renderAll();openEventActions(tasks[0]);",ctx);
@@ -13,10 +14,11 @@ const {JSDOM}=require('jsdom');const fs=require('node:fs');const vm=require('nod
  await vm.runInContext("processEventVoiceResult({transcription:'całodniowe',item:{...voiceEventSnapshot(tasks[0]),startTime:'',endTime:'',changedFields:['startTime','endTime']}},123)",ctx);
  assert.equal(vm.runInContext('tasks[0].time',ctx),'');assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-07');
  vm.runInContext("tasks=[];addTask('Kolacja','2026-10-08','23:00','00:00')",ctx);assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-09','a new midnight event ends on the next calendar date');
- const midnightId=vm.runInContext('tasks[0].id',ctx);await vm.runInContext(`processEventVoiceResult({transcription:'Do północy',item:{...voiceEventSnapshot(tasks[0]),endTime:'00:00',changedFields:['endTime']}},${JSON.stringify(midnightId)})`,ctx);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'00:00');assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-09','voice edits preserve midnight as the following day');
+ vm.runInContext('openEventActions(tasks[0])',ctx);const midnightId=vm.runInContext('tasks[0].id',ctx);await vm.runInContext(`processEventVoiceResult({transcription:'Do północy',item:{...voiceEventSnapshot(tasks[0]),endTime:'00:00',changedFields:['endTime']}},${JSON.stringify(midnightId)})`,ctx);assert.equal(vm.runInContext('tasks[0].endTime',ctx),'00:00');assert.equal(vm.runInContext('tasks[0].endDate',ctx),'2026-10-09','voice edits preserve midnight as the following day');
  vm.runInContext(`saveGoogleDeleteQueue([{googleEventId:'fake',state:'conflict',localSnapshot:{title:'<img src=x onerror="window.xssExecuted=true">'}}]);renderGoogleDeleteConflicts();`,ctx);
  assert.equal(w.document.querySelectorAll('#googleDeleteConflicts img').length,0);assert.match(w.document.getElementById('googleDeleteConflicts').textContent,/<img/);
  const record=JSON.parse(w.localStorage.getItem('moj-planer-data-v1'));assert.equal(record.data.tasks[0].endDate,'2026-10-09','the next-day end date is persisted');
+ vm.runInContext('closeEventActions()',ctx);
  await vm.runInContext("addIdea({type:'idea',text:'Lista zakupów',listAction:'replace',items:['jajka','chleb']});applyVoiceUiAction({}, {type:'find_entry',query:'lista zakupów'});",ctx);
  assert.equal(w.document.getElementById('entryResultsModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#entryResults .entry-result').length,1);w.document.querySelector('#entryResults .entry-result').click();
  assert.equal(w.document.getElementById('ideaModal').classList.contains('hidden'),false);assert.equal(w.document.querySelectorAll('#ideaText .shopping-list li').length,2);

@@ -1,3 +1,9 @@
+## Preview33 33.57 i Worker 33.36
+
+Polecenia w otwartym wydarzeniu są związane z jego identyfikatorem. Ustawienie, zmiana i usunięcie przypomnienia aktualizują tylko to wydarzenie; brak minut powoduje pytanie tylko o odstęp. Notatki są zatwierdzane w aktualnym oknie i przechowywane jako datowane karty. Starsze wydarzenia bez `endDate` pozostają zgodne.
+
+`Publish Preview33` publikuje frontend na Pages. `Deploy and verify Planner Worker` wdraża istniejący `moj-planer-api` i sprawdza jego publiczne `/api-info`. Ten drugi workflow używa sekretów repozytorium `CLOUDFLARE_API_TOKEN` i `CLOUDFLARE_ACCOUNT_ID`; przy ich braku kończy się przed wysłaniem kodu. Zachowuje dotychczasowe sekrety, D1 `API_LIMITS_DB` i konfigurację. Sam opublikowany `preview33/worker.txt` nie potwierdza wdrożenia Cloudflare — potwierdzeniem jest udany workflow oraz zgodna wersja i build w `/api-info`.
+
 ## Preview33 — 33.11-test
 
 Wydanie testowe z `integration/conversation33`. Publikacja kopiuje wyłącznie pliki `preview33/`; produkcyjny `index.html` i moduły w katalogu głównym Pages nie są zmieniane. Preview zawiera własne, identyczne z testowanymi kopie modułów Google Calendar i synchronizacji z identyfikatorami zawartości w URL.
