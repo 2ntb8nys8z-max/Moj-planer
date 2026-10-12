@@ -44,7 +44,7 @@ body.entry-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.54-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.55-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -114,7 +114,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.54-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.55-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1296,6 +1296,16 @@ body.phone-layout{height:100dvh;overflow:hidden;padding:12px;display:flex;align-
 /* Keep the time row visible and title lines inside their own card. */
 .phone-event-title{display:flex;flex-direction:column;gap:1px}.phone-event-title-text{flex:0 1 auto;min-height:0;max-height:calc(100% - 13px)}.phone-event-title.single-line .phone-event-title-text{display:block;flex:none;height:16px;line-height:16px;width:max-content}.phone-event-time{flex:none;margin-top:0;overflow:hidden}.phone-event-title.single-line{padding-top:5px;padding-bottom:5px}
 
+/* 33.55: separate foreground text columns; time ranges can wrap on narrow phones. */
+.phone-event-title.single-line{padding-top:3px;padding-bottom:3px}
+.phone-event-title.narrow{padding-left:6px;padding-right:3px}
+.phone-event-title.narrow .phone-event-time{font-size:8px;gap:2px;align-items:flex-start}
+.phone-event-title.narrow .phone-event-location-icon svg{width:9px;height:9px}
+.phone-event-time-range{min-width:0;white-space:normal}
+.phone-event-title.crowded .phone-event-time{flex-direction:column;gap:1px}
+.phone-event-title.crowded .phone-event-title-text{max-height:calc(100% - 34px)}
+.phone-event-title-text{max-height:calc(100% - 23px)}
+
 </style>
 <script>
 // Phone skin: presentation only; original storage, recording and dialogue handlers are reused.
@@ -1303,22 +1313,45 @@ function phoneMinutes(value){const [h,m]=String(value).split(':').map(Number);re
 function phoneEventLayout(records,date){
  const previous=new Date(date+'T12:00:00');previous.setDate(previous.getDate()-1);const previousDate=iso(previous),out=[];
  for(const task of records){if(!task.time||!isValidPlannerTime(task.time,false))continue;const start=phoneMinutes(task.time),end=task.endTime&&isValidPlannerTime(task.endTime,false)?phoneMinutes(task.endTime):start+60;const overnight=task.endDate?task.endDate>task.date:end<=start;
- if(task.date===date)out.push({task,start,end:overnight?1440:Math.min(1440,Math.max(start+15,end))});
+ if(task.date===date)out.push({task,start,end:overnight?1440:Math.min(1440,Math.max(start+1,end))});
  else if(task.date===previousDate&&overnight&&end>0)out.push({task,start:0,end});
  }
- // Allocate only against intervals still active at this start time. End == start frees a slot.
  out.sort((a,b)=>a.start-b.start||b.end-a.end);
- const cohorts=[];
- for(const event of out){let cohort=cohorts.find(item=>item.start===event.start&&item.end===event.end);if(!cohort){cohort={start:event.start,end:event.end,events:[]};cohorts.push(cohort)}cohort.events.push(event)}
- let active=[];
- for(const cohort of cohorts){
-  active=active.filter(item=>item.end>cohort.start);
-  const occupied=new Set(active.map(item=>item.slot));let slot=0;while(occupied.has(slot))slot++;
-  const count=cohort.events.length,foreground=slot>0;
-  const start=foreground&&count===1?Math.min(.7,(cohort.end-cohort.start<=30?.38:.58)+(slot-1)*.06):0;
-  const end=foreground&&count===1?1:.8,span=(end-start)/count;
-  cohort.events.forEach((event,lane)=>{event.lane=lane;event.lanes=count;event.stack=slot;event.geometryStart=start+lane*span;event.geometryEnd=start+(lane+1)*span});
-  active.push({end:cohort.end,slot});
+ // A contained short event uses its large card as a background, not as an occupied column.
+ const anchors=new Map();
+ for(const event of out){if(event.end-event.start>30)continue;const anchor=out.find(other=>other!==event&&other.end-other.start>30&&other.start<=event.start&&other.end>=event.end);if(anchor)anchors.set(event,anchor)}
+ // If the background has no uncovered header space, use ordinary columns instead.
+ const headerAxis=phoneTimeAxis(out,[],0,1440);
+ for(const anchor of new Set(anchors.values())){
+  const height=Math.max(32,headerAxis.y(anchor.end)-headerAxis.y(anchor.start)-2),mode=phoneEventTextMode(anchor,height),needed=Math.min(height,mode==='single-line'?48:mode==='lines-3'?74:56);
+  let cursor=headerAxis.y(anchor.start),room=false;
+  for(const event of out.filter(event=>anchors.get(event)===anchor)){const top=headerAxis.y(event.start),bottom=headerAxis.y(event.end);if(top-cursor>=needed){room=true;break}cursor=Math.max(cursor,bottom)}
+  if(headerAxis.y(anchor.end)-2-cursor>=needed)room=true;
+  if(!room)for(const [event,parent] of anchors)if(parent===anchor)anchors.delete(event);
+ }
+ function columns(records,place){
+  let group=[],until=-1;
+  const flush=()=>{
+   if(!group.length)return;
+   let active=[],count=0;
+   for(const event of group){active=active.filter(other=>other.end>event.start);const used=new Set(active.map(other=>other.slot));let slot=0;while(used.has(slot))slot++;event.slot=slot;active.push(event);count=Math.max(count,slot+1)}
+   for(const event of group){let span=1;while(event.slot+span<count&&!group.some(other=>other.slot===event.slot+span&&other.start<event.end&&event.start<other.end))span++;place(event,event.slot,count,span)}
+   group=[];
+  };
+  for(const event of records){if(event.start>=until){flush();until=-1}group.push(event);until=Math.max(until,event.end)}flush();
+ }
+ columns(out.filter(event=>!anchors.has(event)),(event,slot,count,span)=>{
+  const track=count===1?.8:1;event.lane=slot;event.lanes=count;event.stack=0;event.geometryStart=track*slot/count;event.geometryEnd=track*(slot+span)/count;event.startInset=0;event.endInset=0;
+ });
+ const overlays=new Map();for(const [event,anchor] of anchors){if(!overlays.has(anchor))overlays.set(anchor,[]);overlays.get(anchor).push(event)}
+ for(const [anchor,records] of overlays){const start=anchor.geometryStart,end=anchor.lanes===1?1:anchor.geometryEnd;
+  columns(records,(event,slot,count,span)=>{
+   const left=slot/count,right=(slot+span)/count;
+   event.lane=slot;event.lanes=count;event.stack=1;event.anchor=anchor;
+   event.geometryStart=start+(end-start)*left;event.geometryEnd=start+(end-start)*right;
+   // Interpolate a fixed 16px inset as well as the fractional track; never touch the purple edge.
+   event.startInset=16*(1-left);event.endInset=16*(1-right);
+  });
  }
  return out;
 }
@@ -1329,12 +1362,13 @@ function phoneTimeAxis(events,points,from,to){
  const gaps=[];let cursor=from;for(const range of merged){if(range.start-cursor>=90)gaps.push({start:cursor,end:range.start});cursor=Math.max(cursor,range.end)}if(to-cursor>=90)gaps.push({start:cursor,end:to});
  const compressed=[...gaps.map(gap=>({...gap,target:64,kind:'free'}))];
  for(const range of merged){const duration=range.end-range.start;if(duration<180)continue;const boundaries=[range.start,range.end];for(const event of events){if(event.end<=range.start||event.start>=range.end)continue;boundaries.push(Math.max(range.start,event.start),Math.min(range.end,event.end))}boundaries.sort((a,b)=>a-b);let smallest=duration;for(let index=1;index<boundaries.length;index++){const step=boundaries[index]-boundaries[index-1];if(step>0)smallest=Math.min(smallest,step)}const scale=Math.max(.55,Math.min(1.15,26/smallest));if(scale<1.15)compressed.push({...range,target:duration*scale,kind:'busy'})}
- compressed.sort((a,b)=>a.start-b.start);const baseY=minute=>{let result=(minute-from)*1.15;for(const span of compressed){const elapsed=Math.max(0,Math.min(minute,span.end)-span.start);result-=elapsed*(1.15-span.target/(span.end-span.start))}return result},reminderExpansions=[],uniquePoints=[...new Set(points)].filter(Number.isFinite).sort((a,b)=>a-b),expandedY=minute=>baseY(minute)+reminderExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(let index=1;index<uniquePoints.length;index++){const start=uniquePoints[index-1],end=uniquePoints[index],distance=expandedY(end)-expandedY(start);if(end>start&&distance<48)reminderExpansions.push({start,end,value:48-distance})}const eventExpansions=[],eventY=minute=>expandedY(minute)+eventExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(const event of [...events].sort((a,b)=>a.start-b.start||a.end-b.end)){if(event.end-event.start>30||event.end<=event.start)continue;const distance=eventY(event.end)-eventY(event.start);if(distance<50)eventExpansions.push({start:event.start,end:event.end,value:50-distance})}return {gaps,compressed,reminderExpansions,eventExpansions,y:eventY};
+ compressed.sort((a,b)=>a.start-b.start);const baseY=minute=>{let result=(minute-from)*1.15;for(const span of compressed){const elapsed=Math.max(0,Math.min(minute,span.end)-span.start);result-=elapsed*(1.15-span.target/(span.end-span.start))}return result},reminderExpansions=[],uniquePoints=[...new Set(points)].filter(Number.isFinite).sort((a,b)=>a-b),expandedY=minute=>baseY(minute)+reminderExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(let index=1;index<uniquePoints.length;index++){const start=uniquePoints[index-1],end=uniquePoints[index],distance=expandedY(end)-expandedY(start);if(end>start&&distance<48)reminderExpansions.push({start,end,value:48-distance})}const eventExpansions=[],eventY=minute=>expandedY(minute)+eventExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(const event of [...events].sort((a,b)=>a.start-b.start||a.end-b.end)){if(event.end-event.start>30||event.end<=event.start)continue;const distance=eventY(event.end)-eventY(event.start);const minimum=phoneEventMinimumHeight(event)+2;if(distance<minimum)eventExpansions.push({start:event.start,end:event.end,value:minimum-distance})}return {gaps,compressed,reminderExpansions,eventExpansions,y:eventY};
 }
 function phoneClock(minute){return String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0')}
-function phoneEventGeometry(event){if(Number.isFinite(event.geometryStart)&&Number.isFinite(event.geometryEnd))return {start:event.geometryStart,end:event.geometryEnd};const lanes=Math.max(1,event.lanes||1);return lanes===1?{start:0,end:.8}:{start:event.lane/lanes,end:(event.lane+1)/lanes}}
-function phoneTrackPosition(fraction){if(fraction<=0)return '70px';if(fraction>=1)return 'calc(100% - 56px)';return 'calc('+(fraction*100).toFixed(4)+'% + '+(70-126*fraction).toFixed(3)+'px)'}
-function phoneTrackWidth(start,end,gap=4){const span=end-start;return 'calc('+(span*100).toFixed(4)+'% - '+(126*span+gap).toFixed(3)+'px)'}
+function phoneEventGeometry(event){if(Number.isFinite(event.geometryStart)&&Number.isFinite(event.geometryEnd))return {start:event.geometryStart,end:event.geometryEnd,startInset:event.startInset||0,endInset:event.endInset||0};const lanes=Math.max(1,event.lanes||1);return lanes===1?{start:0,end:.8}:{start:event.lane/lanes,end:(event.lane+1)/lanes}}
+function phoneTrackPosition(fraction,inset=0){if(inset)return 'calc('+ (fraction*100).toFixed(4)+'% + '+(70-126*fraction+inset).toFixed(3)+'px)';if(fraction<=0)return '70px';if(fraction>=1)return 'calc(100% - 56px)';return 'calc('+(fraction*100).toFixed(4)+'% + '+(70-126*fraction).toFixed(3)+'px)'}
+function phoneTrackWidth(start,end,gap=4,startInset=0,endInset=0){const span=end-start;return 'calc('+(span*100).toFixed(4)+'% - '+(126*span+gap+startInset-endInset).toFixed(3)+'px)'}
+function phoneEventMinimumHeight(event){return event.end-event.start<=30?(event.lanes>=4?60:48):32}
 function phoneEventTextMode(event,height){return event.end-event.start<=30||height<42?'single-line':height>=74?'lines-3':'lines-2'}
 function phonePrepareTitleMarquee(title){const text=title.querySelector('.phone-event-title-text');if(!text||!title.classList.contains('single-line'))return;const overflow=Math.max(0,text.scrollWidth-Math.max(0,title.clientWidth-15));title.classList.toggle('is-overflowing',overflow>2);if(overflow>2){title.style.setProperty('--phone-title-shift',-(overflow+8)+'px');title.style.setProperty('--phone-title-duration',Math.min(14,Math.max(7,overflow/22+5)).toFixed(1)+'s')}}
 function initializePhoneSkin(){
@@ -1363,7 +1397,7 @@ function initializePhoneSkin(){
  const scroll=document.createElement('div');scroll.className='phone-timeline-scroll';const timeline=document.createElement('div');timeline.className='phone-timeline';timeline.style.height=position(to)+'px';scroll.append(timeline);list.append(scroll);
  const hourLabels=new Map();for(let minute=from;minute<=to;minute+=60){if(axis.compressed.some(span=>minute>span.start&&minute<span.end))continue;const hour=document.createElement('div');hour.className='phone-hour';hour.dataset.minute=String(minute);hour.style.top=position(minute)+'px';hour.innerHTML='<span>'+String(Math.floor(minute/60)).padStart(2,'0')+':00</span>';timeline.append(hour);hourLabels.set(minute,hour.querySelector('span'))}
  for(const gap of axis.gaps){const block=document.createElement('div');block.className='phone-free-time';block.style.top=(position(gap.start)+4)+'px';const duration=gap.end-gap.start,h=Math.floor(duration/60),m=duration%60;block.innerHTML='<strong>Wolny czas · '+(h?h+' godz. ':'')+(m?m+' min':'')+'</strong><span>'+phoneClock(gap.start)+'–'+phoneClock(gap.end)+'</span>';timeline.append(block)}
- for(const e of events){const geometry=phoneEventGeometry(e),eventHeight=Math.max(e.end-e.start<=30?48:32,position(e.end)-position(e.start)-2),mode=phoneEventTextMode(e,eventHeight),left=phoneTrackPosition(geometry.start),width=phoneTrackWidth(geometry.start,geometry.end),stack=e.stack||0,layered=stack>0||e.lane>0,location=plannerLocation(e.task);const b=entryButton(e.task.title,()=>openEventActions(e.task),'phone-event'+(layered?' layered':'')+(e.task.done?' done':''));b.dataset.eventId=e.task.id;b.dataset.lane=String(e.lane);b.dataset.lanes=String(e.lanes);b.dataset.stack=String(stack);b.dataset.textMode=mode;b.style.left=left;b.style.width=width;b.style.right='auto';b.style.top=position(e.start)+'px';b.style.height=eventHeight+'px';b.style.zIndex=String(10+stack*2);b.setAttribute('aria-label',e.task.title+' · '+phoneClock(e.start)+'–'+phoneClock(e.end)+(location?' · Lokalizacja: '+location:'')+' · '+syncLabel(e.task));timeline.append(b);const title=document.createElement('span');title.className='phone-event-title '+mode+(layered?' layered':'')+(e.task.done?' done':'');title.style.left=left;title.style.width=width;title.style.right='auto';title.style.top=position(e.start)+'px';title.style.height=eventHeight+'px';title.style.maxHeight=eventHeight+'px';title.style.zIndex=String(11+stack*2);const text=document.createElement('span');text.className='phone-event-title-text';text.textContent=e.task.title;const time=document.createElement('small');time.className='phone-event-time';if(location){const locationIcon=document.createElement('span');locationIcon.className='phone-event-location-icon';locationIcon.innerHTML=entryIcon('location');time.append(locationIcon)}time.append(document.createTextNode(phoneClock(e.start)+'–'+phoneClock(e.end)));title.append(text,time);timeline.append(title);if(mode==='single-line')requestAnimationFrame(()=>phonePrepareTitleMarquee(title))}
+ for(const e of events){const geometry=phoneEventGeometry(e),eventHeight=Math.max(phoneEventMinimumHeight(e),position(e.end)-position(e.start)-2),mode=phoneEventTextMode(e,eventHeight),left=phoneTrackPosition(geometry.start,geometry.startInset),width=phoneTrackWidth(geometry.start,geometry.end,4,geometry.startInset,geometry.endInset),stack=e.stack||0,layered=stack>0||e.lane>0,location=plannerLocation(e.task);const b=entryButton(e.task.title,()=>openEventActions(e.task),'phone-event'+(layered?' layered':'')+(e.task.done?' done':''));b.dataset.eventId=e.task.id;b.dataset.lane=String(e.lane);b.dataset.lanes=String(e.lanes);b.dataset.stack=String(stack);b.dataset.textMode=mode;b.style.left=left;b.style.width=width;b.style.right='auto';b.style.top=position(e.start)+'px';b.style.height=eventHeight+'px';b.style.zIndex=String(10+stack*2);b.setAttribute('aria-label',e.task.title+' · '+phoneClock(e.start)+'–'+phoneClock(e.end)+(location?' · Lokalizacja: '+location:'')+' · '+syncLabel(e.task));timeline.append(b);const title=document.createElement('span');title.className='phone-event-title '+(e.lanes>1?'narrow ':'')+(e.lanes>=4?'crowded ':'')+mode+(layered?' layered':'')+(e.task.done?' done':'');title.style.left=left;title.style.width=width;title.style.right='auto';title.style.top=position(e.start)+'px';const textHeight=Math.min(eventHeight,mode==='single-line'?Math.max(48,phoneEventMinimumHeight(e)):mode==='lines-3'?74:56);let textTop=position(e.start);for(const overlay of events.filter(other=>other.anchor===e)){const overlayTop=position(overlay.start),overlayBottom=overlayTop+Math.max(phoneEventMinimumHeight(overlay),position(overlay.end)-overlayTop-2);if(textTop+textHeight<=overlayTop)break;if(textTop<overlayBottom)textTop=overlayBottom+2}title.style.top=Math.min(textTop,position(e.start)+eventHeight-textHeight)+'px';title.style.height=textHeight+'px';title.style.maxHeight=textHeight+'px';title.style.zIndex=String(11+stack*2);const text=document.createElement('span');text.className='phone-event-title-text';text.textContent=e.task.title;const time=document.createElement('small');time.className='phone-event-time';if(location){const locationIcon=document.createElement('span');locationIcon.className='phone-event-location-icon';locationIcon.innerHTML=entryIcon('location');time.append(locationIcon)}const range=document.createElement('span');range.className='phone-event-time-range';range.append(document.createTextNode(phoneClock(e.start)+'–'),document.createElement('wbr'),document.createTextNode(phoneClock(e.end)));time.append(range);title.append(text,time);timeline.append(title);if(mode==='single-line')requestAnimationFrame(()=>phonePrepareTitleMarquee(title))}
  const groups=new Map();for(const i of alarms){const time=i.alarm.time||i.alarm.startTime;if(!groups.has(time))groups.set(time,[]);groups.get(time).push(i)}for(const [time,group] of groups){const minute=phoneMinutes(time),top=position(minute),active=events.filter(event=>event.start<=minute&&minute<event.end),line=document.createElement('div');line.className='phone-reminder-line';line.style.top=top+'px';const addSegment=(left,right)=>{const segment=document.createElement('span');segment.className='phone-reminder-segment';segment.style.left=left;segment.style.right=right;line.append(segment)};if(active.length){const geometries=active.map(phoneEventGeometry),start=Math.min(...geometries.map(value=>value.start)),end=Math.max(...geometries.map(value=>value.end));const first=document.createElement('span');first.className='phone-reminder-segment';first.style.left='56px';first.style.width='calc('+(start*100).toFixed(4)+'% + '+(14-126*start).toFixed(3)+'px)';line.append(first);addSegment(phoneTrackPosition(end),'44px')}else addSegment('56px','44px');timeline.append(line);hourLabels.get(minute)?.classList.add('phone-reminder-hour-hidden');const label=document.createElement('span');label.className='phone-reminder-axis-label';label.style.top=top+'px';label.textContent=time;timeline.append(label);const b=entryButton('',()=>openReminder(group),'phone-bell');b.style.top=(top-22)+'px';b.innerHTML=entryIcon('bell')+(group.length>1?'<span class="phone-bell-count">'+group.length+'</span>':'');b.setAttribute('aria-label',time+' · '+group.map(i=>i.alarm.message||i.title||i.text).join(', '));timeline.append(b)}
  if(deadlines.length){const box=document.createElement('div');box.className='phone-deadlines';for(const i of deadlines)box.append(entryDeadlineButton(i));list.append(box)}
  };
