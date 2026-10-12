@@ -26,6 +26,22 @@ for(const duration of [15,20,25,30]){
 }
 const nestedAxis=run('phoneTimeAxis([{start:600,end:900},{start:720,end:745}],[],480,1320)');
 assert.ok(nestedAxis.y(745)-nestedAxis.y(720)>=50-1e-8,'Short overlay inside a long event gets full height');
+// 33.54: a long anchor must not turn successive short events into a staircase.
+const dynamicRecords=[{id:'anchor',date:'2026-10-12',time:'10:00',endTime:'15:00'},
+ {id:'first',date:'2026-10-12',time:'11:00',endTime:'11:20'},
+ {id:'overlap',date:'2026-10-12',time:'11:10',endTime:'11:40'},
+ {id:'reuse',date:'2026-10-12',time:'11:20',endTime:'11:35'},
+ {id:'later',date:'2026-10-12',time:'12:00',endTime:'12:20'}];
+w.dynamicRecords=dynamicRecords;
+const dynamic=run("phoneEventLayout(dynamicRecords,'2026-10-12')");
+assert.deepEqual(Array.from(dynamic,e=>e.stack),[0,1,2,1,1],'Only active overlap occupies a position; exact end releases it');
+assert.equal(dynamic[1].geometryStart,dynamic[3].geometryStart,'Reuse the left foreground slot while the right slot remains occupied');
+assert.equal(dynamic[1].geometryStart,dynamic[4].geometryStart,'Later events must not acquire further steps');
+assert.ok(dynamic[2].geometryStart>dynamic[1].geometryStart,'Real simultaneous overlap shifts right');
+assert.ok(dynamic.every(e=>e.geometryEnd<=1),'All cards stay inside the track before the reminder gutter');
+const chain=run("phoneEventLayout([{id:'a',date:'2026-10-12',time:'10:00',endTime:'10:20'},{id:'b',date:'2026-10-12',time:'10:10',endTime:'10:30'},{id:'c',date:'2026-10-12',time:'10:20',endTime:'10:40'}],'2026-10-12')");
+assert.deepEqual(Array.from(chain,e=>e.stack),[0,1,0],'A chain returns to the wide leftmost position as soon as it is free');
+assert.equal(chain[2].geometryStart,0);assert.equal(chain[2].geometryEnd,.8);
 const bell=w.document.querySelector('.phone-bell'),axisLabel=w.document.querySelector('.phone-reminder-axis-label'),line=w.document.querySelector('.phone-reminder-line');assert.equal(w.getComputedStyle(bell).width,'44px');assert.equal(w.getComputedStyle(bell).height,'44px');assert.equal(w.getComputedStyle(bell).borderRadius,'50%');assert.match(bell.getAttribute('aria-label'),/14:00.*Wziąć lek.*Zadzwonić/);assert.equal(axisLabel.textContent,'14:00');assert.equal(bell.querySelector('.phone-reminder-label'),null);assert.equal(w.document.querySelector('.phone-reminder-label'),null);assert.equal(bell.querySelector('.phone-bell-count').textContent,'2');assert.equal(w.getComputedStyle(bell.querySelector('.phone-bell-count')).backgroundColor,'rgb(255, 243, 220)');assert.equal(w.getComputedStyle(w.document.querySelector('.phone-hour span')).fontSize,'12px');assert.equal(w.getComputedStyle(w.document.querySelector('.phone-hour span')).fontWeight,'600');assert.ok(w.document.querySelector('.phone-hour[data-minute="840"] span').classList.contains('phone-reminder-hour-hidden'),'The reminder capsule replaces the ordinary hour label');assert.equal(line.querySelectorAll('.phone-reminder-segment').length,2,'The solid connector disappears below the event columns');assert.equal(w.getComputedStyle(line.querySelector('.phone-reminder-segment')).backgroundColor,'rgb(201, 121, 50)');assert.equal(w.getComputedStyle(line).zIndex,'5');assert.equal(w.getComputedStyle(line).left,'0px');assert.ok(Math.abs(parseFloat(line.style.top)-133)<0.01);assert.equal(eventButtons[1].style.top,'133px');
 
 const axis=run('phoneTimeAxis([{start:540,end:600},{start:840,end:900}],[],480,1320)');assert.deepEqual(Array.from(axis.gaps,g=>[g.start,g.end]),[[600,840],[900,1320]]);assert.ok(Math.abs(axis.y(840)-axis.y(600)-64)<0.001);assert.ok(Math.abs(axis.y(900)-axis.y(840)-69)<0.001);assert.ok(Math.abs(axis.y(1320)-axis.y(900)-64)<0.001);
@@ -44,5 +60,20 @@ function touch(type,x,y){const event=new w.Event(type,{bubbles:true,cancelable:t
 const pinch=new w.Event('touchmove',{bubbles:true,cancelable:true});Object.defineProperty(pinch,'touches',{value:[{clientX:100,clientY:100},{clientX:200,clientY:100}]});touch('touchstart',220,100);w.document.querySelector('#taskList').dispatchEvent(pinch);touch('touchend',120,105);assert.equal(run('iso(selected)'),'2026-10-12','Pinch must not navigate calendar');
 run("selected=new Date('2026-10-26T12:00:00');showView('week')");assert.equal(back.dataset.direction,'left');assert.equal(back.closest('#weekView'),w.document.querySelector('#weekView'));back.click();assert.ok(back.classList.contains('hidden'));run("monthCursor=new Date(2026,8,1);showView('month')");assert.equal(back.dataset.direction,'right');back.click();assert.equal(run('monthCursor.getMonth()'),9);assert.ok(back.classList.contains('hidden'));run("showView('day')");assert.equal(JSON.stringify(run('tasks')),before);
 w.document.querySelector('#dataWarning').hidden=false;await new Promise(resolve=>w.setTimeout(resolve,0));assert.equal(settings.classList.contains('hidden'),false,'Recovery tools must become visible when storage warning appears');assert.equal(w.document.querySelector('#exportRescue').closest('#phoneSettingsModal'),settings);settings.querySelector('header button').click();
+run("selected=new Date('2026-10-12T12:00:00');tasks=dynamicRecords;ideas=[];renderAll()");
+const dynamicButtons=[...w.document.querySelectorAll('.phone-event')],dynamicTitles=[...w.document.querySelectorAll('.phone-event-title')];
+assert.equal(dynamicButtons[1].style.left,dynamicButtons[3].style.left);
+assert.equal(dynamicButtons[1].style.width,dynamicButtons[3].style.width);
+for(let i=0;i<dynamicButtons.length;i++){
+ assert.equal(dynamicButtons[i].style.left,dynamicTitles[i].style.left);
+ assert.equal(dynamicButtons[i].style.width,dynamicTitles[i].style.width);
+ assert.ok(parseFloat(dynamicButtons[i].style.height)>=48);
+}
+for(let i=0;i<dynamic.length;i++)for(let j=i+1;j<dynamic.length;j++){
+ if(dynamic[i].stack!==dynamic[j].stack)continue;
+ assert.ok(parseFloat(dynamicButtons[i].style.top)+parseFloat(dynamicButtons[i].style.height)<=parseFloat(dynamicButtons[j].style.top),'Reused position keeps title rectangles vertically separate');
+}
+assert.ok(Number(dynamicButtons[2].style.zIndex)>Number(dynamicTitles[3].style.zIndex),'The active card to the right covers lower text in the shared area');
+assert.equal(run('phoneTrackPosition(1)'), 'calc(100% - 56px)', 'Keep the reminder gutter free');
 console.log('Phone skin: safe event overlays, visible time ranges, identical-span columns, compressed time, green free time, reminder axis, existing controls and no data mutation passed.');
 }finally{dom.window.close()}

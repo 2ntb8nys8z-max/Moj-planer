@@ -44,7 +44,7 @@ body.entry-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.53-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.12.33.54-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -114,7 +114,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.53-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.12.33.54-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1306,8 +1306,21 @@ function phoneEventLayout(records,date){
  if(task.date===date)out.push({task,start,end:overnight?1440:Math.min(1440,Math.max(start+15,end))});
  else if(task.date===previousDate&&overnight&&end>0)out.push({task,start:0,end});
  }
- out.sort((a,b)=>a.start-b.start||b.end-a.end);let group=[],until=-1;const flush=()=>{const cohorts=[];for(const event of group){let cohort=cohorts.find(item=>item.start===event.start&&item.end===event.end);if(!cohort){cohort={start:event.start,end:event.end,events:[]};cohorts.push(cohort)}cohort.events.push(event)}cohorts.sort((a,b)=>a.start-b.start||b.end-a.end);for(const [stack,cohort] of cohorts.entries()){const count=cohort.events.length,foreground=stack>0,start=foreground&&count===1?Math.min(.7,(cohort.end-cohort.start<=30?.38:.58)+(stack-1)*.06):0,end=foreground&&count===1?1:.8,span=(end-start)/count;cohort.events.forEach((event,lane)=>{event.lane=lane;event.lanes=count;event.stack=stack;event.geometryStart=start+lane*span;event.geometryEnd=start+(lane+1)*span})}group=[]};
- for(const e of out){if(e.start>=until){flush();until=-1}group.push(e);until=Math.max(until,e.end)}flush();return out;
+ // Allocate only against intervals still active at this start time. End == start frees a slot.
+ out.sort((a,b)=>a.start-b.start||b.end-a.end);
+ const cohorts=[];
+ for(const event of out){let cohort=cohorts.find(item=>item.start===event.start&&item.end===event.end);if(!cohort){cohort={start:event.start,end:event.end,events:[]};cohorts.push(cohort)}cohort.events.push(event)}
+ let active=[];
+ for(const cohort of cohorts){
+  active=active.filter(item=>item.end>cohort.start);
+  const occupied=new Set(active.map(item=>item.slot));let slot=0;while(occupied.has(slot))slot++;
+  const count=cohort.events.length,foreground=slot>0;
+  const start=foreground&&count===1?Math.min(.7,(cohort.end-cohort.start<=30?.38:.58)+(slot-1)*.06):0;
+  const end=foreground&&count===1?1:.8,span=(end-start)/count;
+  cohort.events.forEach((event,lane)=>{event.lane=lane;event.lanes=count;event.stack=slot;event.geometryStart=start+lane*span;event.geometryEnd=start+(lane+1)*span});
+  active.push({end:cohort.end,slot});
+ }
+ return out;
 }
 // Presentation-only piecewise time axis; saved dates and durations stay unchanged.
 function phoneTimeAxis(events,points,from,to){
