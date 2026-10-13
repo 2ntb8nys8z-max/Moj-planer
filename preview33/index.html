@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.65</title>
-<meta name="theme-color" content="#6954b8">
+<title>Mój Planer — test integracji 33.66</title>
+<meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mój Planer">
@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.65</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.65</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.13.33.65-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.66</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.66</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.14.33.66-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -194,7 +194,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.13.33.65-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.14.33.66-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1616,7 +1616,7 @@ function initializePhoneSkin(){
  const gear=entryButton('⚙',openSettings,'phone-settings-button');gear.setAttribute('aria-label','Ustawienia');gear.textContent='⚙︎';header.append(gear);
  for(const id of ['appVersion','workerVersion','backupCard','googleCalendarCard'].filter(id=>$(id)))settings.append($(id));const install=document.createElement('section');install.className='card phone-install-help';install.innerHTML='<strong>Pełny ekran na iPhonie</strong><p>Otwórz Planer w Safari, wybierz Udostępnij → Do ekranu początkowego, a potem uruchamiaj go z nowej ikony.</p>';settings.prepend(install);const banner=app.querySelector('[role="note"]');if(banner)settings.append(banner);
  const voiceArea=$('voice').closest('.card'),access=$('apiAccessButton').parentElement;settings.append(access,$('apiUsageStatus'),$('daySummary'));
- $('ideasShortcut').classList.add('hidden');const tabs=$('tabDay').parentElement;$('tabEntries').classList.add('hidden');const notebook=document.createElement('nav');notebook.className='notebook-tabs';notebook.setAttribute('aria-label','Sekcje Planera');notebook.innerHTML='<button id="phoneCalendar" class="active" type="button"><span>Kalendarz</span></button><button id="phoneEntries" type="button"><span>Wpisy</span></button>';header.insertBefore(notebook,gear);const systemBar=document.createElement('div');systemBar.className='phone-system-bar';systemBar.setAttribute('aria-hidden','true');systemBar.innerHTML='<span>'+new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'</span><svg viewBox="0 0 54 16" fill="currentColor"><path d="M0 12h3v3H0zm5-3h3v6H5zm5-4h3v10h-3zm5-4h3v14h-3z"/><path d="M21 5q7-6 14 0l-2 2q-5-4-10 0zm4 4q3-3 6 0l-3 4z"/><rect x="38" y="3" width="13" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M40 5h9v6h-9zm12 2h2v3h-2z"/></svg>';app.append(systemBar);
+ $('ideasShortcut').classList.add('hidden');const tabs=$('tabDay').parentElement;$('tabEntries').classList.add('hidden');const skyHeader=document.createElement('section');skyHeader.className='phone-sky-header';header.before(skyHeader);skyHeader.append(header,tabs);const notebook=document.createElement('nav');notebook.className='notebook-tabs';notebook.setAttribute('aria-label','Sekcje Planera');notebook.innerHTML='<button id="phoneCalendar" class="active" type="button"><span>Kalendarz</span></button><button id="phoneEntries" type="button"><span>Wpisy</span></button>';header.insertBefore(notebook,gear);const systemBar=document.createElement('div');systemBar.className='phone-system-bar';systemBar.setAttribute('aria-hidden','true');systemBar.innerHTML='<span>'+new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'</span><svg viewBox="0 0 54 16" fill="currentColor"><path d="M0 12h3v3H0zm5-3h3v6H5zm5-4h3v10h-3zm5-4h3v14h-3z"/><path d="M21 5q7-6 14 0l-2 2q-5-4-10 0zm4 4q3-3 6 0l-3 4z"/><rect x="38" y="3" width="13" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M40 5h9v6h-9zm12 2h2v3h-2z"/></svg>';app.append(systemBar);
  const actions=document.createElement('div');actions.className='phone-actions';$('recordMemo').textContent='🎙 Nagraj notatkę';actions.append($('createPhotoNote'),$('recordMemo'));app.append(actions,voiceArea);
  const memoControls=document.createElement('div');memoControls.className='row';for(const id of ['stopMemo','cancelMemo','memoHint','photoNoteStatus'])memoControls.append($(id));voiceArea.before(memoControls);settings.append($('photoNoteLocation').closest('label'));settings.append($('toolsArea'));
  const manual=$('manualCard');manual.classList.add('hidden');const closeManual=entryButton('Zamknij formularz',()=>manual.classList.add('hidden'),'secondary');manual.prepend(closeManual);
@@ -1931,6 +1931,22 @@ initializeEventCommands();
 .schedule-warning a{display:inline-block;margin-top:8px;color:#287681}
 .voice-confirmation.hidden{display:none!important}
 .schedule-confirmation #scheduleConfirm{background:#459eaa;color:#fff;border-color:#459eaa}
+/* 33.66: the illustrated sky includes both section and calendar navigation. */
+.phone-layout .app{padding-top:0}
+.phone-layout .phone-sky-header{flex:none;position:relative;margin:0 -12px 8px;padding:calc(var(--phone-top-inset) + 8px) 12px 12px;border-radius:0 0 18px 18px;background-color:#0b4b86;background-image:linear-gradient(180deg,#062f5c30,#062f5c10),url('header-sky.webp?v=2dc2ba216dc1ab4d');background-size:cover;background-position:center;box-shadow:0 3px 10px #164d7818}
+.phone-layout .phone-sky-header .phone-header{min-height:44px;margin:0 0 8px}
+.phone-layout .phone-sky-header .notebook-tabs button{color:#fff}
+.phone-layout .phone-sky-header .notebook-tabs button.active{color:#fff;background:transparent}
+.phone-layout .phone-sky-header .notebook-tabs button span{border:1px solid transparent}
+.phone-layout .phone-sky-header .notebook-tabs button.active span{background:#205f9bcc;border-color:#ffffff80;box-shadow:inset 0 1px 2px #ffffff24}
+.phone-layout .phone-sky-header .phone-settings-button{color:#fff;border:1px solid #ffffff66;border-radius:12px;background:#0b447b80}
+.phone-layout .phone-sky-header>.tabs{display:flex;gap:6px;margin:0;padding:0;background:transparent}
+.phone-layout .phone-sky-header>.tabs.hidden{display:none}
+.phone-layout .phone-sky-header>.tabs button{flex:1;height:48px;min-height:48px;padding:8px 4px;border:1px solid #ffffffa6;border-radius:12px;background:#0b447bc9;color:#fff;font-size:13px;font-weight:650;box-shadow:inset 0 1px 2px #ffffff24}
+.phone-layout .phone-sky-header>.tabs button.active{background:#f5faff;color:#0b4b86;border:2px solid #fff;font-weight:800;box-shadow:0 2px 8px #052b5638}
+.phone-layout .phone-sky-header button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.phone-layout .phone-system-bar{color:#fff}
+.phone-layout .phone-week-strip button.active{background:#2f75bd;color:#fff}
 /* 33.65: larger menu targets form an upper arc; expansion reserves room above the logo. */
 .octi-dock .extras{--menu-center-offset:104px}
 .octi-dock .surface:has(.extras.expanded){padding-top:98px!important}
