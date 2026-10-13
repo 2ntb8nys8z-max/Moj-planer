@@ -65,5 +65,41 @@ try{
  run("clearVoicePreview();tasks=[];pendingVoiceItem={type:'event',title:'Długi tytuł '.repeat(30),date:'2027-01-05',startTime:'10:00',endTime:'11:00',location:'Rynek, Dresden',notes:'Długa notatka '.repeat(60),reminder:{minutesBefore:15},recurrence:{type:'daily',count:2}};showVoicePreview(pendingVoiceItem)");
  assert.match(get('mainConversation').textContent,/Rynek, Dresden/);assert.match(get('mainConversation').textContent,/Długa notatka/);assert.match(get('mainConversation').textContent,/15 min wcześniej/);
  assert.equal(get('mainConversation').querySelectorAll('.voice-confirmation').length,1);
+
+ // Collision review uses the existing chat and the real Worker-created draft.
+ run("clearVoicePreview();tasks=[{id:'busy',title:'Zajęty termin',date:'2027-01-04',time:'22:00',endTime:'23:00'}]");get('voice').click();
+ await turn('Nowe spotkanie 4 stycznia od 22:30 do 23:00',eventAnswer({title:'Nowe spotkanie',date:'2027-01-04',startTime:'22:30',endTime:'23:00'}));
+ const reviewed=get('mainConversation');const firstApproval=get('conversationConfirm').onclick();
+ assert.equal(get('mainConversation'),reviewed,'Warning stays in the same frame');assert.equal(get('scheduleConfirm').closest('.voice-conversation'),reviewed);
+ assert.equal(w.document.querySelectorAll('.modal-backdrop:not(.hidden)').length,0,'No separate warning modal');
+ assert.match(reviewed.textContent,/Ten termin pokrywa się z wydarzeniem „Zajęty termin”/);assert.equal(run('tasks.length'),1,'Overlap cannot save before explicit approval');
+ assert.equal(get('conversationConfirm').parentElement.classList.contains('hidden'),true);
+ get('scheduleBack').click();await firstApproval;assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Nowe spotkanie');assert.equal(get('conversationConfirm').disabled,false);
+ // Correction by the main microphone retains the project after returning.
+ get('voice').click();await turn('Zmień godziny: od 23:30 do 23:45',eventAnswer({startTime:'23:30',endTime:'23:45'},'modify'),true);
+ assert.equal(lastPayload.currentItem.title,'Nowe spotkanie');assert.equal(run('pendingVoiceItem.date'),'2027-01-04');assert.equal(run('pendingVoiceItem.startTime'),'23:30');
+ await get('conversationConfirm').onclick();assert.equal(run('tasks.length'),2);assert.equal(run('tasks[1].time'),'23:30');
+ // Explicit override still writes once, and closed/stale decisions never write.
+ run("clearVoicePreview();tasks=[{id:'busy',title:'Zajęty termin',date:'2027-01-04',time:'22:00',endTime:'23:00'}]");get('voice').click();
+ await turn('Spotkanie 4 stycznia od 22:30 do 23:00',eventAnswer({title:'Spotkanie',date:'2027-01-04',startTime:'22:30',endTime:'23:00'}));
+ const secondApproval=get('conversationConfirm').onclick(),override=get('scheduleConfirm');override.click();override.click();await secondApproval;assert.equal(run('tasks.length'),2,'Override saves exactly once');
+ run("clearVoicePreview();tasks=[{id:'busy',title:'Zajęty termin',date:'2027-01-04',time:'22:00',endTime:'23:00'}];pendingVoiceItem={type:'event',title:'Projekt',date:'2027-01-04',startTime:'22:30',endTime:'23:00'};showVoicePreview(pendingVoiceItem)");
+ const closeApproval=get('conversationConfirm').onclick(),staleOverride=get('scheduleConfirm');get('mainConversationTools').querySelector('.octi-conversation-close').click();await closeApproval;staleOverride.click();assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Projekt');assert.equal(run('plannerSchedulePending'),null);
+ run("showVoicePreview(pendingVoiceItem)");const escapeApproval=get('conversationConfirm').onclick();w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await escapeApproval;assert.equal(run('tasks.length'),1);assert.equal(get('mainConversation').classList.contains('hidden'),false);
+ const changingApproval=get('conversationConfirm').onclick();run("tasks.push({id:'changed',title:'Zmiana kalendarza',date:'2027-01-06',time:'10:00',endTime:'11:00'})");get('scheduleConfirm').click();await changingApproval;assert.equal(run('tasks.length'),2,'Changed calendar rejects the stale project');assert.equal(run('tasks.some(t=>t.title==="Projekt")'),false);
+
+ // A new microphone command cancels the pending collision decision first.
+ const microphoneApproval=get('conversationConfirm').onclick();get('voice').click();await microphoneApproval;assert.equal(run('plannerSchedulePending'),null);assert.equal(run('testSession.currentItem.title'),'Projekt');assert.equal(run('tasks.some(t=>t.title==="Projekt")'),false);
+ run("clearVoicePreview();tasks=[{id:'busy',title:'Zajęty termin',date:'2027-01-04',time:'22:00',endTime:'23:00'}];$('manualCard').classList.remove('hidden');$('title').value='Wpis ręczny';$('date').value='2027-01-04'");
+ const manualApproval=run("approvePlannerSchedule([{type:'event',title:'Ręczny',date:'2027-01-04',startTime:'22:30',endTime:'23:00'}])");
+ assert.equal(get('manualCard').classList.contains('hidden'),true,'The manual editor cannot obscure the inline warning');assert.ok(get('mainConversation').contains(get('scheduleConfirm')));get('scheduleBack').click();assert.equal(await manualApproval,false);assert.equal(get('manualCard').classList.contains('hidden'),false);assert.equal(get('title').value,'Wpis ręczny');assert.equal(get('mainConversation'),null);assert.equal(get('mainConversationTools'),null);
+ run("$('manualCard').classList.add('hidden');tasks=[{id:'edited',title:'Edytowane',date:'2027-01-04',time:'20:00',endTime:'21:00'},{id:'busy',title:'Kolizja',date:'2027-01-04',time:'22:00',endTime:'23:00'}];openEventActions(tasks[0])");
+ const eventApproval=run("approvePlannerSchedule([{type:'event',title:'Edytowane',date:'2027-01-04',startTime:'22:30',endTime:'23:00'}],['edited'])");await new Promise(resolve=>w.setTimeout(resolve,220));
+ assert.equal(get('eventConversationPanel').classList.contains('hidden'),false);assert.equal(get('eventConversationBody').contains(get('scheduleConfirm')),true,'Event warning stays in its own conversation');assert.equal(get('mainConversation'),null);assert.equal(run('activeTask.id'),'edited');
+ get('closeEventConversation').click();assert.equal(await eventApproval,false);assert.equal(run('activeTask.id'),'edited');assert.equal(run('tasks[0].time'),'20:00');assert.equal(run('plannerSchedulePending'),null);run('closeEventActions()');
+ run("pendingVoiceItem={type:'event',title:'Projekt',date:'2027-01-04',startTime:'22:30',endTime:'23:00'};showVoicePreview(pendingVoiceItem)");
+ // Presentation is readable but the stored protocol dates/hours do not change.
+ const summary=run('pendingVoiceConversation.at(-1).content');assert.match(summary,/Projekt\n4 stycznia 2027\nOd 22:30 do 23:00\nZapisać\?/);assert.doesNotMatch(summary,/WYDARZENIE|📅|2027-01-04/);
+ assert.equal(run('pendingVoiceItem.date'),'2027-01-04');assert.equal(run('pendingVoiceItem.endTime'),'23:00');
  console.log('Conversation approval: Worker/frontend/audio correction, history, ambiguity, single save, decline, reminder and source conversion passed (model/STT mocked).');
 }finally{globalThis.fetch=nativeFetch;dom.window.close()}
