@@ -6,6 +6,8 @@ try{for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
  await page.goto('https://planner.test');await page.waitForTimeout(300);
  const dock=page.locator('.octi-dock[data-channel=main]'),voice=dock.locator('.voice'),plus=dock.locator('.menu-toggle');
  let v=await voice.boundingBox(),p=await plus.boundingBox();assert.ok(v.x+v.width+10<=p.x,'Voice ring must not touch the plus');assert.ok(v.y+v.height<height,'Voice stays on screen');assert.ok(p.x+p.width<=width,'Plus stays on screen');
+ await page.evaluate(()=>{document.getElementById('aiPreview').classList.remove('hidden');document.getElementById('previewTitle').textContent='Długie wydarzenie '.repeat(35);document.getElementById('previewInfo').textContent='Informacje o propozycji '.repeat(40);});
+ const stress=await voice.boundingBox();assert.ok(stress.y+stress.height<height,'Long confirmation cannot displace microphone at '+width+' '+JSON.stringify(stress));await page.evaluate(()=>document.getElementById('aiPreview').classList.add('hidden'));
  await plus.click();assert.equal(await plus.getAttribute('aria-expanded'),'true');for(const kind of ['camera','recorder','keyboard']){const r=await dock.locator('.extra.'+kind).boundingBox();assert.ok(r&&r.x>=0&&r.x+r.width<=width&&r.y>=0&&r.y+r.height<=height,kind+' is on screen');assert.ok(r.x>=v.x+v.width+3,kind+' does not overlap voice');}
  await dock.locator('.keyboard').click();assert.ok(await page.locator('#manualCard').isVisible());await page.locator('#manualCard button').first().click();
  await page.evaluate(()=>{tasks=[{id:'browser-event',title:'Spotkanie',date:'2026-10-13',time:'12:00',endTime:'13:00'}];openEventActions(tasks[0]);});await page.waitForTimeout(250);

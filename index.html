@@ -1803,8 +1803,8 @@ initializeEventCommands();
 .octi-dock .surface:has(.recording) .status{color:#cf334d}
 .octi-dock .dismiss{position:absolute;right:3px;bottom:0;border:0;background:transparent;color:#746880;font-size:20px;padding:0;min-width:28px;min-height:28px}
 .octi-dock .voice:after{content:""!important}.octi-dock .voice:before{content:""!important}.octi-legacy,#eventVoiceCountdown,#ideaVoiceCountdown,#ideaRecordCancel{display:none!important}
-.phone-layout .voice-area{min-height:178px;max-height:55%;padding:0 0 env(safe-area-inset-bottom);overflow:visible;display:flex;flex-direction:column;flex-shrink:0}
-.phone-layout .voice-area>.octi-dock{margin-top:auto}
+.phone-layout .voice-area{min-height:178px;max-height:55dvh;padding:0 0 env(safe-area-inset-bottom);overflow:visible;display:flex;flex-direction:column;flex-shrink:0}
+.phone-layout .voice-area>.octi-dock{margin-top:auto}.phone-layout .voice-area .preview{flex:1 1 auto;min-height:0;max-height:22dvh;overflow:auto}.phone-layout .voice-area .voice-reply{flex-shrink:0}
 .phone-layout .voice-area>#voiceHint{font-size:11px;min-height:16px;margin:0;max-height:32px;overflow:auto}
 .phone-layout .voice-area>#voiceCountdown{display:none}
 .phone-layout .voice-area .voice-conversation{flex:1;min-height:40px;max-height:22dvh;overflow:auto;margin:0}
