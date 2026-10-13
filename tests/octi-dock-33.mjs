@@ -5,7 +5,7 @@ const settle=()=>new Promise(resolve=>w.setTimeout(resolve,250));
 try{
  for(const s of w.document.querySelectorAll('script'))if(!s.src)run(s.textContent);
  const dock=w.document.querySelector('.octi-dock[data-channel=main]'),menu=dock.querySelector('.extras'),toggle=dock.querySelector('.menu-toggle');
- assert.equal(w.document.querySelectorAll('.octi-dock').length,3);
+ assert.equal(w.document.querySelectorAll('.octi-dock').length,3);assert.equal(dock.querySelectorAll('.reel-item').length,1,'Only one suggested command appears');assert.equal(dock.querySelectorAll('.dots').length,0);assert.equal(dock.querySelector('.status').parentElement,dock.querySelector('.octi-copy'));assert.equal(w.getComputedStyle(dock.querySelector('.commands')).height,'38px');assert.equal(w.getComputedStyle(dock.parentElement).paddingBottom,'0px','Main dock must not duplicate the app safe-area inset');
  assert.equal(dock.querySelectorAll('.voice').length,1);assert.ok(dock.querySelector('.logo').src.startsWith('data:image/png'));
  assert.ok([...menu.querySelectorAll('.extra')].every(b=>b.disabled));toggle.click();assert.equal(toggle.getAttribute('aria-expanded'),'true');assert.ok([...menu.querySelectorAll('.extra')].every(b=>!b.disabled));toggle.click();assert.equal(toggle.getAttribute('aria-expanded'),'false');
  toggle.click();dock.querySelector('.keyboard').click();assert.equal(get('manualCard').classList.contains('hidden'),false);assert.equal(w.document.activeElement,get('title'));assert.equal(run('tasks.length'),0,'opening manual create never writes an event');
