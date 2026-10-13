@@ -85,7 +85,7 @@ try{
  assert.equal(run('testSession.dialogueState.pendingField'),'eventReminderMinutes');
  assert.deepEqual(read('testSession.dialogueState.eventReminderDraft'),{eventId});
  assert.equal(run('tasks[0].reminder'),undefined);
- assert.equal(get('eventConversation').querySelector('.voice-message.assistant').textContent,'AI: Ile minut przed wydarzeniem mam przypomnieć?');
+ assert.equal(get('eventConversation').querySelector('.voice-message.assistant').textContent,'Ile minut przed wydarzeniem mam przypomnieć?');assert.equal(get('eventConversation').querySelector('.voice-author-logo').alt,'Octi');
  await turn('Dlaczego pytasz?',{...continueAnswer,reply:'Potrzebuję tylko liczby minut przed tym wydarzeniem.'});
  assert.equal(run('testSession.dialogueState.pendingField'),'eventReminderMinutes','An aside preserves the missing offset');
  assert.equal(run('testSession.dialogueState.eventReminderDraft.eventId'),eventId);

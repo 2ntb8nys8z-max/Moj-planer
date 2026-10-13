@@ -21,7 +21,7 @@ for(const script of w.document.querySelectorAll('script'))if(!script.src)run(scr
 run("plannerApiRequest=testApi;plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});startPlannerRecording=(channel,makeSession)=>{testSession=makeSession();};tasks=[];ideas=[]");
 const eventAnswer=(fields,intent='execute')=>({reply:'Sprawdź wydarzenie.',kind:'event',action:'review',intent,proposalId:null,operations:Object.entries(fields).map(([field,value])=>({op:'set',field,value})),focus:'',ambiguity:null});
 const command=(type,fields)=>({reply:'Sprawdź ustalenia.',kind:'command',action:'continue',intent:'execute',operations:[],focus:'',ambiguity:null,uiAction:{type,...fields}});
-async function turn(text,answer,audio=false){model=answer;audioTranscript=text;w.testText=text;await run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`)}
+async function turn(text,answer,audio=false){model=answer;audioTranscript=text;w.testText=text;await run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`);await new Promise(resolve=>w.setTimeout(resolve,220))}
 function assertReview(title){
  assert.equal(get('aiPreview').classList.contains('hidden'),true,'Legacy panel never opens');
  assert.match(get('mainConversation').textContent,new RegExp(title));
