@@ -119,7 +119,7 @@ try{
  begin('main');
  await turn('Przypomnij w poniedziałek.',command('set_entry_reminder',{date:'2027-01-04'}));
  await turn('O 13.',command('set_entry_reminder',{startTime:'13:00'}));
- assert.equal(run('voiceDialogueValid(testSession)'),true);assert.match(get('mainClarification').textContent,/Odpowiedz/);assert.match(get('mainConversation').textContent,/O czym mam przypomnieć/);assert.equal(run('pendingVoiceItem'),null);
+ assert.equal(run('voiceDialogueValid(testSession)'),true);assert.ok(get('mainClarification').querySelector('input[aria-label="Odpowiedź na pytanie AI"]'));assert.match(get('mainConversation').textContent,/O czym mam przypomnieć/);assert.equal(run('pendingVoiceItem'),null);
  await turn('Wyślij list polecony.',command('set_entry_reminder',{message:'Wyślij list polecony'}));
  assert.deepEqual(read('pendingVoiceItem'),{type:'reminder',date:'2027-01-04',time:'13:00',message:'Wyślij list polecony'});assert.equal(run('voiceDialogues.main'),null);
  // Editing an existing reminder: a no-command follow-up is valid and preserves context.
@@ -144,7 +144,7 @@ try{
  model={...model,uiAction:{type:'start_timer',minutes:25}};
  r=await post({protocolVersion:2,conversationEngine:3,text:'Pytanie',dialogueState:state});assert.equal(r.dialogueState.lastOperation.code,'invalid_ui_action');assert.equal(r.uiAction,undefined);
  // Cancellation starts with no reminder facts left in the next session.
- run("getCancel=document.getElementById('mainClarification').querySelectorAll('button')[2];getCancel.click();pendingVoiceItem=null;testSession=beginVoiceDialogue('main',null,null)");
+ run("getCancel=document.getElementById('mainClarification').querySelector('button[aria-label=\"Zamknij rozmowę\"]');getCancel.click();pendingVoiceItem=null;testSession=beginVoiceDialogue('main',null,null)");
  assert.equal(run('testSession.dialogueState'),undefined);
  console.log('33.25: real Worker/frontend multi-turn state, repeated create commands, new flow, titles, reminder completion, continue validation and flow switching passed.');
 }finally{globalThis.fetch=nativeFetch;dom.window.close()}
