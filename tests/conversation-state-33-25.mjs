@@ -144,7 +144,7 @@ try{
  model={...model,uiAction:{type:'start_timer',minutes:25}};
  r=await post({protocolVersion:2,conversationEngine:3,text:'Pytanie',dialogueState:state});assert.equal(r.dialogueState.lastOperation.code,'invalid_ui_action');assert.equal(r.uiAction,undefined);
  // Cancellation starts with no reminder facts left in the next session.
- run("getCancel=document.getElementById('mainClarification').querySelector('button[aria-label=\"Zamknij rozmowę\"]');getCancel.click();pendingVoiceItem=null;testSession=beginVoiceDialogue('main',null,null)");
+ run("clearVoiceDialogue('main');pendingVoiceItem=null;testSession=beginVoiceDialogue('main',null,null)");
  assert.equal(run('testSession.dialogueState'),undefined);
  console.log('33.25: real Worker/frontend multi-turn state, repeated create commands, new flow, titles, reminder completion, continue validation and flow switching passed.');
 }finally{globalThis.fetch=nativeFetch;dom.window.close()}

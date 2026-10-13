@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.13.33.59-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.13.33.60-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -192,7 +192,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.13.33.59-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.13.33.60-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -655,7 +655,7 @@ function clearVoiceDialogue(channel,keepConversation=false){if(channel==='idea')
 function renderVoiceConversation(session){
   let box=$(session.channel+'Conversation');
   if(!box){box=document.createElement('div');box.id=session.channel+'Conversation';box.className='voice-conversation';box.tabIndex=0;box.setAttribute('role','log');box.setAttribute('aria-label','Historia rozmowy z AI');box.setAttribute('aria-live','polite');session.channel==='idea'?$('entryConversation').appendChild(box):$(voiceDialogueHints[session.channel]).after(box)}
-  box.replaceChildren();box.classList.remove('hidden');const close=document.createElement('button');close.type='button';close.className='octi-conversation-close';close.setAttribute('aria-label','Ukryj rozmowę');close.textContent='×';close.onclick=()=>{if(session.channel==='event')$('closeEventConversation').click();else box.classList.add('hidden');};if(session.channel!=='event')box.append(close);
+  box.replaceChildren();box.classList.remove('hidden');const close=document.createElement('button');close.type='button';close.className='octi-conversation-close';close.setAttribute('aria-label','Ukryj rozmowę');close.textContent='×';close.onclick=()=>{if(session.channel==='event')$('closeEventConversation').click();else{box.classList.add('hidden');$(session.channel+'Clarification')?.classList.add('hidden');$(session.channel==='main'?'voice':'ideaVoice').focus();}};if(session.channel!=='event'){const toolbar=document.createElement('div');toolbar.className='conversation-toolbar';toolbar.append(close);box.append(toolbar);}
   for(const message of session.history){const row=document.createElement('div');row.className='voice-message '+(message.role==='user'?'user':'assistant');const author=document.createElement('strong');author.textContent=message.role==='user'?'Ty: ':'AI: ';row.append(author,document.createTextNode(message.content));box.appendChild(row)}
   box.scrollTop=box.scrollHeight;if(session.channel==='idea')requestAnimationFrame(()=>{fitEntrySheet();box.lastElementChild?.scrollIntoView({block:'nearest',behavior:'smooth'})});
 }
@@ -673,15 +673,12 @@ function showVoiceClarification(session,question){
   if(!last||last.role!=='assistant'||last.content!==question)session.history.push({role:'assistant',content:question});
   renderVoiceConversation(session);
   const box=document.createElement('div');box.id=session.channel+'Clarification';box.className='voice-reply';
-  const input=document.createElement('input');input.type='text';input.maxLength=4000;input.placeholder='Wpisz odpowiedź';input.setAttribute('aria-label','Odpowiedź na pytanie AI');box.appendChild(input);
-  const buttons=document.createElement('div');buttons.className='preview-actions';box.appendChild(buttons);
-  function button(text,action){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=text;b.onclick=action;buttons.appendChild(b)}
-
+  const input=document.createElement('input');input.type='text';input.maxLength=4000;input.placeholder='Wpisz odpowiedź';input.setAttribute('aria-label','Odpowiedź na pytanie AI');input.setAttribute('enterkeyhint','send');input.autocomplete='off';input.hidden=true;box.appendChild(input);
   const submit=async()=>{if(session.busy||!input.value.trim())return;try{const r=await requestVoiceDialogue(session,input.value.trim());if(r)await applyVoiceDialogueResult(session,r)}catch(e){$(voiceDialogueHints[session.channel]).textContent=e.message||'Nie udało się wysłać odpowiedzi. Spróbuj ponownie.';console.error(e)}};
-  button('↑',submit);buttons.lastChild.setAttribute('aria-label','Wyślij odpowiedź');input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit()}};
-  button('×',()=>{clearVoiceDialogue(session.channel);$(voiceDialogueHints[session.channel]).textContent='Anulowano. Niczego nie zmieniono.'});buttons.lastChild.setAttribute('aria-label','Zamknij rozmowę');
+  input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit()}};
+  const keyboard=document.createElement('button');keyboard.type='button';keyboard.className='reply-keyboard';keyboard.setAttribute('aria-label','Odpowiedz tekstowo');keyboard.setAttribute('aria-expanded','false');keyboard.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg>';keyboard.onclick=()=>{const open=input.hidden;input.hidden=!open;box.classList.toggle('is-typing',open);keyboard.setAttribute('aria-expanded',String(open));if(open)input.focus();else keyboard.focus();};box.append(keyboard);
   $(session.channel+'Conversation').after(box);
-  $(voiceDialogueHints[session.channel]).textContent='Odpowiedz głosem albo wpisz odpowiedź';
+  $(voiceDialogueHints[session.channel]).textContent='';
   if(session.channel==='main')$('aiPreview').classList.add('hidden');
 }
 async function requestVoiceDialogue(session,body){
@@ -1599,7 +1596,7 @@ function initializeEventSheet(){
  const modal=$('eventModal'),meta=$('actionMeta'),panel=$('eventConversationPanel'),body=$('eventConversationBody'),dock=$('eventReplyDock'),menu=$('eventActionsMenu'),plus=$('eventActionsToggle'),toggle=$('eventConversationToggle');
  let visible=false,taskId=null,returnFocus=null;
  function showMenu(open){menu.classList.toggle('hidden',!open);plus.setAttribute('aria-expanded',String(open))}
- function showConversation(open){panel.classList.toggle('hidden',!open);toggle.setAttribute('aria-expanded',String(open))}
+ function showConversation(open){panel.classList.toggle('hidden',!open);toggle.setAttribute('aria-expanded',String(open));$('eventClarification')?.classList.toggle('hidden',!open)}
  plus.onclick=()=>showMenu(menu.classList.contains('hidden'));
  menu.addEventListener('click',event=>{if(!event.target.closest('button'))return;showMenu(false);requestAnimationFrame(()=>{const target=!$('eventEditBox').classList.contains('hidden')?$('eventEditBox'):!$('timerBox').classList.contains('hidden')?$('timerBox'):null;target?.scrollIntoView({block:'nearest'})})});
  $('closeEventConversation').onclick=()=>{showConversation(false);toggle.focus()};
@@ -1844,6 +1841,28 @@ initializeEventCommands();
 .phone-layout .voice-area>#voiceHint{background:linear-gradient(90deg,#fcfbffcc,#fcfbff88);border-radius:6px;width:fit-content;max-width:100%}
 @media(max-width:360px){.octi-dock .status{font-size:12px}.octi-dock .commands{--cut-radius:64px}.octi-dock .reel-item.selected{font-size:13px}}
 @media(max-height:500px) and (orientation:landscape){.octi-dock .octi-copy{margin-bottom:2px}.octi-dock .commands{--cut-radius:56px;--cut-y:-1px}.octi-dock .reel,.octi-dock .reel-item.selected{height:38px}.phone-layout .voice-area{min-height:0}}
+
+/* 33.60: calendar stacking is contained below the opaque conversation surface. */
+.phone-layout #dayView,.phone-layout #weekView,.phone-layout #monthView,.phone-layout #ideasView{position:relative;isolation:isolate;z-index:0}
+.phone-layout .voice-area{z-index:100;isolation:isolate;bottom:calc(max(6px,calc(var(--phone-bottom-inset) - 12px)) + var(--reply-keyboard-inset,0px));max-height:min(55dvh,calc(var(--reply-visible-height,100dvh) - 16px))}
+.voice-conversation{display:flex;flex-direction:column;gap:8px;background:#fcfbff;border:1px solid #ded8eb;padding:10px;border-radius:16px;position:relative;isolation:isolate}
+.phone-layout .voice-area .voice-conversation{height:clamp(120px,26dvh,240px);min-height:0;max-height:28dvh;flex:1 1 auto;overflow-y:auto;scrollbar-gutter:stable;background:#fcfbff}
+.voice-message{flex-shrink:0;max-width:86%;padding:10px 12px;line-height:1.45;border-radius:14px 14px 14px 4px;color:#302a40;white-space:pre-wrap;overflow-wrap:anywhere}
+.voice-message.user{align-self:flex-start;background:#e8eef8}
+.voice-message.assistant{align-self:flex-end;background:#ece4f7;border-radius:14px 14px 4px 14px}
+.voice-message strong{display:block;margin-bottom:3px;font-size:11px;color:#756589}
+.voice-conversation>.octi-conversation-close{align-self:flex-end;flex-shrink:0;float:none;position:sticky;top:0;z-index:4;margin-bottom:0;min-width:28px;min-height:28px;background:#eee8f5}
+.voice-reply{justify-content:flex-end;background:transparent!important;padding:2px 0!important;min-height:36px;border:0!important}
+.voice-reply input[hidden]{display:none!important}
+.voice-reply .reply-keyboard{flex:none;width:36px;height:36px;min-height:36px;padding:7px;border:1px solid #ded8eb;border-radius:11px;background:#fcfbff;color:#6e5d95}
+.reply-keyboard svg{display:block;width:20px;height:20px}
+.voice-reply.is-typing{background:#fcfbff!important;border-radius:12px;padding:4px!important}
+.voice-conversation.hidden,.voice-reply.hidden{display:none!important}
+.conversation-toolbar{position:sticky;top:0;z-index:4;display:flex;justify-content:flex-end;align-items:center;flex-shrink:0;height:32px;width:100%;background:#fcfbff;box-shadow:0 -12px 0 #fcfbff;border-bottom:1px solid #ece6f4}
+.conversation-toolbar .octi-conversation-close{border:0;border-radius:50%;background:#eee8f5;color:#6a578b;width:28px;height:28px;min-width:28px;min-height:28px;padding:0;font-size:22px}
+.voice-reply{pointer-events:none!important}.voice-reply button,.voice-reply input{pointer-events:auto}
+.phone-layout .voice-area>#voiceHint:empty{display:none}
+@media(max-height:500px){.phone-layout .voice-area .voice-conversation{height:100px;max-height:26dvh}}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -1947,6 +1966,13 @@ function initializeOctiDocks(){
   };setInterval(tick,200);
  }
 }
+function fitVoiceReplyViewport(){
+ const viewport=window.visualViewport,host=document.querySelector('.voice-area');if(!viewport||!host)return;
+ const typing=$('mainClarification')?.contains(document.activeElement)&&document.activeElement.tagName==='INPUT';
+ host.style.setProperty('--reply-keyboard-inset',(typing?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0)+'px');
+ host.style.setProperty('--reply-visible-height',(typing?viewport.height:window.innerHeight)+'px');
+}
+if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVoiceReplyViewport);window.visualViewport.addEventListener('scroll',fitVoiceReplyViewport);document.addEventListener('focusin',fitVoiceReplyViewport);document.addEventListener('focusout',()=>requestAnimationFrame(fitVoiceReplyViewport));}
 initializeOctiDocks();
 
 </script>
