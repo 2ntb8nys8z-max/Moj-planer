@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.67</title>
+<title>Mój Planer — test integracji 33.68</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.67</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.67</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.16.33.67-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.68</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.68</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.68-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -194,7 +194,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.16.33.67-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.68-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1977,7 +1977,7 @@ initializeEventCommands();
   border-color:#f8fdff!important;
   background:radial-gradient(circle at 31% 22%,#ffffffd9 0 9%,#dff4ff75 28%,#b8ddff42 54%,#b7b0f237 76%,#7656c521 100%)!important;
   box-shadow:0 4px 0 #d8e9f2b8,0 10px 20px #367eb42e,inset 5px 7px 13px #ffffffc7,inset -7px -9px 16px #496fbe2e!important;
-  animation:octi-water-breathe 7.2s ease-in-out infinite;
+  animation:none;
   transform-origin:50% 58%;
   will-change:transform,border-radius;
 }
@@ -2020,6 +2020,21 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){
   .phone-layout .octi-dock .voice,.phone-layout .octi-dock .voice:before{animation:none!important}
 }
+/* 33.68: animate the visible shell above the independent, stable logo. */
+.phone-layout .octi-dock .voice{border-color:transparent!important;background:transparent!important;box-shadow:none!important;will-change:auto}
+.phone-layout .octi-dock .voice:before,.phone-layout .octi-dock .voice:after{display:none}
+.phone-layout .octi-dock .octi-art{width:calc(var(--octi-size,100px) - 26px)!important;height:calc(var(--octi-size,100px) - 26px)!important;border:0!important;mix-blend-mode:multiply}
+.phone-layout .octi-dock .octi-art .logo{filter:brightness(1.06)}
+.phone-layout .octi-dock .water-shell{position:absolute;width:calc(var(--octi-size,100px) + 10px);height:calc(var(--octi-size,100px) + 10px);pointer-events:none;z-index:4;border:2px solid #d3eeffff;border-radius:49% 51% 48% 52%/52% 48% 52% 48%;background:radial-gradient(ellipse at 27% 17%,#ffffffd9 0 3%,#ffffff52 8%,transparent 27%),radial-gradient(ellipse at 80% 83%,#a6dbff55,transparent 47%);box-shadow:inset 3px 4px 5px #fff,inset -4px -5px 7px #4f8ebe80,inset 0 0 0 5px #dbf3ff80,2px 5px 8px #376c9d38,0 0 13px color-mix(in srgb,var(--glow) 45%,transparent);animation:octi-visible-water 5.8s ease-in-out infinite;will-change:transform,border-radius}
+.phone-layout .octi-dock .water-shell:before{content:'';position:absolute;inset:5px;border:1px solid #ffffffde;border-right-color:#6aa3d782;border-bottom-color:#78acdca8;border-radius:inherit;box-shadow:inset 0 2px 3px #81bae757,0 1px 2px #fff;pointer-events:none}
+.phone-layout .octi-dock .water-shell:after{content:'';position:absolute;inset:8px;border-radius:inherit;background:radial-gradient(ellipse at 26% 17%,#ffffffde 0 3%,#ffffff68 6%,transparent 17%),radial-gradient(ellipse at 73% 87%,#ffffffb8 0 3%,transparent 18%);animation:octi-water-shine 5.8s ease-in-out infinite;pointer-events:none}
+.phone-layout .octi-dock .wave{opacity:0;animation:none}
+.phone-layout .octi-dock .halo{opacity:.22;animation:none}
+.phone-layout .octi-dock .stage:after{box-shadow:0 0 16px 3px color-mix(in srgb,var(--glow) 25%,transparent)}
+.phone-layout .octi-dock .stage.recording .water-shell,.phone-layout .octi-dock .stage.ready .water-shell{border-color:var(--wave);box-shadow:inset 3px 4px 5px #fff,inset -4px -5px 7px color-mix(in srgb,var(--wave) 60%,transparent),inset 0 0 0 5px #dbf3ff80,0 0 13px var(--glow)}
+.phone-layout .octi-dock .stage:has(.voice:active) .water-shell{animation-play-state:paused;transform:translateY(2px) scaleX(1.04) scaleY(.95)}
+@keyframes octi-visible-water{0%,100%{transform:translateY(0) scale(1);border-radius:49% 51% 48% 52%/52% 48% 52% 48%}30%{transform:translateY(-1.5px) scaleX(1.035) scaleY(.97);border-radius:54% 46% 51% 49%/47% 51% 49% 53%}65%{transform:translateY(1px) scaleX(.975) scaleY(1.025);border-radius:47% 53% 48% 52%/54% 47% 53% 46%}}
+@media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .water-shell,.phone-layout .octi-dock .water-shell:after{animation:none!important;will-change:auto}}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -2087,6 +2102,7 @@ function initializeOctiDocks(){
   host.append(root);const stage=root.querySelector('.stage');oldButton.classList.add('voice');stage.append(oldButton);oldButton.addEventListener('click',event=>{if(entryRecording||memoRecorder||octiEventRecording){event.stopImmediatePropagation();toast('Najpierw zakończ nagrywanie notatki głosowej.');}},true);
   // A sibling overlay survives the existing recorder's textContent updates.
   const art=document.createElement('span');art.className='octi-art';art.style.cssText='position:absolute;width:calc(var(--octi-size,100px) - 10px);height:calc(var(--octi-size,100px) - 10px);border:2px solid #6b42ba;box-sizing:border-box;pointer-events:none;border-radius:50%;overflow:hidden;z-index:3';art.innerHTML='<img class="logo" alt="" src="'+logoSrc+'">';stage.append(art);
+  const water=document.createElement('span');water.className='water-shell';water.setAttribute('aria-hidden','true');stage.append(water);
   const toggle=root.querySelector('.menu-toggle'),extras=root.querySelector('.extras'),menu=root.querySelector('.menu-actions');menu.id='octi-menu-'+channel;toggle.setAttribute('aria-controls',menu.id);
   function setMenu(open){if(extras.classList.contains('expanded')===open)return;extras.classList.toggle('expanded',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Zwiń dodatkowe działania':'Dodatkowe działania');for(const button of menu.children)button.disabled=!open;}
   toggle.onclick=()=>setMenu(!extras.classList.contains('expanded'));
