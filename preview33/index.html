@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.66</title>
+<title>Mój Planer — test integracji 33.67</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.66</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.66</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.14.33.66-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.67</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.67</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.16.33.67-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -194,7 +194,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.14.33.66-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.16.33.67-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1972,6 +1972,54 @@ initializeEventCommands();
 #mainConversationTools.hidden,#mainClarification:not(.is-typing){display:none!important}
 #mainClarification.is-typing{min-height:44px;margin-top:4px!important}
 @media(max-height:500px){.phone-layout .voice-area .voice-conversation{height:100px;max-height:26dvh}}
+/* 33.67: the main Octi control behaves like a softly moving water droplet. */
+.phone-layout .octi-dock .voice{
+  border-color:#f8fdff!important;
+  background:radial-gradient(circle at 31% 22%,#ffffffd9 0 9%,#dff4ff75 28%,#b8ddff42 54%,#b7b0f237 76%,#7656c521 100%)!important;
+  box-shadow:0 4px 0 #d8e9f2b8,0 10px 20px #367eb42e,inset 5px 7px 13px #ffffffc7,inset -7px -9px 16px #496fbe2e!important;
+  animation:octi-water-breathe 7.2s ease-in-out infinite;
+  transform-origin:50% 58%;
+  will-change:transform,border-radius;
+}
+.phone-layout .octi-dock .voice:before{
+  content:''!important;
+  position:absolute;
+  inset:-9%;
+  z-index:2;
+  border-radius:inherit;
+  background:radial-gradient(ellipse at 27% 18%,#fff 0 5%,#ffffffb8 6% 12%,transparent 27%),linear-gradient(118deg,transparent 22%,#ffffff82 43%,transparent 59%);
+  box-shadow:inset 3px 4px 8px #ffffffd4,inset -5px -7px 12px #4a71b532;
+  opacity:.78;
+  pointer-events:none;
+  animation:octi-water-shine 7.2s ease-in-out infinite;
+}
+.phone-layout .octi-dock .voice:after{
+  content:''!important;
+  position:absolute;
+  inset:1px;
+  z-index:3;
+  border:2px solid #dff6ffdc;
+  border-radius:inherit;
+  box-shadow:inset 0 2px 4px #fff,inset 0 -4px 8px #4f65b02b,0 0 8px #80d4ff70;
+  pointer-events:none;
+}
+.phone-layout .octi-dock .voice:active{
+  animation-play-state:paused;
+  transform:translateY(3px) scale(.97)!important;
+}
+@keyframes octi-water-breathe{
+  0%,100%{transform:translateY(0) scale(1);border-radius:50% 49% 52% 48%/49% 52% 48% 51%}
+  28%{transform:translateY(-1px) scaleX(1.018) scaleY(.988);border-radius:52% 48% 49% 51%/47% 50% 53% 50%}
+  57%{transform:translateY(1px) scaleX(.992) scaleY(1.014);border-radius:48% 52% 51% 49%/52% 48% 50% 50%}
+  79%{transform:translateY(0) scaleX(1.01) scaleY(.995);border-radius:51% 49% 47% 53%/50% 53% 47% 50%}
+}
+@keyframes octi-water-shine{
+  0%,100%{transform:translate(-2%,-1%) rotate(-4deg);opacity:.68}
+  50%{transform:translate(3%,2%) rotate(3deg);opacity:.9}
+}
+@media(prefers-reduced-motion:reduce){
+  .phone-layout .octi-dock .voice,.phone-layout .octi-dock .voice:before{animation:none!important}
+}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
