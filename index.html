@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.70-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.71-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -192,7 +192,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.70-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.71-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2204,6 +2204,21 @@ initializeEventCommands();
 @keyframes octi-water-float{0%,100%{transform:translate(0,0) rotate(-.6deg)}35%{transform:translate(1px,-2.5px) rotate(.7deg)}70%{transform:translate(-1px,1px) rotate(-.3deg)}}
 @keyframes octi-glass-flex{0%,100%{transform:scale(1)}30%{transform:scaleX(1.022) scaleY(.98) rotate(.4deg)}65%{transform:scaleX(.984) scaleY(1.018) rotate(-.4deg)}}
 @media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .water-float,.phone-layout .octi-dock .water-float .water-shell{animation:none!important}}
+/* 33.71: an icy-blue wash and softly lit cards; calendar geometry is unchanged. */
+.phone-layout .app{background-color:#eef6fd;background-image:radial-gradient(ellipse at 50% 35%,#f8fcff 0%,#f0f7fd 56%,#e4f0fb 100%);border-color:#cbddeb}
+.phone-layout #dayView,.phone-layout #weekView,.phone-layout #monthView{background:transparent}
+.phone-layout .phone-event{background-color:#eeeafa;background-image:linear-gradient(145deg,#f5f1fd,#eae7f9)!important;border-color:#d3cbea;border-left-color:#a38ddd;box-shadow:inset 0 1px 2px #ffffffd9,0 3px 9px #4b83b51c}
+.phone-layout .phone-event.layered{background-color:#e7edfa;background-image:linear-gradient(145deg,#f0f3ff,#e3eafa)!important;border-color:#cbd5ed;border-left-color:#8a8cd9;box-shadow:inset 0 1px 2px #ffffffd9,0 3px 9px #4b83b524}
+.phone-layout .phone-event-title{color:#2c3658}
+.phone-layout .phone-event-time{color:#697895}
+.phone-layout .phone-free-time{background-color:#edf7f2;background-image:linear-gradient(135deg,#f4fbf7,#e8f4ef);border-color:#d5e7df;border-style:solid;color:#4c7068;box-shadow:inset 0 1px 2px #fffffff0,0 3px 9px #4b83b51a}
+.phone-layout .phone-hour{border-top-color:#cfdeed}
+.phone-layout .phone-hour span{color:#64748f}
+.phone-layout .daybar h2{color:#2c3e60}
+.phone-layout .daybar .navbutton{color:#3f7eb6}
+.phone-layout .phone-week-strip button.active{background-image:linear-gradient(145deg,#438ed2,#2f75bd);box-shadow:inset 0 1px 2px #ffffff70,0 2px 6px #3c7eb626}
+.phone-layout .week-day,.phone-layout .month-day{background:linear-gradient(145deg,#ffffffb3,#eef6fc80);border-color:#d0dfed;box-shadow:inset 0 1px 1px #ffffffc9}
+.phone-layout .octi-dock[data-channel=main] .status{background:linear-gradient(90deg,#eef6fddd,#eef6fd55,transparent)}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
