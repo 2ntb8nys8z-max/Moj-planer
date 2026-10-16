@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.69</title>
+<title>Mój Planer — test integracji 33.70</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.69</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.69</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.69-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.70</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.70</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.70-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -194,7 +194,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.69-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.70-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2189,6 +2189,23 @@ initializeEventCommands();
 /* Keep background refraction below the stable logo; highlights stay above it. */
 .phone-layout .octi-dock .water-shell{backdrop-filter:none;-webkit-backdrop-filter:none}
 .phone-layout .octi-dock .stage:before{content:'';position:absolute;width:calc(var(--octi-size,100px) + 10px);height:calc(var(--octi-size,100px) + 10px);border-radius:50%;z-index:2;pointer-events:none;background:#e4f4ff12;backdrop-filter:blur(2.5px) saturate(1.25);-webkit-backdrop-filter:blur(2.5px) saturate(1.25)}
+/* 33.70: a clear glass asset and the mascot float together; only tentacles bend. */
+.phone-layout .octi-dock .water-float{position:absolute;width:var(--octi-size,100px);height:var(--octi-size,100px);display:grid;place-items:center;pointer-events:none;z-index:3;animation:octi-water-float 6.8s ease-in-out infinite;transform-origin:50% 55%}
+.phone-layout .octi-dock .water-float .octi-art{width:calc(var(--octi-size,100px) - 12px)!important;height:calc(var(--octi-size,100px) - 12px)!important;border-radius:0;overflow:visible;mix-blend-mode:normal;z-index:3}
+.phone-layout .octi-dock .octi-art>.logo{display:none}
+.phone-layout .octi-dock .octi-mascot{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
+.phone-layout .octi-dock .water-float .water-shell{width:calc(var(--octi-size,100px) + 18px);height:calc(var(--octi-size,100px) + 18px);border:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;filter:drop-shadow(0 3px 3px #436b9230);overflow:visible;animation:octi-glass-flex 5.6s ease-in-out infinite}
+.phone-layout .octi-dock .water-float .water-shell:before,.phone-layout .octi-dock .water-float .water-shell:after{display:none}
+.phone-layout .octi-dock .water-glass{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.phone-layout .octi-dock .stage.recording .water-float .water-shell{border:0;background:none;box-shadow:none;filter:drop-shadow(0 0 6px #f1788970)}
+.phone-layout .octi-dock .stage.ready .water-float .water-shell{border:0;background:none;box-shadow:none;filter:drop-shadow(0 0 6px #5bbf8890)}
+.phone-layout .octi-dock .stage>.halo,.phone-layout .octi-dock .stage>.wave,.phone-layout .octi-dock .stage:before{display:none}
+.phone-layout .octi-dock .stage:after{width:calc(var(--octi-size,100px) * .76);height:9px;bottom:1px;background:#37689432;box-shadow:none;filter:blur(4px);z-index:0}
+.phone-layout .octi-dock .stage:has(.voice:active) .water-float{animation-play-state:paused;transform:translateY(2px) scale(.97)!important}
+.phone-layout .octi-dock .stage:has(.voice:active) .water-shell{animation-play-state:paused}
+@keyframes octi-water-float{0%,100%{transform:translate(0,0) rotate(-.6deg)}35%{transform:translate(1px,-2.5px) rotate(.7deg)}70%{transform:translate(-1px,1px) rotate(-.3deg)}}
+@keyframes octi-glass-flex{0%,100%{transform:scale(1)}30%{transform:scaleX(1.022) scaleY(.98) rotate(.4deg)}65%{transform:scaleX(.984) scaleY(1.018) rotate(-.4deg)}}
+@media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .water-float,.phone-layout .octi-dock .water-float .water-shell{animation:none!important}}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -2257,6 +2274,17 @@ function initializeOctiDocks(){
   // A sibling overlay survives the existing recorder's textContent updates.
   const art=document.createElement('span');art.className='octi-art';art.style.cssText='position:absolute;width:calc(var(--octi-size,100px) - 10px);height:calc(var(--octi-size,100px) - 10px);border:2px solid #6b42ba;box-sizing:border-box;pointer-events:none;border-radius:50%;overflow:hidden;z-index:3';art.innerHTML='<img class="logo" alt="" src="'+logoSrc+'">';stage.append(art);
   const water=document.createElement('span');water.className='water-shell';water.setAttribute('aria-hidden','true');stage.append(water);
+  // Presentation only: the recorder button stays outside the moving artwork.
+  const floating=document.createElement('span');floating.className='water-float';floating.setAttribute('aria-hidden','true');stage.append(floating);floating.append(art,water);
+  const glass=document.createElement('img');glass.className='water-glass';glass.alt='';glass.src='octi-water-glass.webp?v=babdb581839accf9';glass.draggable=false;water.append(glass);
+  const mascot=document.createElementNS('http://www.w3.org/2000/svg','svg');mascot.classList.add('octi-mascot');mascot.setAttribute('viewBox','0 0 1254 1254');mascot.setAttribute('aria-hidden','true');mascot.setAttribute('focusable','false');
+  const bendMask='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254"><defs><linearGradient id="fade" x2="0" y2="1"><stop offset="0.48" stop-color="white" stop-opacity="0"/><stop offset="0.67" stop-color="white" stop-opacity="1"/></linearGradient></defs><rect width="1254" height="1254" fill="url(#fade)"/></svg>');
+  const filterId='octi-tentacles-'+channel;
+  mascot.innerHTML='<defs><filter id="'+filterId+'" x="-30" y="-30" width="1314" height="1314" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".007 .012" numOctaves="1" seed="4" result="waves"/><feImage href="'+bendMask+'" x="0" y="0" width="1254" height="1254" result="bendMask"/><feComposite in="waves" in2="bendMask" operator="in" result="softWaves"/><feFlood flood-color="#808080" result="neutral"/><feComposite in="softWaves" in2="neutral" operator="over" result="bendMap"/><feDisplacementMap in="SourceGraphic" in2="bendMap" scale="8" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" values="8;28;10;24;8" dur="6.8s" repeatCount="indefinite"/></feDisplacementMap></filter></defs><image href="octi-water-mascot.webp?v=0ade81e51af6a640" width="1254" height="1254" filter="url(#'+filterId+')"/>';
+  art.append(mascot);
+  const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const syncMotion=()=>{if(motion?.matches||document.hidden){mascot.pauseAnimations?.();mascot.setCurrentTime?.(0)}else mascot.unpauseAnimations?.()};
+  motion?.addEventListener?.('change',syncMotion);document.addEventListener('visibilitychange',syncMotion);syncMotion();
   const toggle=root.querySelector('.menu-toggle'),extras=root.querySelector('.extras'),menu=root.querySelector('.menu-actions');menu.id='octi-menu-'+channel;toggle.setAttribute('aria-controls',menu.id);
   function setMenu(open){if(extras.classList.contains('expanded')===open)return;extras.classList.toggle('expanded',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Zwiń dodatkowe działania':'Dodatkowe działania');for(const button of menu.children)button.disabled=!open;}
   toggle.onclick=()=>setMenu(!extras.classList.contains('expanded'));
