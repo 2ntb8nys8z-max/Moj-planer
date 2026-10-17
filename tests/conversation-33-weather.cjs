@@ -43,7 +43,15 @@ const assert=require('node:assert/strict');
   assert.doesNotMatch(geocodingUrl,/Warszaw/);
   assert.equal(vm.runInContext('testWeatherTask.weatherPlace.id',ctx),101);
   assert.equal(vm.runInContext('testWeatherTask.location',ctx),'Wólka Kosowska pod Warszawą');
-  assert.match(w.document.getElementById('eventWeather').textContent,/Pogoda dla: Wola Kosowska, Województwo mazowieckie/);
+  assert.match(w.document.getElementById('eventWeather').textContent,/Wola Kosowska, Województwo mazowieckie/);
+  const weatherInfo=w.document.querySelector('.weather-info-button'),weatherDetails=w.document.querySelector('.weather-source-details');
+  assert.equal(weatherInfo.getAttribute('aria-expanded'),'false');
+  assert.equal(weatherDetails.classList.contains('hidden'),true);
+  assert.ok(w.document.querySelector('.weather-icon svg'),'weather uses the Okti vector artwork instead of system emoji');
+  weatherInfo.click();
+  assert.equal(weatherInfo.getAttribute('aria-expanded'),'true');
+  assert.equal(weatherDetails.classList.contains('hidden'),false);
+  assert.match(weatherDetails.textContent,/Open-Meteo/);
 
   console.log('Conversation 33 weather: the sole Open-Meteo place supplies coordinates without replacing the user location label.');
   dom.window.close();
