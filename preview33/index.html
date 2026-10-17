@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.86</title>
+<title>Mój Planer — test integracji 33.87</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -135,7 +135,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.86</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.86</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.86-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.87</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.87</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.87-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -211,7 +211,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.86-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.87-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2549,9 +2549,10 @@ if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVoi
 initializeOctiDocks();
 
 </script>
-<style id="event-polish-33-86">
-/* 33.86: a plain opaque top row avoids iOS text/icon raster blur. */
-#eventModal .event-sheet{position:relative;background:#fbfbff}
+<style id="event-polish-33-87">
+/* 33.87: cloud-and-glass event sheet, with an opaque readable title layer. */
+#eventModal .event-sheet{position:relative;background-color:#eaf5ff;background-image:linear-gradient(180deg,#edf7ff18 0,#f7fbffb8 48%,#eef7ffed 100%),url("header-sky.webp?v=2dc2ba216dc1ab4d");background-position:center top;background-size:auto 100%,auto 560px;background-repeat:no-repeat;isolation:isolate}
+#eventModal .event-sheet:before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 12% 42%,#ffffff9c 0 8%,transparent 27%),radial-gradient(ellipse at 92% 66%,#ffffff94 0 7%,transparent 25%),linear-gradient(180deg,transparent 0 30%,#eef8ff8f 58%,#f5faffd9 100%)}
 #eventHeader{position:relative;display:block;padding:max(14px,env(safe-area-inset-top)) 16px 12px;isolation:isolate;background:#fbfbff!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transform:none!important;box-shadow:0 1px 0 #e4ddef;contain:none}
 #eventHeader:before,#eventHeader:after{content:none!important;display:none!important}
 .event-header-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px;min-height:44px;background:#fbfbff;isolation:isolate;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important}
@@ -2562,31 +2563,56 @@ initializeOctiDocks();
 #eventModal #closeEvent{display:grid;place-items:center;padding:9px!important;font-size:0!important}
 #eventHeaderMeta{color:#554a70;font-weight:650}
 
+/* The heading is intentionally not real backdrop glass: this keeps it sharp in iOS Safari. */
+#eventHeader{z-index:8;padding:max(13px,env(safe-area-inset-top)) 16px 13px;border:0;background:linear-gradient(180deg,#f8fbfffa 0,#f8fbfff0 66%,#f8fbffb8 100%)!important;box-shadow:none}
+.event-header-top{min-height:48px;background:transparent}
+#eventModal #actionTitle{padding-right:2px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,10vw,44px);font-weight:700;line-height:1.02;letter-spacing:-.025em;color:#28223f!important}
+#eventHeaderMeta{position:relative;z-index:2;margin-top:5px;color:#302b4c;font-size:14px;font-weight:750;letter-spacing:.005em}
+#eventHeaderActions{align-self:flex-start;margin-top:-2px;background:transparent}
+#eventHeaderActions button{border:1px solid #ffffffd9!important;background:linear-gradient(145deg,#ffffffeb,#e6f2faaa)!important;box-shadow:inset 1px 1px 2px #fff,0 3px 8px #577ea326!important;color:#6250ad!important}
+#eventHeaderActions button.hidden{display:none!important}
+#eventReminderBadge{position:relative;z-index:2;max-width:285px;margin-top:10px;padding:7px 12px!important;border:1px solid #ffb9aa!important;border-radius:17px!important;background:radial-gradient(ellipse at 18% 0,#fff7f2,transparent 48%),linear-gradient(145deg,#ffd9cf,#ffab98)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 9px #d6755b32!important;color:#a8402d!important;font-size:14px!important}
+#eventReminderBadge svg{color:#cf553d}
+
 /* WebKit may leak a fixed descendant's backdrop blur into separately composited header text. */
 #eventModal .octi-dock .command-frost,
 #eventModal .octi-dock .water-frost,
 #eventModal .octi-dock .commands:before,
 #eventModal .octi-dock .dismiss-orb{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 
-#eventModal #eventWeather{padding:14px!important;border-color:#d8e6f1!important;border-radius:20px;background:radial-gradient(ellipse at 16% 0,#ffffff 0,transparent 42%),linear-gradient(145deg,#eef7fd,#f5f1fb 72%,#edf5fb);box-shadow:inset 1px 1px 2px #fff,0 4px 14px #537a9b14;color:#34435d}
+#eventModal #eventWeather{padding:15px!important;border:1.5px solid #ffffffdb!important;border-radius:22px;background:radial-gradient(ellipse at 16% 0,#ffffff 0,transparent 44%),linear-gradient(145deg,#f7fbffed,#e8f2fbd9 68%,#f7f8ffdf);box-shadow:inset 0 0 0 2px #bcd7e94a,inset 3px 4px 7px #ffffffd9,inset -3px -4px 8px #82aac536,0 5px 14px #4c789b20;color:#34435d}
 .weather-card-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
 #eventModal .weather-card-header h3{margin:0;font-size:17px;line-height:1.25;color:#352c4c}
 .weather-info-button{flex:none;display:grid;place-items:center;width:30px;height:30px;min-width:30px;min-height:30px;padding:0;border:1px solid #b8cfe0;border-radius:50%;background:linear-gradient(145deg,#fff,#dceef8);color:#54748c;font:700 16px/1 Georgia,serif;box-shadow:inset 1px 1px 2px #fff,0 2px 5px #4d789522}
 .weather-info-button.active{color:#fff;border-color:#6c8fa8;background:linear-gradient(145deg,#7daac5,#5f849e)}
 #eventModal .weather-place{margin:0 0 11px;color:#64738a;font-size:13px;line-height:1.35}
 #eventModal .weather-strip{gap:7px;border:0;border-radius:0;background:transparent;margin:0}
-#eventModal .weather-period{display:flex;flex-direction:column;align-items:center;min-width:0;min-height:132px;padding:9px 4px 10px;border:1px solid #d7e2ec!important;border-radius:16px;background:linear-gradient(160deg,#ffffffdd,#f4f8fccc);box-shadow:inset 1px 1px 1px #fff,0 2px 7px #536f8912}
+#eventModal .weather-period{display:flex;flex-direction:column;align-items:center;min-width:0;min-height:132px;padding:9px 4px 10px;border:1px solid #ffffffde!important;border-radius:17px;background:linear-gradient(155deg,#ffffffed,#f1f6fbd8);box-shadow:inset 1px 1px 2px #fff,inset -2px -2px 4px #7d9db31f,0 3px 8px #536f8918}
 #eventModal .weather-period-label{min-height:31px;display:flex;align-items:center;justify-content:center;color:#68758a;font-size:10.5px;font-weight:650;line-height:1.25}
 #eventModal .weather-icon{display:block;width:50px;height:47px;margin:2px 0 -2px}
 #eventModal .weather-icon svg{display:block;width:100%;height:100%;overflow:visible}
 .weather-cloud-fill{fill:#dbeaf4;stroke:none}.weather-cloud-rim{fill:none;stroke:#799bb3;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.weather-sun{fill:#ffe59b;stroke:#e7ad53;stroke-width:1.6}.weather-rays{fill:none;stroke:#e6b65d;stroke-width:1.7;stroke-linecap:round}.weather-drops{fill:none;stroke:#679dca;stroke-width:2.4;stroke-linecap:round}.weather-snow{fill:none;stroke:#7bb0d0;stroke-width:1.6;stroke-linecap:round}.weather-lightning{fill:#f2c45e;stroke:#cc933b;stroke-width:1.2;stroke-linejoin:round}.weather-fog{fill:none;stroke:#829aad;stroke-width:2.2;stroke-linecap:round}.weather-question{fill:none;stroke:#8294a6;stroke-width:2.5;stroke-linecap:round}
-#eventModal .weather-temperature{color:#28243b;font-size:21px;line-height:1.1}
+#eventModal .weather-temperature{margin-top:4px;padding:2px 9px;border-radius:14px;background:#c9efe6;color:#16766f;font-size:21px;line-height:1.1;box-shadow:inset 1px 1px 2px #fff,0 2px 5px #408e7d1d}
+#eventModal .weather-period:first-child .weather-temperature{background:#ffdbcf;color:#c95c43}
 #eventModal .weather-detail{margin-top:6px;color:#66758a;font-size:10.5px;line-height:1.3}
 .weather-source-details{margin-top:10px;padding:9px 10px;border:1px solid #dbe5ed;border-radius:11px;background:#ffffffa6;color:#66758a;font-size:11px;line-height:1.45}
 .weather-source-details a{color:#537c9b;font-weight:700}
 
-#eventMainRegion{z-index:1}
-#eventContent{padding-bottom:calc(205px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(205px + env(safe-area-inset-bottom))}
+#eventMainRegion{z-index:1;background:transparent}
+#eventContent{padding:14px 16px calc(205px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(205px + env(safe-area-inset-bottom));background:transparent}
+#eventModal .event-location-row{padding:11px 12px!important;border:1.5px solid #ffffffdb!important;border-radius:18px!important;background:linear-gradient(145deg,#ffffffdc,#edf6fbd1)!important;box-shadow:inset 0 0 0 2px #bcd7e93b,inset 2px 3px 5px #fff,0 4px 11px #4c789b1c!important}
+#eventLocationText{font-size:15px;font-weight:650;color:#3b3555}
+#eventModal #navigateBtn{padding:10px 14px!important;border:1px solid #65cec8!important;border-radius:14px!important;background:radial-gradient(ellipse at 30% 0,#eaffff,transparent 52%),linear-gradient(145deg,#a9eee9,#59ccc5)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 8px #218e892f!important;color:#246f70!important;font-size:14px!important}
+#eventModal .event-note-card{border:1.5px solid #ffffffdb;border-radius:19px;background:linear-gradient(145deg,#ffffffdf,#f4f1fbd4);box-shadow:inset 0 0 0 2px #d6cbea38,inset 2px 3px 5px #fff,0 4px 11px #4c557a18}
+#eventModal .event-media-card{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;margin:10px 0;padding:10px 12px;border:1.5px solid #ffffffdb;border-radius:18px;background:linear-gradient(145deg,#ffffffdf,#edf5fbd3);box-shadow:inset 0 0 0 2px #bdd6e73a,inset 2px 3px 5px #fff,0 4px 11px #4c789b1a}
+#eventModal .event-media-heading,#eventModal .event-media-meta,#eventModal .event-media-actions,#eventModal .event-media-status{grid-column:1;min-width:0}
+#eventModal .event-photo-thumb{grid-column:2;grid-row:1 / span 4;width:92px;height:72px;border-color:#fff;border-radius:12px;box-shadow:inset 0 0 0 1px #93bdd46b,0 2px 7px #3f607820}
+#eventModal .event-media-heading{margin:0 0 3px;font-size:14px}
+#eventModal .event-media-meta{margin:2px 0 0;font-size:10px}
+#eventModal .event-media-actions{margin-top:6px}
+#eventModal .event-media-action{min-height:32px;padding:5px 8px;background:#eef7fbd9;border-color:#b8d6e6;color:#526b8e;font-size:11px}
+#eventModal .event-media-card audio{grid-column:1 / -1;width:100%;height:38px;margin-top:3px}
+#eventModal .event-media-text{grid-column:1 / -1}
 #eventActionsToggle{bottom:190px}
 #eventActionsMenu{bottom:244px}
 #eventModal .event-sheet:has(#eventConversationPanel:not(.hidden)) #eventActionsToggle{bottom:12px}
