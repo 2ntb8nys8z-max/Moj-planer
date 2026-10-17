@@ -105,7 +105,7 @@ try{
  assert.equal(run('tasks.length'),1,'only the open event remains');
  assert.match(get('eventConversation').textContent,/tylko to wydarzenie/);
 
- get('closeEvent').click();
+ get('closeEvent').querySelector('path').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));
  assert.equal(get('eventModal').classList.contains('hidden'),true,'the original event close action still closes the sheet');
  assert.equal(run('voiceDialogues.event'),null,'closing the whole event retains the original dialogue cleanup');
  run(`openEventActions(tasks[0]);`);await settle();

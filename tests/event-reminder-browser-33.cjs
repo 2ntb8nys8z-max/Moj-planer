@@ -91,11 +91,12 @@ const events=[
    assert.equal(await page.locator('#eventModal').isVisible(),true,`${prefix}: note confirmation stays in the open event`);
    assert.equal(await page.locator('#eventRecurrencePreview').isVisible(),false,`${prefix}: ordinary notes do not open the old recurrence dialog`);
    await page.locator('#eventChangeConfirm').click();await page.evaluate(()=>testInlineNote);
-   const added=page.locator('#eventNotesCards .event-note-card').filter({has:page.locator('.event-note-text',{hasText:'Nowa transkrypcja'})});
-   assert.equal(await added.count(),1,`${prefix}: new transcription is a dedicated rounded note card`);
+   const added=page.locator('#eventNotesCards .event-note-item').filter({has:page.locator('.event-note-text',{hasText:'Nowa transkrypcja'})});
+   assert.equal(await page.locator('#eventNotesCards .event-note-card').count(),1,`${prefix}: all note additions share one rounded glass card`);
+   assert.equal(await added.count(),1,`${prefix}: new transcription is a separated entry inside the shared card`);
    assert.match(await added.locator('.event-note-date').textContent(),/\d{1,2}[:.]\d{2}/,`${prefix}: the card has a readable added time`);
-   assert.ok(await added.evaluate(node=>parseFloat(getComputedStyle(node).borderRadius)>=8),`${prefix}: the note uses the new rounded-card style`);
-   await added.locator('.event-note-copy').click();assert.equal(await page.evaluate(()=>testNoteCopies.at(-1)),'Nowa transkrypcja');
+   assert.ok(await page.locator('#eventNotesCards .event-note-card').evaluate(node=>parseFloat(getComputedStyle(node).borderRadius)>=8),`${prefix}: the shared note container uses the rounded-card style`);
+   await page.locator('#eventNotesCards .event-note-copy').click();assert.equal(await page.evaluate(()=>testNoteCopies.at(-1)),'Starsza notatka\n\nNowa transkrypcja');
    await page.evaluate(()=>{
     activeTask.noteCards=Array.from({length:24},(_,i)=>({text:`Notatka ${i+1}: szczegóły spotkania oraz ustalenia do realizacji.`,createdAt:'2026-10-12T09:05:00.000Z'}));activeTask.notes=activeTask.noteCards.map(note=>note.text).join('\n');openEventActions(activeTask);
     window.testEventSession=beginVoiceDialogue('event',activeTask.id,voiceDialogueCurrent('event',activeTask.id));testEventSession.history=Array.from({length:30},(_,i)=>({role:i%2?'assistant':'user',content:`Wiadomość ${i+1}: ustalenia wydarzenia, notatek oraz godziny spotkania.`}));showVoiceClarification(testEventSession,'Ile minut przed wydarzeniem mam przypomnieć?');

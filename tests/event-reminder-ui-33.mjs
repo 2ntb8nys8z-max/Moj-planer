@@ -40,7 +40,7 @@ try{
  assert.match(legacyCard.querySelector('.event-note-text').textContent,/Starsza zachowana notatka/);
  assert.ok(legacyCard.querySelector('.event-note-date').textContent.trim(),'legacy notes retain an available timestamp');
  legacyCard.querySelector('.event-note-copy').click();await settle();
- assert.equal(copies.at(-1),'Starsza zachowana notatka','copy copies only the note text');
+ assert.equal(copies.at(-1),'Starsza zachowana notatka','the single copy button copies all available note text');
 
  openSession();
  await run(`applyVoiceUiAction(testEventSession,{type:'set_event_reminder',eventId:'open-event',minutesBefore:15},'Ustawiono przypomnienie.')`);await settle();
@@ -111,12 +111,13 @@ try{
  assert.match(run('tasks[0].notes'),/Starsza zachowana notatka\nNowa notatka głosowa/);
  assert.equal(run('tasks.length'),2,'the new voice note remains attached to its event');
  assert.equal(JSON.stringify(run('ideas')),ideaSnapshot,'the new voice note creates no separate idea');
- const noteCards=[...get('eventNotesCards').querySelectorAll('.event-note-card')];
- const added=noteCards.find(card=>card.querySelector('.event-note-text').textContent==='Nowa notatka głosowa');
- assert.ok(added,'the appended note receives its own modern card');
- assert.match(added.querySelector('.event-note-date').textContent,/\d{1,2}[:.]\d{2}/,'the new card displays a readable added time');
- added.querySelector('.event-note-copy').click();await settle();
- assert.equal(copies.at(-1),'Nowa notatka głosowa');
+ const noteCards=[...get('eventNotesCards').querySelectorAll('.event-note-card')],noteItems=[...get('eventNotesCards').querySelectorAll('.event-note-item')];
+ assert.equal(noteCards.length,1,'all note additions share one glass card');
+ const added=noteItems.find(item=>item.querySelector('.event-note-text').textContent==='Nowa notatka głosowa');
+ assert.ok(added,'the appended note receives its own separated entry');
+ assert.match(added.querySelector('.event-note-date').textContent,/\d{1,2}[:.]\d{2}/,'the new entry displays a readable added time');
+ noteCards[0].querySelector('.event-note-copy').click();await settle();
+ assert.equal(copies.at(-1),'Starsza zachowana notatka\n\nNowa notatka głosowa');
  assert.ok(run('tasks[0].noteCards.length>=2'),'modern note metadata includes both preserved and new content');
  const afterConfirm=run('tasks[0].notes');
  run(`testNoteCancel=processEventVoiceResult({item:{type:'event',changedFields:['notes'],notesAction:'append',notesAddition:'Nie zapisuj tej notatki'}},tasks[0].id)`);await settle();

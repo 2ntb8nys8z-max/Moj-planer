@@ -53,6 +53,10 @@ const assert=require('node:assert/strict');
   assert.equal(weatherDetails.classList.contains('hidden'),false);
   assert.match(weatherDetails.textContent,/Open-Meteo/);
 
+  await vm.runInContext(`today=()=>new Date('2026-10-09T00:00:00');showPlannerWeather(testWeatherTask)`,ctx);
+  assert.match(w.document.getElementById('eventWeather').textContent,/Wola Kosowska, Województwo mazowieckie/,'a stored forecast remains visible just after the event date has passed');
+  assert.ok(w.document.querySelector('#eventWeather .weather-strip'),'the past event retains its cached weather cards');
+
   console.log('Conversation 33 weather: the sole Open-Meteo place supplies coordinates without replacing the user location label.');
   dom.window.close();
 })().catch(error=>{console.error(error);process.exitCode=1});
