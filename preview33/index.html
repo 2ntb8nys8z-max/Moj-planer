@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.87</title>
+<title>Mój Planer — test integracji 33.88</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -135,7 +135,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.87</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.87</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.87-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.88</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.88</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.88-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -211,7 +211,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.87-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.88-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -839,12 +839,16 @@ function renderEventContextDetails(task){
  const root=$('eventNotesCards'),notes=String(task.notes||'');root.replaceChildren();
  let cards=Array.isArray(task.noteCards)?task.noteCards.filter(card=>card&&typeof card.text==='string'&&card.text.trim()):[];
  if(cards.map(card=>card.text).join('\n')!==notes)cards=notes?[{text:notes,createdAt:task.notesCreatedAt||task.createdAt||null}]:[];
- for(const card of cards){
-  const box=document.createElement('article');box.className='event-note-card';const text=document.createElement('div');text.className='event-note-text';text.textContent=card.text;
-  const copy=document.createElement('button');copy.type='button';copy.className='event-note-copy';copy.setAttribute('aria-label','Kopiuj notatkę');copy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></svg>';
-  copy.onclick=async()=>{try{await navigator.clipboard.writeText(card.text);toast('Skopiowano notatkę')}catch(error){toast('Nie udało się skopiować notatki')}};
-  const date=document.createElement('time');date.className='event-note-date';const at=card.createdAt?new Date(card.createdAt):null;if(at&&Number.isFinite(at.getTime())){date.dateTime=at.toISOString();date.textContent=at.toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}else date.textContent='Data dodania nieznana';
-  box.append(text,copy,date);root.append(box);
+ if(cards.length){
+  const box=document.createElement('article');box.className='event-note-card event-notes-card';
+  for(const card of cards){
+   const item=document.createElement('section');item.className='event-note-item';const text=document.createElement('div');text.className='event-note-text';text.textContent=card.text;
+   const date=document.createElement('time');date.className='event-note-date';const at=card.createdAt?new Date(card.createdAt):null;if(at&&Number.isFinite(at.getTime())){date.dateTime=at.toISOString();date.textContent=at.toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}else date.textContent='Data dodania nieznana';
+   item.append(text,date);box.append(item);
+  }
+  const copy=document.createElement('button');copy.type='button';copy.className='event-note-copy';copy.setAttribute('aria-label','Kopiuj wszystkie notatki');copy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></svg>';
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(cards.map(card=>card.text).join('\n\n'));toast('Skopiowano wszystkie notatki')}catch(error){toast('Nie udało się skopiować notatek')}};
+  box.append(copy);root.append(box);
  }
  root.classList.toggle('hidden',!cards.length);
  // Keep legacy metadata readable to callers, without repeating its old note presentation.
@@ -1287,7 +1291,9 @@ async function showPlannerWeather(task){
   const say=text=>{if(current())body.textContent=text};
   if(task.locationUnresolved===location&&Date.now()-Date.parse(task.locationUnresolvedAt||0)<GEOCODING_FAILURE_MS){say('Nie udało się znaleźć pogody dla tej lokalizacji. Możesz ręcznie poprawić lokalizację lub wskazać pobliskie miasto.');return}
   const days=(new Date(task.date+'T12:00:00')-today())/86400000;
-  if(days<0||days>15){say(days<0?'Prognoza dla minionego wydarzenia jest niedostępna.':'Prognoza dla tego terminu jest jeszcze niedostępna.');return}
+  const savedWeatherPlace=task.weatherPlace,storedWeather=task.weatherForecast;
+  const hasStoredWeather=savedWeatherPlace&&savedWeatherPlace.location===location&&Number.isFinite(savedWeatherPlace.latitude)&&Number.isFinite(savedWeatherPlace.longitude)&&storedWeather?.key===plannerWeatherForecastKey(task,savedWeatherPlace)&&Array.isArray(storedWeather.rows);
+  if((days<0&&!hasStoredWeather)||days>15){say(days<0?'Prognoza dla minionego wydarzenia jest niedostępna.':'Prognoza dla tego terminu jest jeszcze niedostępna.');return}
   let candidates=[],hints=plannerWeatherHints(location);
   function ask(question){
     if(!current())return;
@@ -1297,7 +1303,7 @@ async function showPlannerWeather(task){
     if(!current())return;say('Pobieram prognozę dla '+plannerWeatherLabel(place)+'…');
     try{
       const forecastKey=plannerWeatherForecastKey(task,place),stored=task.weatherForecast;
-      if(stored?.key===forecastKey&&Date.now()-Date.parse(stored.fetchedAt||0)<WEATHER_CACHE_MS&&Array.isArray(stored.rows)){
+      if(stored?.key===forecastKey&&(days<0||Date.now()-Date.parse(stored.fetchedAt||0)<WEATHER_CACHE_MS)&&Array.isArray(stored.rows)){
         renderForecast(stored.rows,place,stored.timezone||place.timezone||'',true);return;
       }
       const query=new URLSearchParams({latitude:String(place.latitude),longitude:String(place.longitude),hourly:'temperature_2m,precipitation_probability,wind_speed_10m,weather_code',timezone:place.timezone||'auto',forecast_days:'16'});
@@ -1519,6 +1525,7 @@ function openEventActions(task){if(activeTask?.id!==task.id){cancelPlannerRecord
 function closeEventActions(){cancelEventChangePreview();plannerWeatherSequence++;plannerWeatherAbort?.abort();cancelPlannerRecording("event");clearVoiceDialogue("event");$("eventModal").classList.add("hidden");activeTask=null}document.addEventListener("click",e=>{if(e.target&&e.target.id==="closeEvent"){e.preventDefault();e.stopPropagation();closeEventActions()}});$("eventModal").onclick=e=>{if(e.target===$("eventModal"))closeEventActions()};$("actionDone").onclick=()=>{if(!activeTask)return;activeTask.done=!activeTask.done;saveTasks();renderAll();toast(activeTask.done?"✓ Oznaczono jako gotowe":"Przywrócono wydarzenie");closeEventActions()};$("actionEdit").onclick=()=>{$("eventEditBox").classList.toggle("hidden");$("timerBox").classList.add("hidden")};$("saveEdit").onclick=async()=>{if(!activeTask)return;const title=$("editTitle").value.trim(),d=$("editDate").value;if(!title||!d){toast("Podaj nazwę i datę");return}const original={title:activeTask.title,date:activeTask.date,time:activeTask.time||"",endTime:activeTask.endTime||"",endDate:activeTask.endDate||"",notes:activeTask.notes||"",location:activeTask.location||"",reminder:activeTask.reminder??null};const r=$("editReminder").value,next={title,date:d,time:$("editStart").value||"",endTime:$("editEnd").value||"",endDate:!$("editStart").value?PlannerSyncCore.nextDate(d):$("editEnd").value<=$("editStart").value?PlannerSyncCore.nextDate(d,1):d,notes:$("editNotes").value.trim(),location:$("editLocation").value.trim(),reminder:r===""?null:{minutesBefore:Math.max(0,Number(r))}};let scope="1";if(activeTask.seriesId){scope=chooseSeriesScope(activeTask,"edit");if(!scope)return}const question=plannerItemQuestion({...next,type:'event',startTime:next.time});if(question){toast(question);return}const candidates=plannerEditedCandidates(activeTask,{...next,startTime:next.time},scope);const target=activeTask;if(!await approvePlannerSchedule(candidates,candidates.map(t=>t.id)))return;if(activeTask!==target||!tasks.includes(target))return;const apply=t=>{const locationChanged=plannerLocation(t)!==next.location;t.title=next.title;t.time=next.time;t.endTime=next.endTime;t.endDate=!next.time?PlannerSyncCore.nextDate(t.date):next.endDate>next.date?PlannerSyncCore.nextDate(t.date,1):t.date;t.notes=next.notes;t.location=next.location;t.reminder=next.reminder;if(locationChanged)clearPlannerWeatherResolution(t);if(t.googleEventId){t.googleDirty=true;t.googleSynced=false}};if(scope==="1"){activeTask.date=next.date;apply(activeTask)}else{const sid=activeTask.seriesId,boundary=original.date,series=tasks.filter(t=>t.seriesId===sid&&(scope==="3"||seriesOccurrenceOrder(t)>=seriesOccurrenceOrder(target)));const dayShift=Math.round((new Date(next.date+"T12:00:00")-new Date(original.date+"T12:00:00"))/86400000);series.forEach(t=>{if(dayShift){const td=new Date(t.date+"T12:00:00");td.setDate(td.getDate()+dayShift);t.date=iso(td)}apply(t)})}saveTasks();selected=new Date(next.date+"T12:00:00");monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$("date").value=next.date;renderAll();if(scope==="1"&&window.syncEditedTaskToGoogle)await window.syncEditedTaskToGoogle(activeTask);toast(scope==="1"?"✓ Zmieniono tylko to wydarzenie":scope==="2"?"✓ Zmieniono to i wszystkie następne • oczekuje na synchronizację":"✓ Zmieniono całą serię • oczekuje na synchronizację");openEventActions(activeTask)};$("actionDelete").onclick=async()=>{if(!activeTask)return;if(!activeTask.seriesId){if(!confirm("Czy na pewno chcesz usunąć to wydarzenie?"))return;const deleting=activeTask;if(deleting.googleEventId&&window.queueGoogleDelete){window.queueGoogleDelete(deleting);tasks=tasks.filter(t=>t.id!==deleting.id);saveTasks();renderAll();toast("🗑 Usunięte z Planera • oczekuje na synchronizację");closeEventActions();return}if(deleting.googleEventId&&window.deleteTaskFromGoogle){const removed=await window.deleteTaskFromGoogle(deleting);if(!removed)return}tasks=tasks.filter(t=>t.id!==deleting.id);saveTasks();renderAll();toast("🗑 Wydarzenie usunięte");closeEventActions();return}const choice=chooseSeriesScope(activeTask,"delete");if(choice==="1"){if(activeTask.googleEventId&&window.queueGoogleDelete)window.queueGoogleDelete(activeTask);tasks=tasks.filter(t=>t.id!==activeTask.id);toast("🗑 Usunięto tylko to wydarzenie")}else if(choice==="2"){if(!confirm("Usunąć to wydarzenie i wszystkie następne z tej serii?"))return;window.deletePlannerSeriesRange(activeTask,"following");toast("🗑 Usunięto to i wszystkie następne")}else if(choice==="3"){if(!confirm("Usunąć całą serię wydarzeń?"))return;window.deletePlannerSeriesRange(activeTask,"all");toast("🗑 Usunięto całą serię")}else{return}saveTasks();renderAll();closeEventActions()};$("actionTimer").onclick=()=>{$("timerBox").classList.toggle("hidden");$("eventEditBox").classList.add("hidden")};
 
 $("closeIdea").onclick=closeIdeaActions;$("ideaModal").onclick=e=>{if(e.target===$("ideaModal"))closeIdeaActions()};$("ideaDone").onclick=()=>{if(entryRecording){toast("Najpierw zapisz lub anuluj nagranie.");return}if(!activeIdea)return;activeIdea.done=!activeIdea.done;if(!activeIdea.done&&activeIdea.status==="calendar")activeIdea.status="todo";else if(activeIdea.done&&activeIdea.status!=="calendar")activeIdea.status="done";saveIdeas();renderAll();closeIdeaActions()};$("ideaTimer").onclick=()=>{if(!activeIdea)return;const v=prompt("Ustaw minutnik (minuty):","30");if(v!==null)startTimer(parseInt(v,10),activeIdea)};$("ideaDelete").onclick=()=>{if(entryRecording){toast("Najpierw zapisz lub anuluj nagranie.");return}if(!activeIdea||!confirm("Czy na pewno chcesz usunąć ten pomysł?"))return;ideas=ideas.filter(i=>i.id!==activeIdea.id);saveIdeas();entryAttachments(activeIdea).forEach(a=>deleteVoiceMemo(a.id));renderAll();closeIdeaActions();toast("🗑 Wpis usunięty")};
+$("closeEvent").onclick=e=>{e.preventDefault();e.stopPropagation();closeEventActions()};
 $("actionTimer").insertAdjacentHTML('afterend','<button id="eventHistory" class="secondary history-button" type="button">📄 Historia</button>');
 $("closeHistory").onclick=()=>$("historyModal").classList.add("hidden");$("historyModal").onclick=e=>{if(e.target===$("historyModal"))$("historyModal").classList.add("hidden")};
 $("ideaHistory").onclick=()=>{if(activeIdea)showEntryHistory(activeIdea)};$("eventHistory").onclick=()=>{if(activeTask)showEntryHistory(activeTask)};
@@ -2550,7 +2557,7 @@ initializeOctiDocks();
 
 </script>
 <style id="event-polish-33-87">
-/* 33.87: cloud-and-glass event sheet, with an opaque readable title layer. */
+/* 33.88: cloud-and-glass event sheet, with an opaque readable title layer. */
 #eventModal .event-sheet{position:relative;background-color:#eaf5ff;background-image:linear-gradient(180deg,#edf7ff18 0,#f7fbffb8 48%,#eef7ffed 100%),url("header-sky.webp?v=2dc2ba216dc1ab4d");background-position:center top;background-size:auto 100%,auto 560px;background-repeat:no-repeat;isolation:isolate}
 #eventModal .event-sheet:before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 12% 42%,#ffffff9c 0 8%,transparent 27%),radial-gradient(ellipse at 92% 66%,#ffffff94 0 7%,transparent 25%),linear-gradient(180deg,transparent 0 30%,#eef8ff8f 58%,#f5faffd9 100%)}
 #eventHeader{position:relative;display:block;padding:max(14px,env(safe-area-inset-top)) 16px 12px;isolation:isolate;background:#fbfbff!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transform:none!important;box-shadow:0 1px 0 #e4ddef;contain:none}
@@ -2569,6 +2576,7 @@ initializeOctiDocks();
 #eventModal #actionTitle{padding-right:2px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,10vw,44px);font-weight:700;line-height:1.02;letter-spacing:-.025em;color:#28223f!important}
 #eventHeaderMeta{position:relative;z-index:2;margin-top:5px;color:#302b4c;font-size:14px;font-weight:750;letter-spacing:.005em}
 #eventHeaderActions{align-self:flex-start;margin-top:-2px;background:transparent}
+#eventHeaderActions,#eventHeaderActions button{pointer-events:auto!important;touch-action:manipulation}
 #eventHeaderActions button{border:1px solid #ffffffd9!important;background:linear-gradient(145deg,#ffffffeb,#e6f2faaa)!important;box-shadow:inset 1px 1px 2px #fff,0 3px 8px #577ea326!important;color:#6250ad!important}
 #eventHeaderActions button.hidden{display:none!important}
 #eventReminderBadge{position:relative;z-index:2;max-width:285px;margin-top:10px;padding:7px 12px!important;border:1px solid #ffb9aa!important;border-radius:17px!important;background:radial-gradient(ellipse at 18% 0,#fff7f2,transparent 48%),linear-gradient(145deg,#ffd9cf,#ffab98)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 9px #d6755b32!important;color:#a8402d!important;font-size:14px!important}
@@ -2604,6 +2612,10 @@ initializeOctiDocks();
 #eventLocationText{font-size:15px;font-weight:650;color:#3b3555}
 #eventModal #navigateBtn{padding:10px 14px!important;border:1px solid #65cec8!important;border-radius:14px!important;background:radial-gradient(ellipse at 30% 0,#eaffff,transparent 52%),linear-gradient(145deg,#a9eee9,#59ccc5)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 8px #218e892f!important;color:#246f70!important;font-size:14px!important}
 #eventModal .event-note-card{border:1.5px solid #ffffffdb;border-radius:19px;background:linear-gradient(145deg,#ffffffdf,#f4f1fbd4);box-shadow:inset 0 0 0 2px #d6cbea38,inset 2px 3px 5px #fff,0 4px 11px #4c557a18}
+#eventModal .event-notes-card{padding:10px 52px 10px 14px}
+#eventModal .event-note-item{padding:5px 0 7px}
+#eventModal .event-note-item+.event-note-item{margin-top:7px;padding-top:12px;border-top:1px solid #cfc6df99}
+#eventModal .event-note-item .event-note-date{display:block;margin-top:7px}
 #eventModal .event-media-card{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;margin:10px 0;padding:10px 12px;border:1.5px solid #ffffffdb;border-radius:18px;background:linear-gradient(145deg,#ffffffdf,#edf5fbd3);box-shadow:inset 0 0 0 2px #bdd6e73a,inset 2px 3px 5px #fff,0 4px 11px #4c789b1a}
 #eventModal .event-media-heading,#eventModal .event-media-meta,#eventModal .event-media-actions,#eventModal .event-media-status{grid-column:1;min-width:0}
 #eventModal .event-photo-thumb{grid-column:2;grid-row:1 / span 4;width:92px;height:72px;border-color:#fff;border-radius:12px;box-shadow:inset 0 0 0 1px #93bdd46b,0 2px 7px #3f607820}
