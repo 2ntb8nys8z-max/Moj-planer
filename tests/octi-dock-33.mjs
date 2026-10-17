@@ -5,6 +5,11 @@ const settle=()=>new Promise(resolve=>w.setTimeout(resolve,250));
 try{
  for(const s of w.document.querySelectorAll('script'))if(!s.src)run(s.textContent);
  const dock=w.document.querySelector('.octi-dock[data-channel=main]'),menu=dock.querySelector('.extras'),toggle=dock.querySelector('.menu-toggle');
+ for(const [width,height,cx,cy,radius] of [[104,64,167,40,60],[159,64,230,40,64],[190,64,261,40,64]]){
+  const contour=run(`octiRibbonContour(${width},${height},${cx},${cy},${radius})`);
+  for(const point of [contour.arcStart,contour.arcEnd])assert.ok(Math.abs(Math.hypot(point.x-cx,point.y-cy)-radius)<.001,'Both ribbon endpoints follow the measured bubble circle');
+  assert.ok(contour.width>=contour.arcStart.x+3&&contour.width>=contour.arcEnd.x+3,'Glass reflections stay inside their SVG viewport');assert.equal(contour.forms.length,4);assert.ok(contour.forms.every(path=>!path.includes('NaN')));
+ }
  assert.equal(w.document.querySelectorAll('.octi-dock').length,3);assert.equal(dock.querySelectorAll('.reel-item').length,1,'Only one suggested command appears');assert.equal(dock.querySelectorAll('.dots').length,0);assert.equal(dock.querySelector('.status').parentElement,dock.querySelector('.commands'));assert.equal(w.getComputedStyle(dock.querySelector('.commands')).height,'64px');assert.equal(w.getComputedStyle(dock.parentElement).paddingBottom,'0px','Main dock must not duplicate the app safe-area inset');
  assert.equal(dock.querySelectorAll('.voice').length,1);assert.ok(dock.querySelector('.logo').src.startsWith('data:image/png'));
  const command=dock.querySelector('.commands');assert.equal(command.tagName,'BUTTON');assert.equal(command.type,'button');assert.equal(command.getAttribute('aria-label'),'Naciśnij i mów');assert.equal(w.getComputedStyle(command.querySelector('.status')).display,'none');assert.equal(w.getComputedStyle(command.querySelector('.reel')).display,'block');assert.equal(command.querySelector('.reel').textContent,'Naciśnij i mów','Reduced-motion users keep a stable initial caption');
