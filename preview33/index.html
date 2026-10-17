@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.79</title>
+<title>Mój Planer — test integracji 33.80</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.79</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.79</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.79-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.80</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.80</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.80-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -194,7 +194,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.79-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.80-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -654,6 +654,13 @@ function voiceDialogueValid(session){
   return JSON.stringify(voiceDialogueCurrent(session.channel,session.id))===session.snapshot;
 }
 function clearVoiceDialogue(channel,keepConversation=false){if(plannerSchedulePending?.channel===channel)plannerSchedulePending.cancel();if(channel==='idea')$('entryReminderPreview')?.remove();voiceDialogues[channel]=null;const box=$(channel+'Clarification');if(box)box.remove();if(channel==='main')$('mainConversationTools')?.querySelector('.reply-keyboard')?.remove();if(!keepConversation){$(channel+'Conversation')?.remove();if(channel==='main')$('mainConversationTools')?.remove()}}
+// Presentation only: retain the original log, controls, inputs and event handlers.
+function mountMainConversationFrame(box,tools){
+  let frame=document.querySelector('.octi-chat-frame');
+  if(!frame){frame=document.createElement('section');frame.className='octi-chat-frame';frame.setAttribute('aria-label','Rozmowa z Okti');tools.before(frame)}
+  if(tools.parentElement!==frame||box.parentElement!==frame)frame.append(tools,box);
+  requestAnimationFrame(()=>{if(!frame.isConnected)return;const bubble=document.querySelector('.octi-dock[data-channel="main"] .voice')?.getBoundingClientRect(),rect=frame.getBoundingClientRect();if(bubble?.width&&rect.width)frame.style.setProperty('--chat-origin-x',(bubble.left+bubble.width/2-rect.left)+'px')});
+}
 function renderVoiceConversation(session){
   if(plannerSchedulePending?.channel===session.channel)plannerSchedulePending.cancel();
   let box=$(session.channel+'Conversation');
@@ -664,7 +671,7 @@ function renderVoiceConversation(session){
   if(session.channel==='main'){
     let tools=$('mainConversationTools');
     if(!tools){tools=document.createElement('div');tools.id='mainConversationTools';tools.className='conversation-toolbar conversation-tools-outside';box.before(tools)}
-    const keyboard=tools.querySelector('.reply-keyboard');tools.replaceChildren();if(keyboard)tools.append(keyboard);tools.append(close);tools.classList.remove('hidden');
+    const keyboard=tools.querySelector('.reply-keyboard');tools.replaceChildren();if(keyboard)tools.append(keyboard);tools.append(close);tools.classList.remove('hidden');mountMainConversationFrame(box,tools);
   }else if(session.channel!=='event'){const toolbar=document.createElement('div');toolbar.className='conversation-toolbar';toolbar.append(close);box.append(toolbar)}
   const logoSrc=document.querySelector('.octi-dock[data-channel="main"] .logo')?.src||'app-icon-180.png';
   for(const message of session.history){const row=document.createElement('div');row.className='voice-message '+(message.role==='user'?'user':'assistant');const author=document.createElement('strong');if(message.role==='user')author.textContent='Ty: ';else{const logo=document.createElement('img');logo.className='voice-author-logo';logo.src=logoSrc;logo.alt='Octi';logo.width=logo.height=22;author.append(logo)}row.append(author,document.createTextNode(message.content));box.appendChild(row)}
@@ -2271,6 +2278,24 @@ initializeEventCommands();
 .phone-layout .octi-dock .commands:active .command-frost{animation-play-state:paused;transform:scale(.975)}
 @supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.phone-layout .octi-dock .command-frost,.phone-layout .octi-dock .water-frost{background:#e8f2fc40}}
 @media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .command-frost{animation:none}}
+/* 33.80: a regular glass conversation frame with its controls inside. */
+.octi-chat-frame{--chat-origin-x:65%;position:relative;isolation:isolate;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;height:clamp(220px,34dvh,310px);margin:0 0 12px;padding:8px;border:1.5px solid #9fc6dd;border-radius:18px;background-color:#e5f1fbe8;background-image:linear-gradient(90deg,transparent,#fffffff5 10%,#ffffffa6 44%,#ffffffed 90%,transparent),linear-gradient(90deg,transparent,#ffffffeb 15%,#ffffff75 50%,#fffffff2 88%,transparent),linear-gradient(180deg,#fffffff0,#eff8ff5c 22%,#d9edfc38 65%,#ffffffe0);background-size:calc(100% - 20px) 3px,calc(100% - 20px) 3px,100% 100%;background-position:center 4px,center calc(100% - 4px),center;background-repeat:no-repeat;box-shadow:inset 0 0 0 2px #ffffffb3,inset 0 0 0 4px #bad7e955,inset 5px 6px 8px #ffffffc9,inset -4px -4px 7px #8fb9d44d,0 5px 15px #447eab26;backdrop-filter:blur(14px) saturate(1.08);-webkit-backdrop-filter:blur(14px) saturate(1.08);transform-origin:var(--chat-origin-x) calc(100% + 44px);animation:octi-chat-rise .48s cubic-bezier(.2,.75,.25,1) both;pointer-events:auto}
+.octi-chat-frame:not(:has(#mainConversation:not(.hidden))){display:none}
+.phone-layout .voice-area .octi-chat-frame{flex:1 1 auto;min-height:0;max-height:min(38dvh,320px)}
+.octi-chat-frame #mainConversationTools{position:relative;top:auto;z-index:4;display:flex;justify-content:flex-end;align-items:center;gap:6px;flex:none;height:44px;min-height:44px;margin:0 0 6px;padding:0;background:transparent;border:0;box-shadow:none;pointer-events:none}
+.octi-chat-frame #mainConversationTools button{position:relative;width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;border:1px solid #9bcbdc;border-radius:12px;background:radial-gradient(ellipse at 28% 15%,#fffffff5,transparent 60%),linear-gradient(145deg,#f4fcffdb,#d9eef87a);color:#278f9f;box-shadow:inset 0 0 0 2px #ffffffc9,inset 2px 2px 3px #fffffff0,inset -2px -2px 4px #7db4ce4d,0 2px 4px #6196b426}
+.octi-chat-frame #mainConversationTools button:focus-visible{outline:3px solid #278f9f;outline-offset:1px}
+.octi-chat-frame #mainConversationTools .octi-conversation-close{font-size:27px;font-weight:400}
+.phone-layout .voice-area .octi-chat-frame #mainConversation{flex:1 1 auto;height:auto;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:auto;scroll-padding:10px;margin:0;padding:4px 4px 6px;border:0;border-radius:10px;background:transparent;box-shadow:none;animation:none}
+.octi-chat-frame .voice-message{max-width:88%;font-size:14px;line-height:1.45}
+.octi-chat-frame .voice-message.user{background:#fff9e7}
+.octi-chat-frame .voice-message.assistant{background:#edf7e9}
+.octi-chat-frame .voice-confirmation{background:#eaf5fdf5;box-shadow:0 7px 0 #eaf5fdf5;padding:7px 0 0}
+.octi-chat-frame #mainClarification.is-typing{flex:none;min-height:44px;margin:4px 2px 0!important;padding:2px!important;border-radius:10px;background:#f5fbffe8!important}
+.octi-chat-frame #mainClarification input{font-size:16px}
+@keyframes octi-chat-rise{0%{opacity:0;transform:translateY(30px) scale(.74,.86)}76%{opacity:1;transform:translateY(-2px) scale(1.008,1.006)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-height:500px){.phone-layout .voice-area:has(.octi-chat-frame #mainConversation:not(.hidden)){max-height:min(75dvh,calc(var(--reply-visible-height,100dvh) - 12px))}.phone-layout .voice-area .octi-chat-frame{height:160px;max-height:44dvh;padding:6px}.octi-chat-frame #mainConversationTools{margin-bottom:2px}.phone-layout .voice-area .octi-chat-frame #mainConversation:has(.voice-confirmation){min-height:58px}}
+@media(prefers-reduced-motion:reduce){.octi-chat-frame{animation:none}}
 /* 33.79: clear lettering inside reflective water; decorative droplets pop on return. */
 .phone-layout .daybar{min-height:78px;gap:4px;padding:6px 0 8px;overflow:visible;flex-shrink:0}
 .phone-layout .daybar h2{flex:1;line-height:1.3;overflow-wrap:anywhere}
