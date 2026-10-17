@@ -24,11 +24,11 @@ try{
  assert.equal(get('eventModal').getAttribute('role'),'dialog');
  for(const node of [header,main,panel,footer])assert.equal(node.parentElement,sheet,'header, main, conversation and communication footer are separate sheet regions');
  assert.equal(header.contains(get('actionTitle')),true);
- assert.equal(header.contains(get('closeEvent')),true);
+ assert.equal(header.contains(get('closeEvent')),true);assert.equal(header.contains(get('eventConversationToggle')),true,'collapsed conversation can reopen from the event header');
  assert.match(get('eventHeaderMeta').textContent,/2026-10-12/);
  assert.match(get('eventHeaderMeta').textContent,/12:00.*13:00/);
  for(const id of ['actionMeta','eventWeather','navigateBtn','eventEditBox','timerBox'])assert.equal(content.contains(get(id)),true,`${id} stays in the independently scrolling event content`);
- for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint','eventConversationToggle','eventReplyDock'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
+ for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint','eventReplyDock'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
  assert.equal(w.getComputedStyle(content).overflowY,'auto');
  assert.equal(w.getComputedStyle(get('eventConversationBody')).overflowY,'auto');
  assert.equal(main.contains(get('eventActionsToggle')),true);
@@ -67,8 +67,8 @@ try{
  input.value='O 14:30';
  await settle();
  assert.equal(get('eventConversationBody').contains(conversation),true,'the generated conversation node moves into its own scrolling panel');
- assert.equal(get('eventReplyDock').contains(reply),true,'the generated clarification node moves into the fixed footer');
- assert.equal(panel.classList.contains('hidden'),false,'a new conversation opens the separate conversation panel');
+ assert.equal(get('eventReplyDock').contains(reply),true,'the original clarification node stays in the reply dock');
+ assert.equal(panel.classList.contains('hidden'),false,'a new conversation opens the separate conversation panel');assert.equal(panel.contains(get('eventReplyDock')),true,'reply and history share the glass frame');assert.ok(get('eventConversationTools').contains(replyButtons[0]),'original keyboard is moved inside the frame');assert.equal(get('eventConversationTools').contains(get('closeEventConversation')),true);assert.equal(panel.classList.contains('octi-chat-frame'),true);assert.equal(replyButtons[0].onclick,replyHandlers[0]);
  get('closeEventConversation').click();
  await settle();
  assert.equal(panel.classList.contains('hidden'),true,'closing the conversation only collapses its panel');

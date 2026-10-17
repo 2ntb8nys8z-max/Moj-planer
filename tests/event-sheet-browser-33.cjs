@@ -87,11 +87,11 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
     window.eventSheetHistory=eventSheetSession.history;window.eventSheetDraft=eventSheetSession.dialogueState;window.eventSheetConversation=document.getElementById('eventConversation');window.eventSheetReply=document.getElementById('eventClarification');
    });
    await page.locator('#eventConversationPanel').waitFor({state:'visible'});
-   await page.locator('#eventReplyDock input').fill('O 14:30');
+   await page.locator('#eventConversationTools .reply-keyboard:not(.hidden)').click();await page.locator('#eventClarification input').fill('O 14:30');
    initial=await measure();
    near(initial.nodes.eventFooter.bottom,height,`${prefix}: the communication footer remains at the viewport bottom with a reply`);
    within(initial.nodes.eventVoice,{left:0,right:width,top:0,bottom:height},`${prefix}: the microphone remains usable with conversation and reply controls`);
-   within(initial.nodes.eventReplyDock,initial.nodes.eventFooter,`${prefix}: the original reply controls stay inside the full-width communication footer`);
+   within(initial.nodes.eventReplyDock,initial.nodes.eventConversationPanel,`${prefix}: reply and controls stay inside the glass conversation frame`);
    assert.ok(initial.nodes.eventContent.height>20,`${prefix}: event details remain usable with the conversation open`);
    assert.ok(initial.nodes.eventConversationBody.height>15,`${prefix}: the conversation keeps an independent usable scroll area`);
    assert.ok(initial.conversationScrollHeight>initial.conversationClientHeight,`${prefix}: the conversation has enough history to scroll`);
@@ -113,7 +113,7 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    assert.deepEqual(preserved,{session:true,history:true,draft:true,conversation:true,reply:true,input:'O 14:30'},`${prefix}: collapsing conversation preserves the same dialogue, history, draft, generated nodes and unsent reply`);
    await page.locator('#eventConversationToggle').click();
    assert.equal(await page.locator('#eventConversationPanel').isVisible(),true);
-   assert.equal(await page.locator('#eventReplyDock input').inputValue(),'O 14:30');
+   assert.equal(await page.locator('#eventClarification input').inputValue(),'O 14:30');
    await page.locator('#closeEventConversation').click();
    await page.evaluate(()=>{eventSheetSession.history.push({role:'assistant',content:'Nowa wiadomość po zamknięciu panelu.'});renderVoiceConversation(eventSheetSession)});
    await page.locator('#eventConversationPanel').waitFor({state:'visible'});
