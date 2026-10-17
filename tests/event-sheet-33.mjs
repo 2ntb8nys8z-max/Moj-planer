@@ -28,7 +28,9 @@ try{
  assert.match(get('eventHeaderMeta').textContent,/2026-10-12/);
  assert.match(get('eventHeaderMeta').textContent,/12:00.*13:00/);
  for(const id of ['actionMeta','eventWeather','navigateBtn','eventEditBox','timerBox'])assert.equal(content.contains(get(id)),true,`${id} stays in the independently scrolling event content`);
- for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint','eventReplyDock'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
+ for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
+ assert.equal(panel.contains(get('eventReplyDock')),true,'the dormant typed reply belongs to the glass conversation frame');
+ assert.equal(get('eventTextForm').classList.contains('hidden'),true,'the typed event command is not permanently visible');
  assert.equal(w.getComputedStyle(content).overflowY,'auto');
  assert.equal(w.getComputedStyle(get('eventConversationBody')).overflowY,'auto');
  assert.equal(main.contains(get('eventActionsToggle')),true);
