@@ -23,6 +23,7 @@ try{
  assert.ok(sheet,'the event opens as a dedicated event sheet');
  assert.equal(get('eventModal').getAttribute('role'),'dialog');
  for(const node of [header,main,panel,footer])assert.equal(node.parentElement,sheet,'header, main, conversation and communication footer are separate sheet regions');
+ assert.equal(get('actionTitle').parentElement.className,'event-header-top','the event title uses the dedicated opaque top row');
  assert.equal(header.contains(get('actionTitle')),true);
  assert.equal(header.contains(get('closeEvent')),true);assert.equal(header.contains(get('eventConversationToggle')),true,'collapsed conversation can reopen from the event header');
  assert.match(get('eventHeaderMeta').textContent,/2026-10-12/);
