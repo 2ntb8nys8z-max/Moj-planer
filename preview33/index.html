@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.83</title>
+<title>Mój Planer — test integracji 33.84</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -135,7 +135,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.83</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.83</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.83-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.84</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.84</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.84-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -211,7 +211,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.83-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.84-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1223,14 +1223,25 @@ function plannerWeatherRows(hourly,task){
   return wanted.map(w=>{const i=hourly.time.indexOf(w.key);return {...w,index:i,temperature:i>=0?hourly.temperature_2m?.[i]:null,rain:i>=0?hourly.precipitation_probability?.[i]:null,wind:i>=0?hourly.wind_speed_10m?.[i]:null,code:i>=0?hourly.weather_code?.[i]:null}});
 }
 function plannerWeatherSymbol(code){
-  if(code==null)return {icon:'❔',label:'Brak danych o zachmurzeniu'};
-  if(code===0)return {icon:'☀️',label:'Bezchmurnie'};
-  if(code<=2)return {icon:'🌤️',label:'Częściowe zachmurzenie'};
-  if(code===3)return {icon:'☁️',label:'Pochmurno'};
-  if(code===45||code===48)return {icon:'🌫️',label:'Mgła'};
-  if(code>=95)return {icon:'⛈️',label:'Burza'};
-  if(code>=71&&code<=77||code===85||code===86)return {icon:'🌨️',label:'Śnieg'};
-  return {icon:'🌧️',label:'Opady'};
+  if(code==null)return {kind:'unknown',label:'Brak danych o zachmurzeniu'};
+  if(code===0)return {kind:'sun',label:'Bezchmurnie'};
+  if(code<=2)return {kind:'partly',label:'Częściowe zachmurzenie'};
+  if(code===3)return {kind:'cloud',label:'Pochmurno'};
+  if(code===45||code===48)return {kind:'fog',label:'Mgła'};
+  if(code>=95)return {kind:'storm',label:'Burza'};
+  if(code>=71&&code<=77||code===85||code===86)return {kind:'snow',label:'Śnieg'};
+  return {kind:'rain',label:'Opady'};
+}
+function plannerWeatherArtwork(kind){
+  const cloud='<path class="weather-cloud-fill" d="M17 34h24.5a7.5 7.5 0 0 0 .5-15 12 12 0 0 0-22.8-2.5A8.8 8.8 0 0 0 17 34Z"/><path class="weather-cloud-rim" d="M17 34h24.5a7.5 7.5 0 0 0 .5-15 12 12 0 0 0-22.8-2.5A8.8 8.8 0 0 0 17 34Z"/>';
+  const sun='<circle class="weather-sun" cx="23" cy="21" r="8"/><g class="weather-rays"><path d="M23 7v5M23 30v5M9 21h5M32 21h5M13 11l4 4M29 27l4 4M33 11l-4 4M17 27l-4 4"/></g>';
+  const drops='<g class="weather-drops"><path d="M21 38l-2 5M30 38l-2 5M39 38l-2 5"/></g>';
+  const snow='<g class="weather-snow"><path d="M21 39v7M17.5 41l7 3M24.5 41l-7 3M36 39v7M32.5 41l7 3M39.5 41l-7 3"/></g>';
+  const lightning='<path class="weather-lightning" d="M30 34h7l-6 8h5l-10 10 3-8h-5Z"/>';
+  const fog='<g class="weather-fog"><path d="M12 24h32M9 31h38M14 38h28"/></g>';
+  const question='<path class="weather-question" d="M21 20c.5-5 11-6 13-.5 2 5-5 6-6 10v2M28 39h.1"/>';
+  const art=kind==='sun'?sun:kind==='partly'?sun+cloud:kind==='cloud'?cloud:kind==='fog'?fog:kind==='storm'?cloud+lightning:kind==='snow'?cloud+snow:kind==='rain'?cloud+drops:question;
+  return '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false">'+art+'</svg>';
 }
 function plannerWeatherCityQueries(location){
   const withoutNearby=String(location||'').replace(/\s+(?:pod|koło|kolo|w pobliżu|w poblizu|near|bei)\s+[^,;\n]+/i,'');
@@ -1268,7 +1279,9 @@ async function showPlannerWeather(task){
   if(voiceDialogues.event?.purpose==='weather')clearVoiceDialogue('event');
   panel.textContent='';panel.classList.add('hidden');
   const location=plannerLocation(task);if(!location)return;panel.classList.remove('hidden');
-  const heading=document.createElement('h3');heading.textContent='Pogoda w miejscu wydarzenia';panel.appendChild(heading);
+  const weatherHeader=document.createElement('div');weatherHeader.className='weather-card-header';
+  const heading=document.createElement('h3');heading.textContent='Pogoda w miejscu wydarzenia';weatherHeader.appendChild(heading);
+  const infoButton=document.createElement('button');infoButton.type='button';infoButton.className='weather-info-button';infoButton.textContent='i';infoButton.setAttribute('aria-label','Informacje o prognozie');infoButton.setAttribute('aria-expanded','false');weatherHeader.appendChild(infoButton);panel.appendChild(weatherHeader);
   const body=document.createElement('div');body.setAttribute('role','status');panel.appendChild(body);
   const current=()=>sequence===plannerWeatherSequence&&activeTask?.id===task.id&&tasks.includes(task)&&plannerLocation(task)===location&&!signal.aborted;
   const say=text=>{if(current())body.textContent=text};
@@ -1296,15 +1309,18 @@ async function showPlannerWeather(task){
     }catch(e){if(current())say(e.message||'Nie udało się pobrać pogody.')}
   }
   function renderForecast(rows,place,timezone,fromCache){
-      if(!current())return;body.textContent='';const info=document.createElement('div');info.className='weather-place';info.textContent='Pogoda dla: '+plannerWeatherLabel(place)+(!task.time?' · Prognoza w okolicach południa':'');body.appendChild(info);
+      if(!current())return;body.textContent='';const info=document.createElement('div');info.className='weather-place';info.textContent=plannerWeatherLabel(place)+(!task.time?' · okolice południa':'');body.appendChild(info);
       const strip=document.createElement('div');strip.className='weather-strip';body.appendChild(strip);
       for(const r of rows){const cell=document.createElement('div');cell.className='weather-period';const label=document.createElement('div');label.className='weather-period-label';label.textContent=r.label+' · '+r.key.slice(11);cell.appendChild(label);
-        const symbol=plannerWeatherSymbol(r.index<0?null:r.code);const icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.textContent=symbol.icon;cell.appendChild(icon);
+        const symbol=plannerWeatherSymbol(r.index<0?null:r.code);const icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind);cell.appendChild(icon);
         const temperature=document.createElement('strong');temperature.className='weather-temperature';temperature.textContent=r.index<0||r.temperature==null?'—':Math.round(r.temperature)+'°C';cell.appendChild(temperature);
         const detail=document.createElement('div');detail.className='weather-detail';detail.textContent=r.index<0?'Prognoza niedostępna':'Opady '+(r.rain==null?'—':r.rain+'%')+' · Wiatr '+(r.wind==null?'—':Math.round(r.wind)+' km/h');cell.appendChild(detail);strip.appendChild(cell);
       }
-      const source=document.createElement('a');source.href='https://open-meteo.com/';source.textContent='Open-Meteo';source.target='_blank';source.rel='noopener noreferrer';body.appendChild(source);
-      const note=document.createElement('small');note.textContent=' · Godziny miejscowe, prognoza dla pełnych godzin ('+timezone+').'+(fromCache?' Zapisana prognoza, odświeżana najwyżej co 2 godziny.':'');body.appendChild(note);
+      const details=document.createElement('div');details.className='weather-source-details hidden';details.setAttribute('role','note');
+      const source=document.createElement('a');source.href='https://open-meteo.com/';source.textContent='Open-Meteo';source.target='_blank';source.rel='noopener noreferrer';
+      const fetched=task.weatherForecast?.fetchedAt?new Date(task.weatherForecast.fetchedAt).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+      details.append('Źródło: ',source,'. Godziny miejscowe, prognoza dla pełnych godzin',timezone?' ('+timezone+')':'','. Odświeżana najwyżej co 2 godziny.',fetched?' Ostatnie dane: '+fetched+'.':'');body.appendChild(details);
+      infoButton.onclick=()=>{const open=details.classList.toggle('hidden')===false;infoButton.setAttribute('aria-expanded',String(open));infoButton.classList.toggle('active',open)};
   }
   async function select(place){
     if(!current())return;
@@ -2533,4 +2549,42 @@ if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVoi
 initializeOctiDocks();
 
 </script>
+<style id="event-polish-33-84">
+/* 33.84: sharp event heading, lighter weather and a floating event dock. */
+#eventModal .event-sheet{position:relative;background:#fbfbff}
+#eventHeader{position:relative;isolation:isolate;background:#fbfbff;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transform:translateZ(0);box-shadow:0 1px 0 #e4ddef;contain:paint}
+#eventHeader:before{content:'';position:absolute;inset:0;z-index:-1;background:#fbfbff;pointer-events:none}
+#eventModal #actionTitle{display:block;max-height:2.36em;font-family:"Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:25px;font-weight:750;line-height:1.18;letter-spacing:-.018em;color:#3d3158;opacity:1;filter:none!important;text-shadow:none!important;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transform:translateZ(0)}
+#eventHeaderActions,#eventHeaderActions button{filter:none!important;opacity:1;text-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#eventHeaderMeta{color:#554a70;font-weight:650}
+
+#eventModal #eventWeather{padding:14px!important;border-color:#d8e6f1!important;border-radius:20px;background:radial-gradient(ellipse at 16% 0,#ffffff 0,transparent 42%),linear-gradient(145deg,#eef7fd,#f5f1fb 72%,#edf5fb);box-shadow:inset 1px 1px 2px #fff,0 4px 14px #537a9b14;color:#34435d}
+.weather-card-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+#eventModal .weather-card-header h3{margin:0;font-size:17px;line-height:1.25;color:#352c4c}
+.weather-info-button{flex:none;display:grid;place-items:center;width:30px;height:30px;min-width:30px;min-height:30px;padding:0;border:1px solid #b8cfe0;border-radius:50%;background:linear-gradient(145deg,#fff,#dceef8);color:#54748c;font:700 16px/1 Georgia,serif;box-shadow:inset 1px 1px 2px #fff,0 2px 5px #4d789522}
+.weather-info-button.active{color:#fff;border-color:#6c8fa8;background:linear-gradient(145deg,#7daac5,#5f849e)}
+#eventModal .weather-place{margin:0 0 11px;color:#64738a;font-size:13px;line-height:1.35}
+#eventModal .weather-strip{gap:7px;border:0;border-radius:0;background:transparent;margin:0}
+#eventModal .weather-period{display:flex;flex-direction:column;align-items:center;min-width:0;min-height:132px;padding:9px 4px 10px;border:1px solid #d7e2ec!important;border-radius:16px;background:linear-gradient(160deg,#ffffffdd,#f4f8fccc);box-shadow:inset 1px 1px 1px #fff,0 2px 7px #536f8912}
+#eventModal .weather-period-label{min-height:31px;display:flex;align-items:center;justify-content:center;color:#68758a;font-size:10.5px;font-weight:650;line-height:1.25}
+#eventModal .weather-icon{display:block;width:50px;height:47px;margin:2px 0 -2px}
+#eventModal .weather-icon svg{display:block;width:100%;height:100%;overflow:visible}
+.weather-cloud-fill{fill:#dbeaf4;stroke:none}.weather-cloud-rim{fill:none;stroke:#799bb3;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.weather-sun{fill:#ffe59b;stroke:#e7ad53;stroke-width:1.6}.weather-rays{fill:none;stroke:#e6b65d;stroke-width:1.7;stroke-linecap:round}.weather-drops{fill:none;stroke:#679dca;stroke-width:2.4;stroke-linecap:round}.weather-snow{fill:none;stroke:#7bb0d0;stroke-width:1.6;stroke-linecap:round}.weather-lightning{fill:#f2c45e;stroke:#cc933b;stroke-width:1.2;stroke-linejoin:round}.weather-fog{fill:none;stroke:#829aad;stroke-width:2.2;stroke-linecap:round}.weather-question{fill:none;stroke:#8294a6;stroke-width:2.5;stroke-linecap:round}
+#eventModal .weather-temperature{color:#28243b;font-size:21px;line-height:1.1}
+#eventModal .weather-detail{margin-top:6px;color:#66758a;font-size:10.5px;line-height:1.3}
+.weather-source-details{margin-top:10px;padding:9px 10px;border:1px solid #dbe5ed;border-radius:11px;background:#ffffffa6;color:#66758a;font-size:11px;line-height:1.45}
+.weather-source-details a{color:#537c9b;font-weight:700}
+
+#eventMainRegion{z-index:1}
+#eventContent{padding-bottom:calc(205px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(205px + env(safe-area-inset-bottom))}
+#eventActionsToggle{bottom:190px}
+#eventActionsMenu{bottom:244px}
+#eventModal .event-sheet:has(#eventConversationPanel:not(.hidden)) #eventActionsToggle{bottom:12px}
+#eventModal .event-sheet:has(#eventConversationPanel:not(.hidden)) #eventActionsMenu{bottom:66px}
+#eventModal #eventFooter{position:absolute;left:0;right:0;bottom:0;z-index:6;width:100%;margin:0;padding:0 10px max(4px,env(safe-area-inset-bottom));border:0;background:transparent;box-shadow:none;overflow:visible;pointer-events:none}
+#eventModal #eventFooter>.octi-dock,#eventModal #eventFooter .event-text-form,#eventModal #eventFooter #eventReplyDock{pointer-events:auto}
+#eventConversationPanel.octi-chat-frame:not(.hidden){z-index:7;margin-bottom:178px}
+@media(max-width:380px){#eventModal #actionTitle{font-size:23px}#eventModal .weather-card-header h3{font-size:16px}#eventModal .weather-period{min-height:126px;padding-left:2px;padding-right:2px}#eventModal .weather-period-label,#eventModal .weather-detail{font-size:9.5px}}
+@media(max-height:500px){#eventContent{padding-bottom:145px;scroll-padding-bottom:145px}#eventConversationPanel.octi-chat-frame:not(.hidden){margin-bottom:122px}}
+</style>
 </body></html>
