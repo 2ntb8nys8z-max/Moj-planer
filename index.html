@@ -135,7 +135,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.88-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.89-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -209,7 +209,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.88-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.89-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2555,9 +2555,9 @@ initializeOctiDocks();
 
 </script>
 <style id="event-polish-33-87">
-/* 33.88: cloud-and-glass event sheet, with an opaque readable title layer. */
+/* 33.89: sharper safe-area header, bluer lower glass and compact grouped notes. */
 #eventModal .event-sheet{position:relative;background-color:#eaf5ff;background-image:linear-gradient(180deg,#edf7ff18 0,#f7fbffb8 48%,#eef7ffed 100%),url("header-sky.webp?v=2dc2ba216dc1ab4d");background-position:center top;background-size:auto 100%,auto 560px;background-repeat:no-repeat;isolation:isolate}
-#eventModal .event-sheet:before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 12% 42%,#ffffff9c 0 8%,transparent 27%),radial-gradient(ellipse at 92% 66%,#ffffff94 0 7%,transparent 25%),linear-gradient(180deg,transparent 0 30%,#eef8ff8f 58%,#f5faffd9 100%)}
+#eventModal .event-sheet:before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 12% 42%,#ffffff8c 0 8%,transparent 27%),radial-gradient(ellipse at 92% 66%,#ffffff82 0 7%,transparent 25%),linear-gradient(180deg,transparent 0 28%,#e5f3ff9e 56%,#dceeffe8 100%)}
 #eventHeader{position:relative;display:block;padding:max(14px,env(safe-area-inset-top)) 16px 12px;isolation:isolate;background:#fbfbff!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transform:none!important;box-shadow:0 1px 0 #e4ddef;contain:none}
 #eventHeader:before,#eventHeader:after{content:none!important;display:none!important}
 .event-header-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px;min-height:44px;background:#fbfbff;isolation:isolate;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important}
@@ -2569,7 +2569,7 @@ initializeOctiDocks();
 #eventHeaderMeta{color:#554a70;font-weight:650}
 
 /* The heading is intentionally not real backdrop glass: this keeps it sharp in iOS Safari. */
-#eventHeader{z-index:8;padding:max(13px,env(safe-area-inset-top)) 16px 13px;border:0;background:linear-gradient(180deg,#f8fbfffa 0,#f8fbfff0 66%,#f8fbffb8 100%)!important;box-shadow:none}
+#eventHeader{z-index:20;padding:max(54px,calc(env(safe-area-inset-top) + 12px)) 16px 13px;border:0;background:#f8fbff!important;box-shadow:0 1px 0 #dbe8f2;transform:translateZ(0)!important;-webkit-transform:translateZ(0)!important}
 .event-header-top{min-height:48px;background:transparent}
 #eventModal #actionTitle{padding-right:2px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,10vw,44px);font-weight:700;line-height:1.02;letter-spacing:-.025em;color:#28223f!important}
 #eventHeaderMeta{position:relative;z-index:2;margin-top:5px;color:#302b4c;font-size:14px;font-weight:750;letter-spacing:.005em}
@@ -2581,10 +2581,8 @@ initializeOctiDocks();
 #eventReminderBadge svg{color:#cf553d}
 
 /* WebKit may leak a fixed descendant's backdrop blur into separately composited header text. */
-#eventModal .octi-dock .command-frost,
-#eventModal .octi-dock .water-frost,
-#eventModal .octi-dock .commands:before,
-#eventModal .octi-dock .dismiss-orb{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#eventModal .octi-dock .command-frost{background:#d8edfb70!important;backdrop-filter:blur(13px) saturate(1.12)!important;-webkit-backdrop-filter:blur(13px) saturate(1.12)!important}
+#eventModal .octi-dock .water-frost{background:#d8edfb70!important;backdrop-filter:blur(11px) saturate(1.12)!important;-webkit-backdrop-filter:blur(11px) saturate(1.12)!important}
 
 #eventModal #eventWeather{padding:15px!important;border:1.5px solid #ffffffdb!important;border-radius:22px;background:radial-gradient(ellipse at 16% 0,#ffffff 0,transparent 44%),linear-gradient(145deg,#f7fbffed,#e8f2fbd9 68%,#f7f8ffdf);box-shadow:inset 0 0 0 2px #bcd7e94a,inset 3px 4px 7px #ffffffd9,inset -3px -4px 8px #82aac536,0 5px 14px #4c789b20;color:#34435d}
 .weather-card-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
@@ -2609,12 +2607,12 @@ initializeOctiDocks();
 #eventModal .event-location-row{padding:11px 12px!important;border:1.5px solid #ffffffdb!important;border-radius:18px!important;background:linear-gradient(145deg,#ffffffdc,#edf6fbd1)!important;box-shadow:inset 0 0 0 2px #bcd7e93b,inset 2px 3px 5px #fff,0 4px 11px #4c789b1c!important}
 #eventLocationText{font-size:15px;font-weight:650;color:#3b3555}
 #eventModal #navigateBtn{padding:10px 14px!important;border:1px solid #65cec8!important;border-radius:14px!important;background:radial-gradient(ellipse at 30% 0,#eaffff,transparent 52%),linear-gradient(145deg,#a9eee9,#59ccc5)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 8px #218e892f!important;color:#246f70!important;font-size:14px!important}
-#eventModal .event-note-card{border:1.5px solid #ffffffdb;border-radius:19px;background:linear-gradient(145deg,#ffffffdf,#f4f1fbd4);box-shadow:inset 0 0 0 2px #d6cbea38,inset 2px 3px 5px #fff,0 4px 11px #4c557a18}
-#eventModal .event-notes-card{padding:10px 52px 10px 14px}
-#eventModal .event-note-item{padding:5px 0 7px}
-#eventModal .event-note-item+.event-note-item{margin-top:7px;padding-top:12px;border-top:1px solid #cfc6df99}
-#eventModal .event-note-item .event-note-date{display:block;margin-top:7px}
-#eventModal .event-media-card{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;margin:10px 0;padding:10px 12px;border:1.5px solid #ffffffdb;border-radius:18px;background:linear-gradient(145deg,#ffffffdf,#edf5fbd3);box-shadow:inset 0 0 0 2px #bdd6e73a,inset 2px 3px 5px #fff,0 4px 11px #4c789b1a}
+#eventModal .event-note-card{border:1.5px solid #f8fdffeb;border-radius:19px;background:linear-gradient(145deg,#eef8ffed,#dfeefae6);box-shadow:inset 0 0 0 2px #a9cce546,inset 2px 3px 5px #fff,0 4px 11px #4c789b1d}
+#eventModal .event-notes-card{padding:8px 52px 8px 14px}
+#eventModal .event-note-item{padding:3px 0 4px}
+#eventModal .event-note-item+.event-note-item{margin-top:3px;padding-top:7px;border-top:1px solid #aebfd099}
+#eventModal .event-note-item .event-note-date{display:block;margin-top:4px}
+#eventModal .event-media-card{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;margin:10px 0;padding:10px 12px;border:1.5px solid #f8fdffeb;border-radius:18px;background:linear-gradient(145deg,#edf8ffed,#dceefae8);box-shadow:inset 0 0 0 2px #a8cce545,inset 2px 3px 5px #fff,0 4px 11px #4c789b20}
 #eventModal .event-media-heading,#eventModal .event-media-meta,#eventModal .event-media-actions,#eventModal .event-media-status{grid-column:1;min-width:0}
 #eventModal .event-photo-thumb{grid-column:2;grid-row:1 / span 4;width:92px;height:72px;border-color:#fff;border-radius:12px;box-shadow:inset 0 0 0 1px #93bdd46b,0 2px 7px #3f607820}
 #eventModal .event-media-heading{margin:0 0 3px;font-size:14px}
@@ -2627,7 +2625,7 @@ initializeOctiDocks();
 #eventActionsMenu{bottom:244px}
 #eventModal .event-sheet:has(#eventConversationPanel:not(.hidden)) #eventActionsToggle{bottom:12px}
 #eventModal .event-sheet:has(#eventConversationPanel:not(.hidden)) #eventActionsMenu{bottom:66px}
-#eventModal #eventFooter{position:absolute;left:0;right:0;bottom:0;z-index:6;width:100%;margin:0;padding:0 10px max(4px,env(safe-area-inset-bottom));border:0;background:transparent;box-shadow:none;overflow:visible;pointer-events:none}
+#eventModal #eventFooter{position:absolute;left:0;right:0;bottom:0;z-index:6;width:100%;margin:0;padding:0 10px max(4px,env(safe-area-inset-bottom));border:0;background:linear-gradient(180deg,transparent,#dceeff66 45%,#dceeffb8);box-shadow:none;overflow:visible;pointer-events:none}
 #eventModal #eventFooter>.octi-dock,#eventModal #eventFooter .event-text-form,#eventModal #eventFooter #eventReplyDock{pointer-events:auto}
 #eventConversationPanel.octi-chat-frame:not(.hidden){z-index:7;margin-bottom:178px}
 @media(max-width:380px){#eventModal #actionTitle{font-size:23px}#eventModal .weather-card-header h3{font-size:16px}#eventModal .weather-period{min-height:126px;padding-left:2px;padding-right:2px}#eventModal .weather-period-label,#eventModal .weather-detail{font-size:9.5px}}
