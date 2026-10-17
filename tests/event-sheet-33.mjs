@@ -29,6 +29,7 @@ try{
  assert.match(get('eventHeaderMeta').textContent,/12:00.*13:00/);
  for(const id of ['actionMeta','eventWeather','navigateBtn','eventEditBox','timerBox'])assert.equal(content.contains(get(id)),true,`${id} stays in the independently scrolling event content`);
  for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
+ assert.ok(get('eventVoiceHint').classList.contains('octi-legacy'),'legacy event recording hint remains hidden behind the glass dock');
  assert.equal(panel.contains(get('eventReplyDock')),true,'the dormant typed reply belongs to the glass conversation frame');
  assert.equal(get('eventTextForm').classList.contains('hidden'),true,'the typed event command is not permanently visible');
  assert.equal(w.getComputedStyle(content).overflowY,'auto');
