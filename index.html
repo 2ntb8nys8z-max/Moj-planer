@@ -118,7 +118,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.74-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.17.33.75-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -192,7 +192,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.74-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.17.33.75-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2252,6 +2252,15 @@ initializeEventCommands();
 .phone-layout .octi-dock .command-drop{animation-duration:6.8s;filter:drop-shadow(0 2px 3px #4b789523)}
 @keyframes octi-ribbon-float{0%,100%{transform:translate(0,0)}35%{transform:translate(1px,-2.5px)}70%{transform:translate(-1px,1px)}}
 @media(max-width:360px){.phone-layout .octi-dock .commands .reel-item.selected,.phone-layout .octi-dock .commands .status{font-size:12px}}
+/* 33.75: centred glass with frosted backdrops, below all captions and artwork. */
+.phone-layout .octi-dock .octi-copy{transform:none}
+.phone-layout .octi-dock .command-frost{position:absolute;inset:0 auto auto 0;height:100%;z-index:-2;pointer-events:none;background:#e8f2fce6;backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15);animation:octi-ribbon-float 6.8s ease-in-out infinite}
+.phone-layout .octi-dock .water-frost{position:absolute;width:calc(var(--octi-size,100px) + 4px);height:calc(var(--octi-size,100px) + 4px);border-radius:50%;z-index:2;pointer-events:none;background:#e8f2fce6;backdrop-filter:blur(10px) saturate(1.15);-webkit-backdrop-filter:blur(10px) saturate(1.15)}
+.phone-layout .octi-dock .commands .reel-item.selected{color:#6139a7;font-weight:650}
+.phone-layout .octi-dock .commands .status{font-weight:650}
+.phone-layout .octi-dock .commands:active .command-frost{animation-play-state:paused;transform:scale(.975)}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.phone-layout .octi-dock .command-frost,.phone-layout .octi-dock .water-frost{background:#e8f2fc40}}
+@media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .command-frost{animation:none}}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -2327,12 +2336,13 @@ function initializeOctiDocks(){
   const dropId='octi-command-drop-'+channel,dropBody=dropId+'-body',dropRim=dropId+'-rim',dropShape=dropId+'-shape';
   const dropForms=octiRibbonContour(159,64,230,40,64).forms;
   commandSkin.innerHTML='<defs><linearGradient id="'+dropBody+'" x2="0" y2="1"><stop stop-color="#ffffff" stop-opacity=".78"/><stop offset=".22" style="stop-color:var(--command-tint)" stop-opacity=".25"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".12"/><stop offset=".83" style="stop-color:var(--command-edge)" stop-opacity=".23"/><stop offset="1" stop-color="#ffffff" stop-opacity=".6"/></linearGradient><linearGradient id="'+dropRim+'" x1="0" y1="0" x2=".3" y2="1"><stop stop-color="#ffffff"/><stop offset=".23" style="stop-color:var(--command-edge)" stop-opacity=".7"/><stop offset=".48" stop-color="#ffffff"/><stop offset=".78" style="stop-color:var(--command-edge)"/><stop offset="1" stop-color="#ffffff"/></linearGradient><path id="'+dropShape+'" d="'+dropForms[0]+'"><animate attributeName="d" values="'+dropForms.join(';')+'" dur="6.8s" repeatCount="indefinite"/></path><path id="'+dropShape+'-inner"><animate attributeName="d" dur="6.8s" repeatCount="indefinite"/></path></defs><use href="#'+dropShape+'" fill="url(#'+dropBody+')" stroke="url(#'+dropRim+')" stroke-width="4"/><use href="#'+dropShape+'-inner" fill="none" stroke="#ffffff" stroke-opacity=".88" stroke-width="1.7"/><use href="#'+dropShape+'-inner" fill="none" stroke="var(--command-edge)" stroke-opacity=".26" stroke-width="1.2"/><path class="drop-top-shine" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" opacity=".95"/><path class="drop-bottom-shine" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity=".85"/><path d="M10 24 Q6 32 11 41" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity=".92"/>';
-  root.querySelector('.commands').prepend(commandSkin);
+  const commandFrost=document.createElement('span');commandFrost.className='command-frost';commandFrost.setAttribute('aria-hidden','true');commandFrost.style.clipPath='path("'+octiRibbonContour(159,64,230,32,64).forms[0]+'")';
+  root.querySelector('.commands').prepend(commandFrost,commandSkin);
   // A sibling overlay survives the existing recorder's textContent updates.
   const art=document.createElement('span');art.className='octi-art';art.style.cssText='position:absolute;width:calc(var(--octi-size,100px) - 10px);height:calc(var(--octi-size,100px) - 10px);border:2px solid #6b42ba;box-sizing:border-box;pointer-events:none;border-radius:50%;overflow:hidden;z-index:3';art.innerHTML='<img class="logo" alt="" src="'+logoSrc+'">';stage.append(art);
   const water=document.createElement('span');water.className='water-shell';water.setAttribute('aria-hidden','true');stage.append(water);
   // Presentation only: the recorder button stays outside the moving artwork.
-  const floating=document.createElement('span');floating.className='water-float';floating.setAttribute('aria-hidden','true');stage.append(floating);floating.append(art,water);
+  const floating=document.createElement('span');floating.className='water-float';floating.setAttribute('aria-hidden','true');stage.append(floating);const waterFrost=document.createElement('span');waterFrost.className='water-frost';floating.append(waterFrost,art,water);
   const glass=document.createElement('img');glass.className='water-glass';glass.alt='';glass.src='octi-water-glass.webp?v=babdb581839accf9';glass.draggable=false;water.append(glass);
   const mascot=document.createElementNS('http://www.w3.org/2000/svg','svg');mascot.classList.add('octi-mascot');mascot.setAttribute('viewBox','0 0 1254 1254');mascot.setAttribute('aria-hidden','true');mascot.setAttribute('focusable','false');
   const bendMask='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254"><defs><linearGradient id="fade" x2="0" y2="1"><stop offset="0.48" stop-color="white" stop-opacity="0"/><stop offset="0.67" stop-color="white" stop-opacity="1"/></linearGradient></defs><rect width="1254" height="1254" fill="url(#fade)"/></svg>');
@@ -2358,6 +2368,7 @@ function initializeOctiDocks(){
    const cx=circle.left+circle.width/2-box.left,cy=circle.top+circle.height/2-box.top,radius=parseFloat(getComputedStyle(water).width)/2+5;
    const shape=octiRibbonContour(box.width,box.height,cx,cy,radius);
    commandSkin.setAttribute('viewBox',`0 0 ${shape.width} ${box.height}`);commandSkin.style.width=shape.width+'px';
+   commandFrost.style.width=shape.width+'px';commandFrost.style.clipPath='path("'+shape.forms[0]+'")';
    for(const [suffix,forms] of [['',shape.forms],['-inner',shape.innerForms]]){const path=commandSkin.querySelector('[id="'+dropShape+suffix+'"]');path.setAttribute('d',forms[0]);path.querySelector('animate').setAttribute('values',forms.join(';'));}
    commandSkin.querySelector('.drop-top-shine').setAttribute('d',shape.topShine);commandSkin.querySelector('.drop-bottom-shine').setAttribute('d',shape.bottomShine);
   }
