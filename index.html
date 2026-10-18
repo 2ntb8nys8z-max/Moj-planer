@@ -139,7 +139,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.96-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.97-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -214,7 +214,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.96-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.97-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2763,11 +2763,12 @@ body,.octi-dock{font-family:var(--okti-font)}
 </style>
 <style id="okti-calendar-33-95">
 /* Keep navigation geometry independent of the decorative return-to-today bubble. */
-.phone-layout .phone-sky-header{margin-bottom:0;padding-bottom:32px;border-radius:0;background-color:transparent;background-image:linear-gradient(180deg,#0b4b8600 45%,#eef6fd 100%),url("header-sky.webp?v=2dc2ba216dc1ab4d");background-size:100% 100%,cover;box-shadow:none}
+.phone-layout .phone-sky-header{margin-bottom:0;padding-bottom:32px;border-radius:0;isolation:isolate;background:none;box-shadow:none}
+.phone-layout .phone-sky-header:before{content:"";position:absolute;inset:0 0 -56px;z-index:-1;pointer-events:none;background:url("header-sky.webp?v=2dc2ba216dc1ab4d") center/cover;mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%);-webkit-mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%)}
 .phone-layout .phone-sky-header .notebook-tabs button{font-size:15px;font-weight:750}
 .phone-layout .phone-sky-header>.tabs button{font-size:16px;font-weight:700}
 .phone-layout .phone-sky-header>.tabs button.active{background:#cfe5f7;border:1px solid #a6cbe8;color:#164d7c;box-shadow:inset 0 1px 0 #e7f4fd,0 2px 5px #164d781a;font-weight:800}
-.phone-layout .daybar{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:6px;min-height:82px;padding:24px 0 10px}
+.phone-layout .daybar{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:6px;min-height:64px;padding:8px 0 8px}
 .phone-layout .daybar h2{grid-column:2;grid-row:1;width:100%;min-width:0;margin:0;text-align:center;font-size:20px;font-weight:750;line-height:1.25;color:#2c4665}
 .phone-layout #dayTitle{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .phone-layout #dayTitle{transition:transform .65s cubic-bezier(.22,.68,.24,1)}
@@ -2795,8 +2796,20 @@ body,.octi-dock{font-family:var(--okti-font)}
 @keyframes phone-today-burst{0%{opacity:1;transform:scale(1)}22%{opacity:1;transform:scale(1.1,.98)}45%{opacity:.9;transform:scale(1.18);border-width:2px}72%{opacity:.45;transform:scale(1.32);border-width:1px}100%{opacity:0;transform:scale(1.48);border-width:0}}
 @keyframes phone-today-splash{0%,12%{opacity:0;transform:translate(0,0) scale(.2)}35%{opacity:1;transform:translate(calc(var(--splash-x) * .45),calc(var(--splash-y) * .45)) rotate(var(--splash-turn)) scale(1.15)}75%{opacity:.8;transform:translate(calc(var(--splash-x) * .85),calc(var(--splash-y) * .85)) rotate(var(--splash-turn)) scale(.8)}100%{opacity:0;transform:translate(var(--splash-x),var(--splash-y)) rotate(var(--splash-turn)) scale(.35)}}
 @media(max-width:359px){.phone-layout .daybar[data-today-side=right] #dayTitle{transform:translateX(-26px)}.phone-layout .daybar[data-today-side=left] #dayTitle{transform:translateX(26px)}.phone-layout .daybar[data-today-side]:not([data-today-side=""]) .phone-day-date{font-size:17px}.phone-layout .phone-sky-header>.tabs button{font-size:15px}.phone-day-date{font-size:19px}.phone-layout .daybar #todayBtn{width:52px;height:52px;min-width:52px;min-height:52px}.phone-layout .octi-dock .commands :is(.reel-item.selected,.status){font-size:14px}}
-@media(max-height:650px){.phone-layout .phone-sky-header{padding-bottom:32px}.phone-layout .daybar{min-height:82px;padding-top:24px;padding-bottom:8px}.phone-layout .phone-week-strip{margin-bottom:6px}.phone-layout .daybar #todayBtn{width:52px;height:52px;min-width:52px;min-height:52px}.phone-day-weekday{font-size:14px}.phone-day-date{font-size:19px}}
+@media(max-height:650px){.phone-layout .phone-sky-header{padding-bottom:32px}.phone-layout .daybar{min-height:64px;padding-top:8px;padding-bottom:8px}.phone-layout .phone-week-strip{margin-bottom:6px}.phone-layout .daybar #todayBtn{width:52px;height:52px;min-width:52px;min-height:52px}.phone-day-weekday{font-size:14px}.phone-day-date{font-size:19px}}
 @media(max-height:500px){.phone-layout .app{--phone-top-inset:0px;--phone-bottom-inset:0px;padding-bottom:6px}.phone-layout .phone-system-bar,.phone-layout .app:after{display:none}.phone-layout #taskList{padding-bottom:0}.phone-layout .phone-timeline-scroll{padding-bottom:130px}.phone-layout #weekView,.phone-layout #monthView{padding-bottom:0}}
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle{transition:none}.phone-layout #todayBtn.today-enter .today-drop{animation:none}.phone-today-pop{display:none}}
+/* Larger, stronger day-calendar type within the existing event geometry. */
+.phone-layout .phone-hour span{font-size:14px;font-weight:750;color:#465e7d}
+.phone-layout .phone-event-title{font-size:16px;font-weight:750;line-height:18px}
+.phone-layout .phone-event-title.single-line{padding-top:0;padding-bottom:0}
+.phone-layout .phone-event-title.single-line .phone-event-title-text{height:18px;line-height:18px}
+.phone-layout .phone-event-time{font-size:10px;font-weight:750;line-height:14px;color:#4d5e7b}
+.phone-layout .phone-event-title.narrow .phone-event-time{font-size:8px;font-weight:800;line-height:12px}
+.phone-layout .phone-event-title-text{max-height:calc(100% - 29px)}
+.phone-layout .phone-event-title.narrow .phone-event-title-text{max-height:calc(100% - 25px)}
+.phone-layout .phone-event-title.crowded .phone-event-title-text{max-height:calc(100% - 38px)}
+.phone-layout .phone-free-time{font-size:14px}
+.phone-layout .phone-free-time strong,.phone-layout .phone-free-time span{font-weight:600}
 </style>
 </body></html>

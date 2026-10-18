@@ -25,12 +25,13 @@ const within=(inner,outer,message)=>assert.ok(inner.left>=outer.left-epsilon&&in
     const url=new URL(route.request().url());
     if(url.origin==='https://planner.test'){
      const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
-     if(['index.html','sync-core.js','google-calendar.js'].includes(name))return route.fulfill({body:fs.readFileSync(path.resolve(name)),contentType:name.endsWith('.html')?'text/html':'application/javascript'});
+     const file=path.resolve(name),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.woff2':'font/woff2','.png':'image/png'};
+     if(fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/json'});
     }
     if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{requiresAccess:false,protocolVersion:2,apiVersion:'2026.10.08.33.14-test'}});
    });
-   await page.goto('https://planner.test');
+   await page.goto('https://planner.test');await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(fixture=>{
     selected=new Date('2026-10-12T12:00:00');tasks=fixture;
     ideas=[{id:'reminder',title:'Przypomnienie',text:'Przypomnienie',alarm:{date:'2026-10-12',time:'12:15',message:'Przypomnienie'}}];
