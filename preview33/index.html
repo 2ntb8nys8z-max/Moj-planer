@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.101</title>
+<title>Mój Planer — test integracji 33.102</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -139,7 +139,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.101</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.101</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.101-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.102</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.102</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.102-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.101-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.102-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2960,14 +2960,14 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .memo-tools-wave i{width:3px;height:6px;border-radius:3px;background:#6199bd;animation:memo-tools-pulse 1s ease-in-out infinite alternate}
 .memo-tools-wave i:nth-child(3n){height:17px;animation-delay:-.4s}.memo-tools-wave i:nth-child(2n){height:11px;animation-delay:-.7s}
 .memo-tools:not([data-mode=recording]) .memo-tools-wave i{animation-play-state:paused;opacity:.45}
-.memo-tools-actions{display:grid;grid-template-columns:44px 44px;gap:6px;width:max-content;max-width:100%;margin-left:-4px}
-.memo-tools-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:56px;border:1px solid #f8fdff;border-radius:15px;padding:4px 2px;background:linear-gradient(145deg,#ffffffdb,#c8e6f4b8);box-shadow:inset 1px 2px 2px #fff,inset -1px -2px 3px #89b4d14d,0 2px 4px #517da924;color:#345b7d;font-size:10px;line-height:1.2;font-weight:800}
+.memo-tools-actions{display:grid;grid-template-columns:54px 64px;gap:8px;width:max-content;max-width:100%;margin-left:0}
+.memo-tools-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:64px;border:1px solid #f8fdff;border-radius:18px;padding:5px 3px;background:linear-gradient(145deg,#ffffffdb,#c8e6f4b8);box-shadow:inset 1px 2px 2px #fff,inset -1px -2px 3px #89b4d14d,0 2px 4px #517da924;color:#345b7d;font-size:10px;line-height:1.2;font-weight:800}
 .memo-tools-actions button span{max-width:100%;white-space:normal}
-.memo-tools-actions svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.memo-tools-actions svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .memo-tools-actions #memoToolsSave{background:linear-gradient(145deg,#edf9ff,#a2cfee);color:#254f77;border-color:#e9f8ff}
 .memo-tools-actions .memo-save-tick{stroke:#30895d}
 .memo-save-confirmation{position:absolute;inset:0;z-index:12;display:grid;place-items:center;pointer-events:none;animation:memo-save-confirm 1.8s ease both}
-.memo-save-confirmation svg{width:96px;height:96px;overflow:visible;filter:drop-shadow(0 6px 4px #225b3e4d)}
+.memo-save-confirmation svg{width:80px;height:80px;overflow:visible;filter:drop-shadow(0 6px 4px #225b3e4d)}
 .memo-save-announcement{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
 .memo-save-confirmation path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:100;stroke-dashoffset:100;animation:memo-save-draw .3s .25s ease forwards}
 .memo-save-confirmation .memo-check-depth{stroke:#126039;stroke-width:15}
@@ -2976,15 +2976,17 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .octi-dock.memo-saved[data-mode=idle] .commands :is(.reel,.status){opacity:0}
 .phone-layout #phoneEntries.memo-received{position:relative;z-index:30}
 .phone-layout #phoneEntries.memo-received>span{position:relative;isolation:isolate;transform-origin:50% 0%;animation:memo-entries-wave 2s .55s ease-in-out both}
-.phone-layout #phoneEntries.memo-received>span:before{content:'';position:absolute;inset:-3px -5px;z-index:-1;border:1.5px solid #ffffffed;border-radius:11px;background:linear-gradient(145deg,#f0fbffe8,#a9d6f3d9);box-shadow:inset 1px 2px 2px #ffffffd9,inset -1px -2px 3px #6a9fba66,0 0 15px #6bd2a488;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;animation:memo-entries-glass 2s .55s ease both}
+.phone-layout #phoneEntries.memo-received>span:before{content:'';position:absolute;inset:-3px -5px;z-index:-1;border:1.5px solid #ffffffed;border-radius:11px;background:radial-gradient(ellipse at 12% 0%,#fff,transparent 55%),linear-gradient(145deg,#f0fbffb8,#98c9e8b8);box-shadow:inset 2px 3px 2px #fff,inset -2px -3px 2px #5484a585,inset 0 0 0 3px #d8f1ffd9,0 2px 4px #487da855,0 0 12px #6bd2a466;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;animation:memo-entries-glass 2s .55s ease both}
+.phone-layout #phoneEntries.memo-received>span:after{content:'';position:absolute;inset:0 -1px;z-index:-1;border-top:2px solid #fff;border-bottom:1.5px solid #effbff;border-radius:8px;box-shadow:inset 1px 0 1px #ffffffc9;pointer-events:none;opacity:0;animation:memo-entries-glass 2s .55s ease both}
 @keyframes memo-save-confirm{0%,10%{opacity:0;transform:translateY(10px) rotate(-14deg) scale(.3)}28%{opacity:1;transform:translateY(-4px) rotate(4deg) scale(1.22)}42%,70%{opacity:1;transform:translateY(0) rotate(0) scale(1)}86%{opacity:1;transform:translateY(-3px) scale(1.08)}100%{opacity:0;transform:translateY(-14px) scale(.65)}}
 @keyframes memo-save-draw{to{stroke-dashoffset:0}}
-@keyframes memo-entries-wave{0%,100%{color:inherit;transform:translate(0,0) rotate(0) scale(1)}15%{color:#164568;transform:translate(-5px,16px) rotate(-12deg) scale(1.9)}30%{color:#164568;transform:translate(5px,16px) rotate(12deg) scale(1.9)}45%{color:#164568;transform:translate(-5px,16px) rotate(-10deg) scale(1.9)}60%{color:#164568;transform:translate(5px,16px) rotate(9deg) scale(1.9)}75%{color:#164568;transform:translate(-3px,12px) rotate(-6deg) scale(1.75)}90%{transform:translate(0,4px) rotate(0) scale(1.2)}}
+@keyframes memo-entries-wave{0%,100%{color:inherit;transform:translate(0,0) rotate(0) scale(1)}15%{color:#164568;transform:translate(-4px,12px) rotate(-10deg) scale(1.6)}30%{color:#164568;transform:translate(4px,12px) rotate(10deg) scale(1.6)}45%{color:#164568;transform:translate(-4px,12px) rotate(-9deg) scale(1.6)}60%{color:#164568;transform:translate(4px,12px) rotate(8deg) scale(1.6)}75%{color:#164568;transform:translate(-2px,9px) rotate(-5deg) scale(1.5)}90%{transform:translate(0,4px) rotate(0) scale(1.14)}}
 @keyframes memo-entries-glass{0%,100%{opacity:0}15%,80%{opacity:1}}
 .memo-tools-actions button:disabled{opacity:.45;cursor:default}
 @keyframes memo-tools-reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes memo-tools-pulse{to{transform:scaleY(.4);opacity:.6}}
-@media(prefers-reduced-motion:reduce){.memo-glass{transition:none}.memo-tools,.memo-tools-wave i{animation:none}.memo-save-confirmation,.memo-save-confirmation path,.phone-layout #phoneEntries.memo-received>span,.phone-layout #phoneEntries.memo-received>span:before{animation:none;transform:none}.memo-save-confirmation path{stroke-dashoffset:0}.phone-layout #phoneEntries.memo-received>span{color:#164568}.phone-layout #phoneEntries.memo-received>span:before{opacity:1}}
-@media(max-height:500px){.memo-open .memo-glass{height:190px;bottom:-12px}.memo-tools{padding:9px 16px}.memo-tools-wave{height:13px;margin-bottom:2px}.memo-tools header button{height:30px;min-height:30px}.memo-tools-actions button{min-height:56px}}
+@media(prefers-reduced-motion:reduce){.memo-glass{transition:none}.memo-tools,.memo-tools-wave i{animation:none}.memo-save-confirmation,.memo-save-confirmation path,.phone-layout #phoneEntries.memo-received>span,.phone-layout #phoneEntries.memo-received>span:before,.phone-layout #phoneEntries.memo-received>span:after{animation:none;transform:none}.memo-save-confirmation path{stroke-dashoffset:0}.phone-layout #phoneEntries.memo-received>span{color:#164568}.phone-layout #phoneEntries.memo-received>span:before,.phone-layout #phoneEntries.memo-received>span:after{opacity:1}}
+@media(max-width:359px){.memo-tools-actions{grid-template-columns:54px 44px;gap:4px;margin-left:-10px}}
+@media(max-height:500px){.memo-open .memo-glass{height:190px;bottom:-12px}.memo-tools{padding:9px 16px}.memo-tools-wave{height:13px;margin-bottom:2px}.memo-tools header button{height:30px;min-height:30px}.memo-tools-actions button{min-height:58px}}
 </style>
 </body></html>
