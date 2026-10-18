@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.97</title>
+<title>Mój Planer — test integracji 33.98</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -139,7 +139,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.97</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.97</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.97-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.98</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.98</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.98-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.97-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.98-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -408,7 +408,85 @@ function normalizeIdea(value){
 }
 function addIdea(value){const idea=normalizeIdea(value),before=ideas;ideas=[idea,...ideas];try{saveIdeas()}catch(error){ideas=before;throw error}ideasMode='todo';ideasTypeMode='all';renderIdeas();return idea}
 const MEMO_DB='moj-planer-audio-v1',MEMO_STORE='recordings';function openMemoDb(){return new Promise((resolve,reject)=>{if(!('indexedDB'in window)){reject(Error('IndexedDB niedostępne'));return}const request=indexedDB.open(MEMO_DB,1);request.onupgradeneeded=()=>request.result.createObjectStore(MEMO_STORE);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}async function saveVoiceMemo(id,blob){const db=await openMemoDb();return new Promise((resolve,reject)=>{const tx=db.transaction(MEMO_STORE,'readwrite');tx.objectStore(MEMO_STORE).put(blob,id);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}async function loadVoiceMemo(id){const db=await openMemoDb();return new Promise((resolve,reject)=>{const req=db.transaction(MEMO_STORE).objectStore(MEMO_STORE).get(id);req.onsuccess=()=>{db.close();resolve(req.result||null)};req.onerror=()=>{db.close();reject(req.error)}})}async function deleteVoiceMemo(id){if(!id)return;try{const db=await openMemoDb();await new Promise((resolve,reject)=>{const tx=db.transaction(MEMO_STORE,'readwrite');tx.objectStore(MEMO_STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(_){}}
-let memoRecorder=null,memoStream=null,memoChunks=[],memoTimer=null,memoDiscard=false;async function startVoiceMemo(){if(memoRecorder)return;memoDiscard=false;try{memoStream=await navigator.mediaDevices.getUserMedia({audio:true});const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));memoRecorder=new MediaRecorder(memoStream,mime?{mimeType:mime}:undefined);memoChunks=[];memoRecorder.ondataavailable=e=>{if(e.data?.size)memoChunks.push(e.data)};memoRecorder.onstop=async()=>{memoStream?.getTracks().forEach(track=>track.stop());memoStream=null;const recorder=memoRecorder,discard=memoDiscard;memoRecorder=null;memoDiscard=false;clearTimeout(memoTimer);$('recordMemo').classList.remove('hidden');$('stopMemo').classList.add('hidden');$('cancelMemo').classList.add('hidden');if(discard){memoChunks=[];$('memoHint').textContent='Nagranie anulowane';return}if(!memoChunks.length){$('memoHint').textContent='Nagranie jest puste';return}try{const chunks=memoChunks;memoChunks=[];const blob=new Blob(chunks,{type:recorder.mimeType||'audio/mp4'}),id=crypto.randomUUID?.()||String(Date.now());await saveVoiceMemo(id,blob);const entry=addIdea({type:'idea',entryType:'voice',text:'Nagranie głosowe · '+new Date().toLocaleString('pl-PL'),voiceMemoId:id});historyAdd(entry,'created','Zapisano nagranie głosowe');saveIdeas();showView('ideas');$('memoHint').textContent='Nagranie zapisane';toast('🎙️ Nagranie głosowe zapisane')}catch(_){$('memoHint').textContent='Nie udało się zapisać nagrania. Sprawdź wolne miejsce.';toast('Nie udało się zapisać nagrania')}};memoRecorder.start();$('recordMemo').classList.add('hidden');$('stopMemo').classList.remove('hidden');$('cancelMemo').classList.remove('hidden');$('memoHint').textContent='🔴 Nagrywanie… maksymalnie 3 minuty';memoTimer=setTimeout(()=>{if(memoRecorder?.state==='recording')memoRecorder.stop()},180000)}catch(error){memoStream?.getTracks().forEach(track=>track.stop());memoStream=null;memoRecorder=null;$('memoHint').textContent='Nie udało się uruchomić mikrofonu';toast(error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':'Ta przeglądarka nie obsługuje nagrywania dźwięku.')}}function stopVoiceMemo(discard=false){if(!memoRecorder)return;memoDiscard=discard;if(memoRecorder.state==='recording')memoRecorder.stop()}
+let memoRecorder=null,memoStream=null,memoSession=null;
+function memoElapsed(state=memoSession){return state?Math.min(180000,state.elapsed+(state.mode==='recording'?Date.now()-state.started:0)):0}
+function updateMemoTools(){
+ const state=memoSession,panel=$('memoTools'),root=document.querySelector('.octi-dock[data-channel=main]');
+ if(!panel)return;
+ panel.hidden=!state;root?.classList.toggle('memo-open',!!state);
+ $('recordMemo').classList.toggle('hidden',!!state);$('stopMemo').classList.toggle('hidden',!state);$('cancelMemo').classList.toggle('hidden',!state);
+ if(!state)return;
+ panel.dataset.mode=state.mode;
+ $('memoToolsTime').textContent=entryTime(memoElapsed(state)/1000)+' / 03:00';
+ $('memoToolsStatus').textContent=state.error||({opening:'Uruchamiam mikrofon…',recording:'Nagrywam notatkę',paused:'Pauza',stopping:'Zatrzymuję…',ready:'Nagranie gotowe',saving:'Zapisuję nagranie…'}[state.mode]);
+ $('memoToolsPause').textContent=state.mode==='paused'?'Wznów':'Pauza';
+ $('memoToolsPause').disabled=!['recording','paused'].includes(state.mode);
+ $('memoToolsStop').disabled=!['recording','paused'].includes(state.mode);
+ $('memoToolsSave').disabled=!['recording','paused','ready'].includes(state.mode);
+ $('memoToolsSave').textContent=state.error?'Ponów zapis':'Zapisz';
+ $('memoToolsCancel').disabled=state.mode==='saving';
+}
+function closeMemoTools(message=''){
+ const state=memoSession;if(!state)return;clearInterval(state.tick);state.stream?.getTracks().forEach(track=>track.stop());
+ memoSession=null;memoRecorder=null;memoStream=null;$('memoHint').textContent=message;updateMemoTools();
+}
+async function saveMemoRecording(state){
+ if(memoSession!==state||state.mode==='saving')return;
+ if(!state.blob?.size){state.mode='ready';state.error='Nagranie jest puste. Anuluj i spróbuj ponownie.';updateMemoTools();$('memoToolsSave').disabled=true;return}
+ state.mode='saving';state.error='';updateMemoTools();
+ try{
+  if(!state.id)state.id=crypto.randomUUID?.()||String(Date.now());
+  await saveVoiceMemo(state.id,state.blob);
+  const value={type:'idea',entryType:'voice',text:'Nagranie głosowe · '+new Date().toLocaleString('pl-PL'),voiceMemoId:state.id};
+  historyAdd(value,'created','Zapisano nagranie głosowe');addIdea(value);
+  closeMemoTools('Nagranie zapisane');showView('ideas');toast('Nagranie głosowe zapisane');
+ }catch(error){state.mode='ready';state.error='Nie udało się zapisać. Nagranie zachowano — ponów zapis.';updateMemoTools()}
+}
+async function startVoiceMemo(){
+ if(memoSession)return;
+ if(entryRecording||octiEventRecording||Object.values(plannerRecordings).some(Boolean)){toast('Najpierw zakończ bieżące nagranie.');return}
+ const state={mode:'opening',elapsed:0,chunks:[],saveOnStop:false,cancelled:false};memoSession=state;updateMemoTools();$('memoToolsCancel')?.focus();
+ try{
+  state.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  if(state.cancelled||memoSession!==state){state.stream.getTracks().forEach(track=>track.stop());return}
+  memoStream=state.stream;
+  const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));
+  state.recorder=memoRecorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);
+  memoRecorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};
+  memoRecorder.onstop=async()=>{
+   if(state.finished)return;state.finished=true;
+   clearInterval(state.tick);state.stream.getTracks().forEach(track=>track.stop());
+   if(state.cancelled||memoSession!==state)return;
+   state.blob=new Blob(state.chunks,{type:state.recorder.mimeType||'audio/mp4'});state.chunks=[];state.mode='ready';updateMemoTools();
+   if(state.saveOnStop)await saveMemoRecording(state);
+  };
+  memoRecorder.onerror=()=>{if(memoSession===state){state.error='Nagrywanie przerwano. Możesz zapisać przechwycony fragment.';finishMemoRecording(false)}};
+  memoRecorder.start(1000);state.mode='recording';state.started=Date.now();
+  state.tick=setInterval(()=>{if(memoSession!==state)return;if(memoElapsed(state)>=180000)finishMemoRecording(false);else updateMemoTools()},250);
+  $('memoHint').textContent='';updateMemoTools();
+ }catch(error){if(memoSession===state)closeMemoTools();else state.stream?.getTracks().forEach(track=>track.stop());toast(error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':'Nie udało się rozpocząć nagrywania.');}
+}
+function pauseVoiceMemo(){
+ const state=memoSession;if(!state)return;
+ if(state.mode==='recording'){state.elapsed=memoElapsed(state);state.recorder.pause();state.mode='paused'}
+ else if(state.mode==='paused'){state.started=Date.now();state.recorder.resume();state.mode='recording'}
+ updateMemoTools();
+}
+function finishMemoRecording(save){
+ const state=memoSession;if(!state)return;state.saveOnStop=save;
+ if(state.mode==='ready')return save?saveMemoRecording(state):undefined;
+ if(!['recording','paused'].includes(state.mode))return;
+ state.elapsed=memoElapsed(state);state.mode='stopping';clearInterval(state.tick);updateMemoTools();if(state.recorder.state!=='inactive')state.recorder.stop();else state.recorder.onstop();
+}
+function stopVoiceMemo(discard=false){
+ const state=memoSession;if(!state||state.mode==='saving')return;
+ if(!discard)return finishMemoRecording(true);
+ state.cancelled=true;if(state.recorder&&state.recorder.state!=='inactive')state.recorder.stop();if(state.id)deleteVoiceMemo(state.id).catch(()=>{});closeMemoTools('Nagranie anulowane');
+}
+function isMemoStartCommand(session,text){
+ return session?.channel==='main'&&!session.currentItem&&!session.history.length&&!pendingVoiceItem&&!openEventCommandTask(session)&&
+ /^(zacznij nagrywac|rozpocznij nagrywanie|nagraj notatke glosowa|wlacz dyktafon|start recording)$/.test(plannerSearchText(text));
+}
 function ideaFullText(idea){const additions=Array.isArray(idea.additions)?idea.additions:[];return [idea.text,...additions.map(a=>`Dopisano ${new Date(a.createdAt).toLocaleDateString("pl-PL")}: ${a.text}`)].join("\n\n")}function ideaWasModified(idea){return Array.isArray(idea.additions)&&idea.additions.length>0}
 // Entry presentation and local attachments. Existing conversation and storage remain authoritative.
 let entryRenderEpoch=0,entryMediaUrls=[],entryReturnFocus=null,entryEditorSnapshot=null,entryRecording=null,entryPhotoTarget=null,entryTimerTotal=0;
@@ -561,7 +639,7 @@ function saveEntryEditor(){const idea=activeIdea;if(!idea)return;if(JSON.stringi
 async function attachEntryBlob(idea,blob,type,metadata={}){const id=crypto.randomUUID();await saveVoiceMemo(id,blob);try{entryLocalUpdate(idea,item=>{if(!Array.isArray(item.attachments))item.attachments=[];item.attachments.push({id,type,createdAt:new Date().toISOString(),mimeType:blob.type,size:blob.size,...metadata})},type==='audio'?'Dodano nagranie głosowe':'Dodano zdjęcie')}catch(error){await deleteVoiceMemo(id);throw error}if(activeIdea?.id===idea.id)renderIdeaDetails(idea);return id}
 function entryRecordingSeconds(state){return (state.elapsed+(state.recorder?.state==='recording'?Date.now()-state.started:0))/1000}
 function updateEntryRecording(){const state=entryRecording;if(!state)return;const seconds=entryRecordingSeconds(state);$('entryRecordStatus').textContent=(state.recorder?.state==='paused'?'Pauza · ':'Nagrywanie · ')+entryTime(seconds);if(seconds>=180)stopEntryRecording(false)}
-async function startEntryRecording(){if(entryRecording||!activeIdea)return;if(memoRecorder||Object.values(plannerRecordings).some(Boolean)){toast('Najpierw zakończ bieżące nagranie.');return}const state={idea:activeIdea,chunks:[],elapsed:0,started:Date.now(),cancelled:false,recorder:null,stream:null};entryRecording=state;revealEntryPanel('entryRecorderPanel');$('entryRecordStatus').textContent='Uruchamiam mikrofon…';$('entryPauseRecord').textContent='Pauza';$('entrySaveRecord').textContent='Zatrzymaj i zapisz';$('entryPauseRecord').disabled=true;$('entrySaveRecord').disabled=true;try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});if(state.cancelled||entryRecording!==state){state.stream.getTracks().forEach(t=>t.stop());return}const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));state.recorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);state.recorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};state.recorder.onstop=async()=>{state.stream.getTracks().forEach(t=>t.stop());clearInterval(state.tick);if(state.cancelled)return;state.blob=new Blob(state.chunks,{type:state.recorder.mimeType||'audio/mp4'});state.mode='ready';await persistEntryRecording(state)};state.recorder.onerror=()=>{cancelEntryRecording();toast('Nagrywanie zostało przerwane. Spróbuj ponownie.')};state.recorder.start(1000);state.started=Date.now();$('entryPauseRecord').disabled=false;$('entrySaveRecord').disabled=false;state.tick=setInterval(updateEntryRecording,250);updateEntryRecording()}catch(error){state.stream?.getTracks().forEach(t=>t.stop());if(entryRecording===state)entryRecording=null;$('entryRecordStatus').textContent=error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':'Nie udało się uruchomić mikrofonu.'}}
+async function startEntryRecording(){if(entryRecording||!activeIdea)return;if(memoSession||Object.values(plannerRecordings).some(Boolean)){toast('Najpierw zakończ bieżące nagranie.');return}const state={idea:activeIdea,chunks:[],elapsed:0,started:Date.now(),cancelled:false,recorder:null,stream:null};entryRecording=state;revealEntryPanel('entryRecorderPanel');$('entryRecordStatus').textContent='Uruchamiam mikrofon…';$('entryPauseRecord').textContent='Pauza';$('entrySaveRecord').textContent='Zatrzymaj i zapisz';$('entryPauseRecord').disabled=true;$('entrySaveRecord').disabled=true;try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});if(state.cancelled||entryRecording!==state){state.stream.getTracks().forEach(t=>t.stop());return}const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));state.recorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);state.recorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};state.recorder.onstop=async()=>{state.stream.getTracks().forEach(t=>t.stop());clearInterval(state.tick);if(state.cancelled)return;state.blob=new Blob(state.chunks,{type:state.recorder.mimeType||'audio/mp4'});state.mode='ready';await persistEntryRecording(state)};state.recorder.onerror=()=>{cancelEntryRecording();toast('Nagrywanie zostało przerwane. Spróbuj ponownie.')};state.recorder.start(1000);state.started=Date.now();$('entryPauseRecord').disabled=false;$('entrySaveRecord').disabled=false;state.tick=setInterval(updateEntryRecording,250);updateEntryRecording()}catch(error){state.stream?.getTracks().forEach(t=>t.stop());if(entryRecording===state)entryRecording=null;$('entryRecordStatus').textContent=error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':'Nie udało się uruchomić mikrofonu.'}}
 async function persistEntryRecording(state){if(state.mode==='saving')return;state.mode='saving';$('entryCancelRecord').disabled=true;try{if(!state.blob?.size)throw Error('Nagranie jest puste.');await attachEntryBlob(state.idea,state.blob,'audio',{name:'Nagranie głosowe '+(entryAttachments(state.idea).filter(a=>a.type==='audio').length+1),duration:state.elapsed/1000});if(entryRecording===state)entryRecording=null;if(activeIdea?.id===state.idea.id)$('entryRecorderPanel').classList.add('hidden');toast('Nagranie zapisane')}catch(error){state.mode='ready';$('entryRecordStatus').textContent='Nie udało się zapisać nagrania. Możesz ponowić zapis. '+error.message;$('entrySaveRecord').disabled=false;$('entrySaveRecord').textContent='Ponów zapis'}finally{$('entryCancelRecord').disabled=false}}
 function stopEntryRecording(discard=false){const state=entryRecording;if(!state||state.mode==='saving')return;if(!discard&&state.mode==='ready')return persistEntryRecording(state);state.cancelled=discard;clearInterval(state.tick);if(state.recorder&&state.recorder.state!=='inactive'){if(state.recorder.state==='recording')state.elapsed+=Date.now()-state.started;if(!discard){$('entryPauseRecord').disabled=true;$('entrySaveRecord').disabled=true;$('entryRecordStatus').textContent='Zapisuję nagranie…'}state.recorder.stop()}else{state.stream?.getTracks().forEach(t=>t.stop());entryRecording=null}if(discard){entryRecording=null;$('entryRecorderPanel').classList.add('hidden')}else{$('entryPauseRecord').disabled=true;$('entrySaveRecord').disabled=true;$('entryRecordStatus').textContent='Zapisuję nagranie…'}}
 function cancelEntryRecording(){stopEntryRecording(true)}
@@ -747,6 +825,8 @@ async function requestVoiceDialogue(session,body){
     if(result.dialogueState)session.dialogueState=result.dialogueState;
     if(result.dialogueState?.lastOperation)session.lastOperation=result.dialogueState.lastOperation;
     const spoken=typeof result.utterance==='string'?result.utterance:typeof result.transcription==='string'?result.transcription:(typed?body:'');
+    // Only an exact, fresh main-screen command opens the long-form recorder.
+    if(!result.retryTranscription&&isMemoStartCommand(session,spoken))return {startVoiceMemo:true,utterance:spoken};
     if(result.retryTranscription){
       const question=result.clarification?.question||result.weatherAction?.question||'Nie dosłyszałem. Możesz powtórzyć?';
       // Retain prior context and append the retry prompt without corrupt transcription.
@@ -879,6 +959,7 @@ function initializeEventCommands(){
 }
 
 async function applyVoiceDialogueResult(session,result){
+  if(result.startVoiceMemo===true&&isMemoStartCommand(session,result.utterance)){clearVoiceDialogue('main');return startVoiceMemo()}
   const eventTask=openEventCommandTask(session);if(eventTask){
     if(result.uiAction)return applyEventScopedVoiceAction(session,result.uiAction,result.reply);
     if(result.item?.type!=='event'){voiceDialogues.event=scopedEventSession(session,eventTask);showVoiceClarification(voiceDialogues.event,'W tym oknie zmieniam tylko otwarte wydarzenie.');return}
@@ -1382,7 +1463,7 @@ function stopRecordingTimers(state){clearInterval(state.timer);clearTimeout(stat
 function cancelPlannerRecording(channel){const state=plannerRecordings[channel];if(!state||state.mode==='sending')return;state.cancelled=true;stopRecordingTimers(state);state.chunks=[];if(state.recorder?.state==='recording')state.recorder.stop();state.stream?.getTracks().forEach(t=>t.stop());plannerRecordings[channel]=null;resetRecordingUi(channel);$(recordingUi[channel].hint).textContent=''}
 async function sendPlannerRecording(channel,state){if(plannerRecordings[channel]!==state||state.mode!=='ready')return;if(!voiceDialogueValid(state.session)){cancelPlannerRecording(channel);return}state.mode='sending';const u=recordingUi[channel];resetRecordingUi(channel);$(u.hint).textContent=channel==='main'?'':'⏳ Rozpoznaję wypowiedź…';try{const blob=new Blob(state.chunks,{type:state.chunks[0]?.type||'audio/mp4'});const result=await requestVoiceDialogue(state.session,blob);state.chunks=[];plannerRecordings[channel]=null;if(result)await applyVoiceDialogueResult(state.session,result)}catch(error){console.error(error);state.chunks=[];plannerRecordings[channel]=null;$(u.hint).textContent=error.code==='empty_transcription'?'Nic się nie nagrało. Nagraj jeszcze raz.':error.message||'Nie udało się rozpoznać wypowiedzi';if(error.transcription&&voiceDialogueValid(state.session)){state.session.history.push({role:'user',content:error.transcription});showVoiceClarification(state.session,'Wypowiedź zachowano, ale wystąpił błąd techniczny: '+error.message+' Możesz ponowić próbę, wpisując „spróbuj ponownie”, lub doprecyzować polecenie.')}else if(!error.cancelled)toast(error.message||'Błąd rozpoznawania')}}
 async function startPlannerRecording(channel,makeSession){if(plannerSchedulePending?.channel===channel)plannerSchedulePending.cancel();const old=plannerRecordings[channel];if(old){if(old.mode==='ready')return sendPlannerRecording(channel,old);if(old.mode==='recording'){old.sendRequested=true;stopRecordingTimers(old);old.recorder.stop()}return}if(voiceDialogues[channel]?.busy)return;const session=makeSession();if(!session)return;const state={session,chunks:[],mode:'opening',cancelled:false,sendRequested:false};plannerRecordings[channel]=state;const u=recordingUi[channel];$(u.hint).textContent='Uruchamiam mikrofon…';$(u.cancel).classList.remove('hidden');try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});if(state.cancelled||plannerRecordings[channel]!==state||!voiceDialogueValid(session)){state.stream.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state)cancelPlannerRecording(channel);return}const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));state.recorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);state.recorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};state.recorder.onstart=()=>{state.mode='recording';state.deadline=Date.now()+RECORDING_SECONDS*1000;$(u.button).classList.add('recording');$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.count).textContent=RECORDING_SECONDS;$(u.hint).textContent=channel==='main'?'':'🔴 Nagrywanie — naciśnij Wyślij, gdy skończysz';const finish=()=>{if(state.mode==='recording'&&state.recorder.state==='recording'){stopRecordingTimers(state);state.recorder.stop()}};state.timer=setInterval(()=>{const seconds=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));$(u.count).textContent=seconds;if(!seconds)finish()},1000);state.timeout=setTimeout(finish,RECORDING_SECONDS*1000)};state.recorder.onstop=async()=>{stopRecordingTimers(state);state.stream.getTracks().forEach(t=>t.stop());if(state.cancelled||plannerRecordings[channel]!==state)return;$(u.button).classList.remove('recording');$(u.count).textContent='';if(!state.chunks.length){cancelPlannerRecording(channel);$(u.hint).textContent='Nic się nie nagrało. Nagraj jeszcze raz.';return}state.mode='ready';$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.cancel).classList.remove('hidden');$(u.hint).textContent=channel==='main'?'':'Nagranie gotowe. Naciśnij Wyślij albo Skasuj.';if(state.sendRequested)await sendPlannerRecording(channel,state)};state.recorder.start()}catch(error){state.stream?.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state){plannerRecordings[channel]=null;resetRecordingUi(channel);$(u.hint).textContent='Nie udało się uruchomić mikrofonu';toast(error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':error.name==='NotFoundError'?'Nie znaleziono mikrofonu.':typeof MediaRecorder==='undefined'?'Ta przeglądarka nie obsługuje nagrywania.':'Nie udało się rozpocząć nagrania. Sprawdź, czy mikrofon nie jest zajęty.')}}}
-function startVoiceRecording(isCorrection=false){return startPlannerRecording('main',()=>beginVoiceDialogue('main',null,isCorrection||pendingVoiceItem?pendingVoiceItem:null))}
+function startVoiceRecording(isCorrection=false){if(memoSession){toast('Najpierw zapisz lub anuluj nagranie.');return}return startPlannerRecording('main',()=>beginVoiceDialogue('main',null,isCorrection||pendingVoiceItem?pendingVoiceItem:null))}
 function cancelVoiceRecording(){cancelPlannerRecording('main')}
 $("voice").onclick=()=>startVoiceRecording(false);$("recordCancel").onclick=cancelVoiceRecording;$("correctVoice").onclick=()=>{if(pendingVoiceItem)startVoiceRecording(true)};
 function formatReminder(reminder){if(!reminder)return "";const m=Number(reminder.minutesBefore??reminder);if(!Number.isFinite(m))return "Przypomnienie";if(m===0)return "o czasie wydarzenia";if(m===60)return "1 godz. wcześniej";if(m===120)return "2 godz. wcześniej";if(m%60===0)return `${m/60} godz. wcześniej`;return `${m} min wcześniej`}
@@ -1569,7 +1650,7 @@ $("addEventPerson").onclick=()=>{const name=$("eventPersonName").value.trim(),em
 $("reviewEventPeople").onclick=reviewEventPeople;$("backEventPeople").onclick=()=>{$("eventPeopleReview").classList.add('hidden');$("eventPeopleChoose").classList.remove('hidden');$("eventPeopleSearch").focus()};$("saveEventPeople").onclick=()=>saveEventPeopleSelection('local');$("prepareEventInvites").onclick=()=>saveEventPeopleSelection('invite');
 const openEventActionsPeopleBase=openEventActions;openEventActions=function(task){openEventActionsPeopleBase(task);renderEventPeople(task)};
 const closeEventActionsPeopleBase=closeEventActions;closeEventActions=function(){closeEventPeoplePicker();closeEventActionsPeopleBase()};
-function startIdeaVoice(){if(entryRecording||memoRecorder){toast('Najpierw zapisz lub anuluj nagranie.');return}return startPlannerRecording('idea',()=>activeIdea?beginVoiceDialogue('idea',activeIdea.id,voiceDialogueCurrent('idea',activeIdea.id)):null)}
+function startIdeaVoice(){if(entryRecording||memoSession){toast('Najpierw zapisz lub anuluj nagranie.');return}return startPlannerRecording('idea',()=>activeIdea?beginVoiceDialogue('idea',activeIdea.id,voiceDialogueCurrent('idea',activeIdea.id)):null)}
 $("ideaVoice").onclick=startIdeaVoice;$("ideaRecordCancel").onclick=()=>cancelPlannerRecording('idea');
 function startEventVoice(){return startPlannerRecording('event',()=>activeTask&&tasks.some(t=>t.id===activeTask.id)?beginVoiceDialogue('event',activeTask.id,voiceDialogueCurrent('event',activeTask.id)):null)}
 $("eventVoice").onclick=startEventVoice;$("eventRecordCancel").onclick=()=>cancelPlannerRecording('event');
@@ -2502,7 +2583,7 @@ function octiRenderEventMedia(task){
 async function octiEventMedia(kind){
  const task=activeTask;if(!task)return;
  if(kind==='photo'){const input=document.createElement('input');input.type='file';input.accept='image/*';input.capture='environment';input.hidden=true;document.body.append(input);input.oncancel=()=>input.remove();input.onchange=async()=>{const file=input.files?.[0];input.remove();if(!file)return;if(!file.type.startsWith('image/')||file.size>15*1024*1024){toast('Wybierz zdjęcie do 15 MB.');return;}try{const position=await photoNotePosition();await octiAttachEvent(task,file,'image',{name:file.name||'Zdjęcie',takenAt:file.lastModified?new Date(file.lastModified).toISOString():new Date().toISOString(),...(position?{photoLocation:position}:{})});}catch(error){toast(error.message);}};input.click();return;}
- if(octiEventRecording||entryRecording||memoRecorder||Object.values(plannerRecordings).some(Boolean)){toast('Najpierw zakończ bieżące nagranie.');return;}
+ if(octiEventRecording||entryRecording||memoSession||Object.values(plannerRecordings).some(Boolean)){toast('Najpierw zakończ bieżące nagranie.');return;}
  const state={task,chunks:[],cancelled:false};octiEventRecording=state;
  const panel=document.createElement('section');panel.className='entry-panel';panel.innerHTML='<p role="status">Uruchamiam mikrofon…</p>';const status=panel.firstChild;
  const cancel=entryButton('Anuluj',()=>{state.cancelled=true;clearTimeout(state.limit);if(state.recorder?.state!=='inactive')state.recorder?.stop();state.stream?.getTracks().forEach(t=>t.stop());octiEventRecording=null;panel.remove();},'secondary');panel.append(cancel);$('eventContent').append(panel);panel.scrollIntoView({block:'nearest'});
@@ -2541,7 +2622,7 @@ function initializeOctiDocks(){
   legacy.classList.add('octi-legacy');if(channel==='idea')document.querySelector('.entry-quick-actions').classList.add('octi-legacy');
   const root=document.createElement('div');root.className='octi-dock';root.dataset.channel=channel;root.dataset.mode='idle';
   root.innerHTML='<div class="surface"><div class="dock"><div class="octi-copy"><button class="commands" type="button" aria-label="Naciśnij i mów"><span class="status" role="status" aria-hidden="true">Naciśnij i mów</span><span class="reel" aria-hidden="true"></span></button></div><div class="center"><div class="stage"><span class="halo"></span><span class="wave"></span><span class="wave two"></span><span class="wave three"></span></div></div><div class="extras"><div class="menu-actions"></div><button class="menu-toggle" type="button" aria-label="Dodatkowe działania" aria-expanded="false"></button></div><button class="dismiss" type="button" aria-label="Skasuj nagranie" hidden>×</button></div></div>';
-  host.append(root);const stage=root.querySelector('.stage');oldButton.classList.add('voice');stage.append(oldButton);oldButton.addEventListener('click',event=>{if(entryRecording||memoRecorder||octiEventRecording){event.stopImmediatePropagation();toast('Najpierw zakończ nagrywanie notatki głosowej.');}},true);
+  host.append(root);const stage=root.querySelector('.stage');oldButton.classList.add('voice');stage.append(oldButton);oldButton.addEventListener('click',event=>{if(entryRecording||memoSession||octiEventRecording){event.stopImmediatePropagation();toast('Najpierw zakończ nagrywanie notatki głosowej.');}},true);
   // Native vector glass keeps a sharp, shaped rim at every phone width.
   const commandSkin=document.createElementNS('http://www.w3.org/2000/svg','svg');commandSkin.classList.add('command-drop');commandSkin.setAttribute('viewBox','0 0 240 80');commandSkin.setAttribute('preserveAspectRatio','none');commandSkin.setAttribute('aria-hidden','true');commandSkin.setAttribute('focusable','false');
   const dropId='octi-command-drop-'+channel,dropBody=dropId+'-body',dropRim=dropId+'-rim',dropShape=dropId+'-shape';
@@ -2612,6 +2693,14 @@ function fitVoiceReplyViewport(){
 }
 if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVoiceReplyViewport);window.visualViewport.addEventListener('scroll',fitVoiceReplyViewport);document.addEventListener('focusin',fitVoiceReplyViewport);document.addEventListener('focusout',()=>requestAnimationFrame(fitVoiceReplyViewport));}
 initializeOctiDocks();
+function initializeMemoTools(){
+ const root=document.querySelector('.octi-dock[data-channel=main]');if(!root)return;
+ const panel=document.createElement('section');panel.id='memoTools';panel.className='memo-tools';panel.hidden=true;panel.setAttribute('aria-label','Dyktafon — notatka głosowa');
+ panel.innerHTML='<header><span class="memo-tools-dot" aria-hidden="true"></span><strong>Dyktafon</strong><button id="memoToolsCancel" type="button" aria-label="Anuluj nagranie">×</button></header><p id="memoToolsStatus" role="status"></p><div id="memoToolsTime" class="memo-tools-time">00:00 / 03:00</div><div class="memo-tools-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="memo-tools-actions"><button id="memoToolsPause" type="button">Pauza</button><button id="memoToolsStop" type="button">Stop</button><button id="memoToolsSave" type="button">Zapisz</button></div><small>Po zapisie możesz przepisać na tekst.</small>';
+ root.querySelector('.octi-copy').append(panel);
+ $('memoToolsCancel').onclick=()=>stopVoiceMemo(true);$('memoToolsPause').onclick=pauseVoiceMemo;$('memoToolsStop').onclick=()=>finishMemoRecording(false);$('memoToolsSave').onclick=()=>stopVoiceMemo(false);
+}
+initializeMemoTools();
 
 </script>
 <style id="event-polish-33-87">
@@ -2813,5 +2902,35 @@ body,.octi-dock{font-family:var(--okti-font)}
 .phone-layout .phone-event-title.crowded .phone-event-title-text{max-height:calc(100% - 38px)}
 .phone-layout .phone-free-time{font-size:14px}
 .phone-layout .phone-free-time strong,.phone-layout .phone-free-time span{font-weight:600}
+</style>
+<style id="okti-recorder-33-98">
+html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
+.phone-layout .voice-area{bottom:calc(max(2px,calc(var(--phone-bottom-inset) - 30px)) + var(--reply-keyboard-inset,0px))}
+.phone-layout .voice-area>.octi-dock>.surface{padding-bottom:0!important}
+.memo-tools[hidden]{display:none!important}
+.memo-tools{position:absolute;left:0;bottom:calc(100% - 10px);z-index:8;width:clamp(224px,65vw,280px);padding:13px 14px 11px;border:1.5px solid #ffffffeb;border-radius:25px;background:linear-gradient(145deg,#f7fcfff0,#cee7f4e8);box-shadow:inset 1px 2px 3px #fff,inset -2px -2px 4px #7aadc544,0 7px 24px #3b6e9330;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:#2e4a69;text-align:left;pointer-events:auto;transform-origin:15% 100%;animation:memo-tools-grow .65s cubic-bezier(.2,.75,.2,1) both}
+.memo-open .octi-copy{z-index:8!important}
+.memo-open .commands{pointer-events:none}
+.memo-open .commands :is(.reel,.status){visibility:hidden}
+.phone-layout :is(#stopMemo,#cancelMemo,#memoHint){display:none!important}
+.memo-open .menu-toggle{visibility:hidden}
+.memo-tools header{display:flex;align-items:center;gap:7px;font-size:15px}
+.memo-tools header button{margin-left:auto;width:36px;height:36px;min-height:36px;padding:0;border:0;border-radius:50%;background:#ffffff90;color:#466786;font-size:25px}
+.memo-tools-dot{width:8px;height:8px;flex:none;border-radius:50%;background:#cd5561;box-shadow:0 0 0 4px #cd556115}
+.memo-tools p{margin:4px 0;color:#49637e;font-size:12px;font-weight:700;line-height:1.4}
+.memo-tools-time{font-size:22px;line-height:1.4;font-weight:800;font-variant-numeric:tabular-nums}
+.memo-tools-wave{display:flex;align-items:center;justify-content:center;gap:5px;height:29px;margin:5px 0 9px;border-radius:10px;background:#ffffff55}
+.memo-tools-wave i{width:3px;height:6px;border-radius:3px;background:#6199bd;animation:memo-tools-pulse 1s ease-in-out infinite alternate}
+.memo-tools-wave i:nth-child(3n){height:17px;animation-delay:-.4s}.memo-tools-wave i:nth-child(2n){height:11px;animation-delay:-.7s}
+.memo-tools:not([data-mode=recording]) .memo-tools-wave i{animation-play-state:paused;opacity:.45}
+.memo-tools-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.memo-tools-actions button{min-height:44px;border:1px solid #a9c8de;border-radius:13px;padding:8px 5px;background:#f3faff;color:#345b7d;font-size:13px;font-weight:800}
+.memo-tools-actions #memoToolsSave{grid-column:1/-1;background:#346d9e;color:#fff;border-color:#346d9e}
+.memo-tools-actions button:disabled{opacity:.45;cursor:default}
+.memo-tools small{display:block;margin-top:8px;font-size:10px;line-height:1.4;color:#506c87}
+@keyframes memo-tools-grow{from{opacity:.3;transform:scale(.62,.24);border-radius:42px}to{opacity:1;transform:scale(1);border-radius:25px}}
+@keyframes memo-tools-pulse{to{transform:scaleY(.4);opacity:.6}}
+@media(prefers-reduced-motion:reduce){.memo-tools,.memo-tools-wave i{animation:none}}
+@media(max-height:500px){.memo-tools{padding:7px 11px}.memo-tools-wave{display:none}.memo-tools header button{height:30px;min-height:30px}.memo-tools small{display:none}}
 </style>
 </body></html>
