@@ -19,11 +19,16 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    await page.locator('#memoToolsPause').click();await page.waitForTimeout(1100);
    await page.locator('#memoToolsSave').click();await page.waitForFunction(()=>document.getElementById('memoTools').hidden);
    assert.equal(await page.evaluate(()=>ideas.length),1,'real MediaRecorder audio saves exactly one entry');assert.ok(await page.evaluate(()=>!!ideas[0].voiceMemoId));
+   assert.equal(await page.locator('#dayView').isVisible(),true,'save keeps the calendar visible');assert.equal(await page.locator('#ideasView').isVisible(),false);assert.equal(await page.locator('.memo-save-confirmation').count(),1);assert.equal(await page.locator('#phoneEntries').evaluate(el=>el.classList.contains('memo-received')),true);
    if(width===390){
     await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>startVoiceMemo());await page.waitForTimeout(120);
     const middle=await root.locator('.memo-glass').boundingBox();assert.ok(middle.height>64&&middle.height<218,'the existing glass continuously changes size');
     await page.waitForTimeout(700);assert.doesNotMatch(await root.locator('.command-drop defs path').first().getAttribute('d'),/NaN/);
     await page.locator('#memoToolsCancel').click();await page.waitForTimeout(800);assert.ok(Math.abs((await root.locator('.memo-glass').boundingBox()).height-64)<1,'closing restores the original ribbon dimensions');
+    const targetBefore=await page.locator('#phoneEntries').boundingBox();await page.evaluate(()=>startVoiceMemo());await page.waitForTimeout(1200);await page.locator('#memoToolsSave').click();await page.waitForTimeout(950);
+    assert.equal(await page.locator('.memo-save-confirmation').count(),1);const targetDuring=await page.locator('#phoneEntries').boundingBox();assert.deepEqual(targetDuring,targetBefore,'the waving caption leaves the tab hit area fixed');const firstPose=await page.locator('#phoneEntries>span').evaluate(el=>getComputedStyle(el).transform);await page.waitForTimeout(220);const secondPose=await page.locator('#phoneEntries>span').evaluate(el=>getComputedStyle(el).transform);assert.notEqual(firstPose,secondPose,'the glass tab visibly waves left and right');
+    if(process.env.PLANNER_MEMO_SCREENSHOT)await page.screenshot({path:path.join(process.env.PLANNER_MEMO_SCREENSHOT,'saved-feedback.png')});
+    await page.waitForTimeout(1700);assert.equal(await page.locator('.memo-save-confirmation').count(),0);assert.equal(await page.locator('#phoneEntries').evaluate(el=>el.classList.contains('memo-received')),false,'feedback cleans itself up');
    }
    assert.deepEqual(errors,[]);await page.close();console.log(`Recorder ${width}x${height}: shared glossy frame, visible two-action controls, pause/stop-save and ribbon restoration passed (synthetic audio).`);
   }
