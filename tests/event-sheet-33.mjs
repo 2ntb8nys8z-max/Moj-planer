@@ -35,7 +35,7 @@ try{
  assert.equal(get('eventTextForm').classList.contains('hidden'),true,'the typed event command is not permanently visible');
  assert.equal(w.getComputedStyle(content).overflowY,'auto');
  assert.equal(w.getComputedStyle(get('eventConversationBody')).overflowY,'auto');
- assert.equal(main.contains(get('eventActionsToggle')),true);
+ assert.equal(header.contains(get('eventActionsToggle')),true,'secondary event actions use the header more button instead of another plus');
  assert.equal(main.contains(get('eventActionsMenu')),true);
  assert.equal(footer.contains(get('eventActionsToggle')),false);
  assert.equal(panel.contains(get('eventActionsToggle')),false);

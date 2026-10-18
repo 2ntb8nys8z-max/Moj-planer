@@ -19,8 +19,11 @@ try{
   {id:'current',title:'Spotkanie zespołu',date:'2026-10-18',time:'12:00',endTime:'13:00'}
  ];showPlannerWeather=async()=>{};openEventActions(tasks[1]);`);
  await settle();
- get('eventActionsToggle').click();get('actionPeople').click();await settle();
- assert.equal(get('eventPeopleModal').classList.contains('hidden'),false,'people picker opens from the event plus menu');
+ const eventDock=w.document.querySelector('.octi-dock[data-channel="event"]'),peopleButton=eventDock.querySelector('.extra.people');
+ assert.ok(peopleButton,'the event dock has a dedicated people action');
+ assert.equal(get('eventMainRegion').querySelector('#eventActionsToggle'),null,'the old small floating plus is removed from event content');
+ eventDock.querySelector('.menu-toggle').click();peopleButton.click();await settle();
+ assert.equal(get('eventPeopleModal').classList.contains('hidden'),false,'people picker opens from the large Okti plus');
  assert.equal(get('eventModal').inert,true,'the event behind the picker is inert');
  assert.match(get('eventPeopleChoices').textContent,/Anna Kowalska/,'people previously used in events are reusable');
  get('eventPersonName').value='Jan Nowak';get('eventPersonEmail').value='jan@example.com';get('addEventPerson').click();
@@ -41,5 +44,5 @@ try{
  anna.querySelector('input').click();get('reviewEventPeople').click();get('prepareEventInvites').click();await settle();
  assert.equal(run(`tasks[1].people.every(person=>person.status==='ready')`),true,'choosing invitations only marks email contacts as ready and does not pretend they were sent');
  assert.match(get('toast').textContent,/Nikt nie otrzymał jeszcze wiadomości/);
- console.log('Event people 33.92: plus action, reusable contacts, multiple selection, local save, compact card and honest invitation-ready state passed.');
+ console.log('Event people 33.93: large Okti plus action, reusable contacts, multiple selection, local save, compact card and honest invitation-ready state passed.');
 }finally{dom.window.close()}

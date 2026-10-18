@@ -47,10 +47,9 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    near(initial.nodes.eventFooter.right,width,`${prefix}: communication footer spans the viewport`);
    near(initial.nodes.eventFooter.bottom,height,`${prefix}: communication footer stays at the bottom viewport edge`);
    assert.ok(initial.nodes.eventMainRegion.height>20,`${prefix}: main event content remains usable`);
-   within(initial.nodes.eventActionsToggle,initial.nodes.eventMainRegion,`${prefix}: the floating plus belongs only to the main content region`);
-   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventFooter),`${prefix}: the floating plus does not cover communication controls`);
-   assert.equal(initial.plusStyle.position,'absolute',`${prefix}: the plus is anchored inside the event content region`);
-   assert.ok(['rgba(0, 0, 0, 0)','transparent'].includes(initial.plusStyle.background),`${prefix}: the plus button has a transparent background`);
+   within(initial.nodes.eventActionsToggle,initial.nodes.eventHeader,`${prefix}: the secondary event menu uses the header more button`);
+   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventFooter),`${prefix}: the header more button does not cover communication controls`);
+   assert.notEqual(initial.plusStyle.position,'absolute',`${prefix}: there is no second floating plus in event content`);
    near(initial.nodes.eventWeather.width,initial.contentClientWidth-initial.contentInsets.left-initial.contentInsets.right,`${prefix}: weather uses the whole available event content width`);
    if(process.env.PLANNER_EVENT_SCREENSHOT){fs.mkdirSync(process.env.PLANNER_EVENT_SCREENSHOT,{recursive:true});await page.screenshot({path:path.resolve(process.env.PLANNER_EVENT_SCREENSHOT,`event-sheet-overview-33-${width}x${height}.png`)});}
    await page.locator('#navigateBtn').click();
@@ -95,9 +94,9 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    assert.ok(initial.nodes.eventContent.height>20,`${prefix}: event details remain usable with the conversation open`);
    assert.ok(initial.nodes.eventConversationBody.height>15,`${prefix}: the conversation keeps an independent usable scroll area`);
    assert.ok(initial.conversationScrollHeight>initial.conversationClientHeight,`${prefix}: the conversation has enough history to scroll`);
-   within(initial.nodes.eventActionsToggle,initial.nodes.eventMainRegion,`${prefix}: the floating plus stays in event content while conversation is open`);
-   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventConversationPanel),`${prefix}: the floating plus never covers the conversation`);
-   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventFooter),`${prefix}: the floating plus never covers the reply/footer`);
+   within(initial.nodes.eventActionsToggle,initial.nodes.eventHeader,`${prefix}: the header more button stays in the header while conversation is open`);
+   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventConversationPanel),`${prefix}: the header more button never covers the conversation`);
+   assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventFooter),`${prefix}: the header more button never covers the reply/footer`);
    await page.locator('#eventConversationBody').evaluate(node=>node.scrollTop=0);
    await page.locator('#eventConversationBody').evaluate(node=>node.scrollTop=node.scrollHeight);
    scrolled=await measure();
@@ -138,6 +137,6 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    await page.close();
   }
   assert.deepEqual(errors,[],'No event sheet browser JavaScript errors');
-  console.log('Event sheet browser 33.56: 320×568, 390×844, 844×390; viewport-wide fixed header/footer, independent event/conversation scroll, full-width weather, original navigation and action handlers, transparent main-content plus with vertical menu, same-node dialogue/reply preservation and read-only Google task protections passed.');
+  console.log('Event sheet browser 33.93: 320×568, 390×844, 844×390; fixed header/footer, independent scrolling, header more menu, large-dock actions and read-only protections passed.');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
