@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.18.33.93-integration';
-const PREVIEW_VERSION='2026.10.18.33.93-test';
+const APP_VERSION='2026.10.18.33.94-integration';
+const PREVIEW_VERSION='2026.10.18.33.94-test';
 const WORKER_VERSION='2026.10.12.33.36-test';
 const WORKER_LABEL='Worker 33.36-test';
 
@@ -49,8 +49,8 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp']){
 }
 
 let preview=canonical;
-preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.93</title>','document title');
-preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.93</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.93</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
+preview=replaceOnce(preview,'<title>Mój Planer</title>','<title>Mój Planer — test integracji 33.94</title>','document title');
+preview=replaceOnce(preview,'<h1>Mój Planer</h1>','<h1>Mój Planer — test 33.94</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.94</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div>','main heading');
 preview=preview.replaceAll(APP_VERSION,PREVIEW_VERSION);
 preview=replaceOnce(preview,'// Durable planner state: one atomic record, one previous good snapshot.',"// Durable planner state: one atomic record, one previous good snapshot.\nconst PREVIEW33_PREFIX='planner-preview-33:';\nconst PREVIEW33_STORE={key:key=>PREVIEW33_PREFIX+key,getItem:key=>window.localStorage.getItem(PREVIEW33_PREFIX+key),setItem:(key,value)=>window.localStorage.setItem(PREVIEW33_PREFIX+key,value),removeItem:key=>window.localStorage.removeItem(PREVIEW33_PREFIX+key)};",'storage adapter insertion');
 const plannerStart=preview.indexOf('const PlannerData=(()=>{');
@@ -76,6 +76,6 @@ output('index.html',canonical);
 output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
-for(const file of ['manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

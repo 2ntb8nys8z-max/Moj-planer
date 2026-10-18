@@ -29,9 +29,9 @@ let ideaSnapshot;
 try{
  run(`showPlannerWeather=async()=>{};selected=new Date('2026-10-12T12:00:00');tasks=[{id:'open-event',title:'Spotkanie projektowe',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Starsza zachowana notatka',createdAt:'2026-10-11T09:05:00.000Z'},{id:'other-event',title:'Nie zmieniaj',date:'2026-10-12',time:'16:00',endTime:'17:00'}];ideas=[{id:'untouched-entry',title:'Wpis poza wydarzeniem',text:'Treść',alarm:{date:'2026-10-12',time:'18:00',message:'Nie zmieniaj'}}];pendingVoiceItem=null;renderAll();showView('day');openEventActions(tasks[0]);`);
  await settle();ideaSnapshot=JSON.stringify(run('ideas'));
- assert.equal(get('eventHeader').contains(get('eventHistory')),true,'the original history button is beside the event close button in the header');
+ assert.equal(get('eventActionsMenu').contains(get('eventHistory')),true,'the original history button remains available from more actions');
  assert.equal(typeof get('eventHistory').onclick,'function','the existing history handler remains actionable');
- assert.match(get('eventHeaderMeta').textContent,/2026-10-12/);
+ assert.equal(get('eventDate').textContent,'12 października 2026');
  assert.match(get('eventHeaderMeta').textContent,/12:00.*13:00/);
  assert.equal(get('eventReminderBadge').classList.contains('hidden'),true,'events without an assigned reminder hide the large bell');
  assert.equal(get('eventContent').contains(get('eventNotesCards')),true,'note cards stay in the event content scroll region');
@@ -47,7 +47,7 @@ try{
  assert.equal(run('tasks[0].reminder.minutesBefore'),15,'an explicit event reminder is saved immediately');
  assertNoDetachedReminder('Immediate event reminder');
  assert.equal(get('eventReminderBadge').classList.contains('hidden'),false);
- assert.match(get('eventReminderBadge').textContent,/15/);
+ assert.equal(get('eventReminderBadge').textContent,'15 min wcześniej');assert.equal(get('eventReminderBadge').parentElement,get('eventTime').parentElement,'active reminder is next to the hours');assert.equal(w.getComputedStyle(get('eventReminderBadge')).color,'rgb(255, 255, 255)','active reminder has a contrasting white label');assert.ok([...get('actionMeta').childNodes].filter(n=>n.nodeType===3).every(n=>!n.textContent.includes('🔔')),'the scroll content has no duplicate reminder');
  assert.equal(w.document.querySelectorAll('.phone-event-reminder-icon').length,1,'only the event with an assigned reminder gets a small time-row bell');
  const a=w.document.querySelector('.phone-event[data-event-id="open-event"]').nextElementSibling;
  assert.ok(a.querySelector('.phone-event-time .phone-event-reminder-icon'),'the bell is next to the event hours');

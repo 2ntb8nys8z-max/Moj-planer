@@ -17,14 +17,14 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
     const url=new URL(route.request().url());
     if(url.origin==='https://planner.test'){
      const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
-     if(['index.html','sync-core.js','google-calendar.js'].includes(name))return route.fulfill({body:fs.readFileSync(path.resolve(name)),contentType:name.endsWith('.html')?'text/html':'application/javascript'});
+     if(fs.existsSync(path.resolve(name))&&fs.statSync(path.resolve(name)).isFile())return route.fulfill({body:fs.readFileSync(path.resolve(name)),contentType:name.endsWith('.html')?'text/html':name.endsWith('.woff2')?'font/woff2':name.endsWith('.webp')?'image/webp':'application/javascript'});
     }
     if(url.hostname==='geocoding-api.open-meteo.com')return route.fulfill({json:{results:[{id:1,name:'Dresden',admin1:'Sachsen',country:'Deutschland',country_code:'DE',latitude:51.05,longitude:13.74,timezone:'Europe/Berlin'}]}});
     if(url.hostname==='api.open-meteo.com')return route.fulfill({json:{timezone:'Europe/Berlin',hourly:{time:['2026-10-12T11:00','2026-10-12T12:00','2026-10-12T13:00','2026-10-12T14:00'],temperature_2m:[13,14,15,15],precipitation_probability:[10,20,20,15],wind_speed_10m:[8,9,9,8],weather_code:[2,2,3,3]}}});
     if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{requiresAccess:false,protocolVersion:2,apiVersion:'2026.10.08.33.14-test'}});
    });
-   await page.goto('https://planner.test');
+   await page.goto('https://planner.test');await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(()=>{
     today=()=>new Date('2026-10-12T00:00:00');
     tasks=[{id:'event-sheet',title:'Spotkanie projektowe',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Omówienie projektu i kolejnych zadań.'}];
@@ -68,7 +68,7 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    }
    await page.locator('#eventActionsToggle').click();
    assert.equal(await page.locator('#eventActionsToggle').getAttribute('aria-expanded'),'true');
-   const actionRects=await page.locator('#eventActionsMenu').evaluate(menu=>[...menu.querySelectorAll('button')].map(button=>{const r=button.getBoundingClientRect();return {id:button.id,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}}));
+   const actionRects=await page.locator('#eventActionsMenu').evaluate(menu=>[...menu.querySelectorAll('button')].filter(button=>button.getClientRects().length).map(button=>{const r=button.getBoundingClientRect();return {id:button.id,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}}));
    assert.deepEqual(actionRects.map(action=>action.id).filter(id=>['actionDone','actionEdit','actionTimer','actionDelete'].includes(id)),['actionDone','actionEdit','actionTimer','actionDelete'],`${prefix}: the vertical menu contains all original action buttons`);
    for(let i=1;i<actionRects.length;i++)assert.ok(actionRects[i].top>=actionRects[i-1].bottom-epsilon,`${prefix}: action menu buttons are arranged vertically`);
    await page.locator('#actionEdit').click();
@@ -110,7 +110,7 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    assert.equal(await page.locator('#eventConversationPanel').isVisible(),false);
    const preserved=await page.evaluate(()=>({session:voiceDialogues.event===eventSheetSession,history:voiceDialogues.event.history===eventSheetHistory,draft:voiceDialogues.event.dialogueState===eventSheetDraft,conversation:document.getElementById('eventConversation')===eventSheetConversation,reply:document.getElementById('eventClarification')===eventSheetReply,input:document.querySelector('#eventClarification input').value}));
    assert.deepEqual(preserved,{session:true,history:true,draft:true,conversation:true,reply:true,input:'O 14:30'},`${prefix}: collapsing conversation preserves the same dialogue, history, draft, generated nodes and unsent reply`);
-   await page.locator('#eventConversationToggle').click();
+   await page.locator('#eventActionsToggle').click();await page.locator('#eventConversationToggle').click();
    assert.equal(await page.locator('#eventConversationPanel').isVisible(),true);
    assert.equal(await page.locator('#eventClarification input').inputValue(),'O 14:30');
    await page.locator('#closeEventConversation').click();
@@ -131,12 +131,12 @@ const apart=(a,b)=>a.right<=b.left+epsilon||b.right<=a.left+epsilon||a.bottom<=b
    assert.equal(await page.evaluate(()=>tasks.length),0,`${prefix}: the original delete action still runs`);
    await page.evaluate(()=>{tasks=[{id:'google-task',title:'Zadanie Google',date:'2026-10-12',time:'12:00',endTime:'13:00',notes:'https://tasks.google.com/task/example'}];openEventActions(tasks[0]);});
    assert.equal(await page.locator('#eventFooter').isVisible(),false,`${prefix}: communication stays hidden for a read-only Google task`);
-   assert.equal(await page.locator('#eventActionsToggle').isVisible(),false,`${prefix}: read-only editing actions remain hidden`);assert.equal(await page.locator('#eventHeader #eventHistory').isVisible(),true,`${prefix}: original history is directly reachable in the header`);await page.locator('#eventHistory').click();assert.equal(await page.locator('#historyModal').isVisible(),true,`${prefix}: original history handler still runs for read-only Google tasks`);
+   assert.equal(await page.locator('#eventActionsToggle').isVisible(),true,`${prefix}: read-only history menu remains available`);await page.locator('#eventActionsToggle').click();assert.equal(await page.locator('#eventActionsMenu #eventHistory').isVisible(),true,`${prefix}: original history is available in the secondary menu`);await page.locator('#eventHistory').click();assert.equal(await page.locator('#historyModal').isVisible(),true,`${prefix}: original history handler still runs for read-only Google tasks`);
    assert.equal(await page.locator('#eventConversationPanel').isVisible(),false);
    for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(await page.locator('#'+id).isVisible(),false,`${prefix}: ${id} stays hidden for a read-only Google task`);
    await page.close();
   }
   assert.deepEqual(errors,[],'No event sheet browser JavaScript errors');
-  console.log('Event sheet browser 33.93: 320×568, 390×844, 844×390; fixed header/footer, independent scrolling, header more menu, large-dock actions and read-only protections passed.');
+  console.log('Event sheet browser 33.94: 320×568, 390×844, 844×390; fixed header/footer, independent scrolling, header more menu, large-dock actions and read-only protections passed.');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

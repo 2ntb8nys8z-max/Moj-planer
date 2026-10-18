@@ -25,8 +25,8 @@ try{
  for(const node of [header,main,panel,footer])assert.equal(node.parentElement,sheet,'header, main, conversation and communication footer are separate sheet regions');
  assert.equal(get('actionTitle').parentElement.className,'event-header-top','the event title uses the dedicated opaque top row');
  assert.equal(header.contains(get('actionTitle')),true);
- assert.equal(header.contains(get('closeEvent')),true);assert.equal(header.contains(get('eventConversationToggle')),true,'collapsed conversation can reopen from the event header');
- assert.match(get('eventHeaderMeta').textContent,/2026-10-12/);
+ assert.equal(header.contains(get('closeEvent')),true);assert.equal(get('eventActionsMenu').contains(get('eventConversationToggle')),true,'collapsed conversation can reopen from the secondary actions menu');assert.equal(get('eventHeaderActions').querySelectorAll('button').length,2,'only more and close remain in the event header');
+ assert.equal(get('eventDate').textContent,'12 października 2026');
  assert.match(get('eventHeaderMeta').textContent,/12:00.*13:00/);
  for(const id of ['actionMeta','eventWeather','navigateBtn','eventEditBox','timerBox'])assert.equal(content.contains(get(id)),true,`${id} stays in the independently scrolling event content`);
  for(const id of ['eventVoice','eventVoiceCountdown','eventRecordCancel','eventVoiceHint'])assert.equal(footer.contains(get(id)),true,`${id} stays in the stationary communication footer`);
@@ -119,7 +119,7 @@ try{
 
  run(`tasks=[{id:'google-readonly',title:'Zadanie Google',date:'2026-10-12',time:'12:00',endTime:'13:00',notes:'https://tasks.google.com/task/example'}];openEventActions(tasks[0]);`);await settle();
  assert.equal(footer.classList.contains('hidden'),true,'read-only Google tasks hide the communication footer');
- assert.equal(get('eventActionsToggle').classList.contains('hidden'),true,'read-only Google tasks hide editing actions');assert.equal(get('eventHeader').contains(get('eventHistory')),true,'read-only history remains directly reachable beside close');assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
+ assert.equal(get('eventActionsToggle').classList.contains('hidden'),false,'read-only Google tasks retain the history menu');assert.equal(get('eventActionsMenu').contains(get('eventHistory')),true,'read-only history stays reachable through more actions');get('eventActionsToggle').click();assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
  assert.equal(panel.classList.contains('hidden'),true);
  for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(get(id).classList.contains('hidden'),true,`${id} remains hidden for read-only Google tasks`);
  console.log('Event sheet 33.56: separate scrolling regions, fixed communication controls, preserved action IDs and handlers, navigation, idle/recording/send presentation, original dialogue/reply node relocation, close/reopen input and session preservation, new-message reveal, recurrence close without inert leak and read-only Google tasks passed.');

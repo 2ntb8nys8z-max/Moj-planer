@@ -23,11 +23,11 @@ const events=[
    page.on('dialog',async dialog=>{dialogs.push(`${prefix}: ${dialog.message()}`);await dialog.dismiss()});
    await page.route('**/*',async route=>{
     const url=new URL(route.request().url()),name=url.pathname==='/'?'index.html':url.pathname.slice(1);
-    if(url.origin==='https://planner.test'&&['index.html','sync-core.js','google-calendar.js'].includes(name))return route.fulfill({body:fs.readFileSync(path.resolve(name)),contentType:name.endsWith('.html')?'text/html':'application/javascript'});
+    if(url.origin==='https://planner.test'&&fs.existsSync(path.resolve(name))&&fs.statSync(path.resolve(name)).isFile())return route.fulfill({body:fs.readFileSync(path.resolve(name)),contentType:name.endsWith('.html')?'text/html':name.endsWith('.woff2')?'font/woff2':name.endsWith('.webp')?'image/webp':'application/javascript'});
     if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{requiresAccess:false,protocolVersion:2,apiVersion:'2026.10.12.33.36-test'}});
    });
-   await page.goto('https://planner.test');
+   await page.goto('https://planner.test');await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(fixture=>{
     showPlannerWeather=async()=>{};today=()=>new Date('2026-10-12T00:00:00');selected=new Date('2026-10-12T12:00:00');tasks=fixture;
     ideas=[{id:'gutter-reminder',title:'Przypomnienie',text:'Przypomnienie',alarm:{date:'2026-10-12',time:'12:15',message:'Przypomnienie'}}];
@@ -79,11 +79,11 @@ const events=[
    near(initial.nodes.eventHeader.top,0,`${prefix}: event header stays at the viewport top`);
    near(initial.nodes.eventHeader.left,0,`${prefix}: header starts at the left edge`);near(initial.nodes.eventHeader.right,width,`${prefix}: header spans the viewport`);
    near(initial.nodes.eventFooter.bottom,height,`${prefix}: footer stays at the viewport bottom`);near(initial.nodes.eventFooter.left,0,`${prefix}: footer starts at the left edge`);near(initial.nodes.eventFooter.right,width,`${prefix}: footer spans the viewport`);
-   within(initial.nodes.eventHistory,initial.nodes.eventHeader,`${prefix}: history stays beside close in the header`);assert.ok(apart(initial.nodes.eventHistory,initial.nodes.closeEvent),`${prefix}: history and close buttons do not overlap`);
+   assert.equal(await page.locator('#eventHeaderActions button').count(),2,`${prefix}: only more and close remain in the header`);
    assert.ok(initial.nodes.eventReminderBadge.height>=32,`${prefix}: the assigned reminder has a large readable detail badge`);
-   assert.match(await page.locator('#eventHeaderMeta').textContent(),/2026-10-12.*12:00.*12:20/);
+   assert.match(await page.locator('#eventHeaderMeta').textContent(),/12 października 2026.*12:00.*12:20/);
    assert.match(await page.locator('#eventReminderBadge').textContent(),/15/);
-   await page.locator('#eventHistory').click();await page.locator('#historyModal').waitFor({state:'visible'});await page.locator('#closeHistory').click();
+   await page.locator('#eventActionsToggle').click();await page.locator('#eventHistory').click();await page.locator('#historyModal').waitFor({state:'visible'});await page.locator('#closeHistory').click();
    await page.locator('#eventNotesCards .event-note-copy').click();assert.equal(await page.evaluate(()=>testNoteCopies.at(-1)),'Starsza notatka');
 
    await page.evaluate(()=>{window.testInlineNote=processEventVoiceResult({transcription:'Dopisz notatkę: Nowa transkrypcja',item:{type:'event',changedFields:['notes'],notesAction:'append',notesAddition:'Nowa transkrypcja'}},activeTask.id)});
@@ -101,13 +101,13 @@ const events=[
     activeTask.noteCards=Array.from({length:24},(_,i)=>({text:`Notatka ${i+1}: szczegóły spotkania oraz ustalenia do realizacji.`,createdAt:'2026-10-12T09:05:00.000Z'}));activeTask.notes=activeTask.noteCards.map(note=>note.text).join('\n');openEventActions(activeTask);
     window.testEventSession=beginVoiceDialogue('event',activeTask.id,voiceDialogueCurrent('event',activeTask.id));testEventSession.history=Array.from({length:30},(_,i)=>({role:i%2?'assistant':'user',content:`Wiadomość ${i+1}: ustalenia wydarzenia, notatek oraz godziny spotkania.`}));showVoiceClarification(testEventSession,'Ile minut przed wydarzeniem mam przypomnieć?');
    });
-   await page.locator('#eventConversationPanel').waitFor({state:'visible'});await page.locator('#eventReplyDock input').fill('30 minut');
+   await page.locator('#eventConversationPanel').waitFor({state:'visible'});await page.locator('#eventConversationTools .reply-keyboard:not(.hidden)').click();await page.locator('#eventClarification input').fill('30 minut');
    initial=await measure();assert.ok(initial.contentOverflow&&initial.conversationOverflow,`${prefix}: notes and conversation have independent scrollable content`);
    within(initial.nodes.eventActionsToggle,initial.nodes.eventHeader,`${prefix}: secondary actions remain in the header more button`);assert.ok(apart(initial.nodes.eventActionsToggle,initial.nodes.eventConversationPanel)&&apart(initial.nodes.eventActionsToggle,initial.nodes.eventFooter),`${prefix}: header actions cover neither conversation nor footer`);
    await page.locator('#eventContent').evaluate(node=>node.scrollTop=node.scrollHeight);let scrolled=await measure();assert.ok(scrolled.contentScroll>0,`${prefix}: note cards actually scroll`);
    for(const id of ['eventHeader','eventFooter']){near(scrolled.nodes[id].top,initial.nodes[id].top,`${prefix}: ${id} stays fixed while notes scroll`);near(scrolled.nodes[id].bottom,initial.nodes[id].bottom,`${prefix}: ${id} keeps its bounds`)}
    await page.locator('#eventConversationBody').evaluate(node=>{node.scrollTop=0;node.scrollTop=node.scrollHeight});const both=await measure();assert.ok(both.conversationScroll>0,`${prefix}: conversation actually scrolls`);near(both.contentScroll,scrolled.contentScroll,`${prefix}: conversation scroll preserves note scroll`);
-   await page.locator('#closeEventConversation').click();assert.equal(await page.locator('#eventConversationPanel').isVisible(),false);await page.locator('#eventConversationToggle').click();assert.equal(await page.locator('#eventReplyDock input').inputValue(),'30 minut',`${prefix}: collapsing conversation preserves the unsent reply`);
+   await page.locator('#closeEventConversation').click();assert.equal(await page.locator('#eventConversationPanel').isVisible(),false);await page.locator('#eventActionsToggle').click();await page.locator('#eventConversationToggle').click();assert.equal(await page.locator('#eventClarification input').inputValue(),'30 minut',`${prefix}: collapsing conversation preserves the unsent reply`);
    await page.evaluate(async()=>{clearVoiceDialogue('event');const session=beginVoiceDialogue('event',activeTask.id,voiceDialogueCurrent('event',activeTask.id));await applyVoiceUiAction(session,{type:'remove_event_reminder'})});
    assert.equal(await page.locator('#eventReminderBadge').isVisible(),false,`${prefix}: removing a reminder hides the detail bell`);
    assert.equal(await page.locator('.phone-event[data-event-id="a"] + .phone-event-title .phone-event-reminder-icon').count(),0,`${prefix}: removing a reminder hides its day-card bell`);

@@ -37,7 +37,8 @@ jobs:
 
       - name: Stage publication artifacts
         run: |
-          mkdir -p "$RUNNER_TEMP/preview33"
+          mkdir -p "$RUNNER_TEMP/preview33/fonts"
+          cp integration/preview33/fonts/* "$RUNNER_TEMP/preview33/fonts/"
           cp integration/preview33/index.html "$RUNNER_TEMP/preview33/index.html"
           cp integration/preview33/release.json "$RUNNER_TEMP/preview33/release.json"
           cp integration/preview33/worker.txt "$RUNNER_TEMP/preview33/worker.txt"
@@ -53,6 +54,8 @@ jobs:
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
+          mkdir -p pages/preview33/fonts
+          cp "$RUNNER_TEMP/preview33/fonts/"* pages/preview33/fonts/
           cp "$RUNNER_TEMP/preview33/index.html" pages/preview33/index.html
           cp "$RUNNER_TEMP/preview33/release.json" pages/preview33/release.json
           cp "$RUNNER_TEMP/preview33/worker.txt" pages/preview33/worker.txt
@@ -60,7 +63,7 @@ jobs:
           cd pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add preview33/index.html preview33/release.json preview33/worker.txt preview33/google-calendar.js preview33/sync-core.js preview33/manifest.webmanifest preview33/app-icon-180.png preview33/app-icon-512.png preview33/header-sky.webp preview33/octi-water-glass.webp preview33/octi-water-mascot.webp
+          git add preview33/fonts preview33/index.html preview33/release.json preview33/worker.txt preview33/google-calendar.js preview33/sync-core.js preview33/manifest.webmanifest preview33/app-icon-180.png preview33/app-icon-512.png preview33/header-sky.webp preview33/octi-water-glass.webp preview33/octi-water-mascot.webp
           if git diff --cached --quiet; then
             echo "Preview33 is already current."
             exit 0

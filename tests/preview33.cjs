@@ -7,14 +7,15 @@ const worker=fs.readFileSync('worker.js','utf8');
 const rootWorkerText=fs.readFileSync('worker.txt','utf8');
 const previewWorkerText=fs.readFileSync('preview33/worker.txt','utf8');
 const release=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt'])assert.ok(fs.readFileSync('preview33/'+file).equals(fs.readFileSync(file)),'Preview must include its locally served font and license');
 for(const file of ['octi-water-glass.webp','octi-water-mascot.webp']){
   const bytes=fs.readFileSync(file),hash=require('node:crypto').createHash('sha256').update(bytes).digest('hex').slice(0,16);
   assert.ok(fs.readFileSync('preview33/'+file).equals(bytes),'Preview must contain the exact mascot/glass asset');
   assert.ok(preview.includes(file+'?v='+hash),'The rendered artwork must reference the current asset hash');
 }
 
-assert.match(root,/Aplikacja: 2026\.10\.18\.33\.93-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.18\.33\.93-test/);
+assert.match(root,/Aplikacja: 2026\.10\.18\.33\.94-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.18\.33\.94-test/);
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
 assert.match(preview,/e\.key===PREVIEW33_STORE\.key\(KEY\)/,'storage events must use the preview-prefixed key');
@@ -47,10 +48,10 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.18.33.93-test');
+assert.equal(release.version,'2026.10.18.33.94-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.93: event people picker opens from the large Okti plus.');
+console.log('Preview 33.94: event people picker opens from the large Okti plus.');
