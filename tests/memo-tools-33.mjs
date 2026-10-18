@@ -37,8 +37,8 @@ try{
  assert.equal(run('memoSession.mode'),'recording');assert.equal(get('memoTools').hidden,false);assert.equal(run('tasks.length+ideas.length'),0,'opening the recorder writes no event or note');
  const before=requested;get('voice').click();await settle();assert.equal(requested,before,'the command microphone cannot overlap a memo');
  run('memoSession.started-=2000');get('memoToolsPause').click();assert.equal(run('memoSession.mode'),'paused');const elapsed=run('memoElapsed()');await settle();assert.equal(run('memoElapsed()'),elapsed,'paused time does not consume the limit');
- get('memoToolsPause').click();assert.equal(run('memoSession.mode'),'recording');get('memoToolsStop').click();await settle();assert.equal(run('memoSession.mode'),'ready');assert.equal(run('ideas.length'),0,'Stop keeps an unsaved recording for explicit save');assert.ok(stopped>0);
- failSave=true;get('memoToolsSave').click();await settle();assert.equal(run('memoSession.mode'),'ready');assert.ok(run('memoSession.blob.size')>0,'a storage failure keeps the audio for retry');assert.equal(run('ideas.length'),0);
+ get('memoToolsPause').click();assert.equal(run('memoSession.mode'),'recording');assert.equal(get('memoToolsStop'),null,'The recorder exposes one combined stop/save action');
+ failSave=true;get('memoToolsSave').click();await settle();assert.equal(run('memoSession.mode'),'ready');assert.ok(stopped>0);assert.ok(run('memoSession.blob.size')>0,'a storage failure keeps the audio for retry');assert.equal(run('ideas.length'),0);
  failSave=false;get('memoToolsSave').click();get('memoToolsSave').click();await settle();assert.equal(run('memoSession'),null);assert.equal(run('ideas.length'),1,'double save creates exactly one entry');assert.equal(saved.size,1);assert.ok(run("entryAttachments(ideas[0]).some(a=>a.type==='audio')"));assert.equal(get('memoTools').hidden,true);
  run("clearVoiceDialogue('main');englishSession=beginVoiceDialogue('main',null,null)");
  const english=await run("requestVoiceDialogue(englishSession,'start recording')");assert.equal(english.startVoiceMemo,true);w.english=english;await run('applyVoiceDialogueResult(englishSession,english)');

@@ -139,7 +139,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.98-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.18.33.99-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -214,7 +214,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.98-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.18.33.99-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -417,11 +417,11 @@ function updateMemoTools(){
  panel.dataset.mode=state.mode;
  $('memoToolsTime').textContent=entryTime(memoElapsed(state)/1000)+' / 03:00';
  $('memoToolsStatus').textContent=state.error||({opening:'Uruchamiam mikrofon…',recording:'Nagrywam notatkę',paused:'Pauza',stopping:'Zatrzymuję…',ready:'Nagranie gotowe',saving:'Zapisuję nagranie…'}[state.mode]);
- $('memoToolsPause').textContent=state.mode==='paused'?'Wznów':'Pauza';
+ $('memoToolsPauseLabel').textContent=state.mode==='paused'?'Wznów':'Pauza';
+ $('memoToolsPauseIcon').setAttribute('d',state.mode==='paused'?'M9 5 20 12 9 19Z':'M8 5V19M16 5V19');
  $('memoToolsPause').disabled=!['recording','paused'].includes(state.mode);
- $('memoToolsStop').disabled=!['recording','paused'].includes(state.mode);
  $('memoToolsSave').disabled=!['recording','paused','ready'].includes(state.mode);
- $('memoToolsSave').textContent=state.error?'Ponów zapis':'Zapisz';
+ $('memoToolsSaveLabel').textContent=state.error?'Ponów zapis':state.mode==='ready'?'Zapisz nagranie':'Zatrzymaj i zapisz';
  $('memoToolsCancel').disabled=state.mode==='saving';
 }
 function closeMemoTools(message=''){
@@ -2660,16 +2660,17 @@ function initializeOctiDocks(){
    requestAnimationFrame(()=>{if(!row.isConnected)return;const overflow=Math.max(0,text.scrollWidth-row.clientWidth);text.classList.toggle('overflowing',overflow>2);text.style.setProperty('--text-shift',-overflow+'px');const seconds=Math.max(2.4,overflow/30+1.6);text.style.setProperty('--marquee-time',seconds+'s');hintDelay=Math.max(2600,seconds*1000+500);lastHint=Date.now();});
   }
   function fitCommandSkin(){
-   const box=strip.getBoundingClientRect(),circle=oldButton.getBoundingClientRect();if(!box.width||!circle.width)return;
+   const frame=root.querySelector('.memo-glass')||strip,box=frame.getBoundingClientRect(),circle=oldButton.getBoundingClientRect();if(!box.width||!circle.width)return;
    const cx=circle.left+circle.width/2-box.left,cy=circle.top+circle.height/2-box.top,radius=parseFloat(getComputedStyle(water).width)/2+5;
-   const shape=octiRibbonContour(box.width,box.height,cx,cy,radius);
+   const shape=frame!==strip?octiMemoContour(box.width,box.height,cx,cy,radius):octiRibbonContour(box.width,box.height,cx,cy,radius);
    commandSkin.setAttribute('viewBox',`0 0 ${shape.width} ${box.height}`);commandSkin.style.width=shape.width+'px';
    commandFrost.style.width=shape.width+'px';commandFrost.style.clipPath='path("'+shape.forms[0]+'")';
-   for(const [suffix,forms] of [['',shape.forms],['-inner',shape.innerForms]]){const path=commandSkin.querySelector('[id="'+dropShape+suffix+'"]');path.setAttribute('d',forms[0]);path.querySelector('animate').setAttribute('values',forms.join(';'));}
+   for(const [suffix,forms] of [['',shape.forms],['-inner',shape.innerForms]]){const path=commandSkin.querySelector('[id="'+dropShape+suffix+'"]');path.setAttribute('d',forms[0]);path.querySelector('animate')?.setAttribute('values',forms.join(';'));}
    commandSkin.querySelector('.drop-top-shine').setAttribute('d',shape.topShine);commandSkin.querySelector('.drop-bottom-shine').setAttribute('d',shape.bottomShine);
   }
   if(typeof ResizeObserver==='function'){const resize=new ResizeObserver(()=>{fitCommandSkin();renderHints()});resize.observe(strip);resize.observe(stage);resize.observe(root);}
   window.addEventListener('resize',fitCommandSkin);requestAnimationFrame(fitCommandSkin);
+  root.fitGlass=fitCommandSkin;
   renderHints();let startedAt=0;
   const tick=()=>{
    const state=plannerRecordings[channel],mode=state?.mode|| (voiceDialogues[channel]?.busy?'sending':'idle');
@@ -2691,12 +2692,24 @@ function fitVoiceReplyViewport(){
 }
 if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVoiceReplyViewport);window.visualViewport.addEventListener('scroll',fitVoiceReplyViewport);document.addEventListener('focusin',fitVoiceReplyViewport);document.addEventListener('focusout',()=>requestAnimationFrame(fitVoiceReplyViewport));}
 initializeOctiDocks();
+function octiMemoContour(width,height,cx,cy,radius){
+ if(cy-radius<32)return octiRibbonContour(width,height,cx,cy,radius);
+ const path=(inset=0)=>{const left=4+inset,top=4+inset,right=width-4-inset,bottom=height-4-inset,round=22,r=radius+inset;
+  const edge=Math.min(right,cx+r-1),join=cy-Math.sqrt(Math.max(0,r*r-(edge-cx)**2)),end=cx-Math.sqrt(Math.max(0,r*r-(bottom-cy)**2));
+  return `M${left+round} ${top} H${edge-round} Q${edge} ${top} ${edge} ${top+round} V${join} A${r} ${r} 0 0 0 ${end} ${bottom} H${left+round} Q${left} ${bottom} ${left} ${bottom-round} V${top+round} Q${left} ${top} ${left+round} ${top} Z`;
+ };
+ const form=path(),inner=path(3);return {width,forms:[form,form,form,form],innerForms:[inner,inner,inner,inner],topShine:`M22 8 H${width-27}`,bottomShine:`M22 ${height-9} H${Math.max(28,cx-radius-8)}`};
+}
 function initializeMemoTools(){
  const root=document.querySelector('.octi-dock[data-channel=main]');if(!root)return;
  const panel=document.createElement('section');panel.id='memoTools';panel.className='memo-tools';panel.hidden=true;panel.setAttribute('aria-label','Dyktafon — notatka głosowa');
- panel.innerHTML='<header><span class="memo-tools-dot" aria-hidden="true"></span><strong>Dyktafon</strong><button id="memoToolsCancel" type="button" aria-label="Anuluj nagranie">×</button></header><p id="memoToolsStatus" role="status"></p><div id="memoToolsTime" class="memo-tools-time">00:00 / 03:00</div><div class="memo-tools-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="memo-tools-actions"><button id="memoToolsPause" type="button">Pauza</button><button id="memoToolsStop" type="button">Stop</button><button id="memoToolsSave" type="button">Zapisz</button></div><small>Po zapisie możesz przepisać na tekst.</small>';
- root.querySelector('.octi-copy').append(panel);
- $('memoToolsCancel').onclick=()=>stopVoiceMemo(true);$('memoToolsPause').onclick=pauseVoiceMemo;$('memoToolsStop').onclick=()=>finishMemoRecording(false);$('memoToolsSave').onclick=()=>stopVoiceMemo(false);
+ panel.innerHTML='<header><span class="memo-tools-dot" aria-hidden="true"></span><strong>Dyktafon</strong><button id="memoToolsCancel" type="button" aria-label="Anuluj nagranie">×</button></header><p id="memoToolsStatus" role="status"></p><div id="memoToolsTime" class="memo-tools-time">00:00 / 03:00</div><div class="memo-tools-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="memo-tools-actions"><button id="memoToolsPause" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="memoToolsPauseIcon" d="M8 5V19M16 5V19"/></svg><span id="memoToolsPauseLabel">Pauza</span></button><button id="memoToolsSave" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="13" height="13" rx="3"/><path d="m12 19 3 3 7-8"/></svg><span id="memoToolsSaveLabel">Zatrzymaj i zapisz</span></button></div>';
+ const copy=root.querySelector('.octi-copy'),frame=document.createElement('div');frame.className='memo-glass';copy.append(frame);frame.append(root.querySelector('.commands'));frame.append(root.querySelector('.command-frost'),root.querySelector('.command-drop'),panel);
+ // A paused SMIL path retains its old contour in some browsers. Resize the
+ // original vector directly as the glass grows, including with reduced motion.
+ frame.querySelectorAll('.command-drop animate').forEach(node=>node.remove());
+ if(typeof ResizeObserver==='function')new ResizeObserver(()=>root.fitGlass()).observe(frame);
+ $('memoToolsCancel').onclick=()=>stopVoiceMemo(true);$('memoToolsPause').onclick=pauseVoiceMemo;$('memoToolsSave').onclick=()=>stopVoiceMemo(false);
 }
 initializeMemoTools();
 
@@ -2906,29 +2919,34 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .phone-layout .voice-area{bottom:calc(max(2px,calc(var(--phone-bottom-inset) - 30px)) + var(--reply-keyboard-inset,0px))}
 .phone-layout .voice-area>.octi-dock>.surface{padding-bottom:0!important}
 .memo-tools[hidden]{display:none!important}
-.memo-tools{position:absolute;left:0;bottom:calc(100% - 10px);z-index:8;width:clamp(224px,65vw,280px);padding:13px 14px 11px;border:1.5px solid #ffffffeb;border-radius:25px;background:linear-gradient(145deg,#f7fcfff0,#cee7f4e8);box-shadow:inset 1px 2px 3px #fff,inset -2px -2px 4px #7aadc544,0 7px 24px #3b6e9330;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:#2e4a69;text-align:left;pointer-events:auto;transform-origin:15% 100%;animation:memo-tools-grow .65s cubic-bezier(.2,.75,.2,1) both}
+.memo-glass{position:absolute;left:0;bottom:0;width:100%;height:64px;isolation:isolate;--command-tint:#b8dcfa;--command-edge:#78aace;transition:width .7s cubic-bezier(.2,.75,.2,1),height .7s cubic-bezier(.2,.75,.2,1),bottom .7s cubic-bezier(.2,.75,.2,1)}
+.memo-glass>.commands{position:absolute!important;bottom:0;left:0;transition:opacity .18s}
+.memo-open .memo-glass{width:clamp(224px,65vw,270px);height:218px;bottom:-24px}
+.memo-open .memo-glass>.commands{opacity:0;pointer-events:none}
+.memo-glass>.command-drop,.memo-glass>.command-frost{animation:none!important}
+.memo-tools{position:absolute;inset:0;z-index:1;padding:13px 16px;color:#2e4a69;text-align:left;pointer-events:auto;animation:memo-tools-reveal .55s .12s both}
 .memo-open .octi-copy{z-index:8!important}
 .memo-open .commands{pointer-events:none}
 .memo-open .commands :is(.reel,.status){visibility:hidden}
 .phone-layout :is(#stopMemo,#cancelMemo,#memoHint){display:none!important}
 .memo-open .menu-toggle{visibility:hidden}
 .memo-tools header{display:flex;align-items:center;gap:7px;font-size:15px}
-.memo-tools header button{margin-left:auto;width:36px;height:36px;min-height:36px;padding:0;border:0;border-radius:50%;background:#ffffff90;color:#466786;font-size:25px}
+.memo-tools header button{margin-left:auto;width:36px;height:36px;min-height:36px;padding:0;border:1px solid #ffffffb8;border-radius:50%;background:linear-gradient(145deg,#ffffffa0,#cae6f366);box-shadow:inset 1px 1px 2px #fff;color:#466786;font-size:25px}
 .memo-tools-dot{width:8px;height:8px;flex:none;border-radius:50%;background:#cd5561;box-shadow:0 0 0 4px #cd556115}
-.memo-tools p{margin:4px 0;color:#49637e;font-size:12px;font-weight:700;line-height:1.4}
-.memo-tools-time{font-size:22px;line-height:1.4;font-weight:800;font-variant-numeric:tabular-nums}
-.memo-tools-wave{display:flex;align-items:center;justify-content:center;gap:5px;height:29px;margin:5px 0 9px;border-radius:10px;background:#ffffff55}
+.memo-tools p{margin:1px 0;color:#49637e;font-size:11px;font-weight:700;line-height:1.4}
+.memo-tools-time{font-size:20px;line-height:1.4;font-weight:800;font-variant-numeric:tabular-nums}
+.memo-tools-wave{display:flex;align-items:center;justify-content:flex-start;padding-left:5px;gap:5px;width:calc(100% - 62px);height:23px;margin:2px 0 5px;background:transparent}
 .memo-tools-wave i{width:3px;height:6px;border-radius:3px;background:#6199bd;animation:memo-tools-pulse 1s ease-in-out infinite alternate}
 .memo-tools-wave i:nth-child(3n){height:17px;animation-delay:-.4s}.memo-tools-wave i:nth-child(2n){height:11px;animation-delay:-.7s}
 .memo-tools:not([data-mode=recording]) .memo-tools-wave i{animation-play-state:paused;opacity:.45}
-.memo-tools-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.memo-tools-actions button{min-height:44px;border:1px solid #a9c8de;border-radius:13px;padding:8px 5px;background:#f3faff;color:#345b7d;font-size:13px;font-weight:800}
-.memo-tools-actions #memoToolsSave{grid-column:1/-1;background:#346d9e;color:#fff;border-color:#346d9e}
+.memo-tools-actions{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;width:calc(100% - 64px)}
+.memo-tools-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:64px;border:1px solid #f8fdff;border-radius:18px;padding:5px 3px;background:linear-gradient(145deg,#ffffffdb,#c8e6f4b8);box-shadow:inset 1px 2px 2px #fff,inset -1px -2px 3px #89b4d14d,0 2px 4px #517da924;color:#345b7d;font-size:10px;line-height:1.2;font-weight:800}
+.memo-tools-actions svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.memo-tools-actions #memoToolsSave{background:linear-gradient(145deg,#edf9ff,#a2cfee);color:#254f77;border-color:#e9f8ff}
 .memo-tools-actions button:disabled{opacity:.45;cursor:default}
-.memo-tools small{display:block;margin-top:8px;font-size:10px;line-height:1.4;color:#506c87}
-@keyframes memo-tools-grow{from{opacity:.3;transform:scale(.62,.24);border-radius:42px}to{opacity:1;transform:scale(1);border-radius:25px}}
+@keyframes memo-tools-reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes memo-tools-pulse{to{transform:scaleY(.4);opacity:.6}}
-@media(prefers-reduced-motion:reduce){.memo-tools,.memo-tools-wave i{animation:none}}
-@media(max-height:500px){.memo-tools{padding:7px 11px}.memo-tools-wave{display:none}.memo-tools header button{height:30px;min-height:30px}.memo-tools small{display:none}}
+@media(prefers-reduced-motion:reduce){.memo-glass{transition:none}.memo-tools,.memo-tools-wave i{animation:none}}
+@media(max-height:500px){.memo-open .memo-glass{height:190px;bottom:-12px}.memo-tools{padding:9px 16px}.memo-tools-wave{height:13px;margin-bottom:2px}.memo-tools header button{height:30px;min-height:30px}.memo-tools-actions button{min-height:58px}}
 </style>
 </body></html>
