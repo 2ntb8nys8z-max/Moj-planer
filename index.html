@@ -139,7 +139,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.19.33.105-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.19.33.106-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -214,7 +214,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.19.33.105-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.19.33.106-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -673,20 +673,26 @@ entryIconPaths.journalShopping='M9 6h12 M9 12h12 M9 18h12 M2 5l2 2 3-4 M2 11l2 2
 function journalCreated(idea){const value=plannerCreatedAt('idea',idea),date=value?new Date(value):null;return date&&Number.isFinite(date.getTime())?date:null}
 function journalKind(idea){const attachments=entryAttachments(idea);return idea.list?.type==='shopping'?'shopping':attachments.some(a=>a.type==='image')?'image':attachments.some(a=>a.type==='audio')?'audio':'note'}
 function journalCount(n){return n+' '+(n===1?'wpis':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'wpisy':'wpisów')}
-function journalTitle(idea){const title=String(idea.title||idea.text||'Wpis');return !idea.title&&/^(Nagranie głosowe\s*[·—-]|Zdjęcie\s*[—·-])\s*\d/.test(title)?(journalKind(idea)==='image'?'Zdjęcie':'Nagranie głosowe'):title}
+function journalAutoLabel(value){return String(value||'').match(/^(Zdjęcie|Nagranie głosowe)\s*[—·-]\s*\d{1,2}\.\d{1,2}\.\d{4},?\s+\d{1,2}:\d{2}(?::\d{2})?$/)?.[1]||''}
+function journalTitle(idea){const title=String(idea.title||idea.text||'Wpis');return journalAutoLabel(title)||title}
+function journalToggleSearch(open){const panel=$('journalSearchPanel'),button=$('journalSearchToggle');panel.hidden=!open;button.setAttribute('aria-expanded',String(open));button.classList.toggle('active',open);if(open)$('journalSearch').focus();else{journal.query='';$('journalSearch').value='';renderIdeas();button.focus()}}
 function journalResetMedia(){journal.epoch++;journal.observer?.disconnect();journal.observer=null;for(const url of journal.urls)URL.revokeObjectURL(url);journal.urls=[]}
 function journalRevealNewEntry(idea){journal.view='journal';journal.query='';journal.kind='all';const date=journalCreated(idea);if(date)journal.date=new Date(date);journal.folds.set(date?iso(date):'unknown',true);if($('journalSearch'))$('journalSearch').value=''}
 function journalControls(){
  if($('journalTools'))return;
- const tools=document.createElement('div');tools.id='journalTools';tools.innerHTML=`<nav class="journal-views" aria-label="Widok wpisów"><button type="button" data-journal-view="journal">Dziennik</button><button type="button" data-journal-view="week">Tydzień</button><button type="button" data-journal-view="month">Miesiąc</button></nav><label class="journal-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="journalSearch" type="search" placeholder="Szukaj we wszystkich wpisach…" aria-label="Szukaj we wpisach ze wszystkich dat"></label><div class="journal-filters" role="group" aria-label="Rodzaj wpisu"><button type="button" data-journal-kind="all">Wszystkie</button><button type="button" data-journal-kind="note">Notatki</button><button type="button" data-journal-kind="audio">Nagrania</button><button type="button" data-journal-kind="image">Zdjęcia</button><button type="button" data-journal-kind="shopping">Listy</button></div><div id="journalPeriod"></div><p id="journalResults" role="status"></p>`;
+ const tools=document.createElement('div');tools.id='journalTools';tools.innerHTML=`<nav class="journal-views" aria-label="Widok wpisów"><button type="button" data-journal-view="journal">Dziennik</button><button type="button" data-journal-view="week">Tydzień</button><button type="button" data-journal-view="month">Miesiąc</button></nav><div class="journal-toolbar"><button id="journalSearchToggle" type="button" aria-label="Szukaj we wpisach" aria-expanded="false" aria-controls="journalSearchPanel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg></button><details id="journalFilterMenu"><summary aria-label="Filtruj wpisy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h12M4 18h8"/></svg><span id="journalFilterLabel"></span></summary><div class="journal-filters" role="group" aria-label="Rodzaj wpisu"><button type="button" data-journal-kind="all">Wszystkie</button><button type="button" data-journal-kind="note">Notatki</button><button type="button" data-journal-kind="audio">Nagrania</button><button type="button" data-journal-kind="image">Zdjęcia</button><button type="button" data-journal-kind="shopping">Listy</button></div></details></div><div id="journalSearchPanel" hidden><label class="journal-search"><input id="journalSearch" type="search" placeholder="Szukaj we wszystkich wpisach…" aria-label="Szukaj we wpisach ze wszystkich dat"></label></div><div id="journalPeriod"></div><p id="journalResults" role="status"></p>`;
  $('ideasList').before(tools);tools.after($('ideasTodoTab').parentElement);
+ journal.toolbarHome=document.createComment('journal toolbar home');tools.querySelector('.journal-toolbar').before(journal.toolbarHome);
  tools.querySelectorAll('[data-journal-view]').forEach(button=>button.onclick=()=>{journal.view=button.dataset.journalView;renderIdeas()});
- tools.querySelectorAll('[data-journal-kind]').forEach(button=>button.onclick=()=>{journal.kind=button.dataset.journalKind;renderIdeas()});
+ tools.querySelectorAll('[data-journal-kind]').forEach(button=>button.onclick=()=>{journal.kind=button.dataset.journalKind;$('journalFilterMenu').open=false;renderIdeas();$('journalFilterMenu').querySelector('summary').focus()});
+ $('journalSearchToggle').onclick=()=>journalToggleSearch($('journalSearchPanel').hidden);
+ tools.addEventListener('keydown',event=>{if(event.key==='Escape'){if($('journalFilterMenu').open){$('journalFilterMenu').open=false;$('journalFilterMenu').querySelector('summary').focus()}else if(!$('journalSearchPanel').hidden)journalToggleSearch(false)}});
+ document.addEventListener('click',event=>{if(!event.target.closest('#journalFilterMenu'))$('journalFilterMenu').open=false});
  $('journalSearch').oninput=()=>{journal.query=$('journalSearch').value;renderIdeas()};
  $('openShoppingSummary').parentElement.classList.add('journal-legacy-tools');
- $('ideasTodoTab').parentElement.classList.add('journal-status-tabs');$('ideasTodoTab').parentElement.append($('openShoppingSummary'));
+ $('ideasTodoTab').parentElement.classList.add('journal-status-tabs');$('ideasTodoTab').parentElement.hidden=true;tools.querySelector('.journal-toolbar').append($('openShoppingSummary'));
 }
-function journalFiltered(){const query=plannerSearchText(journal.query);return ideas.filter(idea=>(ideasMode==='done'?idea.done:!idea.done)&&(journal.kind==='all'||(journal.kind==='shopping'?idea.list?.type==='shopping':journal.kind==='note'?!entryAttachments(idea).length&&idea.list?.type!=='shopping':entryAttachments(idea).some(a=>a.type===(journal.kind==='audio'?'audio':'image'))))&&(!query||plannerSearchText([idea.title,idea.text,idea.content,idea.notes,...(idea.additions||[]).map(a=>a.text),...(idea.list?.items||[]).map(i=>i.text),...entryAttachments(idea).flatMap(a=>[a.transcript,a.ocrText])].filter(Boolean).join(' ')).includes(query))).sort((a,b)=>(journalCreated(b)?.getTime()||0)-(journalCreated(a)?.getTime()||0))}
+function journalFiltered(){const query=plannerSearchText(journal.query);return ideas.filter(idea=>(journal.kind==='all'||(journal.kind==='shopping'?idea.list?.type==='shopping':journal.kind==='note'?!entryAttachments(idea).length&&idea.list?.type!=='shopping':entryAttachments(idea).some(a=>a.type===(journal.kind==='audio'?'audio':'image'))))&&(!query||plannerSearchText([idea.title,idea.text,idea.content,idea.notes,...(idea.additions||[]).map(a=>a.text),...(idea.list?.items||[]).map(i=>i.text),...entryAttachments(idea).flatMap(a=>[a.transcript,a.ocrText])].filter(Boolean).join(' ')).includes(query))).sort((a,b)=>(journalCreated(b)?.getTime()||0)-(journalCreated(a)?.getTime()||0))}
 function journalPeriod(entries){
  const box=$('journalPeriod');box.replaceChildren();if(journal.phoneNavigation){journal.phoneNavigation(entries);return}if(journal.view==='journal'||journal.query.trim())return;
  const date=journal.date,week=journal.view==='week',start=week?new Date(date):new Date(date.getFullYear(),date.getMonth(),1,12);if(week)start.setDate(start.getDate()-(start.getDay()+6)%7);
@@ -706,28 +712,38 @@ function journalCard(idea){
  const card=document.createElement('div');card.className='idea'+(idea.done&&idea.status!=='calendar'?' done':'');card.dataset.entryId=String(idea.id);const title=journalTitle(idea);
  card.innerHTML='<button type="button" class="idea-content" aria-label="'+escapeHtml('Otwórz wpis: '+title).replaceAll('"','&quot;')+'"><span class="journal-type-icon">'+entryIcon(({note:'history',audio:'mic',image:'camera',shopping:'journalShopping'})[kind])+'</span><span class="idea-text">'+escapeHtml(title)+'</span></button><details class="journal-options"><summary aria-label="Opcje wpisu">'+entryIcon('more')+'</summary><div class="idea-actions"><button type="button" class="idea-done">'+(idea.done?'↩ Przywróć':'✓ Zrobione')+'</button>'+(idea.done?'':'<button type="button" class="idea-timer">⏱ Minutnik</button>')+'<button type="button" class="delete">Usuń</button></div></details>';
  card.querySelector('.idea-content').onclick=()=>openIdeaActions(idea);
- const text=[idea.content,idea.notes,idea.title&&idea.text!==idea.title?idea.text:null,...(idea.additions||[]).slice(-1).map(a=>a.text)].filter(Boolean).join(' · ');
+ const text=[idea.content,idea.notes,idea.title&&idea.text!==idea.title?idea.text:null,...(idea.additions||[]).slice(-1).map(a=>a.text)].filter(value=>value&&!journalAutoLabel(value)).join(' · ');
  if(text&&kind!=='audio'){const preview=entryParagraph(text.slice(0,400),'journal-preview');card.append(preview)}
  if(idea.list?.type==='shopping'){
   const items=idea.list.items||[],list=document.createElement('div');list.className='journal-shopping';for(const item of items.slice(0,3)){const label=document.createElement('label'),check=document.createElement('input'),span=document.createElement('span');check.type='checkbox';check.checked=!!item.done;span.textContent=item.text;check.onchange=()=>{try{entryLocalUpdate(idea,()=>{item.done=check.checked},(check.checked?'Kupiono: ':'Przywrócono: ')+item.text)}catch(_){check.checked=!check.checked;toast('Nie udało się zapisać zmiany.')}};label.classList.toggle('checked',!!item.done);label.append(check,span);list.append(label)}const count=entryParagraph(items.filter(i=>i.done).length+' z '+items.length+' kupione'+(items.length>3?' · +'+(items.length-3)+' pozycji':''),'journal-meta');list.append(count);card.append(list);
  }
  const attachments=entryAttachments(idea),photo=attachments.find(a=>a.type==='image');
+ const indicators=document.createElement('div');indicators.className='journal-indicators';
+ const badge=(icon,label,cls='')=>{const span=document.createElement('span');span.className='journal-indicator '+cls;span.title=label;span.setAttribute('aria-label',label);span.setAttribute('role','img');span.innerHTML=entryIcon(icon);indicators.append(span)};
+ const audioCount=attachments.filter(a=>a.type==='audio').length,imageCount=attachments.filter(a=>a.type==='image').length;
+ if(audioCount&&kind!=='audio')badge('mic','Zawiera nagranie głosowe'+(audioCount>1?' · '+audioCount:''));
+ if(imageCount&&kind!=='image')badge('camera','Zawiera zdjęcie'+(imageCount>1?' · '+imageCount:''));
+ const hasCoordinates=value=>value&&Number.isFinite(value.latitude)&&Number.isFinite(value.longitude);
+ if((typeof idea.location==='string'&&idea.location.trim())||(typeof idea.createdLocation==='string'&&idea.createdLocation.trim())||idea.createdLocation?.address||hasCoordinates(idea.createdLocation)||hasCoordinates(idea.creationLocation)||attachments.some(a=>hasCoordinates(a.photoLocation)))badge('location','Ma zapisaną lokalizację');
+ if(idea.done&&idea.status!=='calendar'){const done=document.createElement('span');done.className='journal-completed';done.textContent='✓ Wykonane';indicators.append(done)}
+ if(indicators.childNodes.length)card.append(indicators);
  if(photo){const button=entryButton('',()=>openIdeaActions(idea),'journal-photo');button.setAttribute('aria-label','Otwórz zdjęcie: '+title);const img=document.createElement('img');img.alt=photo.name||'Zdjęcie do wpisu';img.dataset.journalPhoto=photo.id;img.loading='lazy';const label=document.createElement('span');label.textContent='Zobacz zdjęcie'+(attachments.filter(a=>a.type==='image').length>1?' · '+attachments.filter(a=>a.type==='image').length:'');button.append(img,label);card.append(button)}
  const meta=[ideaWasModified(idea)?'Zmodyfikowano':'',idea.status==='calendar'?'Przeniesiono do kalendarza':'',idea.deadline?'Termin: '+idea.deadline.date+' '+(idea.deadline.time||''):'',idea.alarm?'Przypomnienie: '+idea.alarm.date+' '+(idea.alarm.time||idea.alarm.startTime||''):''].filter(Boolean);if(meta.length)card.append(entryParagraph(meta.join(' · '),'idea-date'));
- card.querySelector('.idea-done').onclick=()=>{const before={done:idea.done,status:idea.status};try{idea.done=!idea.done;if(!idea.done&&idea.status==='calendar')idea.status='todo';else if(idea.done&&idea.status!=='calendar')idea.status='done';saveIdeas();renderAll();toast(idea.done?'✓ Przeniesiono do zrealizowanych':'Przywrócono do zrobienia')}catch(_){Object.assign(idea,before);toast('Nie udało się zapisać zmiany.')}};
+ card.querySelector('.idea-done').onclick=()=>{const before={done:idea.done,status:idea.status};try{idea.done=!idea.done;if(!idea.done&&idea.status==='calendar')idea.status='todo';else if(idea.done&&idea.status!=='calendar')idea.status='done';saveIdeas();renderAll();toast(idea.done?'✓ Wpis oznaczony jako wykonany':'Przywrócono wpis')}catch(_){Object.assign(idea,before);toast('Nie udało się zapisać zmiany.')}};
  const timer=card.querySelector('.idea-timer');if(timer)timer.onclick=()=>{const v=prompt('Ustaw minutnik (minuty):','30');if(v!==null){startTimer(parseInt(v,10),idea);card.querySelector('details').open=false}};
  card.querySelector('.delete').onclick=()=>{if(!confirm('Usunąć ten wpis i jego załączniki?'))return;const before=ideas;try{ideas=ideas.filter(x=>x.id!==idea.id);saveIdeas();attachments.forEach(a=>deleteVoiceMemo(a.id));renderAll()}catch(_){ideas=before;toast('Nie udało się usunąć wpisu.')}};
  row.append(card);return row;
 }
 function journalFold(group){
  const body=group.querySelector('.journal-day-body'),summary=group.querySelector('summary'),opening=!(group._journalTarget??group.open);
- const from=group.open?body.getBoundingClientRect().height:0;group._journalAnimation?.cancel();group._journalAnimation=null;group._journalTarget=opening;
+ const from=group.open?body.getBoundingClientRect().height:0;group._journalAnimation?.cancel();for(const motion of group._journalRows||[])motion.cancel();group._journalRows=[];group._journalAnimation=null;group._journalTarget=opening;
  journal.folds.set(group.dataset.day,opening);summary.setAttribute('aria-expanded',String(opening));group.classList.toggle('journal-expanding',opening);group.classList.toggle('journal-collapsing',!opening);
  const finish=()=>{group.open=opening;group.classList.remove('journal-expanding','journal-collapsing');body.style.overflow='';if(opening)journalPhotos()};
  if(!body.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){finish();return}
  if(opening)group.open=true;
  body.style.overflow='hidden';const to=opening?body.scrollHeight:0;
- const animation=body.animate([{height:from+'px',opacity:from?1:.2},{height:to+'px',opacity:opening?1:.2}],{duration:380,easing:'cubic-bezier(.22,.65,.25,1)'});group._journalAnimation=animation;
+ const animation=body.animate([{height:from+'px'},{height:to+'px'}],{duration:430,easing:'cubic-bezier(.22,.61,.36,1)'});group._journalAnimation=animation;
+ if(opening)group._journalRows=[...body.children].map((row,index)=>row.animate([{opacity:.4,transform:'translateY(-5px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,delay:Math.min(index*28,140),easing:'ease-out'}));
  animation.onfinish=()=>{if(group._journalAnimation!==animation)return;group._journalAnimation=null;finish()};
 }
 function journalPhotos(){
@@ -737,6 +753,7 @@ function journalPhotos(){
 }
 function renderIdeas(){
  journalControls();journalResetMedia();$('ideasHeading').textContent='Wpisy';$('ideasDescription').textContent='Wszystkie wpisy w jednym miejscu.';
+ $('journalFilterLabel').textContent=journal.kind==='all'?'':({note:'Notatki',audio:'Nagrania',image:'Zdjęcia',shopping:'Listy'})[journal.kind];$('journalFilterMenu').classList.toggle('filtered',journal.kind!=='all');
  for(const [id,active] of [['ideasTodoTab',ideasMode==='todo'],['ideasDoneTab',ideasMode==='done']]){$(id).classList.toggle('active',active);$(id).setAttribute('aria-pressed',String(active))}
  document.querySelectorAll('[data-journal-view]').forEach(b=>{b.classList.toggle('active',journal.view===b.dataset.journalView);b.setAttribute('aria-pressed',String(journal.view===b.dataset.journalView))});document.querySelectorAll('[data-journal-kind]').forEach(b=>{b.classList.toggle('active',journal.kind===b.dataset.journalKind);b.setAttribute('aria-pressed',String(journal.kind===b.dataset.journalKind))});
  const entries=journalFiltered();journalPeriod(entries);$('journalResults').textContent=journal.query.trim()?journalCount(entries.length)+' · wyniki ze wszystkich dat':journal.view==='journal'?'':('Wpisy z '+journal.date.toLocaleDateString('pl-PL',{day:'numeric',month:'long'}));
@@ -1933,12 +1950,13 @@ function initializePhoneSkin(){
  // Share the actual calendar navigation nodes, including their styling and Today animation.
  const journalNav=document.createElement('section');journalNav.id='journalCalendarNavigation';journalNav.hidden=true;journalNav.setAttribute('aria-label','Nawigacja dat wpisów');skyHeader.after(journalNav);
  const navigationHomes=[$('dayTitle').closest('.daybar'),$('weekView').querySelector('.daybar'),$('monthView').querySelector('.daybar'),strip].map(node=>{const marker=document.createComment('calendar navigation home');node.before(marker);return {node,marker}});
- journal.restorePhoneNavigation=()=>{for(const home of navigationHomes)home.marker.after(home.node);journalNav.hidden=true;};
+ journal.restorePhoneNavigation=()=>{for(const home of navigationHomes)home.marker.after(home.node);journal.toolbarHome.after($('journalSearchToggle').closest('.journal-toolbar'));journalNav.hidden=true;};
  journal.phoneNavigation=entries=>{
   if($('ideasView').classList.contains('hidden'))return;
   const view=journal.view==='journal'?'day':journal.view,bar=navigationHomes[{day:0,week:1,month:2}[view]].node;
   for(const home of navigationHomes)if(home.node.parentElement===journalNav&&home.node!==bar)home.marker.after(home.node);
   journalNav.hidden=false;if(bar.parentElement!==journalNav)journalNav.append(bar);updateJournalTabs();
+  const toolbar=$('journalSearchToggle').closest('.journal-toolbar');if(innerHeight<=500){if(toolbar.parentElement!==journalNav)journalNav.append(toolbar)}else journal.toolbarHome.after(toolbar);
   const pick=date=>{journal.date=date;journal.folds.set(iso(date),true);renderIdeas()};renderPhoneDateNavigation(journal.date,pick);
   if(view!=='month'){if(strip.parentElement!==journalNav)journalNav.append(strip)}
   if(view==='month'){
@@ -3177,7 +3195,28 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .phone-layout #journalPeriod .month-day{display:flex;flex-direction:column;align-items:flex-start;gap:7px;color:#4e6480;text-align:left;font-size:12px;font-weight:650}
 .journal-month-count{font-size:10px;font-weight:650;line-height:1.3}
 .phone-layout #journalPeriod .month-day.journal-selected{background:#cfe5f7;border-color:#82afd0;color:#164d7c}
+.journal-toolbar{display:flex;align-items:center;gap:7px;position:relative;z-index:8;margin:3px 0 8px}
+.journal-toolbar button,#journalFilterMenu>summary{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border:1px solid #bcd4e6;border-radius:12px;background:#edf6fbb8;color:#456b89;box-shadow:inset 0 1px 1px #fff}
+#journalSearchToggle{width:42px;flex:none;padding:9px}
+.journal-toolbar svg{width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+#journalFilterMenu{position:relative}#journalFilterMenu>summary{list-style:none;cursor:pointer;padding:9px 10px;font-size:12px;font-weight:750}#journalFilterMenu>summary::-webkit-details-marker{display:none}
+#journalFilterMenu .journal-filters{position:absolute;z-index:20;left:0;top:46px;display:flex;flex-direction:column;width:176px;gap:3px;margin:0;padding:6px;border:1px solid #b7d0e2;border-radius:14px;background:#eff8ff;box-shadow:0 8px 24px #3d638c30}
+#journalFilterMenu .journal-filters button{text-align:left;justify-content:flex-start;min-height:40px;padding:7px 11px;border-color:transparent;box-shadow:none;font-size:14px}
+#ideasView .journal-toolbar button.active,#journalFilterMenu.filtered>summary{background:#d7e9f8;border-color:#8fb8d6;color:#28597e}
+#journalSearchPanel[hidden],#ideasView .journal-status-tabs[hidden]{display:none!important}
+#journalSearchPanel .journal-search{margin:0 0 8px}#journalSearchPanel:not([hidden]){animation:journal-panel-reveal .18s ease-out}
+#ideasView .journal-toolbar #openShoppingSummary{margin-left:auto;min-height:42px;padding:7px 10px;font-size:12px;white-space:nowrap}
+.journal-day>summary{grid-template-columns:auto minmax(0,1fr) auto 18px;row-gap:3px}
+.journal-day-date{font-size:14px;font-weight:650;color:#526f89;line-height:1.35;overflow-wrap:normal}
+.journal-day-count{font-size:12px}
+.journal-indicators{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.journal-indicator{display:grid;place-items:center;width:24px;height:24px;border:1px solid #c7dce9;border-radius:8px;background:#edf6fc;color:#5c7e9a}.journal-indicator svg{width:16px;height:16px}
+.journal-completed{display:inline-block;padding:3px 7px;border:1px solid #bddbd1;border-radius:8px;background:#e7f3ee;color:#3f7766;font-size:11px;font-weight:750;line-height:16px}
+.journal-day:is(.journal-expanding,.journal-collapsing) .journal-day-body{overflow-anchor:none}
+@keyframes journal-panel-reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(max-height:500px){#journalCalendarNavigation .journal-toolbar{position:absolute;top:-34px;left:0;right:0;height:30px;margin:0}#journalCalendarNavigation .journal-toolbar button,#journalCalendarNavigation #journalFilterMenu>summary{min-height:30px;height:30px;padding:4px 8px;font-size:11px}#journalCalendarNavigation #openShoppingSummary{margin-left:auto}#journalCalendarNavigation:has(#journalFilterMenu[open]){z-index:90}#journalCalendarNavigation #journalFilterMenu .journal-filters{top:34px}}
 @media(max-width:359px){.journal-row{grid-template-columns:43px minmax(0,1fr);gap:3px;padding-left:19px}.journal-day>summary{gap:5px;grid-template-columns:auto minmax(0,1fr) auto 15px}.journal-day-date{font-size:10px}.journal-day-count{font-size:10px}#ideasList .journal-row .idea{padding:10px}.journal-type-icon{width:24px;height:29px}.journal-type-icon svg{width:17px}.journal-search{gap:6px;padding:0 9px}#ideasView #journalSearch{font-size:12px}.journal-filters{gap:4px}.journal-filters button{padding:5px 2px;font-size:11px}}
-@media(prefers-reduced-motion:reduce){.journal-chevron{transition:none}}
+@media(max-width:359px){.journal-day>summary{grid-template-columns:minmax(0,1fr) auto 15px;column-gap:6px}.journal-day-name{grid-column:1;grid-row:1}.journal-day-date{grid-column:1;grid-row:2;font-size:14px}.journal-day-count{grid-column:2;grid-row:1 / 3}.journal-chevron{grid-column:3;grid-row:1 / 3}#journalFilterLabel{font-size:11px}#ideasView .journal-toolbar #openShoppingSummary{font-size:11px;padding:7px}}
+@media(prefers-reduced-motion:reduce){.journal-chevron{transition:none}#journalSearchPanel:not([hidden]){animation:none}}
 </style>
 </body></html>
