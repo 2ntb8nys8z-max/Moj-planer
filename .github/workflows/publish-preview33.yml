@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
   group: preview33-publication
@@ -14,12 +15,14 @@ concurrency:
 
 jobs:
   verify-and-publish:
+    if: github.ref == 'refs/heads/integration/conversation33'
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Check out canonical integration source
         uses: actions/checkout@v4
         with:
-          ref: integration/conversation33
+          ref: ${{ github.sha }}
           path: integration
 
       - name: Use the supported Node runtime
@@ -34,6 +37,14 @@ jobs:
       - name: Verify generated files and tests
         working-directory: integration
         run: npm test
+
+      - name: Install Chromium for mobile journal checks
+        working-directory: integration
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify mobile journal interactions and layout
+        working-directory: integration
+        run: npm run test:journal-browser
 
       - name: Stage publication artifacts
         run: |
@@ -70,3 +81,13 @@ jobs:
           fi
           git commit -m "Publish Preview33 from ${SOURCE_SHA} [skip ci]"
           git push origin HEAD:main
+
+      # A push with GITHUB_TOKEN does not itself start the branch-based Pages build.
+      - name: Request the GitHub Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${{ github.repository }}/pages/builds"
+
+      - name: Verify the files actually served by Preview33
+        working-directory: integration
+        run: node scripts/verify-preview33.mjs https://2ntb8nys8z-max.github.io/Moj-planer/preview33/

@@ -220,3 +220,12 @@ Ponowne `open_create_event` w aktywnej rozmowie scala nowe pola z istniejącym s
 Powiadomienie ma jeden szkic w `dialogueState.reminderDraft`. Główne pole dopytuje również o brakującą treść i dopiero po ustaleniu dnia, godziny oraz treści pokazuje podgląd do zatwierdzenia. Zmiana działania usuwa poprzedni szkic przypomnienia. `kind: command`, `intent: continue`, puste `operations` i `uiAction: null` pozwalają dopytać bez wykonania komendy.
 
 `tests/conversation-state-33-25.mjs` przeprowadza kolejne tury przez rzeczywisty Worker i frontend, z kontrolowanymi odpowiedziami modelu. Obejmuje oba kanały, ponowne tworzenie, nowy przepływ, własny tytuł, dzień → godzina → treść, poprawkę zapisanego powiadomienia, dopytanie i zmianę działania. Frontend i Worker mają wersję 33.25; oba wymagają osobnego wdrożenia.
+
+
+### Preview33: źródło i potwierdzenie publikacji (33.109)
+
+Frontend edytujemy w `index.html` na `integration/conversation33`. `preview33/index.html` i oba `release.json` są wynikami `npm run build`; nie poprawiamy ich ręcznie. Numer zmieniamy w `scripts/build.mjs`. Wygenerowany podgląd zachowuje prefiks danych `planner-preview-33:`.
+
+Przed wysłaniem zmian uruchamiamy `npm run build`, `npm test` oraz `npm run test:journal-browser` (Chromium: `npx playwright install chromium`). Test przeglądarkowy obejmuje szerokości 320/390/430 px i poziomy telefon: stały pasek dat, ciągłą listę, synchronizację dat, edycję, wyszukiwanie, odstęp od panelu Okti i izolację kalendarza.
+
+Workflow `Publish Preview33` sprawdza dokładny commit uruchomienia, testuje go, kopiuje wyłącznie pliki `preview33/` do `main`, jawnie zleca budowę GitHub Pages i porównuje bajty publicznego HTML, manifestu wydania oraz modułów synchronizacji z przetestowanymi plikami. Sam commit publikacji nie jest potwierdzeniem wdrożenia. Ręczna kontrola: `node scripts/verify-preview33.mjs https://2ntb8nys8z-max.github.io/Moj-planer/preview33/`. Zwykły Planer na `main/index.html` pozostaje niezależny.
