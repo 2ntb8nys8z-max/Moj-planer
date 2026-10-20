@@ -169,6 +169,30 @@ body:has(#ideasView:not(.hidden)) .phone-layout .app>.tabs:has(#tabDay){display:
 .phone-layout #ideasView:not(.hidden) #journalPeriod{display:block!important;position:sticky;top:0;z-index:15}
 .phone-layout #ideasView:not(.hidden) .journal-row .idea{background:#fff!important;border:1px solid #ffffff!important;border-left:1px solid #ffffff!important;box-shadow:0 8px 20px #23507a29,0 2px 5px #23507a15!important}
 .phone-layout #ideasView:not(.hidden) .journal-row .idea-content{background:transparent!important}
+
+/* Journal visual refinement 33.109: neutral canvas, vivid spine, compact fixed dates */
+.phone-layout #ideasView:not(.hidden){background:#fbfaf8!important;padding:0 0 calc(185px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+.phone-layout #ideasView:not(.hidden) #journalTools{background:#fbfaf8!important}
+.phone-layout #ideasView:not(.hidden) #journalPeriod{position:sticky!important;top:0!important;z-index:24!important;margin:0 0 8px!important;padding:3px 4px 6px!important;background:#fffdfa!important;border-radius:0 0 13px 13px!important;box-shadow:0 3px 10px #171e2920!important}
+.phone-layout #ideasView:not(.hidden) .journal-period-nav{grid-template-columns:28px minmax(0,1fr) 28px!important;margin:0!important;gap:0!important}
+.phone-layout #ideasView:not(.hidden) .journal-period-nav button{min-height:30px!important;font-size:19px!important;line-height:1.1!important}
+.phone-layout #ideasView:not(.hidden) .journal-period-nav button:nth-child(2){font-size:16px!important;font-weight:800!important;color:#283c4e!important}
+.phone-layout #ideasView:not(.hidden) .journal-date-grid{padding:2px!important;gap:2px!important;background:#fff!important;border:0!important;border-radius:9px!important}
+.phone-layout #ideasView:not(.hidden) .journal-date{min-height:39px!important;background:transparent!important;color:#384b5b!important;border-radius:9px!important}
+.phone-layout #ideasView:not(.hidden) .journal-date.selected{background:#155ed8!important;color:#fff!important;box-shadow:0 2px 8px #155ed84d!important}
+.phone-layout #ideasView:not(.hidden) #ideasList{margin:0!important;padding:0 5px 40px 0!important;background:transparent!important}
+.phone-layout #ideasView:not(.hidden) #ideasList.journal-timeline:before{left:78px!important;width:6px!important;background:linear-gradient(180deg,#1254ff 0%,#2659ff 27%,#00aee9 58%,#00d3af 100%)!important;box-shadow:0 0 3px #1254ff90,0 0 9px #008bff60!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-day>summary{padding-left:101px!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-day>summary:before{left:72px!important;background:#1262ff!important;border:3px solid #fff!important;box-shadow:0 0 0 2px #1559ed,0 0 10px #136cff80!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row{grid-template-columns:51px minmax(0,1fr)!important;gap:10px!important;margin-bottom:14px!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row:before{left:73px!important;background:var(--entry-accent,#1262ff)!important;border:3px solid #fff!important;box-shadow:0 0 0 2px var(--entry-accent,#1262ff),0 0 10px #1262ff66!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-time{padding:15px 0 0!important;text-align:right!important;font-size:12px!important;color:#243647!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row .idea{margin-left:43px!important;background:#fff!important;border:1px solid #ecebea!important;border-radius:17px!important;box-shadow:0 6px 15px #161a2230!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row[data-kind=audio]{--entry-accent:#7532e8!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row[data-kind=shopping]{--entry-accent:#00ae82!important}
+.phone-layout #ideasView:not(.hidden) #ideasList .journal-row[data-kind=image]{--entry-accent:#0096e6!important}
+.phone-layout:has(#ideasView:not(.hidden)) .app>.tabs{display:none!important}
+
 </style>
 </head>
 <body>
