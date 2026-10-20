@@ -6,7 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function verifyPreview(base,request=fetch){
  const expectedRelease=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
- for(const file of ['release.json','index.html','google-calendar.js','sync-core.js','shopping-paper-texture.webp']){
+ for(const file of ['release.json','index.html','google-calendar.js','sync-core.js','shopping-paper-texture.webp','shopping-paper-edge.webp']){
   const expected=fs.readFileSync('preview33/'+file),url=new URL(file,base);url.searchParams.set('verify',expectedRelease.frontendBuildId);
   const response=await request(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error(`${file}: HTTP ${response.status}`);
