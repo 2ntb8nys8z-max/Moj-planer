@@ -135,6 +135,33 @@ body.event-sheet-open{overflow:hidden}
 .phone-event-title.crowded .phone-event-title-text{max-height:calc(100% - 44px)}
 @media(max-height:500px){#eventHeaderMeta{font-size:13px}#eventReminderBadge{margin-top:3px;font-size:12px;padding:2px 6px}#eventReminderBadge svg{width:24px;height:24px}}
 
+/* Okti timeline refresh: floating paper-white cards and illuminated chronological spine */
+#ideasList.journal-timeline{padding-left:0!important}
+#ideasList.journal-timeline:before{left:66px!important;width:5px!important;background:linear-gradient(180deg,#7782ec 0%,#528be9 24%,#30b6e0 54%,#52d6d1 78%,#7987ed 100%)!important;box-shadow:0 0 6px #5f9de899,0 0 19px #64cfe666!important}
+#ideasList .journal-day>summary{padding-left:86px!important;min-height:58px}
+#ideasList .journal-day>summary:before{left:60px!important;top:19px!important;width:17px!important;height:17px!important;background:radial-gradient(circle at 35% 30%,#fff,#6b91e9 52%,#4377d6)!important;border:2px solid #fff!important;box-shadow:0 0 0 3px #b8d8fb,0 0 14px #6bb5f6!important}
+#ideasList .journal-row{grid-template-columns:48px minmax(0,1fr)!important;gap:13px!important;padding-left:0!important;margin-bottom:14px!important;align-items:start}
+#ideasList .journal-row:before{left:61px!important;top:16px!important;width:15px!important;height:15px!important;z-index:1;background:radial-gradient(circle at 32% 25%,#fff,var(--entry-accent) 65%)!important;border:2px solid #fff!important;box-shadow:0 0 0 2px #c2e4f8,0 0 11px #72c8ed!important}
+#ideasList .journal-time{font-size:12px!important;text-align:right!important;padding-top:15px!important;color:#42647f!important;font-weight:800!important}
+#ideasList .journal-row .idea{margin-left:25px!important;border:1px solid #ffffffd9!important;border-radius:17px!important;border-left:1px solid #ffffffd9!important;background:linear-gradient(145deg,#ffffff 0%,#f8fbff 100%)!important;box-shadow:0 10px 22px #244a7030,0 3px 7px #244a7021,inset 0 1px 0 #fff!important}
+#ideasList .journal-row .idea:before,#ideasList .journal-row .idea:after{content:none!important}
+#ideasList .journal-row[data-kind=audio]{--entry-accent:#8b76d8;--entry-tint:#eee8ff}
+#ideasList .journal-row[data-kind=image]{--entry-accent:#42a5cf;--entry-tint:#e4f4ff}
+#ideasList .journal-row[data-kind=shopping]{--entry-accent:#38b89c;--entry-tint:#e1f8f1}
+@media(max-width:430px){#ideasList .journal-row{grid-template-columns:44px minmax(0,1fr)!important;gap:9px!important}#ideasList .journal-row .idea{margin-left:25px!important;padding:11px!important}#ideasList .journal-day>summary{padding-left:86px!important}}
+
+
+/* Continuous journal navigation: scrolling through all dates, with a compact week strip. */
+#ideasView .journal-views{display:none!important}
+#ideasView #journalPeriod{position:sticky;top:0;z-index:8;background:linear-gradient(180deg,#f5fbfff5,#f5fbffe9);backdrop-filter:blur(12px);border-radius:15px;padding:5px 8px;box-shadow:0 4px 13px #2d6a8b18}
+#ideasView .journal-date-grid.journal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+#ideasView .journal-date{min-width:0;padding:5px 1px}
+#ideasView .journal-date.selected{box-shadow:0 0 0 2px #7fbef1,0 0 10px #80c6f855}
+
+/* On phones, calendar mode tabs remain exclusive to the calendar, not Entries. */
+body:has(#ideasView:not(.hidden)) .phone-layout .app>.tabs:has(#tabDay){display:none!important}
+#ideasView .journal-day{scroll-margin-top:110px}
+#ideasView .journal-day>summary{scroll-margin-top:110px}
 </style>
 </head>
 <body>
@@ -695,8 +722,22 @@ function journalControls(){
  $('ideasTodoTab').parentElement.classList.add('journal-status-tabs');$('ideasTodoTab').parentElement.hidden=true;tools.querySelector('.journal-toolbar').append($('openShoppingSummary'));
 }
 function journalFiltered(){const query=plannerSearchText(journal.query);return ideas.filter(idea=>(journal.kind==='all'||(journal.kind==='shopping'?idea.list?.type==='shopping':journal.kind==='note'?!entryAttachments(idea).length&&idea.list?.type!=='shopping':entryAttachments(idea).some(a=>a.type===(journal.kind==='audio'?'audio':'image'))))&&(!query||plannerSearchText([idea.title,idea.text,idea.content,idea.notes,...(idea.additions||[]).map(a=>a.text),...(idea.list?.items||[]).map(i=>i.text),...entryAttachments(idea).flatMap(a=>[a.transcript,a.ocrText])].filter(Boolean).join(' ')).includes(query))).sort((a,b)=>(journalCreated(b)?.getTime()||0)-(journalCreated(a)?.getTime()||0))}
+function journalContinuousPeriod(entries){
+ const box=$('journalPeriod');box.replaceChildren();
+ const date=new Date(journal.date),start=new Date(date);start.setDate(date.getDate()-(date.getDay()+6)%7);
+ const bar=document.createElement('div');bar.className='journal-period-nav';
+ const previous=entryButton('‹',()=>{journal.date.setDate(journal.date.getDate()-7);renderIdeas()}),next=entryButton('›',()=>{journal.date.setDate(journal.date.getDate()+7);renderIdeas()});
+ const label=entryButton(date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'}),()=>{picker.hidden=false;if(typeof picker.showPicker==='function'){try{picker.showPicker()}catch(_){picker.focus()}}else picker.focus()});label.setAttribute('aria-label','Wybierz miesiąc i datę');
+ const picker=document.createElement('input');picker.type='date';picker.value=iso(date);picker.hidden=true;picker.setAttribute('aria-label','Przejdź do daty');picker.onchange=()=>{if(picker.value)journalJumpToDay(picker.value);picker.hidden=true};
+ bar.append(previous,label,next,picker);box.append(bar);
+ const grid=document.createElement('div');grid.className='journal-date-grid journal-week';const days=['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+ for(let i=0;i<7;i++){const day=new Date(start);day.setDate(start.getDate()+i);const key=iso(day),button=entryButton('',()=>journalJumpToDay(key));button.dataset.journalDate=key;button.className='journal-date'+(key===iso(journal.date)?' selected':'');button.innerHTML='<small>'+days[i]+'</small><b>'+day.getDate()+'</b>';grid.append(button)}box.append(grid);
+}
+function journalJumpToDay(key){journal.date=new Date(key+'T12:00:00');const group=[...document.querySelectorAll('#ideasList .journal-day')].find(x=>x.dataset.day===key);if(group){group.open=true;group.scrollIntoView({behavior:'smooth',block:'start'});journalHighlightDay(key)}else{const dated=[...document.querySelectorAll('#ideasList .journal-day[data-day]')].filter(x=>x.dataset.day!=='unknown');const closest=dated.find(x=>x.dataset.day<=key)||dated.at(-1);if(closest){closest.open=true;closest.scrollIntoView({behavior:'smooth',block:'start'})}else $('ideasList').scrollIntoView({behavior:'smooth',block:'start'});journalContinuousPeriod(journalFiltered())}}
+function journalHighlightDay(key){if(!key||key==='unknown'||key===iso(journal.date))return;journal.date=new Date(key+'T12:00:00');const buttons=document.querySelectorAll('#journalPeriod [data-journal-date]');if(![...buttons].some(x=>x.dataset.journalDate===key)){journalContinuousPeriod(journalFiltered())}else buttons.forEach(x=>{const selected=x.dataset.journalDate===key;x.classList.toggle('selected',selected);x.setAttribute('aria-pressed',String(selected))})}
+let journalScrollQueued=false;function journalTrackScroll(){if(journalScrollQueued||$('ideasView')?.classList.contains('hidden'))return;journalScrollQueued=true;requestAnimationFrame(()=>{journalScrollQueued=false;const groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')];let active=null;for(const group of groups){if(group.getBoundingClientRect().top<window.innerHeight*.42)active=group.dataset.day;else break}if(active)journalHighlightDay(active)})}window.addEventListener('scroll',journalTrackScroll,{passive:true});document.getElementById('ideasView')?.addEventListener('scroll',journalTrackScroll,{passive:true});
 function journalPeriod(entries){
- const box=$('journalPeriod');box.replaceChildren();if(journal.phoneNavigation){journal.phoneNavigation(entries);return}if(journal.view==='journal'||journal.query.trim())return;
+ if(journal.view==='journal'&&!journal.query.trim()){if(journal.restorePhoneNavigation&&document.getElementById('journalCalendarNavigation')&&!document.getElementById('journalCalendarNavigation').hidden)journal.restorePhoneNavigation();journalContinuousPeriod(entries);return}const box=$('journalPeriod');box.replaceChildren();if(journal.phoneNavigation){journal.phoneNavigation(entries);return}if(journal.view==='journal'||journal.query.trim())return;
  const date=journal.date,week=journal.view==='week',start=week?new Date(date):new Date(date.getFullYear(),date.getMonth(),1,12);if(week)start.setDate(start.getDate()-(start.getDay()+6)%7);
  const end=new Date(start);end.setDate(start.getDate()+(week?6:0));const title=week?start.toLocaleDateString('pl-PL',{day:'numeric',month:'short'})+' – '+end.toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'}):date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
  const bar=document.createElement('div');bar.className='journal-period-nav';const prev=entryButton('‹',()=>journalMove(-1)),next=entryButton('›',()=>journalMove(1)),label=document.createElement('strong');prev.setAttribute('aria-label',week?'Poprzedni tydzień':'Poprzedni miesiąc');next.setAttribute('aria-label',week?'Następny tydzień':'Następny miesiąc');label.textContent=title;bar.append(prev,label,next);box.append(bar);
@@ -757,13 +798,13 @@ function journalPhotos(){
  document.querySelectorAll('#ideasList details[open] img[data-journal-photo]').forEach(img=>journal.observer.observe(img.parentElement));
 }
 function renderIdeas(){
- journalControls();journalResetMedia();$('ideasHeading').textContent='Wpisy';$('ideasDescription').textContent='Wszystkie wpisy w jednym miejscu.';
+ journalControls();journal.view='journal';journalResetMedia();$('ideasHeading').textContent='Wpisy';$('ideasDescription').textContent='Wszystkie wpisy w jednym miejscu.';
  $('journalFilterLabel').textContent=journal.kind==='all'?'':({note:'Notatki',audio:'Nagrania',image:'Zdjęcia',shopping:'Listy'})[journal.kind];$('journalFilterMenu').classList.toggle('filtered',journal.kind!=='all');
  for(const [id,active] of [['ideasTodoTab',ideasMode==='todo'],['ideasDoneTab',ideasMode==='done']]){$(id).classList.toggle('active',active);$(id).setAttribute('aria-pressed',String(active))}
  document.querySelectorAll('[data-journal-view]').forEach(b=>{b.classList.toggle('active',journal.view===b.dataset.journalView);b.setAttribute('aria-pressed',String(journal.view===b.dataset.journalView))});document.querySelectorAll('[data-journal-kind]').forEach(b=>{b.classList.toggle('active',journal.kind===b.dataset.journalKind);b.setAttribute('aria-pressed',String(journal.kind===b.dataset.journalKind))});
  const entries=journalFiltered();journalPeriod(entries);$('journalResults').textContent=journal.query.trim()?journalCount(entries.length)+' · wyniki ze wszystkich dat':journal.view==='journal'?'':('Wpisy z '+journal.date.toLocaleDateString('pl-PL',{day:'numeric',month:'long'}));
  const weekStart=new Date(journal.date);weekStart.setDate(weekStart.getDate()-(weekStart.getDay()+6)%7);const weekEnd=new Date(weekStart);weekEnd.setDate(weekEnd.getDate()+6);
- const groups=new Map();for(const idea of entries){const date=journalCreated(idea),key=date?iso(date):'unknown';if(!journal.query.trim()&&key!=='unknown'){if(journal.phoneNavigation&&journal.view==='week'){if(key<iso(weekStart)||key>iso(weekEnd))continue}else if((journal.phoneNavigation||journal.view!=='journal')&&key!==iso(journal.date))continue}if(!groups.has(key))groups.set(key,[]);groups.get(key).push(idea)}
+ const groups=new Map();for(const idea of entries){const date=journalCreated(idea),key=date?iso(date):'unknown';if(!journal.query.trim()&&key!=='unknown'){if(journal.view!=='journal'&&key!==iso(journal.date))continue}if(!groups.has(key))groups.set(key,[]);groups.get(key).push(idea)}
  const list=$('ideasList');list.replaceChildren();list.classList.add('journal-timeline');
  if(!groups.size){list.innerHTML='<p class="empty">'+(journal.query.trim()?'Brak wpisów pasujących do wyszukiwania.':journal.view!=='journal'?'Brak wpisów w wybranym dniu. Wybierz inny dzień powyżej.':'Brak wpisów w tej kategorii.')+'</p>';return}
  let index=0;for(const [key,items] of groups){
@@ -771,7 +812,7 @@ function renderIdeas(){
   const date=key==='unknown'?null:new Date(key+'T12:00:00'),yesterday=today();yesterday.setDate(yesterday.getDate()-1);
   const title=!date?'Bez daty utworzenia':key===iso(today())?'Dzisiaj':key===iso(yesterday)?'Wczoraj':date.toLocaleDateString('pl-PL',{weekday:'long'}),summary=document.createElement('summary');
   summary.innerHTML='<span class="journal-day-name">'+title+'</span><span class="journal-day-date">'+(date?date.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:date.getFullYear()===today().getFullYear()?undefined:'numeric'}):'Starsze wpisy')+'</span><span class="journal-day-count">'+journalCount(items.length)+'</span><span class="journal-chevron" aria-hidden="true">⌄</span>';
-  group.append(summary);group.open=journal.query.trim()?true:journal.folds.has(key)?journal.folds.get(key):key===iso(today())||index===0||journal.view!=='journal';
+  group.append(summary);group.open=journal.query.trim()?true:journal.folds.has(key)?journal.folds.get(key):true;
   summary.setAttribute('aria-label',title+', '+journalCount(items.length)+'. Rozwiń lub zwiń dzień');summary.setAttribute('aria-expanded',String(group.open));
   const body=document.createElement('div');body.className='journal-day-body';for(const idea of items)body.append(journalCard(idea));group.append(body);
   summary.onclick=event=>{event.preventDefault();journalFold(group)};
