@@ -140,7 +140,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.20.33.109-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.20.33.110-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -215,7 +215,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.20.33.109-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.20.33.110-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -694,31 +694,57 @@ function journalControls(){
  $('ideasTodoTab').parentElement.classList.add('journal-status-tabs');$('ideasTodoTab').parentElement.hidden=true;tools.querySelector('.journal-toolbar').append($('openShoppingSummary'));
 }
 function journalFiltered(){const query=plannerSearchText(journal.query);return ideas.filter(idea=>(journal.kind==='all'||(journal.kind==='shopping'?idea.list?.type==='shopping':journal.kind==='note'?!entryAttachments(idea).length&&idea.list?.type!=='shopping':entryAttachments(idea).some(a=>a.type===(journal.kind==='audio'?'audio':'image'))))&&(!query||plannerSearchText([idea.title,idea.text,idea.content,idea.notes,...(idea.additions||[]).map(a=>a.text),...(idea.list?.items||[]).map(i=>i.text),...entryAttachments(idea).flatMap(a=>[a.transcript,a.ocrText])].filter(Boolean).join(' ')).includes(query))).sort((a,b)=>(journalCreated(b)?.getTime()||0)-(journalCreated(a)?.getTime()||0))}
-function journalContinuousPeriod(){
- const box=$('journalPeriod');box.replaceChildren();
- const date=new Date(journal.date),start=new Date(date);start.setDate(date.getDate()-(date.getDay()+6)%7);
- const bar=document.createElement('div');bar.className='journal-period-nav';
- const move=step=>{journal.date.setDate(journal.date.getDate()+step*7);journalContinuousPeriod()};
- const previous=entryButton('‹',()=>move(-1)),next=entryButton('›',()=>move(1));previous.setAttribute('aria-label','Poprzedni tydzień wpisów');next.setAttribute('aria-label','Następny tydzień wpisów');
- const picker=document.createElement('input');picker.type='date';picker.value=iso(date);picker.hidden=true;picker.setAttribute('aria-label','Przejdź do daty');picker.onchange=()=>{if(picker.value)journalJumpToDay(picker.value);picker.hidden=true};
- const label=entryButton(date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'}),()=>{picker.hidden=false;try{picker.showPicker?.()}catch(_){}picker.focus()});label.setAttribute('aria-label','Wybierz odległą datę wpisów');
- bar.append(previous,label,next,picker);box.append(bar);
- const grid=document.createElement('div');grid.className='journal-date-grid journal-week';const days=['Pn','Wt','Śr','Cz','Pt','So','Nd'];
- for(let i=0;i<7;i++){const day=new Date(start);day.setDate(start.getDate()+i);const key=iso(day),selected=key===iso(journal.date),button=entryButton('',()=>journalJumpToDay(key));button.dataset.journalDate=key;button.className='journal-date'+(selected?' selected':'')+(key===iso(today())?' is-today':'');button.setAttribute('aria-pressed',String(selected));button.setAttribute('aria-label',formatDate(day));button.innerHTML='<small>'+days[i]+'</small><b>'+day.getDate()+'</b>';grid.append(button)}box.append(grid);
+function journalMotionAllowed(){return typeof Element.prototype.animate==='function'&&!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches}
+function journalPlaceMarker(grid,animate=true){
+ const button=grid?.querySelector('.journal-date.selected'),marker=grid?.querySelector('.journal-date-marker');if(!button||!marker)return;
+ if(!animate)marker.classList.remove('is-ready');marker.style.width=button.offsetWidth+'px';marker.style.height=button.offsetHeight+'px';marker.style.top=button.offsetTop+'px';marker.style.transform='translate3d('+button.offsetLeft+'px,0,0)';
+ if(!animate){void marker.offsetWidth;marker.classList.add('is-ready')}
 }
+function journalStopWeekMotion(){for(const animation of journal.weekAnimations||[])animation.cancel();journal.weekAnimations=[];journal.weekExit?.remove();journal.weekExit=null}
+function journalContinuousPeriod(){
+ const box=$('journalPeriod'),date=new Date(journal.date),start=new Date(date);start.setDate(date.getDate()-(date.getDay()+6)%7);const weekKey=iso(start);
+ if(!box.firstChild){
+  const bar=document.createElement('div');bar.className='journal-period-nav';
+  const move=step=>{journalCancelJump();journal.date.setDate(journal.date.getDate()+step*7);journalContinuousPeriod()};
+  const previous=entryButton('‹',()=>move(-1)),next=entryButton('›',()=>move(1));previous.setAttribute('aria-label','Poprzedni tydzień wpisów');next.setAttribute('aria-label','Następny tydzień wpisów');
+  const picker=document.createElement('input');picker.type='date';picker.hidden=true;picker.setAttribute('aria-label','Przejdź do daty');picker.onchange=()=>{const key=picker.value;picker.hidden=true;if(key)journalJumpToDay(key)};
+  const label=entryButton('',()=>{picker.value=iso(journal.date);picker.hidden=false;try{picker.showPicker?.()}catch(_){}picker.focus()});label.className='journal-month-label';label.setAttribute('aria-label','Wybierz odległą datę wpisów');bar.append(previous,label,next,picker);
+  const viewport=document.createElement('div');viewport.className='journal-week-window';box.append(bar,viewport);
+  if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(()=>journalPlaceMarker(viewport.querySelector('.journal-week'),false));observer.observe(viewport)}
+ }
+ box.querySelector('.journal-month-label').textContent=date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+ const viewport=box.querySelector('.journal-week-window'),existing=viewport.querySelector('.journal-week:not(.journal-week-exit)');
+ if(existing?.dataset.week===weekKey){existing.querySelectorAll('[data-journal-date]').forEach(button=>{const selected=button.dataset.journalDate===iso(date);button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))});journalPlaceMarker(existing);return}
+ const previousWeek=existing?.dataset.week;let outgoing=null;
+ if(existing&&journalMotionAllowed()){
+  outgoing=existing.cloneNode(true);outgoing.classList.add('journal-week-exit');outgoing.setAttribute('aria-hidden','true');outgoing.inert=true;outgoing.removeAttribute('data-week');
+  outgoing.querySelectorAll('[data-journal-date]').forEach(button=>{button.removeAttribute('data-journal-date');button.removeAttribute('aria-pressed');button.tabIndex=-1;if(button.classList.contains('selected')){button.classList.remove('selected');button.classList.add('was-selected')}});
+  const marker=outgoing.querySelector('.journal-date-marker');marker.style.transform=getComputedStyle(existing.querySelector('.journal-date-marker')).transform;marker.className='journal-marker-copy';
+ }
+ journalStopWeekMotion();
+ const grid=document.createElement('div');grid.className='journal-date-grid journal-week';grid.dataset.week=weekKey;const marker=document.createElement('span');marker.className='journal-date-marker';marker.setAttribute('aria-hidden','true');grid.append(marker);const days=['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+ for(let i=0;i<7;i++){const day=new Date(start);day.setDate(start.getDate()+i);const key=iso(day),selected=key===iso(date),button=entryButton('',()=>journalJumpToDay(key));button.dataset.journalDate=key;button.className='journal-date'+(selected?' selected':'')+(key===iso(today())?' is-today':'');button.setAttribute('aria-pressed',String(selected));button.setAttribute('aria-label',formatDate(day));button.innerHTML='<small>'+days[i]+'</small><b>'+day.getDate()+'</b>';grid.append(button)}
+ viewport.replaceChildren(grid);journalPlaceMarker(grid,false);
+ if(outgoing){
+  viewport.append(outgoing);journal.weekExit=outgoing;const direction=weekKey>previousWeek?1:-1,options={duration:420,easing:'cubic-bezier(.22,.75,.24,1)',fill:'both'};
+  const enter=grid.animate([{transform:'translateX('+direction*100+'%)'},{transform:'translateX(0)'}],options),leave=outgoing.animate([{transform:'translateX(0)'},{transform:'translateX('+(-direction*100)+'%)'}],options);journal.weekAnimations=[enter,leave];
+  Promise.all([enter.finished,leave.finished]).then(()=>{if(journal.weekExit===outgoing){journalStopWeekMotion()}}).catch(()=>{});
+ }
+}
+function journalCancelJump(){clearTimeout(journal.jumpTimer);journal.scrollJump=false}
 function journalJumpToDay(key){
  const groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')].filter(x=>x.dataset.day!=='unknown'),exact=groups.find(x=>x.dataset.day===key),group=exact||groups.find(x=>x.dataset.day<=key)||groups.at(-1);
- journal.date=new Date((group?.dataset.day||key)+'T12:00:00');journalContinuousPeriod();
- if(group){group.open=true;journal.folds.set(group.dataset.day,true);const scroller=$('ideasView');if(document.body.classList.contains('phone-layout')){if(group===groups[0])scroller.scrollTop=0;else scroller.scrollTop+=group.getBoundingClientRect().top-scroller.getBoundingClientRect().top-8}else group.scrollIntoView({block:'start'});journalPhotos();if(!exact)toast('Brak wpisów w tym dniu. Pokazuję najbliższy dzień z wpisami.')}
+ journalCancelJump();journal.date=new Date((group?.dataset.day||key)+'T12:00:00');journalContinuousPeriod();
+ if(group){group.open=true;journal.folds.set(group.dataset.day,true);const scroller=$('ideasView'),smooth=journalMotionAllowed();
+  if(document.body.classList.contains('phone-layout')){const top=group===groups[0]?0:scroller.scrollTop+group.getBoundingClientRect().top-scroller.getBoundingClientRect().top-8;if(smooth){journal.scrollJump=true;journal.jumpTimer=setTimeout(journalCancelJump,1500);scroller.scrollTo({top,behavior:'smooth'})}else scroller.scrollTop=top}
+  else group.scrollIntoView({block:'start',behavior:smooth?'smooth':'auto'});
+  journalPhotos();if(!exact)toast('Brak wpisów w tym dniu. Pokazuję najbliższy dzień z wpisami.')
+ }
 }
-function journalHighlightDay(key){
- if(!key||key==='unknown')return;
- const previous=new Date(journal.date);journal.date=new Date(key+'T12:00:00');const buttons=[...document.querySelectorAll('#journalPeriod [data-journal-date]')];
- if(!buttons.some(x=>x.dataset.journalDate===key)||previous.getMonth()!==journal.date.getMonth()||previous.getFullYear()!==journal.date.getFullYear())journalContinuousPeriod();else buttons.forEach(x=>{const selected=x.dataset.journalDate===key;x.classList.toggle('selected',selected);x.setAttribute('aria-pressed',String(selected))});
-}
+function journalHighlightDay(key){if(!key||key==='unknown'||key===iso(journal.date))return;journal.date=new Date(key+'T12:00:00');journalContinuousPeriod()}
 let journalScrollQueued=false;
-function journalTrackScroll(){if(journalScrollQueued||$('ideasView')?.classList.contains('hidden'))return;journalScrollQueued=true;requestAnimationFrame(()=>{journalScrollQueued=false;const scroller=$('ideasView'),edge=document.body.classList.contains('phone-layout')?scroller.getBoundingClientRect().top+24:($('journalPeriod')?.getBoundingClientRect().bottom||0)+24,groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')];let active=null;for(const group of groups){if(group.getBoundingClientRect().top<=edge)active=group.dataset.day;else break}if(scroller.scrollTop>0&&scroller.scrollTop>=scroller.scrollHeight-scroller.clientHeight-2)active=groups.filter(x=>x.dataset.day!=='unknown').at(-1)?.dataset.day||active;if(active)journalHighlightDay(active)})}
-window.addEventListener('scroll',journalTrackScroll,{passive:true});$('ideasView').addEventListener('scroll',journalTrackScroll,{passive:true});
+function journalTrackScroll(){if(journal.scrollJump){clearTimeout(journal.jumpTimer);journal.jumpTimer=setTimeout(journalCancelJump,160);return}if(journalScrollQueued||$('ideasView')?.classList.contains('hidden'))return;journalScrollQueued=true;requestAnimationFrame(()=>{journalScrollQueued=false;if(journal.scrollJump)return;const scroller=$('ideasView'),edge=document.body.classList.contains('phone-layout')?scroller.getBoundingClientRect().top+24:($('journalPeriod')?.getBoundingClientRect().bottom||0)+24,groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')];let active=null;for(const group of groups){if(group.getBoundingClientRect().top<=edge)active=group.dataset.day;else break}if(!active&&groups.length)active=groups[0].dataset.day;if(scroller.scrollTop>0&&scroller.scrollTop>=scroller.scrollHeight-scroller.clientHeight-2)active=groups.filter(x=>x.dataset.day!=='unknown').at(-1)?.dataset.day||active;if(active)journalHighlightDay(active)})}
+window.addEventListener('scroll',journalTrackScroll,{passive:true});$('ideasView').addEventListener('scroll',journalTrackScroll,{passive:true});for(const type of ['wheel','touchstart','pointerdown','keydown'])$('ideasView').addEventListener(type,journalCancelJump,{passive:true});
 function journalPeriod(){journalContinuousPeriod()}
 function journalMove(step){const date=new Date(journal.date);date.setDate(date.getDate()+step);journalJumpToDay(iso(date))}
 function journalCard(idea){
@@ -783,7 +809,7 @@ function renderIdeas(){
   const group=document.createElement('details');group.className='journal-day';group.dataset.day=key;
   const date=key==='unknown'?null:new Date(key+'T12:00:00'),yesterday=today();yesterday.setDate(yesterday.getDate()-1);
   const title=!date?'Bez daty utworzenia':key===iso(today())?'Dzisiaj':key===iso(yesterday)?'Wczoraj':date.toLocaleDateString('pl-PL',{weekday:'long'}),summary=document.createElement('summary');
-  summary.innerHTML='<span class="journal-day-name">'+title+'</span><span class="journal-day-date">'+(date?date.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:date.getFullYear()===today().getFullYear()?undefined:'numeric'}):'Starsze wpisy')+'</span><span class="journal-day-count">'+journalCount(items.length)+'</span><span class="journal-chevron" aria-hidden="true">⌄</span>';
+  summary.innerHTML='<span class="journal-day-heading"><span class="journal-day-name">'+title+'</span><span class="journal-day-separator" aria-hidden="true">·</span><span class="journal-day-date">'+(date?date.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:date.getFullYear()===today().getFullYear()?undefined:'numeric'}):'Starsze wpisy')+'</span></span><span class="journal-day-count">'+journalCount(items.length)+'</span><span class="journal-chevron" aria-hidden="true">⌄</span>';
   group.append(summary);group.open=journal.query.trim()?true:journal.folds.has(key)?journal.folds.get(key):true;
   summary.setAttribute('aria-label',title+', '+journalCount(items.length)+'. Rozwiń lub zwiń dzień');summary.setAttribute('aria-expanded',String(group.open));
   const body=document.createElement('div');body.className='journal-day-body';for(const idea of items)body.append(journalCard(idea));group.append(body);
@@ -3221,7 +3247,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 @media(max-width:359px){.journal-day>summary{grid-template-columns:minmax(0,1fr) auto 15px;column-gap:6px}.journal-day-name{grid-column:1;grid-row:1}.journal-day-date{grid-column:1;grid-row:2;font-size:14px}.journal-day-count{grid-column:2;grid-row:1 / 3}.journal-chevron{grid-column:3;grid-row:1 / 3}#journalFilterLabel{font-size:11px}#ideasView .journal-toolbar #openShoppingSummary{font-size:11px;padding:7px}}
 @media(prefers-reduced-motion:reduce){.journal-chevron{transition:none}#journalSearchPanel:not([hidden]){animation:none}}
 
-/* 33.109: neutral journal canvas and saturated spine, independent of calendar styles. */
+/* 33.110: sculpted cards, uniform entry dots and spatial date navigation. */
 .phone-layout:has(#ideasView:not(.hidden)) .app{background:#fbfaf8}
 .phone-layout:has(#ideasView:not(.hidden)) .phone-sky-header{padding-bottom:8px}
 .phone-layout #journalCalendarNavigation{flex:none;z-index:9;margin:0 -12px;background:#fbfaf8;padding:0 12px 6px;box-shadow:0 3px 9px #20252b0d}
@@ -3234,7 +3260,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .journal-date-grid.journal-week{gap:3px;padding:2px 0;border:0;background:transparent;border-radius:0}
 #journalPeriod .journal-date{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:3px 0;border:1px solid transparent;border-radius:10px;background:transparent;color:#48515f;line-height:1.1}
 #journalPeriod .journal-date small{font-size:10px;margin-bottom:3px}#journalPeriod .journal-date b{font-size:15px}
-#journalPeriod .journal-date.selected{background:#176bff;color:#fff;box-shadow:0 2px 7px #176bff36}
+#journalPeriod .journal-date.selected,#journalPeriod .journal-date.was-selected{background:transparent;color:#fff;box-shadow:none}
 #journalPeriod .journal-date.is-today:not(.selected){border-color:#176bff66;color:#1356c6}
 .phone-layout #ideasView{margin:0 -12px;padding:8px 8px var(--journal-bottom-space,155px) 6px;background:#fbfaf8;border:0;border-radius:0;box-shadow:none;overflow-x:hidden;overflow-anchor:none}
 #ideasView .journal-legacy-tools:empty{display:none}
@@ -3244,23 +3270,34 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #ideasView .journal-toolbar #openShoppingSummary{background:#fff;border-color:#e4e2df;color:#4b5868}
 #ideasList.journal-timeline{--journal-axis:53px;--journal-card:76px;margin:0;padding:0 0 6px}
 #ideasList.journal-timeline:before{left:calc(var(--journal-axis) - 2px);width:4px;top:20px;bottom:20px;background:repeating-linear-gradient(180deg,#176bff 0,#176bff 80px,#00cdbd 380px,#176bff 680px);box-shadow:0 0 3px #176bff80,0 0 9px #00cdbd40}
-#ideasList .journal-row{--entry-accent:#176bff;--entry-tint:#eaf1ff;grid-template-columns:40px minmax(0,1fr);gap:36px;padding:0;margin-bottom:14px;align-items:start}
+#ideasList .journal-row{--entry-accent:#176bff;--entry-tint:#eaf1ff;grid-template-columns:40px minmax(0,1fr);gap:36px;padding:0;margin-bottom:17px;align-items:start}
 #ideasList .journal-row[data-kind=audio]{--entry-accent:#7045e8;--entry-tint:#f0ebfc}
 #ideasList .journal-row[data-kind=image]{--entry-accent:#0096e6;--entry-tint:#e7f5fc}
 #ideasList .journal-row[data-kind=shopping]{--entry-accent:#00ae82;--entry-tint:#e5f8f1}
-#ideasList .journal-row:before{box-sizing:border-box;left:calc(var(--journal-axis) - 7px);top:16px;width:14px;height:14px;background:var(--entry-accent);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--entry-accent),0 0 8px color-mix(in srgb,var(--entry-accent) 55%,transparent)}
+#ideasList .journal-row:before{box-sizing:border-box;left:calc(var(--journal-axis) - 7px);top:16px;width:14px;height:14px;background:#27a8ee;border:2px solid #fff;box-shadow:0 0 0 1px #8acff5,0 0 8px #249ee866}
 #ideasList .journal-time{padding:15px 0 0;font-size:12px;font-weight:800;text-align:left;color:#4d5662}
-#ideasList .journal-row .idea{margin:0;min-width:0;padding:11px;border:1px solid #edecea;border-radius:17px;background:#fff;box-shadow:0 5px 12px #20252b1c,0 1px 3px #20252b0a}
+#ideasList .journal-row .idea{margin:0;min-width:0;padding:11px;border:1px solid #edecea;border-radius:17px;background:#fff;box-shadow:0 11px 14px -4px #171d294d,0 3px 6px #171d2920}
 #ideasList .journal-row .idea:before,#ideasList .journal-row .idea:after{content:none}
-#ideasList .journal-day>summary{grid-template-columns:minmax(0,1fr) auto 15px;gap:6px;min-height:58px;padding:8px 0 8px var(--journal-card)}
-#ideasList .journal-day>summary:before{box-sizing:border-box;left:calc(var(--journal-axis) - 8px);top:20px;width:16px;height:16px;background:#176bff;border:3px solid #fff;box-shadow:0 0 0 1.5px #176bff,0 0 9px #176bff80}
-#ideasList .journal-day-name{grid-column:1;grid-row:1;font-size:15px;line-height:18px}
-#ideasList .journal-day-date{grid-column:1;grid-row:2;font-size:12px;line-height:16px;color:#69717b}
-#ideasList .journal-day-count{grid-column:2;grid-row:1/3;font-size:10px;color:#69717b}
-#ideasList .journal-chevron{grid-column:3;grid-row:1/3}
+#ideasList .journal-day>summary{grid-template-columns:minmax(0,1fr) auto 15px;gap:6px;min-height:50px;padding:8px 0 8px var(--journal-card)}
+#ideasList .journal-day>summary:before{box-sizing:border-box;left:calc(var(--journal-axis) - 10px);top:15px;width:20px;height:20px;background:linear-gradient(145deg,#4149e8,#176bff);border:0;box-shadow:0 1px 3px #1846c940,0 0 7px #176bff40}
+#ideasList .journal-day-heading{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:6px;grid-column:1;grid-row:1;min-width:0}
+#ideasList .journal-day-name,#ideasList .journal-day-date{font-size:14px;font-weight:750;line-height:20px;color:#465466;grid-column:auto;grid-row:auto}
+#ideasList .journal-day-date{white-space:nowrap}
+#ideasList .journal-day-separator{font-size:14px;color:#7d8792}
+#ideasList .journal-day-count{grid-column:2;grid-row:1;font-size:10px;color:#69717b}
+#ideasList .journal-chevron{grid-column:3;grid-row:1}
+@media(max-width:380px){#ideasList .journal-day-count{display:none}#ideasList .journal-day>summary{grid-template-columns:minmax(0,1fr) 15px}#ideasList .journal-chevron{grid-column:2}}
 #ideasList .journal-day{scroll-margin-top:8px}
 #ideasList .journal-day:last-child,#ideasList .journal-day:last-child .journal-row:last-child{margin-bottom:0}
 #ideasView .journal-search{background:#fff;border-color:#dedbd7}
 #ideasView #journalResults{margin-bottom:6px}
+
+.journal-week-window{position:relative;overflow:hidden;padding:3px 0;isolation:isolate}
+#journalPeriod .journal-week{position:relative;margin:0}
+#journalPeriod .journal-week-exit{position:absolute;top:3px;left:0;right:0;pointer-events:none}
+#journalPeriod .journal-date{position:relative;z-index:1;transition:color .24s ease}
+.journal-date-marker,.journal-marker-copy{position:absolute;left:0;border-radius:10px;background:#176bff;box-shadow:0 2px 7px #176bff36;pointer-events:none;z-index:0;will-change:transform}
+.journal-date-marker.is-ready{transition:transform .36s cubic-bezier(.22,.75,.24,1),width .36s ease}
+@media(prefers-reduced-motion:reduce){.journal-date-marker.is-ready,#journalPeriod .journal-date{transition:none}}
 </style>
 </body></html>
