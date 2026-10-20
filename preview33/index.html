@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.111</title>
+<title>Mój Planer — test integracji 33.112</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -140,7 +140,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.111</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.111</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.20.33.111-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.112</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.112</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.20.33.112-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -217,7 +217,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.20.33.111-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.20.33.112-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -678,6 +678,19 @@ function journalKind(idea){const attachments=entryAttachments(idea);return idea.
 function journalCount(n){return n+' '+(n===1?'wpis':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'wpisy':'wpisów')}
 function journalAutoLabel(value){return String(value||'').match(/^(Zdjęcie|Nagranie głosowe)\s*[—·-]\s*\d{1,2}\.\d{1,2}\.\d{4},?\s+\d{1,2}:\d{2}(?::\d{2})?$/)?.[1]||''}
 function journalTitle(idea){const title=String(idea.title||idea.text||'Wpis');return journalAutoLabel(title)||title}
+function journalPlural(n,forms){return forms[n===1?0:n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?1:2]}
+function journalDayOverview(items,key){
+ const overview=document.createElement('span');overview.className='journal-day-overview';overview.id='journal-day-overview-'+key;
+ const card=document.createElement('span');card.className='journal-overview-card';const total=document.createElement('span');total.className='journal-overview-total';total.textContent=journalCount(items.length);card.append(total);
+ const types=document.createElement('span');types.className='journal-overview-types';
+ for(const [kind,icon,forms] of [['note','history',['notatka','notatki','notatek']],['audio','recorder',['nagranie','nagrania','nagrań']],['image','camera',['zdjęcie','zdjęcia','zdjęć']],['shopping','journalShopping',['lista','listy','list']]]){
+  const count=items.filter(item=>journalKind(item)===kind).length;if(!count)continue;const badge=document.createElement('span');badge.className='journal-overview-type';const glyph=document.createElement('span');glyph.setAttribute('aria-hidden','true');glyph.innerHTML=entryIcon(icon);badge.append(glyph,document.createTextNode(count+' '+journalPlural(count,forms)));types.append(badge);
+ }card.append(types);
+ const titles=document.createElement('span');titles.className='journal-overview-titles';for(const item of items.slice(0,2)){const title=document.createElement('span');title.className='journal-overview-title';title.textContent=journalTitle(item);title.title=title.textContent;titles.append(title)}card.append(titles);
+ const remaining=items.length-2;if(remaining>0){const more=document.createElement('span');more.className='journal-overview-more';more.textContent='+'+remaining+' '+journalPlural(remaining,['pozostały','pozostałe','pozostałych']);card.append(more)}
+ const expand=document.createElement('span');expand.className='journal-overview-open';expand.textContent='Rozwiń dzień';const arrow=document.createElement('span');arrow.textContent='⌄';arrow.setAttribute('aria-hidden','true');expand.append(arrow);card.append(expand);overview.append(card);return overview;
+}
+function journalSyncFold(group){const summary=group.querySelector('summary'),overview=summary.querySelector('.journal-day-overview');if(!overview)return;overview.hidden=group.open;summary.setAttribute('aria-expanded',String(group.open));if(group.open)summary.removeAttribute('aria-describedby');else summary.setAttribute('aria-describedby',overview.id)}
 function journalToggleSearch(open){const panel=$('journalSearchPanel'),button=$('journalSearchToggle');panel.hidden=!open;button.setAttribute('aria-expanded',String(open));button.classList.toggle('active',open);if(open)$('journalSearch').focus();else{journal.query='';$('journalSearch').value='';renderIdeas();button.focus()}}
 function journalResetMedia(){journal.epoch++;journal.observer?.disconnect();journal.observer=null;for(const url of journal.urls)URL.revokeObjectURL(url);journal.urls=[]}
 function journalRevealNewEntry(idea){journal.view='journal';journal.query='';journal.kind='all';const date=journalCreated(idea);if(date)journal.date=new Date(date);journal.folds.set(date?iso(date):'unknown',true);if($('journalSearch'))$('journalSearch').value=''}
@@ -737,7 +750,7 @@ function journalCancelJump(){clearTimeout(journal.jumpTimer);journal.scrollJump=
 function journalJumpToDay(key){
  const groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')].filter(x=>x.dataset.day!=='unknown'),exact=groups.find(x=>x.dataset.day===key),group=exact||groups.find(x=>x.dataset.day<=key)||groups.at(-1);
  journalCancelJump();journal.date=new Date((group?.dataset.day||key)+'T12:00:00');journalContinuousPeriod();
- if(group){group.open=true;journal.folds.set(group.dataset.day,true);const scroller=$('ideasView'),smooth=journalMotionAllowed();
+ if(group){group.open=true;journalSyncFold(group);journal.folds.set(group.dataset.day,true);const scroller=$('ideasView'),smooth=journalMotionAllowed();
   if(document.body.classList.contains('phone-layout')){const top=group===groups[0]?0:scroller.scrollTop+group.getBoundingClientRect().top-scroller.getBoundingClientRect().top-8;if(smooth){journal.scrollJump=true;journal.jumpTimer=setTimeout(journalCancelJump,1500);scroller.scrollTo({top,behavior:'smooth'})}else scroller.scrollTop=top}
   else group.scrollIntoView({block:'start',behavior:smooth?'smooth':'auto'});
   journalPhotos();if(!exact)toast('Brak wpisów w tym dniu. Pokazuję najbliższy dzień z wpisami.')
@@ -792,16 +805,18 @@ function journalCard(idea){
  row.append(card);return row;
 }
 function journalFold(group){
- const body=group.querySelector('.journal-day-body'),summary=group.querySelector('summary'),opening=!(group._journalTarget??group.open);
- const from=group.open?body.getBoundingClientRect().height:0;group._journalAnimation?.cancel();for(const motion of group._journalRows||[])motion.cancel();group._journalRows=[];group._journalAnimation=null;group._journalTarget=opening;
+ const body=group.querySelector('.journal-day-body'),summary=group.querySelector('summary'),overview=summary.querySelector('.journal-day-overview'),opening=!(group._journalTarget??group.open);
+ const from=group.open?body.getBoundingClientRect().height:0,overviewFrom=overview.hidden?0:overview.getBoundingClientRect().height;group._journalAnimation?.cancel();group._journalOverviewAnimation?.cancel();for(const motion of group._journalRows||[])motion.cancel();group._journalRows=[];group._journalAnimation=null;group._journalOverviewAnimation=null;group._journalTarget=opening;
  journal.folds.set(group.dataset.day,opening);summary.setAttribute('aria-expanded',String(opening));group.classList.toggle('journal-expanding',opening);group.classList.toggle('journal-collapsing',!opening);
- const finish=()=>{group.open=opening;group.classList.remove('journal-expanding','journal-collapsing');body.style.overflow='';if(opening)journalPhotos()};
+ const finish=()=>{group.open=opening;journalSyncFold(group);group.classList.remove('journal-expanding','journal-collapsing');body.style.overflow='';overview.style.overflow='';if(opening)journalPhotos();journalQueueRings()};
  if(!body.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){finish();return}
  if(opening)group.open=true;
+ overview.hidden=false;overview.style.overflow='hidden';const overviewTo=opening?0:overview.scrollHeight;
  body.style.overflow='hidden';const to=opening?body.scrollHeight:0;
  const animation=body.animate([{height:from+'px'},{height:to+'px'}],{duration:430,easing:'cubic-bezier(.22,.61,.36,1)'});group._journalAnimation=animation;
+ group._journalOverviewAnimation=overview.animate([{height:overviewFrom+'px',opacity:opening?1:0},{height:overviewTo+'px',opacity:opening?0:1}],{duration:430,easing:'cubic-bezier(.22,.61,.36,1)'});
  if(opening)group._journalRows=[...body.children].map((row,index)=>row.animate([{opacity:.4,transform:'translateY(-5px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,delay:Math.min(index*28,140),easing:'ease-out'}));
- animation.onfinish=()=>{if(group._journalAnimation!==animation)return;group._journalAnimation=null;finish()};
+ animation.onfinish=()=>{if(group._journalAnimation!==animation)return;group._journalAnimation=null;group._journalOverviewAnimation?.cancel();group._journalOverviewAnimation=null;finish()};
 }
 function journalPhotos(){
  if($('ideasView').classList.contains('hidden')||!window.IntersectionObserver)return;const epoch=journal.epoch;journal.observer?.disconnect();
@@ -824,10 +839,12 @@ function renderIdeas(){
   const title=!date?'Bez daty utworzenia':key===iso(today())?'Dzisiaj':key===iso(yesterday)?'Wczoraj':date.toLocaleDateString('pl-PL',{weekday:'long'}),summary=document.createElement('summary');
   summary.innerHTML='<span class="journal-day-heading"><span class="journal-day-name">'+title+'</span><span class="journal-day-separator" aria-hidden="true">·</span><span class="journal-day-date">'+(date?date.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:date.getFullYear()===today().getFullYear()?undefined:'numeric'}):'Starsze wpisy')+'</span></span><span class="journal-day-count">'+journalCount(items.length)+'</span><span class="journal-chevron" aria-hidden="true">⌄</span>';
   group.append(summary);group.open=journal.query.trim()?true:journal.folds.has(key)?journal.folds.get(key):true;
+  summary.append(journalDayOverview(items,key));journalSyncFold(group);
   summary.setAttribute('aria-label',title+', '+journalCount(items.length)+'. Rozwiń lub zwiń dzień');summary.setAttribute('aria-expanded',String(group.open));
   const body=document.createElement('div');body.className='journal-day-body';for(const idea of items)body.append(journalCard(idea));group.append(body);
   summary.onclick=event=>{event.preventDefault();journalFold(group)};
-  group.ontoggle=()=>{if(!group.isConnected||group._journalAnimation)return;journal.folds.set(key,group.open);group._journalTarget=group.open;summary.setAttribute('aria-expanded',String(group.open));if(group.open)journalPhotos();journalQueueRings()};
+  summary.tabIndex=0;summary.onkeydown=event=>{if(event.target!==summary||!['Enter',' '].includes(event.key))return;event.preventDefault();if(!event.repeat)journalFold(group)};summary.onkeyup=event=>{if(event.target===summary&&['Enter',' '].includes(event.key))event.preventDefault()};
+  group.ontoggle=()=>{if(!group.isConnected||group._journalAnimation)return;journal.folds.set(key,group.open);group._journalTarget=group.open;journalSyncFold(group);if(group.open)journalPhotos();journalQueueRings()};
   list.append(group);index++;
  }journalPhotos();journalQueueRings();
 }
@@ -3319,5 +3336,17 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #ideasList .journal-row[data-kind=shopping] .journal-shopping .journal-meta{font-size:10px;margin-top:3px;line-height:1.25}
 #ideasList .journal-row[data-kind=shopping] .journal-preview{margin:4px 0;font-size:13px;line-height:1.35}
 #ideasList .journal-row[data-kind=shopping] .journal-indicators{margin-top:4px}
+#ideasList .journal-day-overview{grid-column:1/-1;grid-row:2;display:flow-root;min-width:0;min-height:0;text-transform:none}
+#ideasList .journal-day-overview[hidden]{display:none!important}
+.journal-overview-card{display:flex;flex-direction:column;gap:7px;min-width:0;margin:3px 0 10px;padding:12px;border:1px solid #edecea;border-radius:17px;background:#fff;box-shadow:0 0 9px #19202b2b,0 10px 12px -4px #151b286b,0 -2px 6px #19202b1a}
+.journal-overview-total{font-size:13px;font-weight:750;color:#344b63;line-height:18px}
+.journal-overview-types{display:flex;flex-wrap:wrap;gap:5px 10px}
+.journal-overview-type{display:inline-flex;align-items:center;gap:4px;font-size:11px;line-height:18px;color:#5d6d7e;font-weight:600}
+.journal-overview-type>span{display:flex;color:#528ac3}.journal-overview-type svg{width:16px;height:16px}
+.journal-overview-titles{display:grid;gap:3px;min-width:0}
+.journal-overview-title{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px;line-height:18px;font-weight:650;color:#40566b}
+.journal-overview-more{font-size:11px;font-weight:600;line-height:15px;color:#7a838d}
+.journal-overview-open{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:750;line-height:20px;color:#2267c1}
+.journal-overview-open>span{font-size:18px}
 </style>
 </body></html>
