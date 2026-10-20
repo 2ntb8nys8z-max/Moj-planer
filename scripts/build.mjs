@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.20.33.113-integration';
-const PREVIEW_VERSION='2026.10.20.33.113-test';
+const APP_VERSION='2026.10.20.33.114-integration';
+const PREVIEW_VERSION='2026.10.20.33.114-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.10.12.33.36-test';
 const WORKER_LABEL='Worker 33.36-test';
@@ -77,6 +77,6 @@ output('index.html',canonical);
 output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
-for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

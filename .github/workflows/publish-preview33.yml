@@ -34,6 +34,12 @@ jobs:
         working-directory: integration
         run: npm ci
 
+      - name: Rebuild and verify canonical frontend artifacts
+        working-directory: integration
+        run: |
+          npm run build
+          git diff --exit-code
+
       - name: Verify generated files and tests
         working-directory: integration
         run: npm test
