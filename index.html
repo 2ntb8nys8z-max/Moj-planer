@@ -135,6 +135,22 @@ body.event-sheet-open{overflow:hidden}
 .phone-event-title.crowded .phone-event-title-text{max-height:calc(100% - 44px)}
 @media(max-height:500px){#eventHeaderMeta{font-size:13px}#eventReminderBadge{margin-top:3px;font-size:12px;padding:2px 6px}#eventReminderBadge svg{width:24px;height:24px}}
 
+
+/* Okti timeline refresh: floating paper-white cards and illuminated chronological spine */
+#ideasList.journal-timeline{padding-left:0!important}
+#ideasList.journal-timeline:before{left:66px!important;width:5px!important;background:linear-gradient(180deg,#7782ec 0%,#528be9 24%,#30b6e0 54%,#52d6d1 78%,#7987ed 100%)!important;box-shadow:0 0 6px #5f9de899,0 0 19px #64cfe666!important}
+#ideasList .journal-day>summary{padding-left:86px!important;min-height:58px}
+#ideasList .journal-day>summary:before{left:60px!important;top:19px!important;width:17px!important;height:17px!important;background:radial-gradient(circle at 35% 30%,#fff,#6b91e9 52%,#4377d6)!important;border:2px solid #fff!important;box-shadow:0 0 0 3px #b8d8fb,0 0 14px #6bb5f6!important}
+#ideasList .journal-row{grid-template-columns:48px minmax(0,1fr)!important;gap:13px!important;padding-left:0!important;margin-bottom:14px!important;align-items:start}
+#ideasList .journal-row:before{left:61px!important;top:16px!important;width:15px!important;height:15px!important;z-index:1;background:radial-gradient(circle at 32% 25%,#fff,var(--entry-accent) 65%)!important;border:2px solid #fff!important;box-shadow:0 0 0 2px #c2e4f8,0 0 11px #72c8ed!important}
+#ideasList .journal-time{font-size:12px!important;text-align:right!important;padding-top:15px!important;color:#42647f!important;font-weight:800!important}
+#ideasList .journal-row .idea{margin-left:25px!important;border:1px solid #ffffffd9!important;border-radius:17px!important;border-left:1px solid #ffffffd9!important;background:linear-gradient(145deg,#ffffff 0%,#f8fbff 100%)!important;box-shadow:0 10px 22px #244a7030,0 3px 7px #244a7021,inset 0 1px 0 #fff!important}
+#ideasList .journal-row .idea:before,#ideasList .journal-row .idea:after{content:none!important}
+#ideasList .journal-row[data-kind=audio]{--entry-accent:#8b76d8;--entry-tint:#eee8ff}
+#ideasList .journal-row[data-kind=image]{--entry-accent:#42a5cf;--entry-tint:#e4f4ff}
+#ideasList .journal-row[data-kind=shopping]{--entry-accent:#38b89c;--entry-tint:#e1f8f1}
+@media(max-width:430px){#ideasList .journal-row{grid-template-columns:44px minmax(0,1fr)!important;gap:9px!important}#ideasList .journal-row .idea{margin-left:25px!important;padding:11px!important}#ideasList .journal-day>summary{padding-left:86px!important}}
+
 </style>
 </head>
 <body>
