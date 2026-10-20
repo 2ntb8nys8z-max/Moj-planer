@@ -158,6 +158,11 @@ body.event-sheet-open{overflow:hidden}
 #ideasView .journal-date-grid.journal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 #ideasView .journal-date{min-width:0;padding:5px 1px}
 #ideasView .journal-date.selected{box-shadow:0 0 0 2px #7fbef1,0 0 10px #80c6f855}
+
+/* On phones, calendar mode tabs remain exclusive to the calendar, not Entries. */
+body:has(#ideasView:not(.hidden)) .phone-layout .app>.tabs:has(#tabDay){display:none!important}
+#ideasView .journal-day{scroll-margin-top:110px}
+#ideasView .journal-day>summary{scroll-margin-top:110px}
 </style>
 </head>
 <body>
@@ -721,14 +726,14 @@ function journalContinuousPeriod(entries){
  const date=new Date(journal.date),start=new Date(date);start.setDate(date.getDate()-(date.getDay()+6)%7);
  const bar=document.createElement('div');bar.className='journal-period-nav';
  const previous=entryButton('‹',()=>{journal.date.setDate(journal.date.getDate()-7);renderIdeas()}),next=entryButton('›',()=>{journal.date.setDate(journal.date.getDate()+7);renderIdeas()});
- const label=entryButton(date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'}),()=>{picker.hidden=!picker.hidden});label.setAttribute('aria-label','Wybierz miesiąc i datę');
+ const label=entryButton(date.toLocaleDateString('pl-PL',{month:'long',year:'numeric'}),()=>{picker.hidden=false;if(typeof picker.showPicker==='function'){try{picker.showPicker()}catch(_){picker.focus()}}else picker.focus()});label.setAttribute('aria-label','Wybierz miesiąc i datę');
  const picker=document.createElement('input');picker.type='date';picker.value=iso(date);picker.hidden=true;picker.setAttribute('aria-label','Przejdź do daty');picker.onchange=()=>{if(picker.value)journalJumpToDay(picker.value);picker.hidden=true};
  bar.append(previous,label,next,picker);box.append(bar);
  const grid=document.createElement('div');grid.className='journal-date-grid journal-week';const days=['Pn','Wt','Śr','Cz','Pt','So','Nd'];
  for(let i=0;i<7;i++){const day=new Date(start);day.setDate(start.getDate()+i);const key=iso(day),button=entryButton('',()=>journalJumpToDay(key));button.dataset.journalDate=key;button.className='journal-date'+(key===iso(journal.date)?' selected':'');button.innerHTML='<small>'+days[i]+'</small><b>'+day.getDate()+'</b>';grid.append(button)}box.append(grid);
 }
 function journalJumpToDay(key){journal.date=new Date(key+'T12:00:00');const group=[...document.querySelectorAll('#ideasList .journal-day')].find(x=>x.dataset.day===key);if(group){group.open=true;group.scrollIntoView({behavior:'smooth',block:'start'});journalHighlightDay(key)}else{const dated=[...document.querySelectorAll('#ideasList .journal-day[data-day]')].filter(x=>x.dataset.day!=='unknown');const closest=dated.find(x=>x.dataset.day<=key)||dated.at(-1);if(closest){closest.open=true;closest.scrollIntoView({behavior:'smooth',block:'start'})}else $('ideasList').scrollIntoView({behavior:'smooth',block:'start'});journalContinuousPeriod(journalFiltered())}}
-function journalHighlightDay(key){if(!key||key==='unknown'||key===iso(journal.date))return;journal.date=new Date(key+'T12:00:00');const buttons=document.querySelectorAll('#journalPeriod [data-journal-date]');if(![...buttons].some(x=>x.dataset.journalDate===key)){journalContinuousPeriod(journalFiltered())}else buttons.forEach(x=>x.classList.toggle('selected',x.dataset.journalDate===key))}
+function journalHighlightDay(key){if(!key||key==='unknown'||key===iso(journal.date))return;journal.date=new Date(key+'T12:00:00');const buttons=document.querySelectorAll('#journalPeriod [data-journal-date]');if(![...buttons].some(x=>x.dataset.journalDate===key)){journalContinuousPeriod(journalFiltered())}else buttons.forEach(x=>{const selected=x.dataset.journalDate===key;x.classList.toggle('selected',selected);x.setAttribute('aria-pressed',String(selected))})}
 let journalScrollQueued=false;function journalTrackScroll(){if(journalScrollQueued||$('ideasView')?.classList.contains('hidden'))return;journalScrollQueued=true;requestAnimationFrame(()=>{journalScrollQueued=false;const groups=[...document.querySelectorAll('#ideasList .journal-day[data-day]')];let active=null;for(const group of groups){if(group.getBoundingClientRect().top<window.innerHeight*.42)active=group.dataset.day;else break}if(active)journalHighlightDay(active)})}window.addEventListener('scroll',journalTrackScroll,{passive:true});document.getElementById('ideasView')?.addEventListener('scroll',journalTrackScroll,{passive:true});
 function journalPeriod(entries){
  if(journal.view==='journal'&&!journal.query.trim()){if(journal.restorePhoneNavigation&&document.getElementById('journalCalendarNavigation')&&!document.getElementById('journalCalendarNavigation').hidden)journal.restorePhoneNavigation();journalContinuousPeriod(entries);return}const box=$('journalPeriod');box.replaceChildren();if(journal.phoneNavigation){journal.phoneNavigation(entries);return}if(journal.view==='journal'||journal.query.trim())return;
