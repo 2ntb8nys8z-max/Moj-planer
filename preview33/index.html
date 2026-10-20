@@ -843,6 +843,7 @@ function renderIdeas(){
   summary.setAttribute('aria-label',title+', '+journalCount(items.length)+'. Rozwiń lub zwiń dzień');summary.setAttribute('aria-expanded',String(group.open));
   const body=document.createElement('div');body.className='journal-day-body';for(const idea of items)body.append(journalCard(idea));group.append(body);
   summary.onclick=event=>{event.preventDefault();journalFold(group)};
+  summary.tabIndex=0;summary.onkeydown=event=>{if(event.target!==summary||!['Enter',' '].includes(event.key))return;event.preventDefault();if(!event.repeat)journalFold(group)};summary.onkeyup=event=>{if(event.target===summary&&['Enter',' '].includes(event.key))event.preventDefault()};
   group.ontoggle=()=>{if(!group.isConnected||group._journalAnimation)return;journal.folds.set(key,group.open);group._journalTarget=group.open;journalSyncFold(group);if(group.open)journalPhotos();journalQueueRings()};
   list.append(group);index++;
  }journalPhotos();journalQueueRings();
