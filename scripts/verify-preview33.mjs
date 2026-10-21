@@ -6,7 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function verifyPreview(base,request=fetch){
  const expectedRelease=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
- for(const file of ['release.json','index.html','google-calendar.js','sync-core.js','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-pencil.webp','shopping-close-x-v2.webp','shopping-purchased-note-v2.webp']){
+ for(const file of ['release.json','index.html','google-calendar.js','sync-core.js','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-pencil.webp','shopping-close-x-v2.webp','shopping-top-tape-v2.webp','shopping-purchased-note-v3.webp']){
   const expected=fs.readFileSync('preview33/'+file),url=new URL(file,base);url.searchParams.set('verify',expectedRelease.frontendBuildId);
   const response=await request(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error(`${file}: HTTP ${response.status}`);
