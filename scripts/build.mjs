@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.22.33.129-integration';
-const PREVIEW_VERSION='2026.10.22.33.129-test';
+const APP_VERSION='2026.10.22.33.130-integration';
+const PREVIEW_VERSION='2026.10.22.33.130-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.10.12.33.36-test';
 const WORKER_LABEL='Worker 33.36-test';
@@ -44,7 +44,7 @@ canonical=canonical.replace(/EXPECTED_WORKER_VERSION='[^']*'/,`EXPECTED_WORKER_V
 
 const skyBuildId=createHash('sha256').update(fs.readFileSync('header-sky.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sky\.webp(?:\?v=[a-z0-9]+)?/g,'header-sky.webp?v='+skyBuildId);
-for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-pencil.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
+for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
 }
@@ -77,6 +77,6 @@ output('index.html',canonical);
 output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
-for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-pencil.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

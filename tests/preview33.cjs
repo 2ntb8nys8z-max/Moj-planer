@@ -8,7 +8,7 @@ const rootWorkerText=fs.readFileSync('worker.txt','utf8');
 const previewWorkerText=fs.readFileSync('preview33/worker.txt','utf8');
 const release=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
 for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt'])assert.ok(fs.readFileSync('preview33/'+file).equals(fs.readFileSync(file)),'Preview must include its locally served font and license');
-for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-pencil.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
+for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
   const bytes=fs.readFileSync(file),hash=require('node:crypto').createHash('sha256').update(bytes).digest('hex').slice(0,16);
   assert.ok(fs.readFileSync('preview33/'+file).equals(bytes),'Preview must contain the exact visual asset');
   assert.ok(preview.includes(file+'?v='+hash),'The rendered artwork must reference the current asset hash');
@@ -16,8 +16,9 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','shopping-pa
 
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
-assert.match(root,/Aplikacja: 2026\.10\.22\.33\.129-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.22\.33\.129-test/);
+assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
+assert.match(root,/Aplikacja: 2026\.10\.22\.33\.130-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.22\.33\.130-test/);
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
 assert.match(preview,/e\.key===PREVIEW33_STORE\.key\(KEY\)/,'storage events must use the preview-prefixed key');
@@ -50,10 +51,10 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.22.33.129-test');
+assert.equal(release.version,'2026.10.22.33.130-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.129: generated journal release and isolated storage verified.');
+console.log('Preview 33.130: generated journal release and isolated storage verified.');
