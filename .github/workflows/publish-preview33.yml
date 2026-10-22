@@ -44,9 +44,16 @@ jobs:
         working-directory: integration
         run: npm test
 
-      - name: Install Chromium for mobile journal checks
+      - name: Select the runner browser for mobile journal checks
         working-directory: integration
-        run: npx playwright install --with-deps chromium
+        run: |
+          planner_browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$planner_browser" ]; then
+            "$planner_browser" --version
+            echo "PLANNER_CHROMIUM=$planner_browser" >> "$GITHUB_ENV"
+          else
+            timeout 180s npx playwright install --with-deps chromium
+          fi
 
       - name: Verify mobile journal interactions and layout
         working-directory: integration
