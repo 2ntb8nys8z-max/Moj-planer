@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.129</title>
+<title>Mój Planer — test integracji 33.130</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.129</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.129</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.129-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.130</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.130</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.130-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -172,7 +172,7 @@ body.event-sheet-open{overflow:hidden}
 <div id="entryResultsModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEntryResults" class="close-x" type="button" aria-label="Zamknij">×</button><h2 id="entryResultsTitle">Wpisy</h2><div id="entryResultsCount" class="action-meta"></div><div id="entryResults" class="entry-results"></div></div></div>
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
-<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div><img class="shopping-pencil" src="shopping-pencil.webp?v=caf6f8a4c07eda7b" alt="" aria-hidden="true"></footer></div></section></div>
+<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div>
 <div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
 <header id="eventHeader"><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
 <div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div id="eventLocationText"></div><button id="navigateBtn" class="secondary hidden" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m20 3-7 18-3-7-7-3 17-8Z"/></svg><span>Nawiguj</span></button></div><section id="eventPeopleCard" class="event-people-card hidden" aria-labelledby="eventPeopleHeading"><div class="event-people-heading"><h3 id="eventPeopleHeading">Osoby</h3><button id="editEventPeople" type="button" aria-label="Zmień osoby w wydarzeniu">Zmień</button></div><div id="eventPeopleList" class="event-people-list"></div></section><div id="actionMeta" class="action-meta"></div><div id="eventNotesCards"></div><section id="eventChangePreview" class="preview hidden"><h3>Potwierdź zmianę wydarzenia</h3><div id="eventChangeInfo"></div><div class="preview-actions"><button id="eventChangeConfirm" class="primary" type="button">Potwierdź</button><button id="eventChangeCancel" class="secondary" type="button">Anuluj</button></div></section><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionPeople" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/></svg><span>Dodaj osoby</span></button><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.129-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.130-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1243,11 +1243,11 @@ function shoppingPaperAnchor(){
 function cancelShoppingPaper(){
   shoppingPaperRun++;const motion=shoppingPaperMotion;shoppingPaperMotion=null;
   if(motion){cancelAnimationFrame(motion.raf);motion.gpu?.dispose();motion.canvas?.remove();window.removeEventListener('resize',motion.resize);window.visualViewport?.removeEventListener('resize',motion.resize);motion.media?.removeEventListener?.('change',motion.resize);}
-  const sheet=$('shoppingModal').querySelector('.shopping-sheet');sheet.classList.remove('shopping-paper-entering','shopping-paper-leaving','shopping-paper-canvas-active','shopping-data-pending','shopping-data-writing','shopping-paper-handoff');
+  const sheet=$('shoppingModal').querySelector('.shopping-sheet');sheet.classList.remove('shopping-paper-entering','shopping-paper-leaving','shopping-paper-canvas-active','shopping-paper-handoff');
 }
 function finishShoppingPaperOpen(){
   cancelShoppingPaper();const sheet=$('shoppingModal').querySelector('.shopping-sheet');
-  if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)sheet.classList.add('shopping-data-writing');
+
 }
 async function shoppingPaperImage(url){
   if(!shoppingPaperImages.has(url))shoppingPaperImages.set(url,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{shoppingPaperImages.delete(url);reject(Error('Paper artwork unavailable'))};img.src=url}));
@@ -1272,6 +1272,7 @@ async function shoppingPaperSnapshot(includeData){
     for(const art of artwork.filter(a=>a.el.classList.contains('shopping-paper-piece')).sort((a,b)=>Number(b.el.classList.contains('shopping-paper-body'))-Number(a.el.classList.contains('shopping-paper-body'))))drawArt(art);
     const silhouette=document.createElement('canvas');silhouette.width=texture.width;silhouette.height=texture.height;silhouette.getContext('2d').drawImage(texture,0,0);
     ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,texture.width,texture.height);ctx.shadowColor='#26323d45';ctx.shadowBlur=12*ratio;ctx.shadowOffsetX=5*ratio;ctx.shadowOffsetY=9*ratio;ctx.drawImage(silhouette,0,0);ctx.restore();
+    const backTexture=document.createElement('canvas');backTexture.width=texture.width;backTexture.height=texture.height;backTexture.getContext('2d').drawImage(texture,0,0);
     const ruling=rect(sheet.querySelector('.shopping-paper-ruling'));ctx.save();ctx.beginPath();ctx.rect(ruling.x,ruling.y,ruling.w,ruling.h);ctx.clip();ctx.lineWidth=1;ctx.strokeStyle='#6ea4c557';
     for(let y=ruling.y+45;y<ruling.y+ruling.h;y+=52){ctx.beginPath();ctx.moveTo(ruling.x,y);ctx.lineTo(ruling.x+ruling.w,y);ctx.stroke()}
     ctx.strokeStyle='#df686f8c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ruling.x+39,ruling.y);ctx.lineTo(ruling.x+39,ruling.y+ruling.h);ctx.stroke();ctx.restore();
@@ -1297,33 +1298,43 @@ async function shoppingPaperSnapshot(includeData){
       ctx.save();ctx.beginPath();ctx.rect(list.x,list.y,list.w,list.h);ctx.clip();ctx.strokeStyle='#17477b';ctx.lineWidth=2;ctx.strokeRect(r.x+1,r.y+1,r.w-2,r.h-2);
       if(el.previousElementSibling.checked){ctx.fillStyle='#1d6f8b';ctx.fillRect(r.x+1,r.y+1,r.w-2,r.h-2);ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.fillText('✓',r.x+4,r.y+18)}ctx.restore();
     }
-    return {texture,width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
+    return {texture,backTexture,pad,width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
   }finally{sheet.classList.remove('shopping-paper-measuring')}
 }
-// Smooth curved fold: integrate paper tangents along each column, rather than moving rigid halves.
+// The same continuous scroll as the approved Rive prototype, sized to live content.
+// Back and front share one surface; the last turn opens from left to right.
+function shoppingPaperFlat(u,progress,height){
+  const frame=24+156*Math.max(0,Math.min(1,progress)),initial=height*78/530,remaining=height*150/530;
+  let flat;
+  if(frame<=96){const t=Math.max(0,(frame-24)/72);flat=(2*t**3-3*t*t+1)*initial+(-2*t**3+3*t*t)*(height-remaining)+(t**3-t*t)*(remaining/150*216)}
+  else{const duration=48+36*Math.max(0,Math.min(1,u)),t=Math.min(1,(frame-96)/duration);flat=(2*t**3-3*t*t+1)*(height-remaining)+(t**3-2*t*t+t)*(remaining/150*3*duration)+(-2*t**3+3*t*t)*height}
+  return flat+(u-.5)*height*10/530*(height-flat)/(height-initial);
+}
 function shoppingPaperMesh(snapshot,progress,closing,anchor){
-  const {width:w,height:h,left,top}=snapshot,points=[],cols=10,rows=24;
-  const unfold=shoppingPaperEase((progress-.09)/.8),travel=closing?shoppingPaperEase(progress):1-Math.pow(1-progress,3),scale=closing?1-.93*travel:.115+.885*travel;
-  const start={x:left+w/2,y:top+h/2},cx=closing?start.x+(anchor.x-start.x)*travel-Math.sin(progress*Math.PI)*w*.035:anchor.x+(start.x-anchor.x)*travel-Math.sin(progress*Math.PI)*w*.025;
-  const cy=closing?start.y+(anchor.y-start.y)*travel-Math.sin(progress*Math.PI)*h*.02:anchor.y+(start.y-anchor.y)*travel-Math.sin(progress*Math.PI)*h*.08;
-  const angle=(closing?-.35+9*Math.sin(progress*Math.PI/2):-8*(1-travel)-.35)*Math.PI/180;
+  const {width:w,height:h,left,top,pad=24}=snapshot,points=[],cols=snapshot.fallback?8:16,rows=snapshot.fallback?72:144,W=w-2*pad,H=h-2*pad;
+  const travel=closing?shoppingPaperEase(progress):1-Math.pow(1-Math.min(1,progress*156/120/.56),3),scale=closing?1-.93*travel:.12+.88*travel;
+  const start={x:left+w/2,y:top+h/2},initialY=anchor.y+(H/2-H*78/530)*.12;
+  const cx=closing?start.x+(anchor.x-start.x)*travel-Math.sin(progress*Math.PI)*w*.035:anchor.x+(start.x-anchor.x)*travel-Math.sin(travel*Math.PI)*W*9/350;
+  const cy=closing?start.y+(anchor.y-start.y)*travel-Math.sin(progress*Math.PI)*h*.02:initialY+(start.y-initialY)*travel;
+  const angle=closing?(-.35+9*Math.sin(progress*Math.PI/2))*Math.PI/180:-.20*(1-travel)-.35*Math.PI/180*travel+.035*Math.sin(Math.min(1,progress*156/120)*Math.PI)*(1-Math.min(1,progress*156/120));
   for(let col=0;col<=cols;col++){
-    const u=col/cols,fold=.44+.13*u+.22*unfold;let yy=0,z=0;
+    const u=col/cols,paperU=Math.max(0,Math.min(1,(u*w-pad)/W)),flat=shoppingPaperFlat(paperU,progress,H);
     for(let row=0;row<=rows;row++){
-      const v=row/rows;
-      if(row)for(let step=0;step<4;step++){
-        const sample=(row-1+(step+.5)/4)/rows;
-        const localOpen=shoppingPaperEase((unfold-.10*u)/.90),bend=closing?0:(1-localOpen)*Math.PI*.94*shoppingPaperEase((sample-fold+.07)/.18);
-        yy+=Math.cos(bend)*h/rows/4;z+=Math.sin(bend)*h/rows/4;
+      const v=row/rows,s=v*h-pad,core=Math.max(0,Math.min(H,s));let y=core-H/2,z=0,bend=0;
+      if(!closing&&core>flat){
+        const radius0=W*24/350,tightness=W*.20/350,length=core-flat;
+        bend=(radius0-Math.sqrt(Math.max(.01,radius0**2-2*tightness*length)))/tightness;
+        const radius=radius0-tightness*bend;y=flat+radius*Math.sin(bend)-H/2;z=radius0-radius*Math.cos(bend);
       }
-      let x=(u-.5)*w+(closing?Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.055:Math.sin(v*Math.PI)*Math.sin(u*Math.PI)*(1-unfold)*w*.055);
-      const bow=closing?Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.13:0,perspective=1+(z+bow)/Math.max(1200,h*3);
-      let y=closing?(v-.5)*h+Math.sin(u*Math.PI)*Math.sin(progress*Math.PI)*w*.035:yy-h/2+(1-unfold)*h*.15;
-      x*=perspective;y*=perspective;
-      points.push({x:cx+(x*Math.cos(angle)-y*Math.sin(angle))*scale,y:cy+(x*Math.sin(angle)+y*Math.cos(angle))*scale,z:z+bow,u,v});
+      // Extend only the transparent shadow margin along the end tangent.
+      y+=(s-core)*Math.cos(bend);z+=(s-core)*Math.sin(bend);
+      let x=(u-.5)*w;
+      if(closing){x+=Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.055;y=(v-.5)*h+Math.sin(u*Math.PI)*Math.sin(progress*Math.PI)*w*.035;z=Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.13;x*=1+z/Math.max(1200,h*3);y*=1+z/Math.max(1200,h*3)}
+      else{x*=1+z/Math.max(1200,W*6);y-=z*.15}
+      points.push({x:cx+(x*Math.cos(angle)-y*Math.sin(angle))*scale,y:cy+(x*Math.sin(angle)+y*Math.cos(angle))*scale,z,light:closing?1-Math.sin(progress*Math.PI)*.025:1-.32*(1-Math.abs(Math.cos(bend))),u,v});
     }
   }
-  return {points,cols,rows,scale,cx,cy,unfold};
+  return {points,cols,rows,scale,cx,cy,unfold:progress};
 }
 function drawShoppingPaperTriangle(ctx,texture,source,target){
   const [a,b,c]=source,[p,q,r]=target,det=(b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);if(Math.abs(det)<.001)return;
@@ -1335,44 +1346,56 @@ function drawShoppingPaperTriangle(ctx,texture,source,target){
   ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.min(a.x,b.x,c.x),sy=Math.min(a.y,b.y,c.y),sw=Math.max(a.x,b.x,c.x)-sx,sh=Math.max(a.y,b.y,c.y)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
 }
 function prepareShoppingPaperGL(canvas,snapshot){
-  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});if(!gl)return null;
-  const compile=(type,source)=>{const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Paper shader');return shader};
-  const program=gl.createProgram(),vertex=compile(gl.VERTEX_SHADER,'attribute vec3 point;attribute vec2 uv;uniform vec2 size;varying vec2 tex;varying float shade;void main(){gl_Position=vec4(point.x/size.x*2.0-1.0,1.0-point.y/size.y*2.0,0.0,1.0);tex=uv;shade=point.z;}'),fragment=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;varying float shade;uniform sampler2D paper;uniform float opacity;void main(){vec4 color=texture2D(paper,tex);gl_FragColor=vec4(color.rgb*(1.0-shade),color.a*opacity);}');
-  gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Paper program');gl.useProgram(program);
-  const vertices=gl.createBuffer(),indices=gl.createBuffer(),texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,snapshot.texture);
-  gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,20,offset)}
-  const order=[];for(let row=0;row<24;row++)for(let col=0;col<10;col++){const a=col*25+row,b=(col+1)*25+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
-  return {draw(mesh,opacity,closing,progress){
-    const data=new Float32Array(mesh.points.length*5);mesh.points.forEach((p,i)=>data.set([p.x,p.y,closing?Math.sin(progress*Math.PI)*.025:Math.min(.14,Math.abs(p.z)/snapshot.height*.22),p.u,p.v],i*5));
-    gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);gl.uniform1f(gl.getUniformLocation(program,'opacity'),opacity);gl.drawElements(gl.TRIANGLES,order.length,gl.UNSIGNED_SHORT,0);
-  },dispose(){gl.deleteTexture(texture);gl.deleteBuffer(vertices);gl.deleteBuffer(indices);gl.deleteProgram(program);gl.deleteShader(vertex);gl.deleteShader(fragment);gl.getExtension('WEBGL_lose_context')?.loseContext()}};
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,depth:true});if(!gl)return null;
+  const shaders=[],buffers=[],textures=[];let program;
+  const dispose=()=>{textures.forEach(t=>gl.deleteTexture(t));buffers.forEach(b=>gl.deleteBuffer(b));if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));gl.getExtension('WEBGL_lose_context')?.loseContext()};
+  try{
+    const compile=(type,source)=>{const shader=gl.createShader(type);shaders.push(shader);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Paper shader');return shader};
+    program=gl.createProgram();
+    const vertex=compile(gl.VERTEX_SHADER,'attribute vec3 point;attribute vec2 uv;attribute float lighting;uniform vec2 size;varying vec2 tex;varying float light;void main(){gl_Position=vec4(point.x/size.x*2.0-1.0,1.0-point.y/size.y*2.0,-point.z/1024.0,1.0);tex=uv;light=lighting;}');
+    const fragment=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;varying float light;uniform sampler2D front;uniform sampler2D back;uniform float opacity;void main(){vec4 color=gl_FrontFacing?texture2D(front,tex):texture2D(back,tex);if(color.a<0.02)discard;float alpha=color.a*opacity;gl_FragColor=vec4(color.rgb*light*alpha,alpha);}');
+    gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Paper program');gl.useProgram(program);
+    const vertices=gl.createBuffer(),indices=gl.createBuffer();buffers.push(vertices,indices);
+    for(const [i,image] of [snapshot.texture,snapshot.backTexture].entries()){
+      const texture=gl.createTexture();textures.push(texture);gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,i?'back':'front'),i);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12],['lighting',1,20]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,24,offset)}
+    const cols=16,rows=144,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
+    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.frontFace(gl.CW);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    const data=new Float32Array((cols+1)*(rows+1)*6);
+    return {draw(mesh,opacity){
+      mesh.points.forEach((p,i)=>data.set([p.x,p.y,p.z,p.u,p.v,p.light],i*6));gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);gl.uniform1f(gl.getUniformLocation(program,'opacity'),opacity);gl.drawElements(gl.TRIANGLES,order.length,gl.UNSIGNED_SHORT,0);
+    },dispose};
+  }catch(error){dispose();throw error}
 }
 function drawShoppingPaper(motion,progress){
-  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;if(motion.gpu){motion.gpu.draw(mesh,opacity,closing,progress);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
-  ctx.globalAlpha=closing?1-shoppingPaperEase((progress-.76)/.24):1;
-  const {points,cols,rows}=mesh,source=p=>({x:p.u*snapshot.texture.width,y:p.v*snapshot.texture.height});
-  // Lower folded rows paint last, over the upper page, like the paper in the reference.
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;if(motion.gpu){motion.gpu.draw(mesh,opacity);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);ctx.globalAlpha=opacity;
+  const {points,cols,rows}=mesh,source=p=>({x:p.u*snapshot.texture.width,y:p.v*snapshot.texture.height}),triangles=[];
   for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
-    const a=points[col*(rows+1)+row],b=points[(col+1)*(rows+1)+row],c=points[(col+1)*(rows+1)+row+1],d=points[col*(rows+1)+row+1];
-    for(const triangle of [[a,b,c],[a,c,d]])drawShoppingPaperTriangle(ctx,snapshot.texture,triangle.map(source),triangle);
-    const shade=closing?Math.sin(progress*Math.PI)*.035:Math.min(.18,Math.abs(c.z-a.z)/snapshot.height*.8);
-    if(shade>.003){ctx.fillStyle=`rgba(73,57,37,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.fill()}
+    const a=points[col*(rows+1)+row],b=points[(col+1)*(rows+1)+row],c=points[(col+1)*(rows+1)+row+1],d=points[col*(rows+1)+row+1];triangles.push([a,b,c],[a,c,d]);
   }
-  ctx.globalAlpha=1;motion.progress=progress;motion.mesh=mesh;
+  triangles.sort((a,b)=>a.reduce((z,p)=>z+p.z,0)-b.reduce((z,p)=>z+p.z,0));
+  for(const triangle of triangles){
+    const [a,b,c]=triangle,front=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)>=0;
+    drawShoppingPaperTriangle(ctx,front?snapshot.texture:snapshot.backTexture,triangle.map(source),triangle);
+    const shade=1-triangle.reduce((sum,p)=>sum+p.light,0)/3;if(shade>.003){ctx.fillStyle=`rgba(35,32,28,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.closePath();ctx.fill()}
+  }
+  ctx.globalAlpha=1;
 }
 function startShoppingPaper(closing=false){
   cancelShoppingPaper();const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet');
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){if(closing)finishShoppingSummaryClose();return}
   const run=shoppingPaperRun,media=window.matchMedia?.('(prefers-reduced-motion: reduce)'),motion={run,closing,raf:0,canvas:null,media,anchor:shoppingPaperAnchor(),progress:0};shoppingPaperMotion=motion;
-  sheet.classList.add(closing?'shopping-paper-leaving':'shopping-paper-entering');if(!closing)sheet.classList.add('shopping-data-pending','shopping-paper-canvas-active');
+  sheet.classList.add(closing?'shopping-paper-leaving':'shopping-paper-entering');if(!closing)sheet.classList.add('shopping-paper-canvas-active');
   // Resizing or changing motion preference settles immediately, without stale geometry or loops.
   motion.resize=()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()};window.addEventListener('resize',motion.resize);window.visualViewport?.addEventListener('resize',motion.resize);media?.addEventListener?.('change',motion.resize);
-  shoppingPaperSnapshot(closing).then(snapshot=>{
+  shoppingPaperSnapshot(true).then(snapshot=>{
     if(shoppingPaperMotion!==motion||run!==shoppingPaperRun)return;
     motion.snapshot=snapshot;const canvas=document.createElement('canvas');canvas.className='shopping-paper-canvas';canvas.setAttribute('aria-hidden','true');motion.canvas=canvas;motion.dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.ceil(innerWidth*motion.dpr);canvas.height=Math.ceil(innerHeight*motion.dpr);modal.append(canvas);
-    motion.gpu=prepareShoppingPaperGL(canvas,snapshot);
-    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:1150;canvas.addEventListener('webglcontextlost',motion.resize);
-    const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
+    try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot)}catch{const replacement=canvas.cloneNode();canvas.replaceWith(replacement);motion.canvas=replacement}
+    snapshot.fallback=!motion.gpu;
+    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:2600;motion.canvas.addEventListener('webglcontextlost',motion.resize);
+    const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');motion.canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
   }).catch(()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()});
 }
 function finishShoppingSummaryClose(){
@@ -3524,7 +3547,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .phone-layout #phoneShopping>span{padding:0;border:0;background:none;height:auto;line-height:normal}
 #phoneShopping svg{width:21px;height:21px;flex:none}.shopping-count{display:grid;place-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:12px;background:#fff;color:#125078;font-size:11px;line-height:1;box-sizing:border-box}
 .phone-layout #openShoppingSummary{display:none!important}
-/* 33.129: deformable paper mesh, preserved artwork and a fast handwritten data reveal. */
+/* 33.130: continuous lettered scroll; left corner opens before right, without a settling wave. */
 @font-face{font-family:'Okti Kalam';src:url('fonts/kalam-regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
 #shoppingModal{padding:48px 26px max(32px,env(safe-area-inset-bottom));align-items:center;background:#20252c57;backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)}
 #shoppingModal .shopping-sheet{position:relative;width:min(394px,100%);max-height:none;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;color:#234762;isolation:isolate;transform:rotate(-.35deg);transform-origin:50% 12%;animation:none}
@@ -3580,7 +3603,6 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #shoppingModal .shopping-sheet footer .primary:after{content:none}
 #shoppingModal .shopping-sheet footer .primary:active:not(:disabled){transform:translateY(2px) rotate(-.1deg);filter:brightness(.94)}
 #shoppingModal .shopping-sheet footer .primary:disabled{filter:saturate(.55);opacity:.68}
-.shopping-pencil{display:block;position:relative;z-index:1;width:min(224px,76%);height:auto;margin:-19px auto -18px;pointer-events:none;user-select:none;transform:rotate(.6deg)}
 #shoppingModal .shopping-sheet footer .secondary{background:#ffffff70;border-color:#b5c6ca;color:#496879}
 #shoppingSummaryRefresh[hidden]{display:none!important}
 @keyframes shopping-purchased-unfold{0%{opacity:0;clip-path:inset(0 0 100%);transform:translateY(-8px) scaleY(.72)}65%{opacity:1;clip-path:inset(0);transform:translateY(1px) scaleY(1.015)}100%{opacity:1;clip-path:inset(0);transform:none}}
@@ -3592,11 +3614,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #shoppingModal .shopping-paper-canvas-active{opacity:0;pointer-events:none}
 #shoppingModal .shopping-paper-leaving{pointer-events:none}
 #shoppingModal .shopping-paper-handoff{opacity:1;pointer-events:auto}
-#shoppingModal .shopping-data-pending :is(#shoppingSummaryMeta,#shoppingSummaryRows,.shopping-variable){visibility:hidden}
-#shoppingModal .shopping-data-writing :is(#shoppingSummaryMeta,.shopping-summary-row,.entry-empty,.shopping-variable){animation:shopping-data-write .17s ease-out both;animation-delay:var(--shopping-write-delay,0ms)}
-#shoppingModal .shopping-data-writing #shoppingSummaryRows .shopping-summary-row{--shopping-write-delay:calc(min(var(--shopping-row,0),8)*12ms)}
-@keyframes shopping-data-write{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0)}}
-@media(prefers-reduced-motion:reduce){#shoppingModal .shopping-sheet{transform:none}#shoppingModal .shopping-data-writing :is(#shoppingSummaryMeta,.shopping-summary-row,.entry-empty,.shopping-variable),#shoppingModal .shopping-summary-purchased-slot{animation:none}.shopping-purchased-arrow{transition:none}}
+@media(prefers-reduced-motion:reduce){#shoppingModal .shopping-sheet{transform:none}#shoppingModal .shopping-summary-purchased-slot{animation:none}.shopping-purchased-arrow{transition:none}}
 
 </style>
 </body></html>
