@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.128</title>
+<title>Mój Planer — test integracji 33.129</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.128</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.128</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.21.33.128-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.129</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.129</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.129-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -172,7 +172,7 @@ body.event-sheet-open{overflow:hidden}
 <div id="entryResultsModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEntryResults" class="close-x" type="button" aria-label="Zamknij">×</button><h2 id="entryResultsTitle">Wpisy</h2><div id="entryResultsCount" class="action-meta"></div><div id="entryResults" class="entry-results"></div></div></div>
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
-<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><span class="shopping-paper-curl" aria-hidden="true"><i></i><i></i><i></i></span><span class="shopping-paper-tape" aria-hidden="true"><img src="shopping-top-tape-v2.webp?v=934fc782eb511f49" alt=""></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione · 0</span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div><img class="shopping-pencil" src="shopping-pencil.webp?v=caf6f8a4c07eda7b" alt="" aria-hidden="true"></footer></div></section></div>
+<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div><img class="shopping-pencil" src="shopping-pencil.webp?v=caf6f8a4c07eda7b" alt="" aria-hidden="true"></footer></div></section></div>
 <div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
 <header id="eventHeader"><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
 <div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div id="eventLocationText"></div><button id="navigateBtn" class="secondary hidden" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m20 3-7 18-3-7-7-3 17-8Z"/></svg><span>Nawiguj</span></button></div><section id="eventPeopleCard" class="event-people-card hidden" aria-labelledby="eventPeopleHeading"><div class="event-people-heading"><h3 id="eventPeopleHeading">Osoby</h3><button id="editEventPeople" type="button" aria-label="Zmień osoby w wydarzeniu">Zmień</button></div><div id="eventPeopleList" class="event-people-list"></div></section><div id="actionMeta" class="action-meta"></div><div id="eventNotesCards"></div><section id="eventChangePreview" class="preview hidden"><h3>Potwierdź zmianę wydarzenia</h3><div id="eventChangeInfo"></div><div class="preview-actions"><button id="eventChangeConfirm" class="primary" type="button">Potwierdź</button><button id="eventChangeCancel" class="secondary" type="button">Anuluj</button></div></section><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionPeople" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/></svg><span>Dodaj osoby</span></button><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.21.33.128-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.129-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1232,34 +1232,176 @@ function shoppingDisplayParts(text){
 }
 function updateShoppingBadge(){const button=$('phoneShopping');if(!button)return;const count=collectShoppingSummary(ideas).groups.length;button.querySelector('.shopping-count').textContent=count>99?'99+':count;button.setAttribute('aria-label','Zakupy: '+count+' pozycji do kupienia');}
 function shoppingProductLabel(text){const parts=shoppingDisplayParts(text),name=document.createElement('span');name.className='shopping-product-name';name.textContent=parts.name;const quantity=document.createElement('span');quantity.className='shopping-product-quantity';quantity.textContent=parts.quantity;return [name,quantity];}
-let shoppingCloseTimer=0;
+// Local, purpose-built paper renderer: no DOM serialization, remote assets or dependency.
+let shoppingPaperMotion=null,shoppingPaperRun=0;
+const shoppingPaperImages=new Map();
+const shoppingPaperEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+function shoppingPaperAnchor(){
+  const button=[$('phoneShopping'),$('openShoppingSummary')].find(el=>el&&el.getClientRects().length),r=button?.getBoundingClientRect();
+  return r?{x:r.left+r.width/2,y:r.top+r.height/2}:{x:innerWidth-48,y:48};
+}
+function cancelShoppingPaper(){
+  shoppingPaperRun++;const motion=shoppingPaperMotion;shoppingPaperMotion=null;
+  if(motion){cancelAnimationFrame(motion.raf);motion.gpu?.dispose();motion.canvas?.remove();window.removeEventListener('resize',motion.resize);window.visualViewport?.removeEventListener('resize',motion.resize);motion.media?.removeEventListener?.('change',motion.resize);}
+  const sheet=$('shoppingModal').querySelector('.shopping-sheet');sheet.classList.remove('shopping-paper-entering','shopping-paper-leaving','shopping-paper-canvas-active','shopping-data-pending','shopping-data-writing','shopping-paper-handoff');
+}
+function finishShoppingPaperOpen(){
+  cancelShoppingPaper();const sheet=$('shoppingModal').querySelector('.shopping-sheet');
+  if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)sheet.classList.add('shopping-data-writing');
+}
+async function shoppingPaperImage(url){
+  if(!shoppingPaperImages.has(url))shoppingPaperImages.set(url,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{shoppingPaperImages.delete(url);reject(Error('Paper artwork unavailable'))};img.src=url}));
+  return shoppingPaperImages.get(url);
+}
+async function shoppingPaperSnapshot(includeData){
+  const sheet=$('shoppingModal').querySelector('.shopping-sheet'),background=el=>getComputedStyle(el).backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1];
+  const artwork=[...sheet.querySelectorAll('img')].map(el=>({el,url:el.src}));
+  for(const el of sheet.querySelectorAll('.shopping-paper-body,.shopping-purchased-note,#shoppingSummaryUpdate'))artwork.push({el,url:background(el)});
+  await Promise.all([document.fonts?.load('22px "Okti Kalam"'),...artwork.map(async art=>{art.image=await shoppingPaperImage(art.url)})]);
+  // Read in the sheet's unrotated coordinate system; the mesh supplies the final rotation.
+  sheet.classList.add('shopping-paper-measuring');
+  try{
+    const bounds=sheet.getBoundingClientRect(),pad=24,w=bounds.width,h=bounds.height;
+    if(!w||!h)throw Error('Paper has no layout');
+    const texture=document.createElement('canvas'),ratio=Math.min(window.devicePixelRatio||1,2);texture.width=Math.ceil((w+pad*2)*ratio);texture.height=Math.ceil((h+pad*2)*ratio);
+    const ctx=texture.getContext('2d');if(!ctx)throw Error('Canvas unavailable');ctx.scale(ratio,ratio);ctx.translate(pad,pad);
+    const rect=el=>{const r=el.getBoundingClientRect();return {x:r.left-bounds.left,y:r.top-bounds.top,w:r.width,h:r.height}};
+    const visible=el=>el.getClientRects().length&&getComputedStyle(el).display!=='none'&&!el.closest('[hidden]');
+    const drawArt=art=>{const r=rect(art.el);if(!visible(art.el))return;ctx.save();ctx.globalAlpha=art.el.disabled?.68:1;ctx.filter=getComputedStyle(art.el).filter;ctx.drawImage(art.image,r.x,r.y,r.w,r.h);ctx.restore()};
+    // Keep the irregular physical edges and their shadow. All dimensions come from the live DOM.
+    for(const art of artwork.filter(a=>a.el.classList.contains('shopping-paper-piece')).sort((a,b)=>Number(b.el.classList.contains('shopping-paper-body'))-Number(a.el.classList.contains('shopping-paper-body'))))drawArt(art);
+    const silhouette=document.createElement('canvas');silhouette.width=texture.width;silhouette.height=texture.height;silhouette.getContext('2d').drawImage(texture,0,0);
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,texture.width,texture.height);ctx.shadowColor='#26323d45';ctx.shadowBlur=12*ratio;ctx.shadowOffsetX=5*ratio;ctx.shadowOffsetY=9*ratio;ctx.drawImage(silhouette,0,0);ctx.restore();
+    const ruling=rect(sheet.querySelector('.shopping-paper-ruling'));ctx.save();ctx.beginPath();ctx.rect(ruling.x,ruling.y,ruling.w,ruling.h);ctx.clip();ctx.lineWidth=1;ctx.strokeStyle='#6ea4c557';
+    for(let y=ruling.y+45;y<ruling.y+ruling.h;y+=52){ctx.beginPath();ctx.moveTo(ruling.x,y);ctx.lineTo(ruling.x+ruling.w,y);ctx.stroke()}
+    ctx.strokeStyle='#df686f8c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ruling.x+39,ruling.y);ctx.lineTo(ruling.x+39,ruling.y+ruling.h);ctx.stroke();ctx.restore();
+    for(const art of artwork.filter(a=>!a.el.classList.contains('shopping-paper-piece')))drawArt(art);
+    const title=rect($('shoppingSummaryTitle'));ctx.strokeStyle='#153f76';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(title.x-2,title.y+title.h+1);ctx.quadraticCurveTo(title.x+title.w*.6,title.y+title.h-1,title.x+title.w*1.12,title.y+title.h-3);ctx.stroke();
+    // Range rectangles preserve the actual line wrapping, scrolled rows, quantities and current labels.
+    const walker=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT);let node;
+    while((node=walker.nextNode())){
+      const el=node.parentElement;if(!node.textContent.trim()||!visible(el)||el.closest('.shopping-info-button,.shopping-summary-help'))continue;
+      if(!includeData&&el.closest('#shoppingSummaryMeta,#shoppingSummaryRows,#shoppingSummaryPurchased,.shopping-variable'))continue;
+      const style=getComputedStyle(el);ctx.save();ctx.font=`${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;ctx.fillStyle=style.color;
+      if(el.closest(':disabled'))ctx.globalAlpha=.68;
+      const scroll=el.closest('#shoppingSummaryRows,#shoppingSummaryPurchased');if(scroll){const r=rect(scroll),textRect=rect(el);if(textRect.y+textRect.h<r.y||textRect.y>r.y+r.h){ctx.restore();continue}ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();}
+      const range=document.createRange();
+      for(let i=0;i<node.length;i++){
+        range.setStart(node,i);range.setEnd(node,i+1);const r=range.getBoundingClientRect(),letter=node.textContent[i];if(!r.width)continue;
+        const metrics=ctx.measureText(letter),ascent=metrics.fontBoundingBoxAscent||parseFloat(style.fontSize)*.9;if(el.id==='shoppingSummaryTitle'){ctx.fillText(letter,r.left-bounds.left+.45,r.top-bounds.top+ascent+.25);ctx.fillText(letter,r.left-bounds.left+.9,r.top-bounds.top+ascent+.15)}ctx.fillText(letter,r.left-bounds.left,r.top-bounds.top+ascent);
+      }
+      ctx.restore();
+    }
+    if(includeData)for(const el of sheet.querySelectorAll('.shopping-check-mark')){
+      const r=rect(el),list=rect($('shoppingSummaryRows'));if(r.y+r.h<list.y||r.y>list.y+list.h)continue;
+      ctx.save();ctx.beginPath();ctx.rect(list.x,list.y,list.w,list.h);ctx.clip();ctx.strokeStyle='#17477b';ctx.lineWidth=2;ctx.strokeRect(r.x+1,r.y+1,r.w-2,r.h-2);
+      if(el.previousElementSibling.checked){ctx.fillStyle='#1d6f8b';ctx.fillRect(r.x+1,r.y+1,r.w-2,r.h-2);ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.fillText('✓',r.x+4,r.y+18)}ctx.restore();
+    }
+    return {texture,width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
+  }finally{sheet.classList.remove('shopping-paper-measuring')}
+}
+// Smooth curved fold: integrate paper tangents along each column, rather than moving rigid halves.
+function shoppingPaperMesh(snapshot,progress,closing,anchor){
+  const {width:w,height:h,left,top}=snapshot,points=[],cols=10,rows=24;
+  const unfold=shoppingPaperEase((progress-.09)/.8),travel=closing?shoppingPaperEase(progress):1-Math.pow(1-progress,3),scale=closing?1-.93*travel:.115+.885*travel;
+  const start={x:left+w/2,y:top+h/2},cx=closing?start.x+(anchor.x-start.x)*travel-Math.sin(progress*Math.PI)*w*.035:anchor.x+(start.x-anchor.x)*travel-Math.sin(progress*Math.PI)*w*.025;
+  const cy=closing?start.y+(anchor.y-start.y)*travel-Math.sin(progress*Math.PI)*h*.02:anchor.y+(start.y-anchor.y)*travel-Math.sin(progress*Math.PI)*h*.08;
+  const angle=(closing?-.35+9*Math.sin(progress*Math.PI/2):-8*(1-travel)-.35)*Math.PI/180;
+  for(let col=0;col<=cols;col++){
+    const u=col/cols,fold=.44+.13*u+.22*unfold;let yy=0,z=0;
+    for(let row=0;row<=rows;row++){
+      const v=row/rows;
+      if(row)for(let step=0;step<4;step++){
+        const sample=(row-1+(step+.5)/4)/rows;
+        const localOpen=shoppingPaperEase((unfold-.10*u)/.90),bend=closing?0:(1-localOpen)*Math.PI*.94*shoppingPaperEase((sample-fold+.07)/.18);
+        yy+=Math.cos(bend)*h/rows/4;z+=Math.sin(bend)*h/rows/4;
+      }
+      let x=(u-.5)*w+(closing?Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.055:Math.sin(v*Math.PI)*Math.sin(u*Math.PI)*(1-unfold)*w*.055);
+      const bow=closing?Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.13:0,perspective=1+(z+bow)/Math.max(1200,h*3);
+      let y=closing?(v-.5)*h+Math.sin(u*Math.PI)*Math.sin(progress*Math.PI)*w*.035:yy-h/2+(1-unfold)*h*.15;
+      x*=perspective;y*=perspective;
+      points.push({x:cx+(x*Math.cos(angle)-y*Math.sin(angle))*scale,y:cy+(x*Math.sin(angle)+y*Math.cos(angle))*scale,z:z+bow,u,v});
+    }
+  }
+  return {points,cols,rows,scale,cx,cy,unfold};
+}
+function drawShoppingPaperTriangle(ctx,texture,source,target){
+  const [a,b,c]=source,[p,q,r]=target,det=(b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);if(Math.abs(det)<.001)return;
+  const m11=((q.x-p.x)*(c.y-a.y)-(r.x-p.x)*(b.y-a.y))/det,m12=((q.y-p.y)*(c.y-a.y)-(r.y-p.y)*(b.y-a.y))/det,m21=((r.x-p.x)*(b.x-a.x)-(q.x-p.x)*(c.x-a.x))/det,m22=((r.y-p.y)*(b.x-a.x)-(q.y-p.y)*(c.x-a.x))/det;
+  ctx.save();ctx.beginPath();
+  // Subpixel overlap prevents seams between adjacent triangles on high-DPI iPhones.
+  const cx=(p.x+q.x+r.x)/3,cy=(p.y+q.y+r.y)/3;
+  for(let i=0;i<3;i++){const t=target[i],dx=t.x-cx,dy=t.y-cy,len=Math.hypot(dx,dy)||1;ctx[i?'lineTo':'moveTo'](t.x+dx/len*.42,t.y+dy/len*.42)}ctx.closePath();ctx.clip();
+  ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.min(a.x,b.x,c.x),sy=Math.min(a.y,b.y,c.y),sw=Math.max(a.x,b.x,c.x)-sx,sh=Math.max(a.y,b.y,c.y)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
+}
+function prepareShoppingPaperGL(canvas,snapshot){
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});if(!gl)return null;
+  const compile=(type,source)=>{const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Paper shader');return shader};
+  const program=gl.createProgram(),vertex=compile(gl.VERTEX_SHADER,'attribute vec3 point;attribute vec2 uv;uniform vec2 size;varying vec2 tex;varying float shade;void main(){gl_Position=vec4(point.x/size.x*2.0-1.0,1.0-point.y/size.y*2.0,0.0,1.0);tex=uv;shade=point.z;}'),fragment=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;varying float shade;uniform sampler2D paper;uniform float opacity;void main(){vec4 color=texture2D(paper,tex);gl_FragColor=vec4(color.rgb*(1.0-shade),color.a*opacity);}');
+  gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Paper program');gl.useProgram(program);
+  const vertices=gl.createBuffer(),indices=gl.createBuffer(),texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,snapshot.texture);
+  gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,20,offset)}
+  const order=[];for(let row=0;row<24;row++)for(let col=0;col<10;col++){const a=col*25+row,b=(col+1)*25+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
+  return {draw(mesh,opacity,closing,progress){
+    const data=new Float32Array(mesh.points.length*5);mesh.points.forEach((p,i)=>data.set([p.x,p.y,closing?Math.sin(progress*Math.PI)*.025:Math.min(.14,Math.abs(p.z)/snapshot.height*.22),p.u,p.v],i*5));
+    gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);gl.uniform1f(gl.getUniformLocation(program,'opacity'),opacity);gl.drawElements(gl.TRIANGLES,order.length,gl.UNSIGNED_SHORT,0);
+  },dispose(){gl.deleteTexture(texture);gl.deleteBuffer(vertices);gl.deleteBuffer(indices);gl.deleteProgram(program);gl.deleteShader(vertex);gl.deleteShader(fragment);gl.getExtension('WEBGL_lose_context')?.loseContext()}};
+}
+function drawShoppingPaper(motion,progress){
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;if(motion.gpu){motion.gpu.draw(mesh,opacity,closing,progress);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+  ctx.globalAlpha=closing?1-shoppingPaperEase((progress-.76)/.24):1;
+  const {points,cols,rows}=mesh,source=p=>({x:p.u*snapshot.texture.width,y:p.v*snapshot.texture.height});
+  // Lower folded rows paint last, over the upper page, like the paper in the reference.
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+    const a=points[col*(rows+1)+row],b=points[(col+1)*(rows+1)+row],c=points[(col+1)*(rows+1)+row+1],d=points[col*(rows+1)+row+1];
+    for(const triangle of [[a,b,c],[a,c,d]])drawShoppingPaperTriangle(ctx,snapshot.texture,triangle.map(source),triangle);
+    const shade=closing?Math.sin(progress*Math.PI)*.035:Math.min(.18,Math.abs(c.z-a.z)/snapshot.height*.8);
+    if(shade>.003){ctx.fillStyle=`rgba(73,57,37,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.fill()}
+  }
+  ctx.globalAlpha=1;motion.progress=progress;motion.mesh=mesh;
+}
+function startShoppingPaper(closing=false){
+  cancelShoppingPaper();const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet');
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){if(closing)finishShoppingSummaryClose();return}
+  const run=shoppingPaperRun,media=window.matchMedia?.('(prefers-reduced-motion: reduce)'),motion={run,closing,raf:0,canvas:null,media,anchor:shoppingPaperAnchor(),progress:0};shoppingPaperMotion=motion;
+  sheet.classList.add(closing?'shopping-paper-leaving':'shopping-paper-entering');if(!closing)sheet.classList.add('shopping-data-pending','shopping-paper-canvas-active');
+  // Resizing or changing motion preference settles immediately, without stale geometry or loops.
+  motion.resize=()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()};window.addEventListener('resize',motion.resize);window.visualViewport?.addEventListener('resize',motion.resize);media?.addEventListener?.('change',motion.resize);
+  shoppingPaperSnapshot(closing).then(snapshot=>{
+    if(shoppingPaperMotion!==motion||run!==shoppingPaperRun)return;
+    motion.snapshot=snapshot;const canvas=document.createElement('canvas');canvas.className='shopping-paper-canvas';canvas.setAttribute('aria-hidden','true');motion.canvas=canvas;motion.dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.ceil(innerWidth*motion.dpr);canvas.height=Math.ceil(innerHeight*motion.dpr);modal.append(canvas);
+    motion.gpu=prepareShoppingPaperGL(canvas,snapshot);
+    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:1150;canvas.addEventListener('webglcontextlost',motion.resize);
+    const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
+  }).catch(()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()});
+}
 function finishShoppingSummaryClose(){
-  clearTimeout(shoppingCloseTimer);shoppingCloseTimer=0;const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');sheet.classList.remove('shopping-paper-entering','shopping-paper-leaving');shoppingSummary=null;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
+  cancelShoppingPaper();const modal=$('shoppingModal');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');shoppingSummary=null;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
 }
 function closeShoppingSummary(force=false){
+  const modal=$('shoppingModal');if(modal.classList.contains('hidden'))return true;
+  if(shoppingPaperMotion?.closing&&!force)return true;
   if(!force&&shoppingPending()&&!confirm('Zamknąć bez aktualizacji list?'))return false;
-  const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet'),reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  if(force||reduceMotion){finishShoppingSummaryClose();return true}
-  if(sheet.classList.contains('shopping-paper-leaving'))return true;
-  sheet.classList.remove('shopping-paper-entering');void sheet.offsetWidth;modal.classList.add('shopping-modal-closing');sheet.classList.add('shopping-paper-leaving');shoppingCloseTimer=setTimeout(finishShoppingSummaryClose,760);return true;
+  if(force){finishShoppingSummaryClose();return true}
+  modal.classList.add('shopping-modal-closing');startShoppingPaper(true);return true;
 }
 function renderShoppingSummary(){
   const state=shoppingSummary,box=$('shoppingSummaryRows'),purchasedBox=$('shoppingSummaryPurchased');box.replaceChildren();purchasedBox.replaceChildren();$('shoppingSummaryMeta').textContent=(state.range.from||state.range.to?state.range.label+' · ':'')+state.groups.length+' pozycji z '+state.sources.length+' list';
   if(!state.groups.length)box.append(entryParagraph('Nie ma niekupionych produktów w tym zakresie.','entry-empty'));
-  for(const group of state.groups){const row=document.createElement('div');row.className='shopping-summary-row';const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=group.checked;check.setAttribute('aria-label',group.text);check.onchange=()=>{group.checked=check.checked;updateShoppingSummaryButton()};const control=document.createElement('span');control.className='shopping-check-control';const mark=document.createElement('span');mark.className='shopping-check-mark';mark.setAttribute('aria-hidden','true');control.append(check,mark);label.append(control,...shoppingProductLabel(group.text));row.append(label);box.append(row)}
+  for(const group of state.groups){const row=document.createElement('div');row.className='shopping-summary-row';row.style.setProperty('--shopping-row',box.children.length);const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=group.checked;check.setAttribute('aria-label',group.text);check.onchange=()=>{group.checked=check.checked;updateShoppingSummaryButton()};const control=document.createElement('span');control.className='shopping-check-control';const mark=document.createElement('span');mark.className='shopping-check-mark';mark.setAttribute('aria-hidden','true');control.append(check,mark);label.append(control,...shoppingProductLabel(group.text));row.append(label);box.append(row)}
   const purchased=collectShoppingSummary(ideas.map(idea=>idea.list?.type==='shopping'&&Array.isArray(idea.list.items)?{...idea,list:{...idea.list,items:idea.list.items.map(item=>item?{...item,done:!item.done}:item)}}:idea),state.filter).groups;
-  for(const group of purchased){const row=document.createElement('div');row.className='shopping-purchased-row';row.append(...shoppingProductLabel(group.text));purchasedBox.append(row)}$('shoppingPurchasedLabel').textContent='Kupione · '+purchased.length;$('shoppingPurchasedToggle').disabled=!purchased.length;setShoppingPurchasedOpen(shoppingPurchasedOpen&&purchased.length);updateShoppingSummaryButton();
+  for(const group of purchased){const row=document.createElement('div');row.className='shopping-purchased-row';row.append(...shoppingProductLabel(group.text));purchasedBox.append(row)}$('shoppingPurchasedLabel').replaceChildren(document.createTextNode('Kupione'),Object.assign(document.createElement('span'),{className:'shopping-variable',textContent:' · '+purchased.length}));$('shoppingPurchasedToggle').disabled=!purchased.length;setShoppingPurchasedOpen(shoppingPurchasedOpen&&purchased.length);updateShoppingSummaryButton();
 }
-function updateShoppingSummaryButton(){const count=shoppingSummary.groups.filter(g=>g.checked).length;$('shoppingSummaryUpdate').disabled=!count;$('shoppingSummaryUpdate').textContent=count?'Zaktualizuj listy ('+count+')':'Zaktualizuj listy';}
+function updateShoppingSummaryButton(){const count=shoppingSummary.groups.filter(g=>g.checked).length;$('shoppingSummaryUpdate').disabled=!count;$('shoppingSummaryUpdate').replaceChildren(document.createTextNode('Zaktualizuj listy'),Object.assign(document.createElement('span'),{className:'shopping-variable',textContent:count?' ('+count+')':''}));}
 function setShoppingHelp(open){const help=$('shoppingSummaryHelp'),button=$('shoppingSummaryInfo');help.hidden=!open;button.setAttribute('aria-expanded',String(open))}
 function setShoppingPurchasedOpen(open){const drawer=$('shoppingSummaryPurchased'),toggle=$('shoppingPurchasedToggle'),section=toggle.closest('.shopping-purchased-section'),next=Boolean(open&&!toggle.disabled);shoppingPurchasedOpen=next;drawer.hidden=!next;toggle.setAttribute('aria-expanded',String(next));section.classList.toggle('is-open',next)}
 function animateShoppingPaper(){
-  const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet');clearTimeout(shoppingCloseTimer);shoppingCloseTimer=0;modal.classList.remove('shopping-modal-closing');sheet.classList.remove('shopping-paper-entering','shopping-paper-leaving');sheet.scrollTop=0;$('shoppingSummaryRows').scrollTop=0;void sheet.offsetWidth;sheet.classList.add('shopping-paper-entering');
+  const modal=$('shoppingModal');modal.classList.remove('shopping-modal-closing');$('shoppingSummaryRows').scrollTop=0;startShoppingPaper();
 }
 function openShoppingSummary(filter={}){
   if(entryRecording){toast('Najpierw zapisz lub anuluj nagranie.');return}
   if(shoppingPending()&&!confirm('Odrzucić zaznaczenia i otworzyć nowe zestawienie?'))return;
-  const state=collectShoppingSummary(ideas,filter);if(activeIdea)closeIdeaActions();shoppingReturnFocus=document.activeElement;shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
+  const state=collectShoppingSummary(ideas,filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
 }
 function updateShoppingSources(){
   const state=shoppingSummary;if(!state||!shoppingPending())return;
@@ -3382,7 +3524,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .phone-layout #phoneShopping>span{padding:0;border:0;background:none;height:auto;line-height:normal}
 #phoneShopping svg{width:21px;height:21px;flex:none}.shopping-count{display:grid;place-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:12px;background:#fff;color:#125078;font-size:11px;line-height:1;box-sizing:border-box}
 .phone-layout #openShoppingSummary{display:none!important}
-/* 33.128: segmented paper unfurl, hand-drawn depth and an uncluttered scrolling list. */
+/* 33.129: deformable paper mesh, preserved artwork and a fast handwritten data reveal. */
 @font-face{font-family:'Okti Kalam';src:url('fonts/kalam-regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
 #shoppingModal{padding:48px 26px max(32px,env(safe-area-inset-bottom));align-items:center;background:#20252c57;backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)}
 #shoppingModal .shopping-sheet{position:relative;width:min(394px,100%);max-height:none;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;color:#234762;isolation:isolate;transform:rotate(-.35deg);transform-origin:50% 12%;animation:none}
@@ -3395,19 +3537,6 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .shopping-paper-top{top:0;height:auto;z-index:1}
 .shopping-paper-bottom{bottom:0;height:auto;z-index:1}
 .shopping-paper-ruling{position:absolute;inset:22px 7px 8px;z-index:-1;overflow:hidden;pointer-events:none;background-image:repeating-linear-gradient(to bottom,transparent 0 51px,#6ea4c557 51px 52px),linear-gradient(90deg,transparent 38px,#df686f8c 38px 40px,transparent 40px);background-position:0 149px,0;background-size:100% 52px,auto;background-repeat:repeat-y,no-repeat}
-.shopping-paper-tape{position:absolute;z-index:3;top:-11px;left:calc(50% - 72px);width:144px;height:57px;opacity:0;pointer-events:none;transform:rotate(-3.2deg);transform-origin:12% 50%;background:none;filter:drop-shadow(0 2px 2px #3b302027)}
-.shopping-paper-tape img{display:block;width:100%;height:100%;object-fit:contain}
-#shoppingModal .shopping-sheet.shopping-paper-entering{animation:shopping-paper-settle 1.28s cubic-bezier(.18,.7,.2,1) both;transform-origin:50% 54px;will-change:transform}
-#shoppingModal .shopping-sheet.shopping-paper-entering .shopping-paper-scroll{animation:shopping-paper-unfurl 1.28s cubic-bezier(.2,.72,.18,1) both;transform-origin:50% 0;will-change:clip-path}
-#shoppingModal .shopping-sheet.shopping-paper-leaving{animation:shopping-paper-float-away .72s cubic-bezier(.55,.02,.78,.32) both;transform-origin:50% 0;pointer-events:none;will-change:transform,clip-path,opacity}
-.shopping-paper-curl{display:none;position:absolute;z-index:6;left:1.5%;right:1%;top:70px;height:66px;pointer-events:none;transform-style:preserve-3d;perspective:260px;filter:drop-shadow(0 9px 7px #27313b42)}
-.shopping-paper-curl i{position:absolute;left:0;width:100%;height:23px;background-image:linear-gradient(180deg,#a99b872c,#fffdf0e8 36%,#f7f0df 70%,#8d7e6940),url('shopping-paper-body.webp?v=3eb3c5662957cbd2');background-size:100% 100%,100% 620px;background-repeat:no-repeat;backface-visibility:hidden;transform-origin:50% 0}
-.shopping-paper-curl i:nth-child(1){top:0;background-position:center,center -48px}.shopping-paper-curl i:nth-child(2){top:21px;background-position:center,center -69px}.shopping-paper-curl i:nth-child(3){top:42px;background-position:center,center -90px;border-radius:0 0 48% 48%/0 0 34% 34%;box-shadow:inset 0 -2px 2px #6f62503d}
-.shopping-paper-entering .shopping-paper-curl{display:block;animation:shopping-paper-curl-travel 1.24s cubic-bezier(.2,.72,.18,1) both}
-.shopping-paper-entering .shopping-paper-curl i:nth-child(1){animation:shopping-curl-band-one 1.24s cubic-bezier(.2,.72,.18,1) both}.shopping-paper-entering .shopping-paper-curl i:nth-child(2){animation:shopping-curl-band-two 1.24s cubic-bezier(.2,.72,.18,1) both}.shopping-paper-entering .shopping-paper-curl i:nth-child(3){animation:shopping-curl-band-three 1.24s cubic-bezier(.2,.72,.18,1) both}
-.shopping-paper-leaving .shopping-paper-curl{display:block;animation:shopping-paper-roll-up .62s cubic-bezier(.5,.04,.75,.35) both;background:linear-gradient(180deg,#fffdf000,#fffdf1e8 54%,#9b8b754b);border-radius:0 0 50% 50%}
-.shopping-paper-entering .shopping-paper-tape{animation:shopping-tape-stick .58s 1.31s cubic-bezier(.2,.7,.28,1) both;transform-origin:4% 52%;will-change:transform,opacity}
-.shopping-paper-leaving .shopping-paper-tape{animation:shopping-tape-release .34s ease-in both;transform-origin:88% 52%}
 #shoppingModal .shopping-sheet header{position:relative;padding:31px 18px 12px 32px;border:0;gap:6px;flex:none}
 #shoppingModal .shopping-sheet h2{position:relative;display:inline-block;font-family:'Okti Kalam',cursive!important;font-style:normal;font-weight:700;font-size:38px;line-height:1.18;letter-spacing:-1px;color:#153f76;margin:0 0 10px;transform:rotate(-2deg);text-shadow:.45px .25px 0 #123766,.9px .15px 0 #173b65}
 #shoppingModal .shopping-sheet h2:after{content:'';position:absolute;bottom:-3px;left:-3px;width:114%;height:6px;background:linear-gradient(90deg,#153f76 0 66%,#174477d2 82%,#17447763 94%,transparent 100%);clip-path:polygon(0 55%,13% 30%,31% 44%,49% 18%,65% 32%,79% 12%,91% 29%,100% 56%,91% 69%,78% 53%,64% 76%,48% 60%,31% 85%,14% 66%,1% 100%);transform:rotate(-.8deg);transform-origin:left center}
@@ -3454,19 +3583,20 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .shopping-pencil{display:block;position:relative;z-index:1;width:min(224px,76%);height:auto;margin:-19px auto -18px;pointer-events:none;user-select:none;transform:rotate(.6deg)}
 #shoppingModal .shopping-sheet footer .secondary{background:#ffffff70;border-color:#b5c6ca;color:#496879}
 #shoppingSummaryRefresh[hidden]{display:none!important}
-@keyframes shopping-paper-settle{0%{transform:translateY(-24px) rotate(-2.1deg)}14%{transform:translateY(-18px) rotate(-1.55deg)}72%{transform:translateY(2px) rotate(.24deg)}86%{transform:translateY(-2px) rotate(-.62deg)}100%{transform:translateY(0) rotate(-.35deg)}}
-@keyframes shopping-paper-unfurl{0%{clip-path:inset(0 0 88% 0)}10%{clip-path:inset(0 0 86% 0)}34%{clip-path:inset(0 0 62% 0)}61%{clip-path:inset(0 0 30% 0)}78%{clip-path:inset(0 0 6% 0)}88%,100%{clip-path:inset(0)}}
-@keyframes shopping-paper-curl-travel{0%{top:54px;opacity:0;transform:translateY(-4px) scaleX(.985)}7%{opacity:1}34%{top:34%;transform:translateY(-7px) scaleX(1.012)}61%{top:65%;transform:translateY(1px) scaleX(.994)}78%{top:calc(100% - 73px);opacity:1;transform:translateY(4px) scaleX(1.004)}88%{top:calc(100% - 60px);opacity:.34;transform:scaleX(.998) scaleY(.72)}100%{top:calc(100% - 54px);opacity:0;transform:scaleY(.34)}}
-@keyframes shopping-curl-band-one{0%{transform:rotateX(76deg) translateZ(7px)}24%{transform:rotateX(48deg) translateZ(11px)}53%{transform:rotateX(69deg) translateZ(6px)}78%{transform:rotateX(25deg) translateZ(2px)}100%{transform:rotateX(0)}}
-@keyframes shopping-curl-band-two{0%{transform:rotateX(-68deg) translateZ(10px)}29%{transform:rotateX(-37deg) translateZ(13px)}57%{transform:rotateX(-61deg) translateZ(7px)}81%{transform:rotateX(-18deg) translateZ(2px)}100%{transform:rotateX(0)}}
-@keyframes shopping-curl-band-three{0%{transform:rotateX(54deg) translateZ(8px)}31%{transform:rotateX(29deg) translateZ(12px)}60%{transform:rotateX(46deg) translateZ(5px)}83%{transform:rotateX(12deg) translateZ(1px)}100%{transform:rotateX(0)}}
-@keyframes shopping-paper-float-away{0%{opacity:1;clip-path:inset(0);transform:translate(0) rotate(-.35deg) scale(1)}38%{opacity:1;clip-path:inset(0 0 28% 0);transform:translate(8px,-7px) rotate(1.8deg) scale(.985)}68%{opacity:.88;clip-path:inset(0 0 69% 0);transform:translate(46px,-76px) rotate(7deg) scale(.78)}100%{opacity:0;clip-path:inset(0 0 91% 0);transform:translate(58vw,-58vh) rotate(16deg) scale(.38)}}
-@keyframes shopping-paper-roll-up{0%{top:calc(100% - 62px);height:54px;opacity:0;transform:perspective(260px) rotateX(-4deg) scaleY(.3)}12%{opacity:.85}65%{top:28%;opacity:.95;transform:perspective(260px) rotateX(-31deg) scaleY(1.05)}100%{top:10px;opacity:0;transform:perspective(260px) rotateX(-60deg) scaleY(.58)}}
-@keyframes shopping-tape-stick{0%{opacity:0;transform:translateY(-9px) rotate(-8deg) scaleX(.06) scaleY(1.1)}14%{opacity:.78;transform:translateY(-3px) rotate(-7deg) scaleX(.2) scaleY(1.06)}48%{opacity:1;transform:translateY(0) rotate(-4.4deg) scaleX(1.025) scaleY(.96)}64%{opacity:1;transform:translateY(1px) rotate(-4.2deg) scaleX(1) scaleY(.88)}80%{transform:translateY(0) rotate(-5.7deg) scale(1.008,1.035)}100%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1)}}
-@keyframes shopping-tape-release{0%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1)}55%{opacity:.85;transform:translate(5px,-5px) rotate(1deg) scale(.98,1.08)}100%{opacity:0;transform:translate(14px,-17px) rotate(8deg) scale(.82,1.13)}}
 @keyframes shopping-purchased-unfold{0%{opacity:0;clip-path:inset(0 0 100%);transform:translateY(-8px) scaleY(.72)}65%{opacity:1;clip-path:inset(0);transform:translateY(1px) scaleY(1.015)}100%{opacity:1;clip-path:inset(0);transform:none}}
 @media(max-width:359px){.phone-layout .phone-sky-header .notebook-tabs>button{font-size:12px}.phone-layout .phone-sky-header #phoneShopping{font-size:11px;padding:0 5px;gap:3px}.phone-layout #phoneShopping svg{width:17px}.phone-layout .phone-header{gap:2px}.phone-layout .phone-settings-button{width:36px;min-width:36px;padding:7px}#shoppingModal{padding-left:24px;padding-right:24px}#shoppingModal .shopping-sheet header{padding-left:29px;padding-right:12px}#shoppingModal .shopping-sheet h2{font-size:32px}#shoppingModal .shopping-summary-row label{grid-template-columns:44px minmax(0,1fr) 48px;font-size:19px;line-height:26px}.shopping-product-quantity{font-size:15px}#shoppingModal .shopping-purchased-note{width:min(182px,calc(100% - 38px));margin-left:17px}.shopping-purchased-toggle{font-size:15px}#shoppingModal .shopping-sheet footer .primary{padding-left:18px;padding-right:18px;font-size:20px}}
 @media(max-height:500px){#shoppingModal{padding-top:28px;padding-bottom:20px}.shopping-paper-scroll{max-height:calc(100svh - 60px)}#shoppingModal .shopping-sheet header{padding-top:18px;padding-bottom:7px}#shoppingModal .shopping-sheet h2{font-size:25px;margin-bottom:5px}#shoppingModal .shopping-sheet footer{padding-top:8px;padding-bottom:17px}}
-@media(prefers-reduced-motion:reduce){#shoppingModal .shopping-sheet,#shoppingModal .shopping-sheet.shopping-paper-entering,#shoppingModal .shopping-sheet.shopping-paper-leaving,#shoppingModal .shopping-sheet.shopping-paper-entering .shopping-paper-scroll{animation:none;clip-path:none;transform:none;will-change:auto}.shopping-paper-entering .shopping-paper-curl,.shopping-paper-leaving .shopping-paper-curl{display:none;animation:none}.shopping-paper-entering .shopping-paper-tape,.shopping-paper-leaving .shopping-paper-tape{animation:none;opacity:1;transform:rotate(-3.2deg);will-change:auto}#shoppingModal .shopping-summary-purchased-slot{animation:none}.shopping-purchased-arrow{transition:none}}
+/* The DOM always keeps its accepted layout. Only the temporary canvas deforms it. */
+.shopping-paper-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
+#shoppingModal .shopping-sheet.shopping-paper-measuring{transform:none!important}
+#shoppingModal .shopping-paper-canvas-active{opacity:0;pointer-events:none}
+#shoppingModal .shopping-paper-leaving{pointer-events:none}
+#shoppingModal .shopping-paper-handoff{opacity:1;pointer-events:auto}
+#shoppingModal .shopping-data-pending :is(#shoppingSummaryMeta,#shoppingSummaryRows,.shopping-variable){visibility:hidden}
+#shoppingModal .shopping-data-writing :is(#shoppingSummaryMeta,.shopping-summary-row,.entry-empty,.shopping-variable){animation:shopping-data-write .17s ease-out both;animation-delay:var(--shopping-write-delay,0ms)}
+#shoppingModal .shopping-data-writing #shoppingSummaryRows .shopping-summary-row{--shopping-write-delay:calc(min(var(--shopping-row,0),8)*12ms)}
+@keyframes shopping-data-write{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0)}}
+@media(prefers-reduced-motion:reduce){#shoppingModal .shopping-sheet{transform:none}#shoppingModal .shopping-data-writing :is(#shoppingSummaryMeta,.shopping-summary-row,.entry-empty,.shopping-variable),#shoppingModal .shopping-summary-purchased-slot{animation:none}.shopping-purchased-arrow{transition:none}}
+
 </style>
 </body></html>
