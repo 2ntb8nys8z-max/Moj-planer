@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.130</title>
+<title>Mój Planer — test integracji 33.131</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.130</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.130</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.130-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.131</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.131</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.131-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -172,7 +172,7 @@ body.event-sheet-open{overflow:hidden}
 <div id="entryResultsModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEntryResults" class="close-x" type="button" aria-label="Zamknij">×</button><h2 id="entryResultsTitle">Wpisy</h2><div id="entryResultsCount" class="action-meta"></div><div id="entryResults" class="entry-results"></div></div></div>
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
-<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia</h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div>
+<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia<img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div>
 <div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
 <header id="eventHeader"><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
 <div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div id="eventLocationText"></div><button id="navigateBtn" class="secondary hidden" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m20 3-7 18-3-7-7-3 17-8Z"/></svg><span>Nawiguj</span></button></div><section id="eventPeopleCard" class="event-people-card hidden" aria-labelledby="eventPeopleHeading"><div class="event-people-heading"><h3 id="eventPeopleHeading">Osoby</h3><button id="editEventPeople" type="button" aria-label="Zmień osoby w wydarzeniu">Zmień</button></div><div id="eventPeopleList" class="event-people-list"></div></section><div id="actionMeta" class="action-meta"></div><div id="eventNotesCards"></div><section id="eventChangePreview" class="preview hidden"><h3>Potwierdź zmianę wydarzenia</h3><div id="eventChangeInfo"></div><div class="preview-actions"><button id="eventChangeConfirm" class="primary" type="button">Potwierdź</button><button id="eventChangeCancel" class="secondary" type="button">Anuluj</button></div></section><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionPeople" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/></svg><span>Dodaj osoby</span></button><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.130-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.131-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1253,12 +1253,46 @@ async function shoppingPaperImage(url){
   if(!shoppingPaperImages.has(url))shoppingPaperImages.set(url,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{shoppingPaperImages.delete(url);reject(Error('Paper artwork unavailable'))};img.src=url}));
   return shoppingPaperImages.get(url);
 }
+// Bake the paper tone once into shared pixels. DOM and canvas then display the
+// same image, including browsers that do not implement CanvasRenderingContext2D.filter.
+const shoppingPaperTones=new Map();
+async function shoppingPaperArtwork(art){
+  art.image=await shoppingPaperImage(art.url);
+  if(!art.el.classList.contains('shopping-paper-piece'))return;
+  if(!art.el.dataset.paperTone){
+    let toned=shoppingPaperTones.get(art.url);
+    if(!toned){
+      const image=art.image,canvas=document.createElement('canvas');canvas.width=image.naturalWidth||image.width;canvas.height=image.naturalHeight||image.height;
+      const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data,clamp=v=>Math.max(0,Math.min(255,v));
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i],g=data[i+1],b=data[i+2],sr=clamp(r*.95+(r*.393+g*.769+b*.189)*.05),sg=clamp(g*.95+(r*.349+g*.686+b*.168)*.05),sb=clamp(b*.95+(r*.272+g*.534+b*.131)*.05),sat=1.12;
+        data[i]=clamp((clamp((.213+.787*sat)*sr+(.715-.715*sat)*sg+(.072-.072*sat)*sb)-127.5)*1.055+127.5)*.985;
+        data[i+1]=clamp((clamp((.213-.213*sat)*sr+(.715+.285*sat)*sg+(.072-.072*sat)*sb)-127.5)*1.055+127.5)*.985;
+        data[i+2]=clamp((clamp((.213-.213*sat)*sr+(.715-.715*sat)*sg+(.072+.928*sat)*sb)-127.5)*1.055+127.5)*.985;
+      }
+      ctx.putImageData(pixels,0,0);toned={image:canvas,url:canvas.toDataURL('image/png')};shoppingPaperTones.set(art.url,toned);shoppingPaperImages.set(toned.url,Promise.resolve(canvas));
+    }
+    art.image=toned.image;art.el.style.filter='none';art.el.dataset.paperTone='ready';
+    if(art.el.tagName==='IMG'){art.el.width=toned.image.width;art.el.height=toned.image.height;art.el.src=toned.url}else art.el.style.backgroundImage=`url("${toned.url}")`;
+  }
+  if(art.el.tagName==='IMG'&&art.el.decode)await art.el.decode();
+}
+function shoppingPaperTransform(el,sheet){
+  let matrix=new DOMMatrix();
+  for(let node=el;node&&node!==sheet;node=node.parentElement){const value=getComputedStyle(node).transform;if(value!=='none')matrix=new DOMMatrix(value).multiply(matrix)}
+  return matrix;
+}
+function shoppingPaperBox(rect,matrix){
+  const a=Math.abs(matrix.a),b=Math.abs(matrix.b),c=Math.abs(matrix.c),d=Math.abs(matrix.d),det=a*d-b*c;
+  return Math.abs(det)>.001?{w:(rect.width*d-rect.height*c)/det,h:(rect.height*a-rect.width*b)/det}:{w:rect.width,h:rect.height};
+}
 async function shoppingPaperSnapshot(includeData){
   const sheet=$('shoppingModal').querySelector('.shopping-sheet'),background=el=>getComputedStyle(el).backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1];
   const artwork=[...sheet.querySelectorAll('img')].map(el=>({el,url:el.src}));
   for(const el of sheet.querySelectorAll('.shopping-paper-body,.shopping-purchased-note,#shoppingSummaryUpdate'))artwork.push({el,url:background(el)});
-  await Promise.all([document.fonts?.load('22px "Okti Kalam"'),...artwork.map(async art=>{art.image=await shoppingPaperImage(art.url)})]);
+  await Promise.all([document.fonts?.load('22px "Okti Kalam"'),...artwork.map(shoppingPaperArtwork)]);
   // Read in the sheet's unrotated coordinate system; the mesh supplies the final rotation.
+  const finalStyle=getComputedStyle(sheet),finalMatrix=new DOMMatrix(finalStyle.transform==='none'?undefined:finalStyle.transform),finalOrigin=finalStyle.transformOrigin.split(' ').map(Number.parseFloat);
   sheet.classList.add('shopping-paper-measuring');
   try{
     const bounds=sheet.getBoundingClientRect(),pad=24,w=bounds.width,h=bounds.height;
@@ -1267,7 +1301,7 @@ async function shoppingPaperSnapshot(includeData){
     const ctx=texture.getContext('2d');if(!ctx)throw Error('Canvas unavailable');ctx.scale(ratio,ratio);ctx.translate(pad,pad);
     const rect=el=>{const r=el.getBoundingClientRect();return {x:r.left-bounds.left,y:r.top-bounds.top,w:r.width,h:r.height}};
     const visible=el=>el.getClientRects().length&&getComputedStyle(el).display!=='none'&&!el.closest('[hidden]');
-    const drawArt=art=>{const r=rect(art.el);if(!visible(art.el))return;ctx.save();ctx.globalAlpha=art.el.disabled?.68:1;ctx.filter=getComputedStyle(art.el).filter;ctx.drawImage(art.image,r.x,r.y,r.w,r.h);ctx.restore()};
+    const drawArt=art=>{if(!visible(art.el))return;const r=art.el.getBoundingClientRect(),m=shoppingPaperTransform(art.el,sheet),box=shoppingPaperBox(r,m);ctx.save();ctx.globalAlpha=art.el.disabled?.68:1;ctx.filter=getComputedStyle(art.el).filter;ctx.translate(r.left+r.width/2-bounds.left,r.top+r.height/2-bounds.top);ctx.transform(m.a,m.b,m.c,m.d,0,0);ctx.drawImage(art.image,-box.w/2,-box.h/2,box.w,box.h);ctx.restore()};
     // Keep the irregular physical edges and their shadow. All dimensions come from the live DOM.
     for(const art of artwork.filter(a=>a.el.classList.contains('shopping-paper-piece')).sort((a,b)=>Number(b.el.classList.contains('shopping-paper-body'))-Number(a.el.classList.contains('shopping-paper-body'))))drawArt(art);
     const silhouette=document.createElement('canvas');silhouette.width=texture.width;silhouette.height=texture.height;silhouette.getContext('2d').drawImage(texture,0,0);
@@ -1277,7 +1311,6 @@ async function shoppingPaperSnapshot(includeData){
     for(let y=ruling.y+45;y<ruling.y+ruling.h;y+=52){ctx.beginPath();ctx.moveTo(ruling.x,y);ctx.lineTo(ruling.x+ruling.w,y);ctx.stroke()}
     ctx.strokeStyle='#df686f8c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ruling.x+39,ruling.y);ctx.lineTo(ruling.x+39,ruling.y+ruling.h);ctx.stroke();ctx.restore();
     for(const art of artwork.filter(a=>!a.el.classList.contains('shopping-paper-piece')))drawArt(art);
-    const title=rect($('shoppingSummaryTitle'));ctx.strokeStyle='#153f76';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(title.x-2,title.y+title.h+1);ctx.quadraticCurveTo(title.x+title.w*.6,title.y+title.h-1,title.x+title.w*1.12,title.y+title.h-3);ctx.stroke();
     // Range rectangles preserve the actual line wrapping, scrolled rows, quantities and current labels.
     const walker=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT);let node;
     while((node=walker.nextNode())){
@@ -1289,7 +1322,7 @@ async function shoppingPaperSnapshot(includeData){
       const range=document.createRange();
       for(let i=0;i<node.length;i++){
         range.setStart(node,i);range.setEnd(node,i+1);const r=range.getBoundingClientRect(),letter=node.textContent[i];if(!r.width)continue;
-        const metrics=ctx.measureText(letter),ascent=metrics.fontBoundingBoxAscent||parseFloat(style.fontSize)*.9;if(el.id==='shoppingSummaryTitle'){ctx.fillText(letter,r.left-bounds.left+.45,r.top-bounds.top+ascent+.25);ctx.fillText(letter,r.left-bounds.left+.9,r.top-bounds.top+ascent+.15)}ctx.fillText(letter,r.left-bounds.left,r.top-bounds.top+ascent);
+        const metrics=ctx.measureText(letter),ascent=metrics.fontBoundingBoxAscent||parseFloat(style.fontSize)*.9,m=shoppingPaperTransform(el,sheet),box=shoppingPaperBox(r,m);ctx.save();ctx.translate(r.left+r.width/2-bounds.left,r.top+r.height/2-bounds.top);ctx.transform(m.a,m.b,m.c,m.d,0,0);if(el.id==='shoppingSummaryTitle'){ctx.fillText(letter,-box.w/2+.45,-box.h/2+ascent+.25);ctx.fillText(letter,-box.w/2+.9,-box.h/2+ascent+.15)}ctx.fillText(letter,-box.w/2,-box.h/2+ascent);ctx.restore();
       }
       ctx.restore();
     }
@@ -1298,7 +1331,8 @@ async function shoppingPaperSnapshot(includeData){
       ctx.save();ctx.beginPath();ctx.rect(list.x,list.y,list.w,list.h);ctx.clip();ctx.strokeStyle='#17477b';ctx.lineWidth=2;ctx.strokeRect(r.x+1,r.y+1,r.w-2,r.h-2);
       if(el.previousElementSibling.checked){ctx.fillStyle='#1d6f8b';ctx.fillRect(r.x+1,r.y+1,r.w-2,r.h-2);ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.fillText('✓',r.x+4,r.y+18)}ctx.restore();
     }
-    return {texture,backTexture,pad,width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
+    const ox=finalOrigin[0],oy=finalOrigin[1],dx=w/2-ox,dy=h/2-oy,center={x:bounds.left+ox+finalMatrix.a*dx+finalMatrix.c*dy+finalMatrix.e,y:bounds.top+oy+finalMatrix.b*dx+finalMatrix.d*dy+finalMatrix.f};
+    return {texture,backTexture,pad,center,angle:Math.atan2(finalMatrix.b,finalMatrix.a),width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
   }finally{sheet.classList.remove('shopping-paper-measuring')}
 }
 // The same continuous scroll as the approved Rive prototype, sized to live content.
@@ -1313,10 +1347,10 @@ function shoppingPaperFlat(u,progress,height){
 function shoppingPaperMesh(snapshot,progress,closing,anchor){
   const {width:w,height:h,left,top,pad=24}=snapshot,points=[],cols=snapshot.fallback?8:16,rows=snapshot.fallback?72:144,W=w-2*pad,H=h-2*pad;
   const travel=closing?shoppingPaperEase(progress):1-Math.pow(1-Math.min(1,progress*156/120/.56),3),scale=closing?1-.93*travel:.12+.88*travel;
-  const start={x:left+w/2,y:top+h/2},initialY=anchor.y+(H/2-H*78/530)*.12;
+  const start=snapshot.center||{x:left+w/2,y:top+h/2},finalAngle=snapshot.angle??(-.35*Math.PI/180),initialY=anchor.y+(H/2-H*78/530)*.12;
   const cx=closing?start.x+(anchor.x-start.x)*travel-Math.sin(progress*Math.PI)*w*.035:anchor.x+(start.x-anchor.x)*travel-Math.sin(travel*Math.PI)*W*9/350;
   const cy=closing?start.y+(anchor.y-start.y)*travel-Math.sin(progress*Math.PI)*h*.02:initialY+(start.y-initialY)*travel;
-  const angle=closing?(-.35+9*Math.sin(progress*Math.PI/2))*Math.PI/180:-.20*(1-travel)-.35*Math.PI/180*travel+.035*Math.sin(Math.min(1,progress*156/120)*Math.PI)*(1-Math.min(1,progress*156/120));
+  const angle=closing?finalAngle+9*Math.sin(progress*Math.PI/2)*Math.PI/180:-.20*(1-travel)+finalAngle*travel+.035*Math.sin(Math.min(1,progress*156/120)*Math.PI)*(1-Math.min(1,progress*156/120));
   for(let col=0;col<=cols;col++){
     const u=col/cols,paperU=Math.max(0,Math.min(1,(u*w-pad)/W)),flat=shoppingPaperFlat(paperU,progress,H);
     for(let row=0;row<=rows;row++){
@@ -1340,10 +1374,11 @@ function drawShoppingPaperTriangle(ctx,texture,source,target){
   const [a,b,c]=source,[p,q,r]=target,det=(b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);if(Math.abs(det)<.001)return;
   const m11=((q.x-p.x)*(c.y-a.y)-(r.x-p.x)*(b.y-a.y))/det,m12=((q.y-p.y)*(c.y-a.y)-(r.y-p.y)*(b.y-a.y))/det,m21=((r.x-p.x)*(b.x-a.x)-(q.x-p.x)*(c.x-a.x))/det,m22=((r.y-p.y)*(b.x-a.x)-(q.y-p.y)*(c.x-a.x))/det;
   ctx.save();ctx.beginPath();
-  // Subpixel overlap prevents seams between adjacent triangles on high-DPI iPhones.
-  const cx=(p.x+q.x+r.x)/3,cy=(p.y+q.y+r.y)/3;
-  for(let i=0;i<3;i++){const t=target[i],dx=t.x-cx,dy=t.y-cy,len=Math.hypot(dx,dy)||1;ctx[i?'lineTo':'moveTo'](t.x+dx/len*.42,t.y+dy/len*.42)}ctx.closePath();ctx.clip();
-  ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.min(a.x,b.x,c.x),sy=Math.min(a.y,b.y,c.y),sw=Math.max(a.x,b.x,c.x)-sx,sh=Math.max(a.y,b.y,c.y)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
+  // Paint through the expanded clip, including neighboring source pixels; a cropped
+  // source rectangle would leave translucent grid seams and darken the paper.
+  const orientation=Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x))||1,normals=target.map((v,i)=>{const next=target[(i+1)%3],dx=next.x-v.x,dy=next.y-v.y,len=Math.hypot(dx,dy)||1;return {x:orientation*dy/len,y:-orientation*dx/len}});
+  for(let i=0;i<3;i++){const t=target[i],a=normals[(i+2)%3],b=normals[i],factor=Math.min(5,.65/Math.max(.01,1+a.x*b.x+a.y*b.y));ctx[i?'lineTo':'moveTo'](t.x+(a.x+b.x)*factor,t.y+(a.y+b.y)*factor)}ctx.closePath();ctx.clip();
+  ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.max(0,Math.min(a.x,b.x,c.x)-4),sy=Math.max(0,Math.min(a.y,b.y,c.y)-4),sw=Math.min(texture.width,Math.max(a.x,b.x,c.x)+4)-sx,sh=Math.min(texture.height,Math.max(a.y,b.y,c.y)+4)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
 }
 function prepareShoppingPaperGL(canvas,snapshot){
   const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,depth:true});if(!gl)return null;
@@ -1378,7 +1413,7 @@ function drawShoppingPaper(motion,progress){
   for(const triangle of triangles){
     const [a,b,c]=triangle,front=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)>=0;
     drawShoppingPaperTriangle(ctx,front?snapshot.texture:snapshot.backTexture,triangle.map(source),triangle);
-    const shade=1-triangle.reduce((sum,p)=>sum+p.light,0)/3;if(shade>.003){ctx.fillStyle=`rgba(35,32,28,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.closePath();ctx.fill()}
+    const shade=1-triangle.reduce((sum,p)=>sum+p.light,0)/3;if(shade>.003){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.fillStyle=`rgba(35,32,28,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.closePath();ctx.fill();ctx.restore()}
   }
   ctx.globalAlpha=1;
 }
@@ -3562,7 +3597,7 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .shopping-paper-ruling{position:absolute;inset:22px 7px 8px;z-index:-1;overflow:hidden;pointer-events:none;background-image:repeating-linear-gradient(to bottom,transparent 0 51px,#6ea4c557 51px 52px),linear-gradient(90deg,transparent 38px,#df686f8c 38px 40px,transparent 40px);background-position:0 149px,0;background-size:100% 52px,auto;background-repeat:repeat-y,no-repeat}
 #shoppingModal .shopping-sheet header{position:relative;padding:31px 18px 12px 32px;border:0;gap:6px;flex:none}
 #shoppingModal .shopping-sheet h2{position:relative;display:inline-block;font-family:'Okti Kalam',cursive!important;font-style:normal;font-weight:700;font-size:38px;line-height:1.18;letter-spacing:-1px;color:#153f76;margin:0 0 10px;transform:rotate(-2deg);text-shadow:.45px .25px 0 #123766,.9px .15px 0 #173b65}
-#shoppingModal .shopping-sheet h2:after{content:'';position:absolute;bottom:-3px;left:-3px;width:114%;height:6px;background:linear-gradient(90deg,#153f76 0 66%,#174477d2 82%,#17447763 94%,transparent 100%);clip-path:polygon(0 55%,13% 30%,31% 44%,49% 18%,65% 32%,79% 12%,91% 29%,100% 56%,91% 69%,78% 53%,64% 76%,48% 60%,31% 85%,14% 66%,1% 100%);transform:rotate(-.8deg);transform-origin:left center}
+.shopping-title-underline{position:absolute;display:block;bottom:-3px;left:-3px;width:114%;height:6px;pointer-events:none;transform:rotate(-.8deg);transform-origin:left center}
 #shoppingModal .shopping-sheet header button{width:52px;height:52px;flex:none;margin:-8px -7px 0 0;padding:3px;background:transparent;border:0}
 .shopping-close-art{display:block;width:100%;height:100%;object-fit:contain;filter:saturate(1.05) contrast(1.06)}
 #shoppingModal .shopping-summary-meta{font-family:'Okti Kalam',cursive;font-size:17px;color:#244f79;line-height:1.35;transform:rotate(-.35deg)}
