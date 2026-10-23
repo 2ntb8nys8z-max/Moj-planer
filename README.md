@@ -1,3 +1,47 @@
+# Wersja 32 — przebudowa rozmowy (gałąź robocza)
+
+Tworzenie i edycja wydarzenia korzystają teraz z osobnego silnika `conversation-engine.js`.
+Każda wypowiedź idzie do modelu z historią, szkicem, przedmiotem rozmowy oraz wynikiem poprzedniej operacji.
+Nie ma lokalnego wyboru pytania ani rozpoznawania wypowiedzi przez regexy w tej ścieżce.
+Model zwraca osobno `reply` i `operations`; `continue` zachowuje rozmowę, a `review` przygotowuje podgląd.
+Kod stosuje operacje atomowo i waliduje dane. Niepełny szkic jest dozwolony podczas rozmowy.
+Niepoprawną propozycję odsyła do modelu raz z powodem odrzucenia; po drugim błędzie zachowuje wcześniejszy szkic.
+Ponowienie może oznaczać dwa wywołania interpretacji w ramach jednego żądania użytkownika.
+
+## Zakres i ograniczenia
+
+- Nowy klient żąda `conversationEngine:3` i wymaga Workera deklarującego tę możliwość.
+- Worker zachowuje starszą ścieżkę dla klientów 31 i wcześniejszych; nie trzeba wdrażać obu części jednocześnie.
+- Szkic rozmowy pozostaje w pamięci bieżącej sesji, nie jest trwałym zapisanym wydarzeniem.
+- Ostatnie 22 wiadomości trafiają do modelu; ustalone dane i przedmiot rozmowy pozostają osobno w stanie.
+- Pytania o lokalizację prowadzone przez resolver pogody nadal używają dotychczasowego mechanizmu.
+- Pierwszy etap obsługuje zapis godzin w obrębie jednego dnia. Próba ustawienia 36 godzin lub zakresu przez północ jest blokowana i wraca jako kontekst do modelu. Nigdy nie jest skracana modulo 24 godziny.
+- Wielodniowe wpisy już w Google, pełny dialog o seriach oraz trwały zapis niedokończonego szkicu wymagają odrębnej pracy. Nie należy traktować tej gałęzi jako zakończonego wdrożenia wszystkich tych funkcji.
+- Google Calendar i jego testy pozostają w wersji 29. Przypomnienia Planera celowo nie są przesyłane do Google.
+
+## Weryfikacja
+
+`npm run build` generuje samodzielny worker.js, worker.txt i manifest.
+`npm test` uruchamia dotychczasowe regresje oraz conversation-32 i conversation-dom-32.
+Nowe testy obejmują wiele tur bez zmiany danych, odwołanie do kontekstu, długość 420 minut,
+naprawę nieprawidłowych operacji bez częściowego zapisu, informację o błędzie dla modelu,
+blokadę zakresu wielodniowego, edycję i całodniowość, interfejs rozmowy oraz odrzucenie spóźnionej odpowiedzi.
+
+Odpowiedzi modelu są podstawione. Nie wykonano rzeczywistych połączeń OpenAI, nagrań ani zapisów Google.
+Test „wieczorem” potwierdza zachowanie stanu przy odpowiedzi modelu z niepewnością; nie dowodzi,
+że model zawsze poprawnie rozpozna sprzeczność. To wymaga próby integracyjnej po uruchomieniu pary klient/Worker.
+
+## Próba ręczna przed scaleniem
+
+Uruchom klienta z tej gałęzi w środowisku testowym oraz Worker z tej samej gałęzi (sekrety i D1 ustaw poza repo).
+Przejdź rozmowę: utwórz wydarzenie → podaj datę i tytuł → o pierwszej → wieczorem → o 13:00 →
+czy czas jest konieczny → może półtorej dnia → jeszcze nie wiem → jednak siedem godzin.
+Oczekiwane: rozmowa bez mechanicznego formularza, pytanie o sprzeczną porę dnia, zachowany szkic,
+a po jednoznacznym wyborze długości podgląd 13:00–20:00. Żaden komentarz nie zapisuje kalendarza.
+Sprawdź także anulowanie, zmianę zdania, błąd sieci i ponowne otwarcie tego samego wydarzenia.
+
+---
+
 # Mój Planer
 
 Planer wydarzeń, zadań i pomysłów z rozmową głosową, pogodą, kopiami danych i opcjonalną synchronizacją Google Calendar.
