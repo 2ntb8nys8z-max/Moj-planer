@@ -37,7 +37,22 @@ async function routeFiles(page,failMedia=false){
    if(width===390){
     const quality=await video.evaluate(async v=>{
      const c=document.createElement('canvas');c.width=c.height=544;const ctx=c.getContext('2d',{willReadFrequently:true}),tops=[];
-     async function frame(t){v.pause();await new Promise(resolve=>{v.addEventListener('seeked',resolve,{once:true});v.currentTime=t});ctx.drawImage(v,0,0,544,544);return ctx.getImageData(0,0,544,544).data;}
+     async function frame(t){
+      v.pause();
+      // Seek into the middle of a frame, then wait for that exact decoded
+      // frame to be presented. "seeked" alone can still expose the old frame.
+      const index=Math.min(287,Math.floor(t*60+.0001)),target=(index+.5)/60;
+      await new Promise((resolve,reject)=>{
+       let callback;
+       const timeout=setTimeout(()=>{v.cancelVideoFrameCallback(callback);reject(new Error('Decoded frame '+index+' was not presented'));},4000);
+       function presented(_,metadata){
+        if(Math.round(metadata.mediaTime*60)===index){clearTimeout(timeout);resolve();}
+        else callback=v.requestVideoFrameCallback(presented);
+       }
+       callback=v.requestVideoFrameCallback(presented);v.currentTime=target;
+      });
+      ctx.drawImage(v,0,0,544,544);return ctx.getImageData(0,0,544,544).data;
+     }
      for(const t of [0,.72,1.6,2.4,3.2,4.1]){const pixels=await frame(t);let top=200;for(let y=110;y<200;y++){let blue=0;for(let x=250;x<290;x++){const i=(y*544+x)*4;if(pixels[i]<110&&pixels[i+1]>60&&pixels[i+2]>140&&pixels[i+2]-pixels[i+1]>17)blue++;}if(blue>15){top=y;break;}}tops.push(top);}
      const pixels=await frame(1.8),eyes=[];
      for(const [left,right] of [[230,269],[275,314]]){let minX=544,maxX=0,minY=544,maxY=0;for(let y=207;y<245;y++)for(let x=left;x<right;x++){const i=(y*544+x)*4;if(pixels[i]>225&&pixels[i+1]>230&&pixels[i+2]>235){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}eyes.push({width:maxX-minX+1,height:maxY-minY+1});}
