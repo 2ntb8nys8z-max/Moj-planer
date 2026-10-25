@@ -15,10 +15,12 @@ const root=path.resolve(__dirname,'..'),art=path.join(root,'artwork/okti-motion'
   assert.deepEqual(errors,[]);
  }finally{await browser.close();}
  try{
-  const video=path.join(temp,'motion.mp4'),poster=path.join(temp,'poster.webp');
+  const video=path.join(temp,'motion.mp4'),poster=path.join(temp,'poster.webp'),fallback=path.join(temp,'motion.webp');
   execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-framerate','60','-i',path.join(temp,'frame-%03d.png'),'-vf','scale=544:544','-an','-c:v','libx264','-profile:v','baseline','-level','3.1','-pix_fmt','yuv420p','-preset','slow','-crf','21','-movflags','+faststart','-y',video]);
   execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-i',path.join(temp,'frame-000.png'),'-vf','scale=544:544','-frames:v','1','-c:v','libwebp','-quality','92','-y',poster]);
+  execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-framerate','60','-i',path.join(temp,'frame-%03d.png'),'-vf','scale=320:320','-an','-c:v','libwebp_anim','-quality','84','-loop','0','-y',fallback]);
   fs.copyFileSync(video,path.join(root,'octi-water-motion.mp4'));fs.copyFileSync(poster,path.join(root,'octi-water-motion-poster.webp'));
+  fs.copyFileSync(fallback,path.join(root,'octi-water-motion.webp'));
   console.log('Rendered continuous Okti motion: 4.8 seconds, 60 fps, forward phase only; stable microphone-shaped head.');
  }finally{fs.rmSync(temp,{recursive:true,force:true});}
 })().catch(error=>{fs.rmSync(temp,{recursive:true,force:true});console.error(error);process.exitCode=1});

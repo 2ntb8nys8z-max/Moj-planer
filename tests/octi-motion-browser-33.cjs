@@ -6,6 +6,7 @@ async function routeFiles(page,failMedia=false){
   const url=new URL(route.request().url()),file=path.resolve(base,url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));
   if(url.origin==='https://planner.test'&&file.startsWith(base+'/')&&fs.existsSync(file)&&fs.statSync(file).isFile()){
    const bytes=fs.readFileSync(file),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'};
+   if(file.endsWith('octi-water-motion.webp')&&failMedia==='all-media-fail')return route.fulfill({status:404,body:'missing animated image'});
    if(file.endsWith('.mp4')){
     if(failMedia)return route.fulfill({status:404,body:'missing clip'});
     const range=route.request().headers().range?.match(/bytes=(\d+)-(\d*)/);
@@ -63,13 +64,40 @@ async function routeFiles(page,failMedia=false){
    }
    assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${width}x${height}: actual playback, stable touch target, idle layout and reduced motion passed.`);
   }
-  for(const failure of ['blocked-autoplay','missing-media']){
+  for(const failure of ['blocked-autoplay','hanging-autoplay','stalled-playback','unsupported-video','missing-media','all-media-fail']){
    const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
    if(failure==='blocked-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.reject(new DOMException('Autoplay denied','NotAllowedError'))}});
-   await routeFiles(page,failure==='missing-media');await page.goto('https://planner.test/preview33/index.html');await page.waitForTimeout(500);
-   const dock=page.locator('.octi-dock[data-channel=main]');assert.equal(await dock.locator('.octi-motion-media.is-playing').count(),0);assert.ok(await dock.locator('.octi-motion-poster').evaluate(img=>img.complete&&img.naturalWidth>0));
+   if(failure==='hanging-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return new Promise(()=>{})}});
+   if(failure==='stalled-playback')await page.addInitScript(()=>Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{configurable:true,get(){return 0},set(){}}));
+   if(failure==='unsupported-video')await page.addInitScript(()=>{HTMLMediaElement.prototype.canPlayType=function(){return ''}});
+   await routeFiles(page,failure==='missing-media'||failure==='all-media-fail'?failure:false);await page.goto('https://planner.test/preview33/index.html');
+   const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-motion-media'),fallback=dock.locator('.octi-motion-fallback');
+   if(failure==='all-media-fail'){
+    await page.waitForTimeout(600);assert.equal(await layer.getAttribute('class'),'octi-motion-media');assert.ok(await dock.locator('.octi-motion-poster').evaluate(img=>img.complete&&img.naturalWidth>0));
+   }else{
+    await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
+    assert.equal(await dock.locator('.octi-motion-media.is-playing').count(),0);assert.equal(await fallback.evaluate(img=>img.naturalWidth),320);
+    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-motion-fallback[src]').count(),0,'Hidden contexts do not load animated images');
+    const before=await layer.screenshot();await page.waitForTimeout(1200);const after=await layer.screenshot();
+    const changed=await page.evaluate(async frames=>{
+     async function pixels(base64){const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const ctx=c.getContext('2d');ctx.drawImage(image,0,0);return {data:ctx.getImageData(0,0,c.width,c.height).data,width:c.width,height:c.height};}
+     const [a,b]=await Promise.all(frames.map(pixels));let changed=0;
+     // Actual displayed pixels below the head, at the real 128px logo size.
+     for(let y=Math.floor(a.height*.53);y<a.height*.8;y++)for(let x=Math.floor(a.width*.22);x<a.width*.78;x++){
+      const i=(y*a.width+x)*4,blue=(p)=>p[i+2]-p[i]>80&&p[i+1]>65;
+      if((blue(a.data)||blue(b.data))&&Math.abs(a.data[i]-b.data[i])+Math.abs(a.data[i+1]-b.data[i+1])+Math.abs(a.data[i+2]-b.data[i+2])>25)changed++;
+     }
+     return changed;
+    },[before.toString('base64'),after.toString('base64')]);
+    assert.ok(changed>=20,'Tentacles visibly move even when video playback fails: '+changed);console.log(`Okti ${failure}: ${changed} changing tentacle pixels at actual display size.`);
+    await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] .octi-motion-fallback').hasAttribute('src'));
+    assert.equal(await dock.locator('.is-fallback').count(),0,'Reduced motion releases the animated fallback');
+    await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
+    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000}});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] .octi-motion-fallback').hasAttribute('src'));
+    assert.equal(await dock.locator('.commands').isVisible(),true,'Fallback does not hide the recording status');await page.evaluate(()=>{plannerRecordings.main=null});
+   }
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
-   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: blue poster and working controls passed.`);
+   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: correct motion fallback and working controls passed.`);
   }
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1});
