@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.136</title>
+<title>Mój Planer — test integracji 33.137</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.136</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.136</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.25.33.136-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.137</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.137</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.25.33.137-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.25.33.136-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.25.33.137-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3050,7 +3050,7 @@ function octiRibbonContour(width,height,cx,cy,radius){
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
 function octiMotionArtwork(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
- const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=f3681f3ac1796c6c';
+ const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=fe92738bc242ac5f';
  const fallback=document.createElement('img');fallback.className='octi-motion-fallback';fallback.alt='';fallback.draggable=false;
  const video=document.createElement('video');video.className='octi-motion-video';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
  layer.append(poster,fallback,video);floating.append(layer);
@@ -3058,7 +3058,7 @@ function octiMotionArtwork(root,floating,motion){
  function useFallback(active){
   if(!active){layer.classList.remove('is-fallback');if(fallback.hasAttribute('src'))fallback.removeAttribute('src');return;}
   if(fallbackFailed)return;
-  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=e899bf6bc1016f72';
+  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=c7aac35f1a6ab769';
   if(fallback.complete&&fallback.naturalWidth)layer.classList.add('is-fallback');
  }
  fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
@@ -3074,7 +3074,7 @@ function octiMotionArtwork(root,floating,motion){
   if(video.currentTime!==lastTime){lastTime=video.currentTime;lastProgress=now;if(!video.paused&&video.readyState>=2){layer.classList.add('is-playing');useFallback(false);}}
   if(lastProgress&&now-lastProgress>1800){blocked=true;pending=false;video.pause();layer.classList.remove('is-playing');useFallback(true);return;}
   if(pending||!video.paused||attempted)return;
-  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=3bcc749c8865878a';
+  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=e628d59cd2c974f9';
   pending=true;attempted=true;lastTime=video.currentTime;lastProgress=now;
   Promise.resolve(video.play()).then(()=>{pending=false;if(!wanted)video.pause();}).catch(error=>{pending=false;blocked=wanted&&error?.name!=='AbortError';if(!blocked)attempted=false;layer.classList.remove('is-playing');if(blocked)useFallback(true);});
  }

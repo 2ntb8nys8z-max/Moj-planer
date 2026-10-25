@@ -42,12 +42,21 @@ async function routeFiles(page,failMedia=false){
      const pixels=await frame(1.8),eyes=[];
      for(const [left,right] of [[230,269],[275,314]]){let minX=544,maxX=0,minY=544,maxY=0;for(let y=207;y<245;y++)for(let x=left;x<right;x++){const i=(y*544+x)*4;if(pixels[i]>225&&pixels[i+1]>230&&pixels[i+2]>235){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}eyes.push({width:maxX-minX+1,height:maxY-minY+1});}
      const a=await frame(.8),b=await frame(4.0);let difference=0,pixelCount=0;for(let y=304;y<405;y++)for(let x=130;x<410;x++){const i=(y*544+x)*4;if((a[i+2]-a[i]>100&&a[i+1]>70)||(b[i+2]-b[i]>100&&b[i+1]>70)){for(let k=0;k<3;k++)difference+=Math.abs(a[i+k]-b[i+k]);pixelCount+=3;}}
-     return {duration:v.duration,tops,eyes,armDifference:difference/pixelCount};
+     const edge=[];for(const t of [v.duration-3/60,v.duration-2/60,v.duration-1/60,0,1/60,2/60])edge.push(await frame(t));
+     const delta=(a,b,c)=>{let sum=0,count=0;for(let y=280;y<435;y++)for(let x=120;x<424;x++){const i=(y*544+x)*4;for(let k=0;k<3;k++){sum+=Math.abs(c?(b[i+k]-a[i+k])-(c[i+k]-b[i+k]):a[i+k]-b[i+k]);count++;}}return sum/count;};
+     const loop={seam:delta(edge[2],edge[3]),neighbors:[delta(edge[0],edge[1]),delta(edge[1],edge[2]),delta(edge[3],edge[4]),delta(edge[4],edge[5])],velocity:delta(edge[2],edge[3],edge[4]),neighborVelocities:[delta(edge[0],edge[1],edge[2]),delta(edge[3],edge[4],edge[5])]};
+     return {duration:v.duration,tops,eyes,armDifference:difference/pixelCount,loop};
     });
     assert.ok(Math.abs(quality.duration-4.8)<.1);assert.ok(Math.max(...quality.tops)-Math.min(...quality.tops)<17,'The head stays calm instead of dipping at the end');
     for(const eye of quality.eyes){assert.ok(eye.width>20);assert.ok(eye.height/eye.width<.48,'The approved eyes are shallow tapered crescents, not semicircles');}
     assert.ok(quality.armDifference>2,'Opposite loop phases must differ; the second half must not replay the first half backwards');
+    assert.ok(quality.loop.seam>.01,'The loop continues moving across its boundary');
+    assert.ok(quality.loop.seam<Math.max(...quality.loop.neighbors)*1.8+.3,'The decoded loop boundary is no larger than an ordinary neighboring movement: '+JSON.stringify(quality.loop));
+    assert.ok(quality.loop.velocity<Math.max(...quality.loop.neighborVelocities)*2+.4,'The decoded motion must not jerk at the boundary: '+JSON.stringify(quality.loop));
     console.log('Decoded logo geometry',JSON.stringify(quality));
+    await video.evaluate(async v=>{await new Promise(resolve=>{v.addEventListener('seeked',resolve,{once:true});v.currentTime=v.duration-.15});await v.play();});
+    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return !v.paused&&v.currentTime<.6;},null,{timeout:6000});
+    assert.equal(await video.evaluate(v=>v.loop),true,'Actual playback wraps automatically without rewinding the movie');
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
      await page.waitForFunction(mode=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode===mode,mode);
