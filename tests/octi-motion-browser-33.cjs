@@ -92,10 +92,13 @@ async function routeFiles(page,failMedia=false){
      assert.equal(await dock.locator('.commands').isVisible(),true,'Recorder status remains available');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
     }
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
+    // Repeat with an already loaded event clip, when playback starts fastest.
+    for(let switchIndex=0;switchIndex<3;switchIndex++){
     await page.evaluate(()=>{tasks=[{id:'logo-test',title:'Spotkanie',date:'2026-10-25',time:'12:00',endTime:'13:00'}];openEventActions(tasks[0]);});
     await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=event] video').paused);
     assert.equal(await video.evaluate(v=>v.paused),true,'Switching context pauses the main logo');
     await page.evaluate(()=>closeEventActions());await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] video').paused);
+    }
     await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
     assert.equal(await video.evaluate(v=>v.paused),true,'Background pages pause the clip');
     await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});

@@ -3046,6 +3046,7 @@ function octiRibbonContour(width,height,cx,cy,radius){
  return {width:Math.max(width,cut(4),cut(height-4))+4,forms:[0,1,-.8,0].map(bend=>contour(0,bend)),innerForms:[0,1,-.8,0].map(bend=>contour(3,bend)),topShine:`M27 8 H${cut(8,3)-8}`,bottomShine:`M23 ${height-12} Q29 ${height-8} 41 ${height-8} H${cut(height-8,3)-8}`,arcStart:{x:cut(4),y:4},arcEnd:{x:cut(height-4),y:height-4}};
 }
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
+let octiActiveMotionStop=null;
 function octiMotionArtwork(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
  const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=1dd2ca9a5f73bd11';
@@ -3061,10 +3062,18 @@ function octiMotionArtwork(root,floating,motion){
  }
  fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
  fallback.addEventListener('error',()=>{if(fallback.hasAttribute('src')){fallbackFailed=true;layer.classList.remove('is-fallback');}});
+ function stop(){
+  wanted=false;layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
+  if(!video.paused||pending)video.pause();
+  if(octiActiveMotionStop===stop)octiActiveMotionStop=null;
+ }
  function update(){
   const eligible=root.isConnected&&root.dataset.mode==='idle'&&!root.classList.contains('memo-open')&&!motion?.matches&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0;
   wanted=Boolean(eligible);
-  if(!wanted){layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;if(!video.paused||pending)video.pause();return;}
+  if(!wanted){stop();return;}
+  // Transfer playback ownership synchronously, before the new context starts.
+  // Independent dock timers must never leave two contexts animating together.
+  if(octiActiveMotionStop!==stop){octiActiveMotionStop?.();octiActiveMotionStop=stop;}
   const now=performance.now();
   if(!video.canPlayType('video/mp4'))blocked=true;
   if(blocked){useFallback(true);return;}
