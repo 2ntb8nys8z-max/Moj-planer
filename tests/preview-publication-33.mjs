@@ -4,7 +4,7 @@ import {verifyPreview} from '../scripts/verify-preview33.mjs';
 const release=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
 const exact=async url=>new Response(fs.readFileSync('preview33/'+new URL(url).pathname.split('/').at(-1)));
 assert.deepEqual(await verifyPreview('https://planner.test/preview33/',exact),release);
-for(const stale of ['release.json','index.html','google-calendar.js','sync-core.js','octi-water-motion.mp4','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp']){
+for(const stale of ['release.json','index.html','google-calendar.js','sync-core.js','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp']){
  await assert.rejects(()=>verifyPreview('https://planner.test/preview33/',url=>String(url).includes('/'+stale+'?')?new Response('stale published data'):exact(url)),/published bytes do not match/);
 }
 await assert.rejects(()=>verifyPreview('https://planner.test/preview33/',()=>new Response('missing',{status:404})),/HTTP 404/);

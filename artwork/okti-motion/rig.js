@@ -64,7 +64,7 @@ window.createOktiRig=async function(canvas,chains,textureUrl){
    let x=arm.bones[0].a[0],y=arm.bones[0].a[1];
    const relax=rest?0:.10+.025*Math.sin(phase+arm.phase);
    for(const bone of arm.bones){
-    const wave=rest?0:.17*smooth(.12,.95,bone.progress)*Math.sin(phase-bone.progress*2.4+arm.phase)+.035*smooth(.4,.95,bone.progress)*Math.sin(2*phase-bone.progress*4.3+arm.phase*.5);
+    const wave=rest?0:.30*smooth(.12,.95,bone.progress)*Math.sin(phase-bone.progress*2.4+arm.phase)+.055*smooth(.4,.95,bone.progress)*Math.sin(2*phase-bone.progress*4.3+arm.phase*.5);
     const angle=bone.angle-bone.curl*relax+wave,rotation=angle-bone.angle;
     const matrix=matrices[bone.index];matrix.c=Math.cos(rotation);matrix.s=Math.sin(rotation);matrix.x=x;matrix.y=y;
     x+=Math.cos(angle)*bone.length;y+=Math.sin(angle)*bone.length;
