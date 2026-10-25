@@ -17,8 +17,8 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.10\.25\.33\.135-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.25\.33\.135-test/);
+assert.match(root,/Aplikacja: 2026\.10\.25\.33\.136-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.25\.33\.136-test/);
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
 assert.match(preview,/e\.key===PREVIEW33_STORE\.key\(KEY\)/,'storage events must use the preview-prefixed key');
