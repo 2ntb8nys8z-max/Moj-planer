@@ -2955,8 +2955,8 @@ initializeEventCommands();
 .octi-dock .water-float>.water-frost,.octi-dock .water-float>.octi-art,.octi-dock .water-float>.water-shell{display:none!important}
 .octi-dock[data-mode=idle] .stage:after{display:none!important}
 .octi-dock[data-mode=idle]:not(.memo-open):not(.memo-saved) .octi-copy{visibility:hidden;pointer-events:none}
-.octi-dock .octi-motion-media{position:absolute;left:50%;top:50%;width:calc(var(--octi-size,100px) * 1.60);height:calc(var(--octi-size,100px) * 1.60);max-width:none;transform:translate(-50%,-50%);pointer-events:none;z-index:12;mask-image:radial-gradient(circle closest-side,#000 0 81%,#000a 88%,transparent 100%);-webkit-mask-image:radial-gradient(circle closest-side,#000 0 81%,#000a 88%,transparent 100%)}
-.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;object-fit:contain;pointer-events:none}
+.octi-dock .octi-motion-media{position:absolute;left:50%;top:50%;width:calc(var(--octi-size,100px) * 1.28);height:calc(var(--octi-size,100px) * 1.28);max-width:none;transform:translate(-50%,-50%);overflow:clip;border-radius:50%;pointer-events:none;z-index:12;mask-image:radial-gradient(circle closest-side,#000 0 95%,transparent 100%);-webkit-mask-image:radial-gradient(circle closest-side,#000 0 95%,transparent 100%)}
+.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video{position:absolute;left:50%;top:50%;display:block;width:125%;height:125%;max-width:none;transform:translate(-50%,-50%);object-fit:contain;pointer-events:none}
 .octi-dock .octi-motion-video{opacity:0}
 .octi-dock .octi-motion-media.is-playing .octi-motion-video{opacity:1}
 </style>
