@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.22.33.133-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.10.25.33.134-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.22.33.133-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.10.25.33.134-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2950,6 +2950,15 @@ initializeEventCommands();
 @keyframes octi-cancel-glyph{0%,55%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
 @keyframes octi-cancel-bob{0%,100%{transform:translateY(0);border-radius:50%}40%{transform:translateY(-1.7px) scale(1.015,.985);border-radius:49% 51% 48% 52%}72%{transform:translateY(.8px) scale(.99,1.01);border-radius:51% 49% 52% 48%}}
 @media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .dismiss-flow{display:none!important}.phone-layout .octi-dock .dismiss-orb,.phone-layout .octi-dock .dismiss-glyph{animation:none}}
+/* 33.134: approved blue motion, stable recorder target and quiet idle dock. */
+.octi-dock .water-float{animation:none!important}
+.octi-dock .water-float>.water-frost,.octi-dock .water-float>.octi-art,.octi-dock .water-float>.water-shell{display:none!important}
+.octi-dock[data-mode=idle] .stage:after{display:none!important}
+.octi-dock[data-mode=idle]:not(.memo-open):not(.memo-saved) .octi-copy{visibility:hidden;pointer-events:none}
+.octi-dock .octi-motion-media{position:absolute;left:50%;top:50%;width:calc(var(--octi-size,100px) * 1.60);height:calc(var(--octi-size,100px) * 1.60);max-width:none;transform:translate(-50%,-50%);pointer-events:none;z-index:12;mask-image:radial-gradient(circle closest-side,#000 0 81%,#000a 88%,transparent 100%);-webkit-mask-image:radial-gradient(circle closest-side,#000 0 81%,#000a 88%,transparent 100%)}
+.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;object-fit:contain;pointer-events:none}
+.octi-dock .octi-motion-video{opacity:0}
+.octi-dock .octi-motion-media.is-playing .octi-motion-video{opacity:1}
 </style>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -3035,6 +3044,27 @@ function octiRibbonContour(width,height,cx,cy,radius){
  const contour=(inset=0,bend=0)=>{const top=4+inset,bottom=height-4-inset,left=4+inset,round=Math.min(26,height/2-left),r=radius+inset;return `M${left+round} ${top} Q${left} ${top+bend} ${left} ${height/2} Q${left} ${bottom-bend} ${left+round} ${bottom} H${cut(bottom,inset)} A${r} ${r} 0 0 1 ${cut(top,inset)} ${top} H${left+round} Z`};
  return {width:Math.max(width,cut(4),cut(height-4))+4,forms:[0,1,-.8,0].map(bend=>contour(0,bend)),innerForms:[0,1,-.8,0].map(bend=>contour(3,bend)),topShine:`M27 8 H${cut(8,3)-8}`,bottomShine:`M23 ${height-12} Q29 ${height-8} 41 ${height-8} H${cut(height-8,3)-8}`,arcStart:{x:cut(4),y:4},arcEnd:{x:cut(height-4),y:height-4}};
 }
+// 33.134: the approved, pre-rendered logo decorates the existing recorder.
+function octiMotionArtwork(root,floating,motion){
+ const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
+ const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=642f1b3911b1ef89';
+ const video=document.createElement('video');video.className='octi-motion-video';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
+ layer.append(poster,video);floating.append(layer);
+ let wanted=false,pending=false,blocked=false;
+ function update(){
+  const eligible=root.isConnected&&root.dataset.mode==='idle'&&!root.classList.contains('memo-open')&&!motion?.matches&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0&&Boolean(video.canPlayType('video/mp4'));
+  wanted=Boolean(eligible);
+  if(!wanted){layer.classList.remove('is-playing');if(!video.paused||pending)video.pause();return;}
+  if(blocked||pending||!video.paused)return;
+  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=55f01dc1aa0952fd';
+  pending=true;
+  Promise.resolve(video.play()).then(()=>{pending=false;if(wanted)layer.classList.add('is-playing');else video.pause();}).catch(error=>{pending=false;blocked=wanted&&error?.name!=='AbortError';layer.classList.remove('is-playing');});
+ }
+ video.addEventListener('error',()=>{blocked=true;layer.classList.remove('is-playing');});
+ root.addEventListener('pointerdown',()=>{if(blocked){blocked=false;update();}},{passive:true});
+ return update;
+}
+
 function initializeOctiDocks(){
  const icons={camera:entryIcon('camera'),recorder:entryIcon('recorder'),keyboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg>',people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/><path d="M19 3v4M17 5h4"/></svg>'};
  const definitions=[['main','voice',document.querySelector('.voice-area')],['event','eventVoice',$('eventFooter')],['idea','ideaVoice',document.querySelector('.entry-footer')]];
@@ -3064,7 +3094,8 @@ function initializeOctiDocks(){
   mascot.innerHTML='<defs><filter id="'+filterId+'" x="-30" y="-30" width="1314" height="1314" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".007 .012" numOctaves="1" seed="4" result="waves"/><feImage href="'+bendMask+'" x="0" y="0" width="1254" height="1254" result="bendMask"/><feComposite in="waves" in2="bendMask" operator="in" result="softWaves"/><feFlood flood-color="#808080" result="neutral"/><feComposite in="softWaves" in2="neutral" operator="over" result="bendMap"/><feDisplacementMap in="SourceGraphic" in2="bendMap" scale="8" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" values="8;28;10;24;8" dur="6.8s" repeatCount="indefinite"/></feDisplacementMap></filter></defs><image href="octi-water-mascot.webp?v=0ade81e51af6a640" width="1254" height="1254" filter="url(#'+filterId+')"/>';
   art.append(mascot);
   const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  const syncMotion=()=>{for(const artwork of [mascot,commandSkin]){if(motion?.matches||document.hidden){artwork.pauseAnimations?.();artwork.setCurrentTime?.(0)}else artwork.unpauseAnimations?.()}};
+  const updateLogo=octiMotionArtwork(root,floating,motion);
+  const syncMotion=()=>{for(const artwork of [mascot,commandSkin]){if(artwork===mascot||motion?.matches||document.hidden){artwork.pauseAnimations?.();artwork.setCurrentTime?.(0)}else artwork.unpauseAnimations?.()}updateLogo();};
   motion?.addEventListener?.('change',syncMotion);document.addEventListener('visibilitychange',syncMotion);syncMotion();
   const toggle=root.querySelector('.menu-toggle'),extras=root.querySelector('.extras'),menu=root.querySelector('.menu-actions');menu.id='octi-menu-'+channel;toggle.setAttribute('aria-controls',menu.id);
   function setMenu(open){if(extras.classList.contains('expanded')===open)return;extras.classList.toggle('expanded',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Zwiń dodatkowe działania':'Dodatkowe działania');for(const button of menu.children)button.disabled=!open;}
@@ -3103,8 +3134,8 @@ function initializeOctiDocks(){
    const status=root.querySelector('.status');const statusText=mode==='recording'?'Nagrywam · '+entryTime(Math.max(0,(Date.now()-startedAt)/1000)):mode==='opening'?'Uruchamiam…':mode==='sending'?'Przetwarzam…':mode==='ready'?'Wyślij nagranie':'Naciśnij i mów';if(status.textContent!==statusText)status.textContent=statusText;
    if(lastState!==mode){root.dataset.mode=mode;status.setAttribute('aria-hidden',String(mode==='idle'));oldButton.setAttribute('aria-label',mode==='recording'?'Zatrzymaj i wyślij nagranie':mode==='ready'?'Wyślij nagranie':'Naciśnij i mów');oldButton.setAttribute('aria-pressed',String(mode==='recording'));oldButton.disabled=mode==='opening'||mode==='sending';strip.disabled=oldButton.disabled;strip.setAttribute('aria-label',oldButton.getAttribute('aria-label'));lastState=mode;}
    const visible=channel==='main'?octiCurrentContext()==='main':octiCurrentContext()===channel;
-   if(visible&&mode==='idle'&&!motion?.matches&&!document.hidden&&Date.now()-lastHint>hintDelay){lastHint=Date.now();reel.firstElementChild?.classList.add('outgoing');current=(current+1)%hints.length;setTimeout(renderHints,250);}
-   if(!visible)setMenu(false);
+   if(visible&&mode==='idle'&&!motion?.matches&&!document.hidden&&getComputedStyle(strip).visibility!=='hidden'&&Date.now()-lastHint>hintDelay){lastHint=Date.now();reel.firstElementChild?.classList.add('outgoing');current=(current+1)%hints.length;setTimeout(renderHints,250);}
+   updateLogo();if(!visible)setMenu(false);
   };setInterval(tick,200);
  }
 }
