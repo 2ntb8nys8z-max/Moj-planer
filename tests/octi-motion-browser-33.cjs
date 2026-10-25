@@ -37,13 +37,15 @@ async function routeFiles(page,failMedia=false){
     const quality=await video.evaluate(async v=>{
      const c=document.createElement('canvas');c.width=c.height=544;const ctx=c.getContext('2d',{willReadFrequently:true}),tops=[];
      async function frame(t){v.pause();await new Promise(resolve=>{v.addEventListener('seeked',resolve,{once:true});v.currentTime=t});ctx.drawImage(v,0,0,544,544);return ctx.getImageData(0,0,544,544).data;}
-     for(const t of [0,.9,2.4,3.6,5.1,6.8]){const pixels=await frame(t);let top=200;for(let y=110;y<200;y++){let blue=0;for(let x=250;x<290;x++){const i=(y*544+x)*4;if(pixels[i]<110&&pixels[i+1]>60&&pixels[i+2]>140&&pixels[i+2]-pixels[i+1]>17)blue++;}if(blue>15){top=y;break;}}tops.push(top);}
-     const pixels=await frame(3.6),eyes=[];
+     for(const t of [0,.72,1.6,2.4,3.2,4.1]){const pixels=await frame(t);let top=200;for(let y=110;y<200;y++){let blue=0;for(let x=250;x<290;x++){const i=(y*544+x)*4;if(pixels[i]<110&&pixels[i+1]>60&&pixels[i+2]>140&&pixels[i+2]-pixels[i+1]>17)blue++;}if(blue>15){top=y;break;}}tops.push(top);}
+     const pixels=await frame(1.8),eyes=[];
      for(const [left,right] of [[230,269],[275,314]]){let minX=544,maxX=0,minY=544,maxY=0;for(let y=207;y<245;y++)for(let x=left;x<right;x++){const i=(y*544+x)*4;if(pixels[i]>225&&pixels[i+1]>230&&pixels[i+2]>235){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}eyes.push({width:maxX-minX+1,height:maxY-minY+1});}
-     return {duration:v.duration,tops,eyes};
+     const a=await frame(.8),b=await frame(4.0);let difference=0,pixelCount=0;for(let y=304;y<405;y++)for(let x=130;x<410;x++){const i=(y*544+x)*4;if((a[i+2]-a[i]>100&&a[i+1]>70)||(b[i+2]-b[i]>100&&b[i+1]>70)){for(let k=0;k<3;k++)difference+=Math.abs(a[i+k]-b[i+k]);pixelCount+=3;}}
+     return {duration:v.duration,tops,eyes,armDifference:difference/pixelCount};
     });
-    assert.ok(Math.abs(quality.duration-14.5)<.1);assert.ok(Math.max(...quality.tops)-Math.min(...quality.tops)<17,'The head stays calm instead of dipping at the end');
+    assert.ok(Math.abs(quality.duration-4.8)<.1);assert.ok(Math.max(...quality.tops)-Math.min(...quality.tops)<17,'The head stays calm instead of dipping at the end');
     for(const eye of quality.eyes){assert.ok(eye.width>20);assert.ok(eye.height/eye.width<.48,'The approved eyes are shallow tapered crescents, not semicircles');}
+    assert.ok(quality.armDifference>2,'Opposite loop phases must differ; the second half must not replay the first half backwards');
     console.log('Decoded logo geometry',JSON.stringify(quality));
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
