@@ -3050,7 +3050,7 @@ function octiRibbonContour(width,height,cx,cy,radius){
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
 function octiMotionArtwork(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
- const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=fe92738bc242ac5f';
+ const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=1dd2ca9a5f73bd11';
  const fallback=document.createElement('img');fallback.className='octi-motion-fallback';fallback.alt='';fallback.draggable=false;
  const video=document.createElement('video');video.className='octi-motion-video';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
  layer.append(poster,fallback,video);floating.append(layer);
@@ -3058,7 +3058,7 @@ function octiMotionArtwork(root,floating,motion){
  function useFallback(active){
   if(!active){layer.classList.remove('is-fallback');if(fallback.hasAttribute('src'))fallback.removeAttribute('src');return;}
   if(fallbackFailed)return;
-  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=c7aac35f1a6ab769';
+  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=1f3d1936011b7e13';
   if(fallback.complete&&fallback.naturalWidth)layer.classList.add('is-fallback');
  }
  fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
@@ -3074,7 +3074,7 @@ function octiMotionArtwork(root,floating,motion){
   if(video.currentTime!==lastTime){lastTime=video.currentTime;lastProgress=now;if(!video.paused&&video.readyState>=2){layer.classList.add('is-playing');useFallback(false);}}
   if(lastProgress&&now-lastProgress>1800){blocked=true;pending=false;video.pause();layer.classList.remove('is-playing');useFallback(true);return;}
   if(pending||!video.paused||attempted)return;
-  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=e628d59cd2c974f9';
+  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=b2c7f04a455a109c';
   pending=true;attempted=true;lastTime=video.currentTime;lastProgress=now;
   Promise.resolve(video.play()).then(()=>{pending=false;if(!wanted)video.pause();}).catch(error=>{pending=false;blocked=wanted&&error?.name!=='AbortError';if(!blocked)attempted=false;layer.classList.remove('is-playing');if(blocked)useFallback(true);});
  }

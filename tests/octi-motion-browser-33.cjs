@@ -45,7 +45,18 @@ async function routeFiles(page,failMedia=false){
      const edge=[];for(const t of [v.duration-3/60,v.duration-2/60,v.duration-1/60,0,1/60,2/60])edge.push(await frame(t));
      const delta=(a,b,c)=>{let sum=0,count=0;for(let y=280;y<435;y++)for(let x=120;x<424;x++){const i=(y*544+x)*4;for(let k=0;k<3;k++){sum+=Math.abs(c?(b[i+k]-a[i+k])-(c[i+k]-b[i+k]):a[i+k]-b[i+k]);count++;}}return sum/count;};
      const loop={seam:delta(edge[2],edge[3]),neighbors:[delta(edge[0],edge[1]),delta(edge[1],edge[2]),delta(edge[3],edge[4]),delta(edge[4],edge[5])],velocity:delta(edge[2],edge[3],edge[4]),neighborVelocities:[delta(edge[0],edge[1],edge[2]),delta(edge[3],edge[4],edge[5])]};
-     return {duration:v.duration,tops,eyes,armDifference:difference/pixelCount,loop};
+     // Decode the whole transition too: clean end frames alone cannot reveal
+     // an arm snapping or disappearing in the middle of a contour morph.
+     const sequence={ordinaryDeltas:[],overlapDeltas:[],ordinaryAccelerations:[],overlapAccelerations:[]};
+     let previous=await frame(0),older=null;
+     for(let i=1;i<288;i++){
+      const current=await frame((i+.1)/60),overlap=i>=216;
+      sequence[overlap?'overlapDeltas':'ordinaryDeltas'].push(delta(previous,current));
+      if(older)sequence[overlap?'overlapAccelerations':'ordinaryAccelerations'].push(delta(older,previous,current));
+      older=previous;previous=current;
+     }
+     const motion={minimumDelta:Math.min(...sequence.ordinaryDeltas,...sequence.overlapDeltas),ordinaryMaxDelta:Math.max(...sequence.ordinaryDeltas),overlapMaxDelta:Math.max(...sequence.overlapDeltas),ordinaryMaxAcceleration:Math.max(...sequence.ordinaryAccelerations),overlapMaxAcceleration:Math.max(...sequence.overlapAccelerations)};
+     return {duration:v.duration,tops,eyes,armDifference:difference/pixelCount,loop,motion};
     });
     assert.ok(Math.abs(quality.duration-4.8)<.1);assert.ok(Math.max(...quality.tops)-Math.min(...quality.tops)<17,'The head stays calm instead of dipping at the end');
     for(const eye of quality.eyes){assert.ok(eye.width>20);assert.ok(eye.height/eye.width<.48,'The approved eyes are shallow tapered crescents, not semicircles');}
@@ -53,6 +64,9 @@ async function routeFiles(page,failMedia=false){
     assert.ok(quality.loop.seam>.01,'The loop continues moving across its boundary');
     assert.ok(quality.loop.seam<Math.max(...quality.loop.neighbors)*1.8+.3,'The decoded loop boundary is no larger than an ordinary neighboring movement: '+JSON.stringify(quality.loop));
     assert.ok(quality.loop.velocity<Math.max(...quality.loop.neighborVelocities)*2+.4,'The decoded motion must not jerk at the boundary: '+JSON.stringify(quality.loop));
+    assert.ok(quality.motion.minimumDelta>.01,'Every decoded phase must continue moving, including the middle of the overlap');
+    assert.ok(quality.motion.overlapMaxDelta<quality.motion.ordinaryMaxDelta*1.5+.5,'The entire overlap must move as smoothly as the reference wave: '+JSON.stringify(quality.motion));
+    assert.ok(quality.motion.overlapMaxAcceleration<quality.motion.ordinaryMaxAcceleration*1.8+.5,'The middle of the overlap must not snap between arm matches: '+JSON.stringify(quality.motion));
     console.log('Decoded logo geometry',JSON.stringify(quality));
     await video.evaluate(async v=>{await new Promise(resolve=>{v.addEventListener('seeked',resolve,{once:true});v.currentTime=v.duration-.15});await v.play();});
     await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return !v.paused&&v.currentTime<.6;},null,{timeout:6000});

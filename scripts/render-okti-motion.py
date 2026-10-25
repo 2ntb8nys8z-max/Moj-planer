@@ -59,7 +59,9 @@ def main():
         mask='255*clip((61-sqrt(pow(X-272,2)+pow(Y-clip(Y,188,247),2)))/2,0,1)'
         head=temp/'head.png'
         run(['-i',str(ART/'art.webp'),'-vf',"scale=544:544,format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='"+mask+"'",'-frames:v','1','-y',str(head)])
-        command=['ffmpeg','-hide_banner','-loglevel','error','-i',str(ART/'reference-motion.mp4'),'-loop','1','-framerate','24','-i',str(head),'-filter_complex_threads','1','-filter_complex','[0:v:0][1:v]overlay=shortest=1:format=auto,minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,tpad=stop_mode=clone:stop_duration=0.1,trim=end_frame=360,format=bgr24[result]','-map','[result]','-fps_mode','passthrough','-f','rawvideo','-pix_fmt','bgr24','-']
+        # The reference's final fraction merges two inner tips. End at 5.4s,
+        # while all eight tips remain distinct, and slow the forward wave 10%.
+        command=['ffmpeg','-hide_banner','-loglevel','error','-i',str(ART/'reference-motion.mp4'),'-loop','1','-framerate','24','-i',str(head),'-filter_complex_threads','1','-filter_complex','[0:v:0]trim=duration=5.4,setpts=(PTS-STARTPTS)*10/9[wave];[wave][1:v]overlay=shortest=1:format=auto,minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,tpad=stop_mode=clone:stop_duration=0.2,trim=end_frame=360,format=bgr24[result]','-map','[result]','-fps_mode','passthrough','-f','rawvideo','-pix_fmt','bgr24','-']
         raw=subprocess.check_output(command)
         frames=np.frombuffer(raw,np.uint8).reshape(-1,SIZE,SIZE,3)
         assert len(frames)==RAW_COUNT,len(frames)
