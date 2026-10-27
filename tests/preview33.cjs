@@ -17,8 +17,8 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.10\.27\.33\.146-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.27\.33\.146-test/);
+assert.match(root,/Aplikacja: 2026\.10\.27\.33\.148-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.27\.33\.148-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -27,8 +27,11 @@ for(const page of [root,preview]){
   assert.match(page,/filter:drop-shadow\(0 0 1px #fff\) drop-shadow\(0 0 2px #fff\)/,'navigation icons need a light edge over dark scrolling content');
   assert.match(page,/phone-week-digit\.roll-forward/,'week numbers need a forward mechanical drum animation');
   assert.match(page,/phone-week-digit\.roll-back/,'week numbers need a reverse mechanical drum animation');
+  assert.match(page,/slot\.setAttribute\('aria-hidden','true'\)/,'animated week digits must not duplicate the accessible week label');
+  assert.match(page,/function announcePhoneDayWeather\(\)\{[^}]*toast\(/,'the weather button must use the app notification');
   assert.match(page,/grid-template-columns:44px minmax\(0,1fr\) 44px/,'the weather control must reserve more width for long weekday names');
-  assert.match(page,/\.phone-day-weekday\.long\{font-size:clamp\(19px,6\.15vw,24px\)\}/,'Monday must fit with the same font family');
+  assert.match(page,/\.phone-day-weekday\{[^}]*font-size:clamp\(19px,6\.15vw,24px\)/,'every weekday must use the size chosen for Monday');
+  assert.doesNotMatch(page,/phone-day-weekday\.long/,'weekday typography must not resize when the selected day changes');
 }
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
@@ -62,10 +65,10 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.27.33.146-test');
+assert.equal(release.version,'2026.10.27.33.148-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.146: mechanical week drums and glass weather control verified.');
+console.log('Preview 33.148: fixed weekday typography and glass weather control verified.');

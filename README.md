@@ -245,3 +245,11 @@ Usunięto kolorowe wypełnienie całego paska, a rozmycie ograniczono do 2 px. O
 ### Preview33 33.146 — mechaniczny tydzień i szklana pogoda
 
 Numer tygodnia składa się z dwóch niezależnych bębnów: zmieniana cyfra zjeżdża w kierunku nawigacji, a nowa wjeżdża z przeciwnej strony; ruch odwraca się przy cofaniu. Pole dnia i pogody wykorzystuje węższe skrajne kolumny, jednolitą czcionkę i osobny rozmiar długich nazw, dzięki czemu mieści również „Poniedziałek”. Niebieskie wypełnienie zastąpiła szklana obwódka, a pole reaguje na kliknięcie krótkim podsumowaniem pogody.
+
+### Preview33 33.147 — domknięcie przycisku pogody
+
+Kliknięcie szklanego pola pokazuje skrót prognozy, a animowane cyfry tygodnia pozostają prawidłowo opisane dla czytników ekranu.
+
+### Preview33 33.148 — stała typografia dnia
+
+Każda nazwa dnia używa tego samego rozmiaru dobranego pod najdłuższy „Poniedziałek”, więc przełączanie dni nie powoduje już wizualnego przeskoku tekstu.
