@@ -233,3 +233,7 @@ Workflow `Publish Preview33` sprawdza dokładny commit uruchomienia, testuje go,
 ### Preview33 33.143 — treść pod całą wysokością szklanego paska
 
 Mobilny kontener aplikacji nie rezerwuje już nieprzezroczystej przestrzeni o wysokości dolnej nawigacji ani strefy bezpiecznej. Przewijane widoki dochodzą do dolnej krawędzi ekranu i pozostają widoczne pod całą powierzchnią paska. Sam pasek ma mniejszą jasną domieszkę oraz delikatniejsze rozmycie, zachowując wyraźną szklaną krawędź.
+
+### Preview33 33.144 — przezroczysty środek szkła
+
+Usunięto kolorowe wypełnienie całego paska, a rozmycie ograniczono do 2 px. Obrys, refleks i cienie nadal definiują szklaną bryłę, lecz przewijana zawartość pozostaje czytelna pod pełną wysokością nawigacji. Podświetlenie aktywnej sekcji również ma znacznie mniejsze krycie. Pasek wykorzystuje dodatkowe 14 px dolnej strefy, a ikony i podpisy mają jasną krawędź zapewniającą czytelność nad ciemnymi zdjęciami.

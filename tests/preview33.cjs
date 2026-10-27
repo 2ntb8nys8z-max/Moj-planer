@@ -17,11 +17,14 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.10\.27\.33\.143-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.27\.33\.143-test/);
+assert.match(root,/Aplikacja: 2026\.10\.27\.33\.144-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.27\.33\.144-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
+  assert.match(page,/\.phone-bottom-bar\{[^}]*background:transparent[^}]*backdrop-filter:blur\(2px\)/,'the glass bar must keep its full centre visually open');
+  assert.match(page,/bottom:max\(4px,calc\(env\(safe-area-inset-bottom\) - 14px\)\)/,'the glass bar should use the previously wasted lower safe-area space');
+  assert.match(page,/filter:drop-shadow\(0 0 1px #fff\) drop-shadow\(0 0 2px #fff\)/,'navigation icons need a light edge over dark scrolling content');
 }
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
@@ -55,10 +58,10 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.27.33.143-test');
+assert.equal(release.version,'2026.10.27.33.144-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.143: content-behind-glass navigation release and isolated storage verified.');
+console.log('Preview 33.144: edge-only full-height glass navigation release and isolated storage verified.');
