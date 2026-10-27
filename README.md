@@ -253,3 +253,7 @@ Kliknięcie szklanego pola pokazuje skrót prognozy, a animowane cyfry tygodnia 
 ### Preview33 33.148 — stała typografia dnia
 
 Każda nazwa dnia używa tego samego rozmiaru dobranego pod najdłuższy „Poniedziałek”, więc przełączanie dni nie powoduje już wizualnego przeskoku tekstu.
+
+### Preview33 33.149 — pogoda w przezroczystym szkle
+
+Środek przycisku dnia i pogody jest prawie przezroczysty, dzięki czemu chmury pozostają widoczne. Mocniejsze rozmycie, kontrast i refleks są skupione w trzy-pikselowej szklanej obwódce, zgodnej z dolnym paskiem nawigacji.
