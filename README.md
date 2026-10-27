@@ -229,3 +229,7 @@ Frontend edytujemy w `index.html` na `integration/conversation33`. `preview33/in
 Przed wysłaniem zmian uruchamiamy `npm run build`, `npm test` oraz `npm run test:journal-browser` (Chromium: `npx playwright install chromium`). Test przeglądarkowy obejmuje szerokości 320/390/430 px i poziomy telefon: stały pasek dat, ciągłą listę, synchronizację dat, edycję, wyszukiwanie, odstęp od panelu Okti i izolację kalendarza.
 
 Workflow `Publish Preview33` sprawdza dokładny commit uruchomienia, testuje go, kopiuje wyłącznie pliki `preview33/` do `main`, jawnie zleca budowę GitHub Pages i porównuje bajty publicznego HTML, manifestu wydania oraz modułów synchronizacji z przetestowanymi plikami. Sam commit publikacji nie jest potwierdzeniem wdrożenia. Ręczna kontrola: `node scripts/verify-preview33.mjs https://2ntb8nys8z-max.github.io/Moj-planer/preview33/`. Zwykły Planer na `main/index.html` pozostaje niezależny.
+
+### Preview33 33.143 — treść pod całą wysokością szklanego paska
+
+Mobilny kontener aplikacji nie rezerwuje już nieprzezroczystej przestrzeni o wysokości dolnej nawigacji ani strefy bezpiecznej. Przewijane widoki dochodzą do dolnej krawędzi ekranu i pozostają widoczne pod całą powierzchnią paska. Sam pasek ma mniejszą jasną domieszkę oraz delikatniejsze rozmycie, zachowując wyraźną szklaną krawędź.
