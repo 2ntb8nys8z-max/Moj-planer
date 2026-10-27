@@ -237,3 +237,7 @@ Mobilny kontener aplikacji nie rezerwuje już nieprzezroczystej przestrzeni o wy
 ### Preview33 33.144 — przezroczysty środek szkła
 
 Usunięto kolorowe wypełnienie całego paska, a rozmycie ograniczono do 2 px. Obrys, refleks i cienie nadal definiują szklaną bryłę, lecz przewijana zawartość pozostaje czytelna pod pełną wysokością nawigacji. Podświetlenie aktywnej sekcji również ma znacznie mniejsze krycie. Pasek wykorzystuje dodatkowe 14 px dolnej strefy, a ikony i podpisy mają jasną krawędź zapewniającą czytelność nad ciemnymi zdjęciami.
+
+### Preview33 33.145 — pośrednia mleczność szkła
+
+Środek paska otrzymał około 1,5% jasnego wypełnienia i rozmycie 3,5 px — dokładnie pomiędzy całkowicie przezroczystą wersją 33.144 a wcześniejszą wersją z 3% wypełnienia i rozmyciem 5 px. Pozycja paska oraz kontrastowe krawędzie ikon pozostały bez zmian.
