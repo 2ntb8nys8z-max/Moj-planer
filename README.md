@@ -241,3 +241,7 @@ Usunięto kolorowe wypełnienie całego paska, a rozmycie ograniczono do 2 px. O
 ### Preview33 33.145 — pośrednia mleczność szkła
 
 Środek paska otrzymał około 1,5% jasnego wypełnienia i rozmycie 3,5 px — dokładnie pomiędzy całkowicie przezroczystą wersją 33.144 a wcześniejszą wersją z 3% wypełnienia i rozmyciem 5 px. Pozycja paska oraz kontrastowe krawędzie ikon pozostały bez zmian.
+
+### Preview33 33.146 — mechaniczny tydzień i szklana pogoda
+
+Numer tygodnia składa się z dwóch niezależnych bębnów: zmieniana cyfra zjeżdża w kierunku nawigacji, a nowa wjeżdża z przeciwnej strony; ruch odwraca się przy cofaniu. Pole dnia i pogody wykorzystuje węższe skrajne kolumny, jednolitą czcionkę i osobny rozmiar długich nazw, dzięki czemu mieści również „Poniedziałek”. Niebieskie wypełnienie zastąpiła szklana obwódka, a pole reaguje na kliknięcie krótkim podsumowaniem pogody.
