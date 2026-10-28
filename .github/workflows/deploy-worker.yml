@@ -1,0 +1,53 @@
+name: Deploy and verify Planner Worker
+
+on:
+  push:
+    branches: [integration/conversation33]
+    paths:
+      - worker.js
+      - worker.txt
+      - preview33/worker.txt
+      - release.json
+      - scripts/deploy-worker.mjs
+      - tests/deploy-worker-33.mjs
+      - .github/workflows/deploy-worker.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: planner-cloudflare-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy-and-verify:
+    if: github.ref == 'refs/heads/integration/conversation33'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the exact integration commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Use the supported Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify generated artifacts and all regression tests
+        run: npm test
+
+      - name: Verify deployment safety checks
+        run: node tests/deploy-worker-33.mjs
+
+      - name: Update the existing Cloudflare Worker and verify its live release
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/deploy-worker.mjs
