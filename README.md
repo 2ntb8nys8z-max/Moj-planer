@@ -261,3 +261,7 @@ Każda nazwa dnia używa tego samego rozmiaru dobranego pod najdłuższy „Poni
 ### Preview33 33.150 — miesiąc pod numerem tygodnia
 
 Numer tygodnia jest większą fioletową bańką, a nazwa miesiąca znajduje się bezpośrednio pod nim jako duży tekst 21 px — bez przycisku, tła, ramki i cienia kafla.
+
+### Preview33 33.151 — żaglówka w tle nagłówka
+
+Górna część kalendarza otrzymała nowe panoramiczne tło z jasnym wschodem słońca, spokojnym morzem i żaglówką po prawej. Obraz nie zawiera elementów interfejsu i pozostawia wolne miejsce po lewej na numer tygodnia oraz nazwę miesiąca; pozostałe widoki nadal korzystają z dotychczasowego tła.
