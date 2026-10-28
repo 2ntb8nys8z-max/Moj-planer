@@ -257,3 +257,7 @@ Każda nazwa dnia używa tego samego rozmiaru dobranego pod najdłuższy „Poni
 ### Preview33 33.149 — pogoda w przezroczystym szkle
 
 Środek przycisku dnia i pogody jest prawie przezroczysty, dzięki czemu chmury pozostają widoczne. Mocniejsze rozmycie, kontrast i refleks są skupione w trzy-pikselowej szklanej obwódce, zgodnej z dolnym paskiem nawigacji.
+
+### Preview33 33.150 — miesiąc pod numerem tygodnia
+
+Numer tygodnia jest większą fioletową bańką, a nazwa miesiąca znajduje się bezpośrednio pod nim jako duży tekst 21 px — bez przycisku, tła, ramki i cienia kafla.

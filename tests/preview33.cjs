@@ -17,8 +17,8 @@ for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.10\.27\.33\.149-integration/);
-assert.match(preview,/Aplikacja: 2026\.10\.27\.33\.149-test/);
+assert.match(root,/Aplikacja: 2026\.10\.28\.33\.150-integration/);
+assert.match(preview,/Aplikacja: 2026\.10\.28\.33\.150-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -34,6 +34,8 @@ for(const page of [root,preview]){
   assert.doesNotMatch(page,/phone-day-weekday\.long/,'weekday typography must not resize when the selected day changes');
   assert.match(page,/\.phone-layout \.daybar h2\{[^}]*background:#b8d4e404[^}]*backdrop-filter:blur\(1\.5px\)/,'the weather button must keep the sky visible through its clear center');
   assert.match(page,/\.phone-layout \.daybar h2:before\{[^}]*padding:3px[^}]*backdrop-filter:blur\(7px\)/,'the weather button must concentrate refraction in its glass rim');
+  assert.match(page,/calendarMonth=document\.createElement\('span'\)/,'the month label must be plain text rather than a button');
+  assert.match(page,/\.phone-layout \.phone-calendar-month\{[^}]*top:59px[^}]*border:0[^}]*background:none[^}]*font:750 21px/,'the larger plain month label must sit under the week bubble');
 }
 assert.match(preview,/generowany automatycznie z kanonicznego frontendu/);
 assert.match(preview,/const PREVIEW33_PREFIX='planner-preview-33:'/);
@@ -67,10 +69,10 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.10.27.33.149-test');
+assert.equal(release.version,'2026.10.28.33.150-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
 
-console.log('Preview 33.149: clear sky-through weather glass verified.');
+console.log('Preview 33.150: plain month label below the week bubble verified.');
