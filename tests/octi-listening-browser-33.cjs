@@ -22,6 +22,8 @@ const state=page=>page.locator('#state').innerText().then(JSON.parse);
    assert.ok(pixels.blue>1000&&pixels.white>50,'Actual rendered pixels contain the blue Okti and bright microphone marks');assert.ok(pixels.width<=180,'Phone test uses the actual small icon rather than an enlarged movie');
    if(width===390){await page.waitForTimeout(6200);assert.equal((await state(page)).approach,1,'Recording longer than the preview remains listening');}
    await page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await page.waitForTimeout(250);assert.ok((await state(page)).approach>0&&(await state(page)).approach<1);
+   await page.waitForFunction(()=>{const layer=document.querySelector('.octi-listening-media'),opacity=Number(getComputedStyle(layer).opacity);return layer.classList.contains('is-rendered')&&opacity>.05&&opacity<.9});
+   assert.equal(await page.locator('.octi-listening-canvas').evaluate(canvas=>getComputedStyle(canvas).opacity),'1','The rendered canvas remains visible throughout the dissolve');
    await page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent);return !s.rendering&&s.approach===0});
    await page.getByRole('button',{name:'Szybki start i stop',exact:true}).click();await page.waitForTimeout(1200);assert.equal((await state(page)).approach,0,'A short recording returns without getting stuck');
    await page.getByRole('button',{name:'Ogranicz ruch',exact:true}).click();await page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.octi-listening-media.is-fallback'));assert.match(await page.locator('.octi-listening-fallback').getAttribute('src'),/poster/);
