@@ -76,11 +76,15 @@ jobs:
           ref: main
           path: pages
 
+      - name: Stage event-driven Okti listening artwork
+        run: cp integration/preview33/octi-listening* "$RUNNER_TEMP/preview33/"
+
       - name: Publish only Preview33 artifacts
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
           mkdir -p pages/preview33/fonts
+          cp "$RUNNER_TEMP/preview33/"octi-listening* pages/preview33/
           cp "$RUNNER_TEMP/preview33/fonts/"* pages/preview33/fonts/
           cp "$RUNNER_TEMP/preview33/index.html" pages/preview33/index.html
           cp "$RUNNER_TEMP/preview33/release.json" pages/preview33/release.json
@@ -91,6 +95,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -u preview33
+          git add preview33/octi-listening*
           git add preview33/fonts preview33/index.html preview33/release.json preview33/worker.txt preview33/google-calendar.js preview33/sync-core.js preview33/manifest.webmanifest preview33/app-icon-180.png preview33/app-icon-512.png preview33/header-sky.webp preview33/octi-water-glass.webp preview33/octi-water-mascot.webp preview33/octi-water-motion.mp4 preview33/octi-water-motion.webp preview33/octi-water-motion-poster.webp preview33/shopping-paper-top.webp preview33/shopping-paper-body.webp preview33/shopping-paper-bottom.webp preview33/shopping-update-button.webp preview33/shopping-close-x-v2.webp preview33/shopping-purchased-note-v3.webp
           if git diff --cached --quiet; then
             echo "Preview33 is already current."

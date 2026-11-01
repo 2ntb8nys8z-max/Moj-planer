@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.10.28.33.151-integration';
-const PREVIEW_VERSION='2026.10.28.33.151-test';
+const APP_VERSION='2026.11.01.33.152-integration';
+const PREVIEW_VERSION='2026.11.01.33.152-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.10.12.33.36-test';
 const WORKER_LABEL='Worker 33.36-test';
@@ -38,14 +38,20 @@ const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16
 worker=worker.replace('const BUILD_ID="development";',`const BUILD_ID="${workerBuildId}";`);
 
 let canonical=fs.readFileSync('index.html','utf8');
-canonical=canonical.replace(/Aplikacja: 2026\.10\.\d{2}\.\d+(?:\.[^ ·<]+)?/,'Aplikacja: '+APP_VERSION);
-canonical=canonical.replace(/appVersion:'2026\.10\.\d{2}\.\d+(?:\.[^']+)?'/,`appVersion:'${APP_VERSION}'`);
+canonical=canonical.replace(/Aplikacja: 2026\.\d{2}\.\d{2}\.\d+(?:\.[^ ·<]+)?/,'Aplikacja: '+APP_VERSION);
+canonical=canonical.replace(/appVersion:'2026\.\d{2}\.\d{2}\.\d+(?:\.[^']+)?'/,`appVersion:'${APP_VERSION}'`);
 canonical=canonical.replace(/EXPECTED_WORKER_VERSION='[^']*'/,`EXPECTED_WORKER_VERSION='${WORKER_VERSION}'`).replace(/EXPECTED_WORKER_BUILD_ID='[^']*'/,`EXPECTED_WORKER_BUILD_ID='${workerBuildId}'`);
 
 const skyBuildId=createHash('sha256').update(fs.readFileSync('header-sky.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sky\.webp(?:\?v=[a-z0-9]+)?/g,'header-sky.webp?v='+skyBuildId);
 const sailboatBuildId=createHash('sha256').update(fs.readFileSync('header-sailboat.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sailboat\.webp(?:\?v=[a-z0-9]+)?/g,'header-sailboat.webp?v='+sailboatBuildId);
+const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp'];
+let listening=fs.readFileSync('octi-listening.js','utf8');
+for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
+output('octi-listening.js',listening,false);
+const listeningBuildId=createHash('sha256').update(listening).digest('hex').slice(0,16);
+canonical=canonical.replace(/octi-listening\.js(?:\?v=[a-z0-9]+)?/g,'octi-listening.js?v='+listeningBuildId);
 for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
@@ -80,5 +86,6 @@ output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);
