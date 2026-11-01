@@ -50,7 +50,7 @@ window.createOctiListeningArtwork=function(root,floating,motion,idleVideo){
  let starting=false,reason='',transition={from:0,to:0,start:0,duration:720};
  let turnTransition=null;
  const now=()=>performance.now();
- function value(t){const p=Math.max(0,Math.min(1,(t-transition.start)/transition.duration)),e=transition.to?1-(1-p)**3:smooth(p);return transition.from+(transition.to-transition.from)*e;}
+ function value(t){const p=Math.max(0,Math.min(1,(t-transition.start)/transition.duration)),e=smooth(p);return transition.from+(transition.to-transition.from)*e;}
  function turnValue(t){if(turnTransition){const p=smooth((t-turnTransition.start)/650);return turnTransition.from*(1-p)}return smooth((t-recordStart-550)/900);}
  function hide(){clearTimeout(hideTimer);layer.classList.remove('is-active','is-fallback','is-rendered');layer.style.removeProperty('opacity');layer.style.removeProperty('transition');rendering=starting=false;if(!isRecording)pose=headTurn=follow=0;if(raf)cancelAnimationFrame(raf);raf=0;video.pause();if(fallback.hasAttribute('src'))fallback.removeAttribute('src');}
  function showFallback(error=true){if(error!==false)failed=true;rendering=starting=false;video.pause();if(raf)cancelAnimationFrame(raf);raf=0;if(!visible)return;if(isRecording){const src=motion?.matches?FILES.poster:FILES.fallback;if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered')}else{layer.classList.remove('is-active');hideTimer=setTimeout(hide,700)}}
@@ -60,7 +60,12 @@ window.createOctiListeningArtwork=function(root,floating,motion,idleVideo){
   preparing=(async()=>{try{const [head,background]=await Promise.all([loadImage(FILES.head),loadImage(FILES.background)]);renderer=createRenderer(canvas,video,head,background);ready=true;if(isRecording&&visible)start();}catch(error){reason=error?.message||'Artwork unavailable';showFallback()}})();
   return preparing;
  }
- function animate(t){raf=0;if(!visible||motion?.matches){hide();return}pose=value(t);headTurn=turnValue(t);const dt=lastFrame?Math.min(.1,(t-lastFrame)/1000):1/30;lastFrame=t;follow+=(pose-follow)*(1-Math.exp(-dt/.07));// Keep drawing the returning pose while it dissolves into the already visible idle artwork.
+ function animate(t){raf=0;if(!visible||motion?.matches){hide();return}
+  // Start the approach with the first drawable frame, not while video/GPU setup is pending.
+  if(isRecording&&starting&&!rendering){transition.start=t;recordStart=t;lastFrame=t}
+  // A slow decoded frame must not consume an invisible part of the approach.
+  const elapsed=lastFrame?t-lastFrame:0;if(isRecording&&elapsed>50){transition.start+=elapsed-50;recordStart+=elapsed-50}
+  pose=value(t);headTurn=turnValue(t);const dt=lastFrame?Math.min(.1,(t-lastFrame)/1000):1/30;lastFrame=t;follow+=(pose-follow)*(1-Math.exp(-dt/.07));// Keep drawing the returning pose while it dissolves into the already visible idle artwork.
   // Align playback beneath the opaque listening layer at stop, never at this visible handoff.
   if(!isRecording){const opacity=1-smooth((t-transition.start-520)/400);layer.style.transition='none';layer.style.opacity=String(opacity);if(opacity===0&&pose<.0001){pose=headTurn=follow=0;hide();return}}
   if(video.currentTime!==lastVideoTime){lastVideoTime=video.currentTime;lastProgress=t}
