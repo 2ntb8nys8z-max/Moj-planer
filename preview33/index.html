@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.161</title>
+<title>Mój Planer — test integracji 33.162</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.161</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.161</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.161-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.162</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.162</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.162-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.161-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.162-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3019,6 +3019,22 @@ initializeEventCommands();
 @keyframes octi-discard-burst{0%{transform:scale(1);opacity:1}25%{transform:scale(.87,1.08);opacity:1}72%{transform:scale(1.38);opacity:.55}100%{transform:scale(1.6);opacity:0}}
 @keyframes octi-discard-spray{0%,15%{transform:translate(0,0) scale(.5);opacity:0}25%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
 @media(prefers-reduced-motion:reduce){.octi-dock .octi-motion-media,.octi-dock .octi-listening-media,.octi-dock .stage>.dismiss .dismiss-orb{animation:none!important}}
+/* 33.162: the same blue action bubble flows upward to become recording cancel. */
+.octi-dock .stage>.action-bubble,.phone-layout .octi-dock .stage>.action-bubble,#eventModal #eventFooter .octi-dock .stage>.action-bubble{position:absolute;left:calc(50% + 89px);top:50%;width:62px;height:62px;min-width:62px;min-height:62px;max-width:none;margin:0;padding:0;border:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:translate(-50%,-50%);transition:none;filter:none;color:#2675ac;overflow:visible;z-index:25;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.octi-dock .action-bubble:before,.octi-dock .action-bubble:after{display:none!important}
+.octi-dock .action-bubble:disabled{opacity:1}
+.octi-dock .action-skin{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 32% 21%,#f8feffbb,#b5dbef66 35%,#5ea3d430 72%,#e5f6ffaa);box-shadow:0 4px 8px #356e9124,inset 0 0 7px #d6f2ff;pointer-events:none;transform-origin:center}
+.octi-dock .action-glass{position:absolute;inset:-3%;width:106%;height:106%;max-width:none;pointer-events:none;animation:octi-action-idle 5.4s ease-in-out infinite}
+.octi-dock .action-warm{position:absolute;inset:9%;border-radius:50%;opacity:var(--action-warm,0);background:radial-gradient(ellipse at 58% 65%,#ee748f80,#e97e962b 48%,transparent 76%);box-shadow:inset 0 0 12px #ec859a55,0 0 9px #c64f6829;filter:blur(2px)}
+.octi-dock .action-rotation{position:absolute;inset:0;display:grid;place-items:center;transform-origin:center}
+.octi-dock .action-mark{position:relative;display:block;width:32px;height:32px}
+.octi-dock .action-mark:before,.octi-dock .action-mark:after{content:'';position:absolute;left:50%;top:50%;width:32px;height:5px;border-radius:5px;background:linear-gradient(180deg,var(--action-top,#68c7ed),var(--action-bottom,#2675ac));box-shadow:inset 0 1px 1px #ffffffb0,inset 0 -1px 1px #16496b38,0 1px 2px #35688330;transform:translate(-50%,-50%)}
+.octi-dock .action-mark:after{transform:translate(-50%,-50%) rotate(90deg)}
+.octi-dock[data-action-moving] .action-glass{animation:none}
+@keyframes octi-action-idle{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-1px) scale(1.015,.99)}70%{transform:translateY(.5px) scale(.992,1.01)}}
+@keyframes octi-bubble-drift{0%,100%{translate:0 0;rotate:-.6deg}28%{translate:2.5px -4px;rotate:1deg}57%{translate:-2px -1.5px;rotate:-.7deg}80%{translate:-1px 1.5px;rotate:.2deg}}
+@media(prefers-reduced-motion:reduce){.octi-dock .action-glass{animation:none!important}}
+
 </style>
 <script src="octi-listening.js?v=1bbfbf01949311ad"></script>
 <script>
@@ -3155,6 +3171,41 @@ function octiMotionArtwork(root,floating,motion){
  return update;
 }
 
+// One existing action target changes presentation; recording logic remains authoritative.
+function octiActionBubble(root,toggle,stage,recorder,motion,setMenu,channel){
+ stage.append(toggle);toggle.classList.add('action-bubble');
+ toggle.innerHTML='<span class="action-skin" aria-hidden="true"><img class="action-glass" src="octi-water-glass.webp?v=babdb581839accf9" alt=""><span class="action-warm"></span><span class="action-rotation"><span class="action-mark"></span></span></span>';
+ const skin=toggle.querySelector('.action-skin'),rotation=toggle.querySelector('.action-rotation');
+ let target=false,amount=0,flow=0,frame=0,lastTime=0,elapsed=0,from=0,fromFlow=0,visible=true;
+ function paint(e,stretchFlow){
+  amount=e;flow=stretchFlow;const circle=recorder.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!circle.width)return;
+  const cx=circle.left+circle.width/2-box.left,cy=circle.top+circle.height/2-box.top,distance=circle.width/2+39,angle=Math.atan2(89,63)*e,radius=distance+(Math.hypot(63,89)/110-1)*distance*e,size=1-.28*e,stretch=1+.34*stretchFlow,tilt=-angle*180/Math.PI,warm=Math.max(0,Math.min(1,e));
+  toggle.style.left=(cx+radius*Math.cos(angle))+'px';toggle.style.top=(cy-radius*Math.sin(angle))+'px';
+  skin.style.transform=`rotate(${tilt}deg) scale(${size/stretch},${size*stretch}) rotate(${-tilt}deg)`;
+  rotation.style.transform=`rotate(${45*e}deg)`;
+  const rgb=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*warm)).join(',');
+  skin.style.setProperty('--action-top',`rgb(${rgb([104,199,237],[242,147,164])})`);skin.style.setProperty('--action-bottom',`rgb(${rgb([38,117,172],[196,65,98])})`);skin.style.setProperty('--action-warm',String(warm));
+ }
+ function stop(){cancelAnimationFrame(frame);frame=0;delete root.dataset.actionMoving;}
+ function settle(){stop();paint(target?1:0,0);}
+ function animate(now){
+  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;const p=Math.min(1,elapsed/1900),stopAt=.72;let travel,arrival=0;
+  if(p<=stopAt){const u=p/stopAt,m=stopAt*.045*4*Math.PI/(1-stopAt);travel=(m-2)*u*u*u+(3-m)*u*u;}
+  else{const u=(p-stopAt)/(1-stopAt);arrival=Math.sin(u*Math.PI*4)*(1-u)*(1-u);travel=1+.045*arrival;}
+  const changing=(target?1:0)-from,shape=p<stopAt?Math.sin(Math.PI*p/stopAt)**2:.12*arrival;
+  paint(from+changing*travel,shape*Math.min(1,Math.abs(changing))+fromFlow*(1-p));
+  if(p<1&&visible&&!document.hidden)frame=requestAnimationFrame(animate);else settle();
+ }
+ function update(show,enabled,isVisible){
+  visible=isVisible;toggle.disabled=!enabled;root.dataset.actionState=show?'cancel':'menu';toggle.setAttribute('aria-label',show?'Skasuj nagranie':root.querySelector('.extras').classList.contains('expanded')?'Zwiń dodatkowe działania':'Dodatkowe działania');
+  if(show!==target){target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');stop();from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';frame=requestAnimationFrame(animate);}}
+  else if((!visible||document.hidden||motion?.matches)&&frame)settle();else if(!frame)paint(target?1:0,0);
+ }
+ toggle.onclick=()=>{const state=plannerRecordings[channel];if(state&&state.mode!=='sending'){cancelPlannerRecording(channel);update(false,true,visible);}else if(!state&&!voiceDialogues[channel]?.busy)setMenu(!root.querySelector('.extras').classList.contains('expanded'));};
+ window.addEventListener('resize',()=>paint(amount,flow));document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
+ requestAnimationFrame(()=>paint(0,0));return update;
+}
+
 function initializeOctiDocks(){
  const icons={camera:entryIcon('camera'),recorder:entryIcon('recorder'),keyboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg>',people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/><path d="M19 3v4M17 5h4"/></svg>'};
  const definitions=[['main','voice',document.querySelector('.voice-area')],['event','eventVoice',$('eventFooter')],['idea','ideaVoice',document.querySelector('.entry-footer')]];
@@ -3192,41 +3243,8 @@ function initializeOctiDocks(){
   toggle.onclick=()=>setMenu(!extras.classList.contains('expanded'));
   const extraActions=[['camera','Zrób zdjęcie'],['recorder','Nagraj notatkę głosową'],['keyboard','Edytuj ręcznie']];if(channel==='event')extraActions.push(['people','Dodaj osoby']);
   for(const [kind,label] of extraActions){const button=document.createElement('button');button.type='button';button.className='extra '+kind;button.disabled=true;button.setAttribute('aria-label',label);button.innerHTML=icons[kind]+(kind==='recorder'?'<span>REC <b class="red-dot"></b></span>':'');button.onclick=()=>{setMenu(false);if(kind==='keyboard')octiManualAction();else if(kind==='people')openEventPeoplePicker();else octiMediaAction(kind==='camera'?'photo':'audio')};menu.append(button);}
-  const dismiss=root.querySelector('.dismiss');stage.append(dismiss);dismiss.innerHTML='<span class="dismiss-orb" aria-hidden="true"><span class="dismiss-glyph">×</span></span>';dismiss.onclick=()=>{if(!motion?.matches&&!dismiss.hidden){const box=dismiss.querySelector('.dismiss-orb').getBoundingClientRect(),pop=document.createElement('span');pop.className='octi-discard-pop';pop.setAttribute('aria-hidden','true');pop.style.left=box.left+'px';pop.style.top=box.top+'px';pop.innerHTML='<span class="pop-ring"></span>';for(let i=0;i<7;i++){const bead=document.createElement('span'),angle=i*Math.PI*2/7;bead.className='pop-bead';bead.style.setProperty('--dx',Math.cos(angle)*31+'px');bead.style.setProperty('--dy',Math.sin(angle)*29+7+'px');pop.append(bead)}document.body.append(pop);setTimeout(()=>pop.remove(),560)}cancelPlannerRecording(channel);updateDismissBud(false);dismiss.hidden=true;liquid.setAttribute('hidden','')};
-  const liquid=document.createElementNS('http://www.w3.org/2000/svg','svg');liquid.classList.add('dismiss-flow');liquid.setAttribute('viewBox','0 0 120 120');liquid.setAttribute('aria-hidden','true');liquid.setAttribute('focusable','false');liquid.setAttribute('hidden','');
-  const liquidId='octi-cancel-liquid-'+channel;
-  liquid.setAttribute('viewBox','0 0 260 260');
-  liquid.innerHTML=`<defs><mask id="${liquidId}-mask"><rect width="260" height="260" fill="white"/><circle class="dismiss-cut" cx="170" cy="170" r="50" fill="black"/></mask><filter id="${liquidId}" x="-35%" y="-45%" width="175%" height="185%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="soft"/><feColorMatrix in="soft" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 22 -10" result="skin"/><feMorphology in="skin" operator="erode" radius="1.5" result="inner"/><feComposite in="skin" in2="inner" operator="out" result="rimMask"/><feFlood flood-color="#328dc4" flood-opacity=".9" result="blue"/><feComposite in="blue" in2="rimMask" operator="in" result="rim"/><feFlood flood-color="#a6deff" flood-opacity=".08" result="fill"/><feComposite in="fill" in2="skin" operator="in" result="glassFill"/><feSpecularLighting in="soft" surfaceScale="4" specularConstant=".8" specularExponent="22" lighting-color="#ffffff" result="shine"><feDistantLight azimuth="225" elevation="55"/></feSpecularLighting><feColorMatrix in="shine" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .333 .333 .333 0 0" result="transparentShine"/><feComposite in="transparentShine" in2="skin" operator="in" result="clippedShine"/><feMerge><feMergeNode in="glassFill"/><feMergeNode in="rim"/><feMergeNode in="clippedShine"/></feMerge></filter></defs><g mask="url(#${liquidId}-mask)"><g fill="white" filter="url(#${liquidId})"><circle class="dismiss-source" cx="170" cy="170" r="56"/><ellipse class="dismiss-tip" cx="130" cy="130" rx="0" ry="0"/></g><ellipse class="dismiss-glint" rx="5.3" ry="1.9" fill="white" opacity="0"/></g>`;
-  stage.append(liquid);
-  // The neck is painted without SVG filters, whose compositing differs in WebKit.
-  // The detached glass is the button's own background, so its X cannot drift away.
-  const budCanvas=document.createElement('canvas');budCanvas.className='dismiss-canvas';budCanvas.width=budCanvas.height=520;budCanvas.hidden=true;budCanvas.setAttribute('aria-hidden','true');stage.append(budCanvas);
-  let budContext=null,budPixels=null;
-  function paintDismissBud(radius,x,y,r,squeeze,t){
-   if(t>=1||r<.1){budCanvas.hidden=true;return}budCanvas.hidden=false;
-   if(!budContext){budContext=budCanvas.getContext('2d');if(!budContext)return;budPixels=budContext.createImageData(520,520)}
-   const data=budPixels.data;data.fill(0);const k=12*Math.min(1,r/19)*(1-Math.max(0,Math.min(1,(t-.72)/.2))),fade=1-Math.max(0,Math.min(1,(t-.79)/.14));
-   for(let py=Math.max(0,Math.floor((y-r-16)*2));py<Math.min(520,Math.ceil((170+radius+3)*2));py++)for(let px=Math.max(0,Math.floor((x-r-16)*2));px<Math.min(520,Math.ceil((170+radius+3)*2));px++){
-    const u=(px+.5)/2,v=(py+.5)/2,source=Math.hypot(u-170,v-170)-radius;if(source< -2)continue;
-    const dx=u-x,dy=v-y,along=(dx+dy)/Math.SQRT2,across=(dx-dy)/Math.SQRT2,bud=Math.hypot(along*squeeze,across/squeeze)-r,h=k?Math.max(k-Math.abs(source-bud),0)/k:0,d=Math.min(source,bud)-h*h*k*.25;
-    if(d>1)continue;const coverage=Math.min(1,Math.max(0,.5-d*2)),edge=Math.min(1,Math.max(0,(d+2)/2)),highlight=Math.max(0,Math.min(1,(-dx-dy)/Math.max(1,r*1.5))),a=(.07+edge*.78)*coverage*(source<bud?Math.max(0,1-t):fade),i=(py*520+px)*4;
-    data[i]=50+highlight*175;data[i+1]=145+highlight*100;data[i+2]=199+highlight*56;data[i+3]=Math.round(255*a);
-   }
-   budContext.putImageData(budPixels,0,0);
-  }
-  let budFrame=0,budStart=0,budVisible=false,budProgress=0;
-  function drawDismissBud(t){
-   const main=oldButton.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!main.width)return;
-   const cx=main.left+main.width/2-box.left,cy=main.top+main.height/2-box.top,radius=main.width*.56,smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)},grow=smooth(t/.5),stretch=smooth((t-.34)/.43),release=smooth((t-.77)/.12),distance=radius-3+19*grow+12*stretch+3*release,wobble=t>.86?Math.sin((t-.86)*Math.PI*18)*Math.exp(-(t-.86)*19):0,r=19*grow,squeeze=1-.12*Math.sin(Math.PI*stretch)+.09*wobble,x=170-distance/Math.sqrt(2),y=x;
-   liquid.style.left=(cx-170)+'px';liquid.style.top=(cy-170)+'px';liquid.querySelector('.dismiss-source').setAttribute('r',radius);liquid.querySelector('.dismiss-cut').setAttribute('r',Math.max(0,radius-3));
-   const tip=liquid.querySelector('.dismiss-tip');for(const [key,value] of Object.entries({cx:x,cy:y,rx:r*squeeze,ry:r/squeeze,transform:`rotate(-45 ${x} ${y})`}))tip.setAttribute(key,value);
-   const glint=liquid.querySelector('.dismiss-glint');glint.setAttribute('cx',x-r*.3);glint.setAttribute('cy',y-r*.56);glint.setAttribute('opacity',grow*.85);
-   budCanvas.style.left=liquid.style.left;budCanvas.style.top=liquid.style.top;paintDismissBud(radius,x,y,r,squeeze,t);
-   dismiss.style.left=(cx+x-170)+'px';dismiss.style.top=(cy+y-170)+'px';dismiss.style.opacity=String(smooth((t-.79)/.14));dismiss.style.pointerEvents=t>.8?'auto':'none';
-  }
-  function fitDismissFlow(){drawDismissBud(budProgress)}
-  function updateDismissBud(show){if(show===budVisible)return;budVisible=show;cancelAnimationFrame(budFrame);budFrame=0;if(!show){dismiss.style.opacity='0';budCanvas.hidden=true;return}budProgress=motion?.matches?1:0;budStart=performance.now();drawDismissBud(budProgress);if(motion?.matches)return;const frame=now=>{if(!budVisible)return;budProgress=Math.min(1,(now-budStart)/2900);drawDismissBud(budProgress);if(budProgress<1)budFrame=requestAnimationFrame(frame)};budFrame=requestAnimationFrame(frame)}
-  window.addEventListener('resize',fitDismissFlow);
+  root.querySelector('.dismiss').remove();
+  const updateActionBubble=octiActionBubble(root,toggle,stage,oldButton,motion,setMenu,channel);
   const hints=['Naciśnij i mów',...(channel==='main'?['Dodaj do kalendarza','Zrób listę','Nagraj notatkę','Wyszukaj']:['Zmień godzinę','Dodaj notatkę','Ustaw przypomnienie','Zmień nazwę'])];
   const reel=root.querySelector('.reel'),strip=root.querySelector('.commands');strip.onclick=()=>{if(!oldButton.disabled)oldButton.click()};let current=0,lastHint=Date.now(),hintDelay=2600,lastState=null;
   function renderHints(){
@@ -3249,12 +3267,12 @@ function initializeOctiDocks(){
   const tick=()=>{
    const state=plannerRecordings[channel],mode=state?.mode|| (voiceDialogues[channel]?.busy?'sending':'idle');
    if(mode==='recording'&&lastState!=='recording')startedAt=state.deadline-RECORDING_SECONDS*1000;
-   if(stage.classList.contains('recording')!==(mode==='recording'))stage.classList.toggle('recording',mode==='recording');if(stage.classList.contains('ready')!==(mode==='ready'))stage.classList.toggle('ready',mode==='ready');const showDismiss=!!state&&mode!=='sending';if(dismiss.hidden&&showDismiss)fitDismissFlow();dismiss.hidden=!showDismiss;liquid.toggleAttribute('hidden',!showDismiss);
+   if(stage.classList.contains('recording')!==(mode==='recording'))stage.classList.toggle('recording',mode==='recording');if(stage.classList.contains('ready')!==(mode==='ready'))stage.classList.toggle('ready',mode==='ready');const showDismiss=!!state&&mode!=='sending';
    const status=root.querySelector('.status');const statusText=mode==='recording'?'Nagrywam · '+entryTime(Math.max(0,(Date.now()-startedAt)/1000)):mode==='opening'?'Uruchamiam…':mode==='sending'?'Przetwarzam…':mode==='ready'?'Wyślij nagranie':'Naciśnij i mów';if(status.textContent!==statusText)status.textContent=statusText;
    if(lastState!==mode){root.dataset.mode=mode;status.setAttribute('aria-hidden',String(mode==='idle'));oldButton.setAttribute('aria-label',mode==='recording'?'Zatrzymaj i wyślij nagranie':mode==='ready'?'Wyślij nagranie':'Naciśnij i mów');oldButton.setAttribute('aria-pressed',String(mode==='recording'));oldButton.disabled=mode==='opening'||mode==='sending';strip.disabled=oldButton.disabled;strip.setAttribute('aria-label',oldButton.getAttribute('aria-label'));lastState=mode;}
    const visible=channel==='main'?octiCurrentContext()==='main':octiCurrentContext()===channel;
    if(visible&&mode==='idle'&&!motion?.matches&&!document.hidden&&getComputedStyle(strip).visibility!=='hidden'&&Date.now()-lastHint>hintDelay){lastHint=Date.now();reel.firstElementChild?.classList.add('outgoing');current=(current+1)%hints.length;setTimeout(renderHints,250);}
-   updateDismissBud(showDismiss&&visible&&!document.hidden);updateLogo();if(!visible)setMenu(false);
+   updateActionBubble(showDismiss,mode!=='sending',visible);updateLogo();if(!visible)setMenu(false);
   };setInterval(tick,200);
  }
 }
