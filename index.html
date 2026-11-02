@@ -3109,7 +3109,7 @@ function octiMotionArtwork(root,floating,motion){
  fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
  fallback.addEventListener('error',()=>{if(fallback.hasAttribute('src')){fallbackFailed=true;layer.classList.remove('is-fallback');}});
  function stop(preserveFrame=false){
-  wanted=false;if(!preserveFrame){layer.classList.remove('is-playing');useFallback(false);}lastProgress=0;attempted=false;
+  wanted=false;if(!preserveFrame)layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
   if(!video.paused||pending)video.pause();
   if(octiActiveMotionStop===stop)octiActiveMotionStop=null;
  }
