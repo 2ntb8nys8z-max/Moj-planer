@@ -32,6 +32,17 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    const geometry=await dock.evaluate(root=>{const b=root.querySelector('.voice'),r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),app=document.querySelector('.app');return {hit:hit===b||b.contains(hit),width:r.width,bottom:r.bottom,overflow:document.documentElement.scrollWidth>innerWidth,verticalOverflow:app.scrollHeight-app.clientHeight,muted:root.querySelector('video').muted,inline:root.querySelector('video').playsInline}});
    assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,0,'Decorative video margins cannot create scrollable app overflow');assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
+   // Holding the real button must not dim, shrink or shift either artwork layer.
+   const voice=dock.locator('.voice'),pressStyles=()=>voice.evaluate(button=>{
+    const style=getComputedStyle(button),floatStyle=getComputedStyle(button.closest('.stage').querySelector('.water-float'));
+    return {filter:style.filter,transform:style.transform,tap:style.webkitTapHighlightColor,floating:floatStyle.transform};
+   });
+   const resting=await pressStyles(),buttonBox=await voice.boundingBox();
+   await page.mouse.move(buttonBox.x+buttonBox.width/2,buttonBox.y+buttonBox.height/2);await page.mouse.down();
+   assert.equal(await voice.evaluate(button=>button.matches(':active')),true);
+   const pressed=await pressStyles();assert.deepEqual(pressed,resting,'Holding Okti keeps its brightness and artwork position');
+   assert.equal(pressed.filter,'none');assert.equal(pressed.tap,'rgba(0, 0, 0, 0)');
+   await page.mouse.move(1,1);await page.mouse.up();
    const media=dock.locator('.octi-motion-media'),drift=await media.evaluate(el=>getComputedStyle(el).translate);await page.waitForTimeout(350);assert.notEqual(await media.evaluate(el=>getComputedStyle(el).translate),drift,'The visible bubble drifts gently');
    if(width===390){await page.evaluate(()=>{plannerRecordings.main={mode:'opening'}});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='opening');const openingTime=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>!v.paused&&v.currentTime)>openingTime,'Microphone permission and setup do not freeze the visible idle clip');}
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]}});
@@ -111,7 +122,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
      await page.waitForFunction(mode=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode===mode,mode);
-     assert.equal(await dock.locator('.commands').isVisible(),false,'The obsolete recorder ribbon stays hidden in every recorder state');if(mode==='opening')assert.equal(await video.evaluate(v=>v.paused),false,'Opening the microphone keeps the idle motion alive');else if(mode==='recording')await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);else assert.equal(await video.evaluate(v=>v.paused),true,'Idle playback pauses after the listening artwork takes over');
+     assert.equal(await dock.locator('.commands').isVisible(),false,'The obsolete recorder ribbon stays hidden in every recorder state');if(mode==='opening')assert.equal(await video.evaluate(v=>v.paused),false,'Opening the microphone keeps the idle motion alive');else if(mode==='recording')await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);else {const returnTime=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>!v.paused&&v.currentTime)>returnTime,'Idle motion continues beneath the return while waiting for the API');}
     }
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
     // Repeat with an already loaded event clip, when playback starts fastest.

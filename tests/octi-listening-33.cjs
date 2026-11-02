@@ -17,7 +17,7 @@ async function fixture({reduced=false,blocked=false,hanging=false,noGL=false}={}
  const update=(recording,visible=true)=>controller.update({visible,isRecording:recording});
  async function frames(ms,recording=true){for(let elapsed=0;elapsed<ms;elapsed+=40){clock+=40;for(const v of root.querySelectorAll('video'))if(!v.paused)v.currentTime=clock/1000%4.8;update(recording);const run=[...callbacks.values()];callbacks.clear();for(const fn of run)fn(clock);await Promise.resolve()}}
  async function settle(){for(let i=0;i<8;i++)await Promise.resolve()}
- return {dom,root,motion,controller,update,frames,settle,setMediaReady(value){mediaReady=value},get draws(){return draws}};
+ return {dom,root,motion,controller,update,frames,settle,setMediaReady(value){mediaReady=value},advance(ms){clock+=ms},get draws(){return draws}};
 }
 (async()=>{
  const delayed=await fixture();try{
@@ -30,7 +30,7 @@ async function fixture({reduced=false,blocked=false,hanging=false,noGL=false}={}
  const f=await fixture();try{
   f.update(true);await f.settle();await f.frames(1700);assert.equal(f.controller.getState().rendering,true);assert.equal(f.controller.getState().approach,1);assert.equal(f.controller.getState().gesture,1);assert.ok(f.draws>10);
   await f.frames(10500);assert.equal(f.controller.getState().approach,1,'Held listening must not cycle back to idle after the preview duration');assert.equal(f.controller.getState().rendering,true);
-  f.update(false);await f.frames(320,false);assert.ok(f.controller.getState().approach>0&&f.controller.getState().approach<1,'Stop returns through intermediate poses');await f.frames(400,false);assert.equal(f.controller.getState().approach,0);assert.equal(f.controller.getState().rendering,true,'The resting pose keeps drawing through the final dissolve');const layer=f.root.querySelector('.octi-listening-media');assert.ok(Number(layer.style.opacity)>0&&Number(layer.style.opacity)<1,'Return blends into the idle artwork instead of removing the canvas');assert.ok(layer.classList.contains('is-rendered'));await f.frames(320,false);assert.equal(f.controller.getState().rendering,false);assert.equal(layer.style.opacity,'');
+  f.update(false);await f.frames(320,false);assert.ok(f.controller.getState().approach>0&&f.controller.getState().approach<1,'Stop returns through intermediate poses');f.advance(600);await f.frames(40,false);assert.ok(f.controller.getState().approach>0,'A delayed return frame must not skip straight to idle');await f.frames(400,false);assert.equal(f.controller.getState().approach,0);assert.equal(f.controller.getState().rendering,true,'The resting pose keeps drawing through the final dissolve');const layer=f.root.querySelector('.octi-listening-media');assert.ok(Number(layer.style.opacity)>0&&Number(layer.style.opacity)<1,'Return blends into the idle artwork instead of removing the canvas');assert.ok(layer.classList.contains('is-rendered'));await f.frames(320,false);assert.equal(f.controller.getState().rendering,false);assert.equal(layer.style.opacity,'');
   f.update(true);await f.frames(240);f.update(false);await f.frames(120,false);const before=f.controller.getState().approach;f.update(true);assert.equal(f.controller.getState().approach,before,'Rapid restart retains the visible pose');await f.frames(1700);assert.equal(f.controller.getState().approach,1);
   f.update(true,false);assert.equal(f.controller.getState().rendering,false);assert.ok([...f.root.querySelectorAll('video')].every(v=>v.paused),'Hidden context releases all playback');
  }finally{f.controller.destroy();f.dom.window.close()}

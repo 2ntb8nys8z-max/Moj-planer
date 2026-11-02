@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.159-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.160-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.159-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.160-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2838,7 +2838,7 @@ initializeEventCommands();
 .phone-layout .octi-dock .stage.ready .water-float .water-shell{border:0;background:none;box-shadow:none;filter:drop-shadow(0 0 6px #5bbf8890)}
 .phone-layout .octi-dock .stage>.halo,.phone-layout .octi-dock .stage>.wave,.phone-layout .octi-dock .stage:before{display:none}
 .phone-layout .octi-dock .stage:after{width:calc(var(--octi-size,100px) * .76);height:9px;bottom:1px;background:#37689432;box-shadow:none;filter:blur(4px);z-index:0}
-.phone-layout .octi-dock .stage:has(.voice:active) .water-float{animation-play-state:paused;transform:translateY(2px) scale(.97)!important}
+
 .phone-layout .octi-dock .stage:has(.voice:active) .water-shell{animation-play-state:paused}
 @keyframes octi-water-float{0%,100%{transform:translate(0,0) rotate(-.6deg)}35%{transform:translate(1px,-2.5px) rotate(.7deg)}70%{transform:translate(-1px,1px) rotate(-.3deg)}}
 @keyframes octi-glass-flex{0%,100%{transform:scale(1)}30%{transform:scaleX(1.022) scaleY(.98) rotate(.4deg)}65%{transform:scaleX(.984) scaleY(1.018) rotate(-.4deg)}}
@@ -2990,6 +2990,17 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .stage>.dismiss-flow:not([hidden]){display:block!important}}
 .phone-layout .octi-dock .stage>.dismiss-flow:not([hidden]),.octi-dock .stage>.dismiss-flow{display:none!important}
 .octi-dock .stage>.dismiss-canvas{position:absolute;width:260px;height:260px;right:auto;bottom:auto;z-index:19;pointer-events:none}
+/* 33.160: keep the artwork stable on touch, including Safari's native tap overlay. */
+.octi-dock .voice,.phone-layout .octi-dock .voice{
+  -webkit-tap-highlight-color:transparent;
+  filter:none;
+  transform:none!important;
+  transition:none;
+}
+.octi-dock .voice:active,.phone-layout .octi-dock .voice:active{
+  filter:none;
+  transform:none!important;
+}
 /* 33.157: quiet recorder states, floating glass and a rose-tinted discard pop. */
 .octi-dock:not(.memo-open):not(.memo-saved) .octi-copy{visibility:hidden;pointer-events:none}
 .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{animation:octi-bubble-drift 7.4s ease-in-out infinite}
@@ -3005,7 +3016,7 @@ initializeEventCommands();
 @keyframes octi-discard-spray{0%,15%{transform:translate(0,0) scale(.5);opacity:0}25%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
 @media(prefers-reduced-motion:reduce){.octi-dock .octi-motion-media,.octi-dock .octi-listening-media,.octi-dock .stage>.dismiss .dismiss-orb{animation:none!important}}
 </style>
-<script src="octi-listening.js?v=ce44fa1a5f228d03"></script>
+<script src="octi-listening.js?v=1bbfbf01949311ad"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -3118,7 +3129,7 @@ function octiMotionArtwork(root,floating,motion){
   listening?.update({visible,opening:root.dataset.mode==='opening',isRecording:root.dataset.mode==='recording'});
   const mode=root.dataset.mode,listeningState=listening?.getState();
   const awaitingListening=mode==='opening'||(mode==='recording'&&listeningState&&!listeningState.rendering&&!listeningState.fallback);
-  const eligible=visible&&(mode==='idle'||awaitingListening)&&!motion?.matches;
+  const eligible=visible&&(mode==='idle'||mode==='sending'||mode==='ready'||awaitingListening)&&!motion?.matches;
   wanted=Boolean(eligible);
   if(!wanted){stop(visible&&!motion?.matches&&!!listeningState?.rendering);return;}
   // Transfer playback ownership synchronously, before the new context starts.
