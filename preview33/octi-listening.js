@@ -65,7 +65,7 @@ window.createOctiListeningArtwork=function(root,floating,motion,idleVideo){
   // Start the approach with the first drawable frame, not while video/GPU setup is pending.
   if(isRecording&&starting&&!rendering){transition.start=t;recordStart=t;lastFrame=t}
   // A slow decoded frame must not consume an invisible part of the approach.
-  const elapsed=lastFrame?t-lastFrame:0;if(isRecording&&elapsed>50){transition.start+=elapsed-50;recordStart+=elapsed-50}
+  const elapsed=lastFrame?t-lastFrame:0;if(elapsed>50){transition.start+=elapsed-50;recordStart+=elapsed-50;if(turnTransition)turnTransition.start+=elapsed-50}
   pose=value(t);headTurn=turnValue(t);const dt=lastFrame?Math.min(.1,(t-lastFrame)/1000):1/30;lastFrame=t;follow+=(pose-follow)*(1-Math.exp(-dt/.07));// Keep drawing the returning pose while it dissolves into the already visible idle artwork.
   // Align playback beneath the opaque listening layer at stop, never at this visible handoff.
   if(!isRecording){const opacity=1-smooth((t-transition.start-520)/400);layer.style.transition='none';layer.style.opacity=String(opacity);if(opacity===0&&pose<.0001){pose=headTurn=follow=0;hide();return}}
