@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.166</title>
+<title>Mój Planer — test integracji 33.167</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.166</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.166</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.166-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.167</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.167</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.167-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.166-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.167-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2220,6 +2220,28 @@ function initializePhoneSkin(){
  function renderPhoneDateNavigation(value,pick){
   updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}$('dayTitle').append(weekday,weather);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':''));strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}
  }
+ function phoneTravelMinutes(from,to){
+  const values=[to.task?.travelMinutes,to.task?.travel?.durationMinutes,from.task?.travelToNextMinutes],minutes=values.map(Number).find(value=>Number.isFinite(value)&&value>0);
+  if(minutes)return Math.round(minutes);
+  // Until Google Routes is connected, only the isolated integration preview uses a visual sample.
+  return document.title.includes('test integracji')?40:null;
+ }
+ function phoneTravelCar(){return '<svg viewBox="0 0 36 24" aria-hidden="true" focusable="false"><path d="M3 16h3l2-6h14l5 6h5v3h-3m-22 0H3v-3m7 3h12M11 10l3-5h7l4 5"/><circle cx="10" cy="19" r="2.4"/><circle cx="26" cy="19" r="2.4"/></svg>'}
+ function phoneRenderTravelAnimation(timeline,events,position){
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+  const candidates=events.filter(event=>!event.anchor).sort((a,b)=>a.start-b.start||a.end-b.end);
+  let pair=null,minutes=null;
+  for(let index=0;index<candidates.length-1;index++){
+   const from=candidates[index],to=candidates[index+1],origin=plannerLocation(from.task),destination=plannerLocation(to.task),duration=phoneTravelMinutes(from,to);
+   if(!origin||!destination||plannerLocationKey(origin)===plannerLocationKey(destination)||from.end>to.start||to.start-from.end<15||!duration)continue;
+   pair={from,to};minutes=duration;break;
+  }
+  if(!pair)return;
+  const cue=document.createElement('span');cue.className='phone-travel-animation';cue.setAttribute('aria-hidden','true');cue.innerHTML=phoneTravelCar()+'<strong>'+minutes+' min</strong>';timeline.append(cue);
+  const width=timeline.clientWidth||360,startY=position(pair.from.end)-16,endY=position(pair.to.start)-16,startX=Math.max(90,width-132),endX=startX-4,deltaY=endY-startY;
+  if(deltaY<30){cue.remove();return}
+  cue.style.left=startX+'px';cue.style.top=startY+'px';cue.style.setProperty('--travel-mid-x',Math.min(28,Math.max(14,width-startX-98))+'px');cue.style.setProperty('--travel-mid-y',(deltaY*.48).toFixed(1)+'px');cue.style.setProperty('--travel-end-x',(endX-startX)+'px');cue.style.setProperty('--travel-end-y',deltaY.toFixed(1)+'px');
+ }
  renderDay=function(){
  if($('ideasView').classList.contains('hidden'))renderPhoneDateNavigation(selected,date=>{selected=date;$('date').value=iso(selected);renderDay()});updatePhoneToday('day');
  const list=$('taskList');list.replaceChildren();const date=iso(selected);for(const task of tasks.filter(t=>t.date===date&&!t.time)){const b=entryButton('Całodniowe · '+task.title,()=>openEventActions(task),'entry-deadline-row');list.append(b)}
@@ -2229,6 +2251,7 @@ function initializePhoneSkin(){
  const hourLabels=new Map();for(let minute=from;minute<=to;minute+=60){if(axis.compressed.some(span=>minute>span.start&&minute<span.end))continue;const hour=document.createElement('div');hour.className='phone-hour';hour.dataset.minute=String(minute);hour.style.top=position(minute)+'px';hour.innerHTML='<span>'+String(Math.floor(minute/60)).padStart(2,'0')+':00</span>';timeline.append(hour);hourLabels.set(minute,hour.querySelector('span'))}
  for(const gap of axis.gaps){const block=document.createElement('div');block.className='phone-free-time';block.style.top=(position(gap.start)+4)+'px';const duration=gap.end-gap.start,h=Math.floor(duration/60),m=duration%60;block.innerHTML='<strong>Wolny czas · '+(h?h+' godz. ':'')+(m?m+' min':'')+'</strong><span>'+phoneClock(gap.start)+'–'+phoneClock(gap.end)+'</span>';timeline.append(block)}
  for(const e of events){const geometry=phoneEventGeometry(e),eventHeight=Math.max(phoneEventMinimumHeight(e),position(e.end)-position(e.start)-2),mode=phoneEventTextMode(e,eventHeight),left=phoneTrackPosition(geometry.start,geometry.startInset),width=phoneTrackWidth(geometry.start,geometry.end,4,geometry.startInset,geometry.endInset),stack=e.stack||0,layered=stack>0||e.lane>0,location=plannerLocation(e.task);const b=entryButton(e.task.title,()=>openEventActions(e.task),'phone-event'+(layered?' layered':'')+(e.task.done?' done':''));b.dataset.eventId=e.task.id;b.dataset.lane=String(e.lane);b.dataset.lanes=String(e.lanes);b.dataset.stack=String(stack);b.dataset.textMode=mode;b.style.left=left;b.style.width=width;b.style.right='auto';b.style.top=position(e.start)+'px';b.style.height=eventHeight+'px';b.style.zIndex=String(10+stack*2);b.setAttribute('aria-label',e.task.title+' · '+phoneClock(e.start)+'–'+phoneClock(e.end)+(location?' · Lokalizacja: '+location:'')+' · '+syncLabel(e.task));timeline.append(b);const title=document.createElement('span');title.className='phone-event-title '+(e.lanes>1?'narrow ':'')+(e.lanes>=4?'crowded ':'')+mode+(layered?' layered':'')+(e.task.done?' done':'');title.style.left=left;title.style.width=width;title.style.right='auto';title.style.top=position(e.start)+'px';const textHeight=Math.min(eventHeight,mode==='single-line'?Math.max(48,phoneEventMinimumHeight(e)):mode==='lines-3'?74:56);let textTop=position(e.start);for(const overlay of events.filter(other=>other.anchor===e)){const overlayTop=position(overlay.start),overlayBottom=overlayTop+Math.max(phoneEventMinimumHeight(overlay),position(overlay.end)-overlayTop-2);if(textTop+textHeight<=overlayTop)break;if(textTop<overlayBottom)textTop=overlayBottom+2}title.style.top=Math.min(textTop,position(e.start)+eventHeight-textHeight)+'px';title.style.height=textHeight+'px';title.style.maxHeight=textHeight+'px';title.style.zIndex=String(11+stack*2);const text=document.createElement('span');text.className='phone-event-title-text';text.textContent=e.task.title;const time=document.createElement('small');time.className='phone-event-time';if(location){const locationIcon=document.createElement('span');locationIcon.className='phone-event-location-icon';locationIcon.innerHTML=entryIcon('location');time.append(locationIcon)}const range=document.createElement('span');range.className='phone-event-time-range';range.append(document.createTextNode(phoneClock(e.start)+'–'),document.createElement('wbr'),document.createTextNode(phoneClock(e.end)));if(eventReminderMinutes(e.task.reminder)!==null){const bell=document.createElement('span');bell.className='phone-event-reminder-icon';bell.innerHTML=entryIcon('bell');bell.setAttribute('aria-label','Przypomnienie wydarzenia');time.insertBefore(bell,time.firstChild)}time.append(range);title.append(text,time);timeline.append(title);if(mode==='single-line')requestAnimationFrame(()=>phonePrepareTitleMarquee(title))}
+ phoneRenderTravelAnimation(timeline,events,position);
  const groups=new Map();for(const i of alarms){const time=i.alarm.time||i.alarm.startTime;if(!groups.has(time))groups.set(time,[]);groups.get(time).push(i)}for(const [time,group] of groups){const minute=phoneMinutes(time),top=position(minute),active=events.filter(event=>event.start<=minute&&minute<event.end),line=document.createElement('div');line.className='phone-reminder-line';line.style.top=top+'px';const addSegment=(left,right)=>{const segment=document.createElement('span');segment.className='phone-reminder-segment';segment.style.left=left;segment.style.right=right;line.append(segment)};if(active.length){const geometries=active.map(phoneEventGeometry),start=Math.min(...geometries.map(value=>value.start)),end=Math.max(...geometries.map(value=>value.end));const first=document.createElement('span');first.className='phone-reminder-segment';first.style.left='56px';first.style.width='calc('+(start*100).toFixed(4)+'% + '+(14-126*start).toFixed(3)+'px)';line.append(first);addSegment(phoneTrackPosition(end),'44px')}else addSegment('56px','44px');timeline.append(line);hourLabels.get(minute)?.classList.add('phone-reminder-hour-hidden');const label=document.createElement('span');label.className='phone-reminder-axis-label';label.style.top=top+'px';label.textContent=time;timeline.append(label);const b=entryButton('',()=>openReminder(group),'phone-bell');b.style.top=(top-22)+'px';b.innerHTML=entryIcon('bell')+(group.length>1?'<span class="phone-bell-count">'+group.length+'</span>':'');b.setAttribute('aria-label',time+' · '+group.map(i=>i.alarm.message||i.title||i.text).join(', '));timeline.append(b)}
  if(deadlines.length){const box=document.createElement('div');box.className='phone-deadlines';for(const i of deadlines)box.append(entryDeadlineButton(i));list.append(box)}
  };
@@ -3058,6 +3081,20 @@ initializeEventCommands();
   mask-image:radial-gradient(circle closest-side,#000 0 85%,#000e 89%,#0008 93%,transparent 98%);
   -webkit-mask-image:radial-gradient(circle closest-side,#000 0 85%,#000e 89%,#0008 93%,transparent 98%);
 }
+
+/* 33.167: a temporary travel cue moves between consecutive located events. */
+.phone-travel-animation{position:absolute;left:0;top:0;z-index:35;display:flex;align-items:center;gap:4px;width:max-content;color:#0877df;filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 3px 4px #155f9f42);pointer-events:none;white-space:nowrap;opacity:0;will-change:transform,opacity;animation:phone-travel-drive 14s cubic-bezier(.22,.72,.22,1) infinite}
+.phone-travel-animation svg{display:block;width:31px;height:24px;overflow:visible;fill:#1c91ed2e;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.phone-travel-animation strong{color:#075fbd;font-size:14px;font-weight:750;line-height:1;text-shadow:0 1px 0 #fff,0 2px 5px #ffffffed}
+@keyframes phone-travel-drive{
+  0%,2%{opacity:0;transform:translate(0,0) scale(.72)}
+  5%{opacity:1;transform:translate(0,0) scale(1)}
+  11%{opacity:1;transform:translate(var(--travel-mid-x),var(--travel-mid-y)) scale(1.02)}
+  18%{opacity:1;transform:translate(var(--travel-end-x),var(--travel-end-y)) scale(1)}
+  24%{opacity:1;transform:translate(var(--travel-end-x),var(--travel-end-y)) scale(.97)}
+  28%,100%{opacity:0;transform:translate(var(--travel-end-x),var(--travel-end-y)) scale(.82)}
+}
+@media(prefers-reduced-motion:reduce){.phone-travel-animation{display:none!important;animation:none!important}}
 </style>
 <script src="octi-listening.js?v=1bbfbf01949311ad"></script>
 <script>
