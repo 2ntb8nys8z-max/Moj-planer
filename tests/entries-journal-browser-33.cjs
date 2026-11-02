@@ -6,6 +6,17 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
   const page=await browser.newPage({viewport:{width,height},timezoneId:'Europe/Warsaw',reducedMotion:'reduce'}),errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin==='https://planner.test'){const file=path.resolve(url.pathname==='/'?'preview33/index.html':url.pathname.slice(1)),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.ttf':'font/ttf'};if(fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/json'})}return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'})});
   await page.goto('https://planner.test/preview33/index.html');await page.evaluate(()=>document.fonts.ready);
+  await page.getByRole('button',{name:'Ustawienia',exact:true}).click();
+  await page.locator('#apiAccessButton').click();
+  assert.equal(await page.locator('#phoneSettingsModal').isVisible(),false,'settings yields its top layer to the access form');
+  await page.locator('#apiAccessInput').fill('test-access-code-with-24-characters');
+  await page.locator('#apiAccessSave').click();
+  assert.equal(await page.locator('#phoneSettingsModal').isVisible(),true,'settings returns after saving the code');
+  assert.equal(await page.evaluate(()=>readApiAccess()),'test-access-code-with-24-characters');
+  await page.locator('#apiAccessButton').click();await page.locator('#apiAccessCancel').click();
+  assert.equal(await page.locator('#phoneSettingsModal').isVisible(),true,'settings returns after cancelling');
+  await page.getByRole('button',{name:'Zamknij ustawienia',exact:true}).click();
+
   await page.evaluate(async()=>{
    today=()=>new Date('2026-10-20T12:00:00');selected=today();monthCursor=new Date(2026,9,1);tasks=[];ideas=[];
    for(let day=0;day<16;day++)for(let n=0;n<3;n++){const date=today();date.setDate(date.getDate()-day);date.setHours(14-n,35);ideas.push({id:`entry-${day}-${n}`,title:n===0?'Pomysł na weekend':n===1?'Nagranie głosowe':'Lista zakupów',text:'Treść wpisu '+day,createdAt:date.toISOString(),...(n===1?{voiceMemoId:'test-recording'}:n===2?{list:{type:'shopping',items:[{id:'milk',text:'Mleko',done:false},{id:'bread',text:'Chleb',done:false},{id:'tomato',text:'Pomidory',done:false}]}}:{})})}
