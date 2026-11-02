@@ -106,7 +106,7 @@ async function routeFiles(page,failMedia=false){
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
      await page.waitForFunction(mode=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode===mode,mode);
-     assert.equal(await dock.locator('.commands').isVisible(),mode!=='recording','Only the recording ribbon is hidden');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
+     assert.equal(await dock.locator('.commands').isVisible(),false,'The obsolete recorder ribbon stays hidden in every recorder state');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
     }
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
     // Repeat with an already loaded event clip, when playback starts fastest.
