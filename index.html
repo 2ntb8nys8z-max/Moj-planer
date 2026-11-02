@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.155-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.156-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.155-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.156-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2982,12 +2982,14 @@ initializeEventCommands();
 /* The recording is indicated by Okti itself; discard buds above the finger. */
 .octi-dock[data-mode=recording] .octi-copy{visibility:hidden;pointer-events:none}
 .octi-dock .stage>.dismiss,.phone-layout .octi-dock .stage>.dismiss{right:auto;bottom:auto;width:44px;height:44px;min-width:44px;min-height:44px;border:0;background:transparent;box-shadow:none;padding:0;z-index:20;transform:translate(-50%,-50%);color:#267bc6}
-.octi-dock .stage>.dismiss .dismiss-orb{display:grid;place-items:center;width:38px;height:38px;border:0;background:none;box-shadow:none;backdrop-filter:none;animation:none;pointer-events:none}
+.octi-dock .stage>.dismiss .dismiss-orb{position:relative;display:grid;place-items:center;width:38px;height:38px;box-sizing:border-box;border:1.5px solid #438fbd;border-top-color:#c4ecff;border-left-color:#9ad6f2;border-radius:50%;background:radial-gradient(ellipse at 27% 18%,#fffffff2,transparent 48%),linear-gradient(145deg,#e9f9ff85,#a6d8ed24 65%,#72badd55);box-shadow:inset 1px 2px 3px #ffffffd9,inset -1px -2px 3px #247eb32b,0 2px 6px #246a9f16;backdrop-filter:none;animation:none;pointer-events:none}
 .octi-dock .stage>.dismiss .dismiss-orb:before{display:none}
 .octi-dock .stage>.dismiss .dismiss-glyph{font:500 29px/1 Arial,sans-serif;color:transparent;background:linear-gradient(135deg,#0878cd,#3276c9 52%,#9561a4 78%,#d95165);background-clip:text;-webkit-background-clip:text;animation:none}
 .octi-dock .stage>.dismiss-flow,.phone-layout .octi-dock .stage>.dismiss-flow{position:absolute;right:auto;bottom:auto;width:260px;height:260px;overflow:visible;z-index:19;animation:none;pointer-events:none}
 .octi-dock .stage>.dismiss-flow .dismiss-tip{animation:none;transform:none}
 @media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .stage>.dismiss-flow:not([hidden]){display:block!important}}
+.phone-layout .octi-dock .stage>.dismiss-flow:not([hidden]),.octi-dock .stage>.dismiss-flow{display:none!important}
+.octi-dock .stage>.dismiss-canvas{position:absolute;width:260px;height:260px;right:auto;bottom:auto;z-index:19;pointer-events:none}
 </style>
 <script src="octi-listening.js?v=f9651d5c5bb17dd0"></script>
 <script>
@@ -3165,6 +3167,22 @@ function initializeOctiDocks(){
   liquid.setAttribute('viewBox','0 0 260 260');
   liquid.innerHTML=`<defs><mask id="${liquidId}-mask"><rect width="260" height="260" fill="white"/><circle class="dismiss-cut" cx="170" cy="170" r="50" fill="black"/></mask><filter id="${liquidId}" x="-35%" y="-45%" width="175%" height="185%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="soft"/><feColorMatrix in="soft" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 22 -10" result="skin"/><feMorphology in="skin" operator="erode" radius="1.5" result="inner"/><feComposite in="skin" in2="inner" operator="out" result="rimMask"/><feFlood flood-color="#328dc4" flood-opacity=".9" result="blue"/><feComposite in="blue" in2="rimMask" operator="in" result="rim"/><feFlood flood-color="#a6deff" flood-opacity=".08" result="fill"/><feComposite in="fill" in2="skin" operator="in" result="glassFill"/><feSpecularLighting in="soft" surfaceScale="4" specularConstant=".8" specularExponent="22" lighting-color="#ffffff" result="shine"><feDistantLight azimuth="225" elevation="55"/></feSpecularLighting><feColorMatrix in="shine" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .333 .333 .333 0 0" result="transparentShine"/><feComposite in="transparentShine" in2="skin" operator="in" result="clippedShine"/><feMerge><feMergeNode in="glassFill"/><feMergeNode in="rim"/><feMergeNode in="clippedShine"/></feMerge></filter></defs><g mask="url(#${liquidId}-mask)"><g fill="white" filter="url(#${liquidId})"><circle class="dismiss-source" cx="170" cy="170" r="56"/><ellipse class="dismiss-tip" cx="130" cy="130" rx="0" ry="0"/></g><ellipse class="dismiss-glint" rx="5.3" ry="1.9" fill="white" opacity="0"/></g>`;
   stage.append(liquid);
+  // The neck is painted without SVG filters, whose compositing differs in WebKit.
+  // The detached glass is the button's own background, so its X cannot drift away.
+  const budCanvas=document.createElement('canvas');budCanvas.className='dismiss-canvas';budCanvas.width=budCanvas.height=520;budCanvas.hidden=true;budCanvas.setAttribute('aria-hidden','true');stage.append(budCanvas);
+  let budContext=null,budPixels=null;
+  function paintDismissBud(radius,x,y,r,squeeze,t){
+   if(t>=1||r<.1){budCanvas.hidden=true;return}budCanvas.hidden=false;
+   if(!budContext){budContext=budCanvas.getContext('2d');if(!budContext)return;budPixels=budContext.createImageData(520,520)}
+   const data=budPixels.data;data.fill(0);const k=12*Math.min(1,r/19)*(1-Math.max(0,Math.min(1,(t-.72)/.2))),fade=1-Math.max(0,Math.min(1,(t-.79)/.14));
+   for(let py=Math.max(0,Math.floor((y-r-16)*2));py<Math.min(520,Math.ceil((170+radius+3)*2));py++)for(let px=Math.max(0,Math.floor((x-r-16)*2));px<Math.min(520,Math.ceil((170+radius+3)*2));px++){
+    const u=(px+.5)/2,v=(py+.5)/2,source=Math.hypot(u-170,v-170)-radius;if(source< -2)continue;
+    const dx=u-x,dy=v-y,along=(dx+dy)/Math.SQRT2,across=(dx-dy)/Math.SQRT2,bud=Math.hypot(along*squeeze,across/squeeze)-r,h=k?Math.max(k-Math.abs(source-bud),0)/k:0,d=Math.min(source,bud)-h*h*k*.25;
+    if(d>1)continue;const coverage=Math.min(1,Math.max(0,.5-d*2)),edge=Math.min(1,Math.max(0,(d+2)/2)),highlight=Math.max(0,Math.min(1,(-dx-dy)/Math.max(1,r*1.5))),a=(.07+edge*.78)*coverage*(source<bud?Math.max(0,1-t):fade),i=(py*520+px)*4;
+    data[i]=50+highlight*175;data[i+1]=145+highlight*100;data[i+2]=199+highlight*56;data[i+3]=Math.round(255*a);
+   }
+   budContext.putImageData(budPixels,0,0);
+  }
   let budFrame=0,budStart=0,budVisible=false,budProgress=0;
   function drawDismissBud(t){
    const main=oldButton.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!main.width)return;
@@ -3172,10 +3190,11 @@ function initializeOctiDocks(){
    liquid.style.left=(cx-170)+'px';liquid.style.top=(cy-170)+'px';liquid.querySelector('.dismiss-source').setAttribute('r',radius);liquid.querySelector('.dismiss-cut').setAttribute('r',Math.max(0,radius-3));
    const tip=liquid.querySelector('.dismiss-tip');for(const [key,value] of Object.entries({cx:x,cy:y,rx:r*squeeze,ry:r/squeeze,transform:`rotate(-45 ${x} ${y})`}))tip.setAttribute(key,value);
    const glint=liquid.querySelector('.dismiss-glint');glint.setAttribute('cx',x-r*.3);glint.setAttribute('cy',y-r*.56);glint.setAttribute('opacity',grow*.85);
+   budCanvas.style.left=liquid.style.left;budCanvas.style.top=liquid.style.top;paintDismissBud(radius,x,y,r,squeeze,t);
    dismiss.style.left=(cx+x-170)+'px';dismiss.style.top=(cy+y-170)+'px';dismiss.style.opacity=String(smooth((t-.79)/.14));dismiss.style.pointerEvents=t>.8?'auto':'none';
   }
   function fitDismissFlow(){drawDismissBud(budProgress)}
-  function updateDismissBud(show){if(show===budVisible)return;budVisible=show;cancelAnimationFrame(budFrame);budFrame=0;if(!show){dismiss.style.opacity='0';return}budProgress=motion?.matches?1:0;budStart=performance.now();drawDismissBud(budProgress);if(motion?.matches)return;const frame=now=>{if(!budVisible)return;budProgress=Math.min(1,(now-budStart)/2900);drawDismissBud(budProgress);if(budProgress<1)budFrame=requestAnimationFrame(frame)};budFrame=requestAnimationFrame(frame)}
+  function updateDismissBud(show){if(show===budVisible)return;budVisible=show;cancelAnimationFrame(budFrame);budFrame=0;if(!show){dismiss.style.opacity='0';budCanvas.hidden=true;return}budProgress=motion?.matches?1:0;budStart=performance.now();drawDismissBud(budProgress);if(motion?.matches)return;const frame=now=>{if(!budVisible)return;budProgress=Math.min(1,(now-budStart)/2900);drawDismissBud(budProgress);if(budProgress<1)budFrame=requestAnimationFrame(frame)};budFrame=requestAnimationFrame(frame)}
   window.addEventListener('resize',fitDismissFlow);
   const hints=['Naciśnij i mów',...(channel==='main'?['Dodaj do kalendarza','Zrób listę','Nagraj notatkę','Wyszukaj']:['Zmień godzinę','Dodaj notatkę','Ustaw przypomnienie','Zmień nazwę'])];
   const reel=root.querySelector('.reel'),strip=root.querySelector('.commands');strip.onclick=()=>{if(!oldButton.disabled)oldButton.click()};let current=0,lastHint=Date.now(),hintDelay=2600,lastState=null;

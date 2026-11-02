@@ -34,11 +34,14 @@ async function routeFiles(page,failMedia=false){
    assert.equal(await dock.locator('.commands').isVisible(),false,'Recording has no timer ribbon');
    await page.waitForTimeout(1100);
    const growing=await dock.locator('.dismiss-tip').evaluate(el=>Number(el.getAttribute('rx')));assert.ok(growing>0&&growing<19,'The bubble grows from the rim through intermediate sizes');
+   const painted=await dock.locator('.dismiss-canvas').evaluate(c=>{const p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let blue=0;for(let i=0;i<p.length;i+=4)if(p[i+3]>20&&p[i+2]>p[i]+30)blue++;return blue});assert.ok(painted>100,'The connecting neck is actually painted blue');
    await page.waitForTimeout(2100);
    const cancel=dock.locator('.dismiss'),b=await cancel.boundingBox(),main=await dock.locator('.voice').boundingBox();
    assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=width&&b.y+b.height<=height,'Cancel remains on screen');
    assert.ok(b.x+b.width/2<main.x+main.width/2&&b.y+b.height/2<main.y+main.height/2,'Cancel separates above and left of the recording finger');
+   const skin=await cancel.locator('.dismiss-orb').evaluate(el=>{const r=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect(),s=getComputedStyle(el);return {offset:Math.hypot(r.x+r.width/2-p.x-p.width/2,r.y+r.height/2-p.y-p.height/2),border:s.borderTopWidth,background:s.backgroundImage}});assert.ok(skin.offset<1,'Glass and cross share the same centre');assert.notEqual(skin.border,'0px');assert.match(skin.background,/gradient/);assert.equal(await dock.locator('.dismiss-canvas').isVisible(),false,'No detached painted circle remains after the bud separates');assert.equal(await dock.locator('.dismiss-flow').isVisible(),false,'Legacy SVG rendering is disabled');
    assert.equal(await cancel.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true,'The detached bubble is reachable');
+   fs.mkdirSync('test-output',{recursive:true});await page.screenshot({path:`test-output/cancel-bubble-${width}.png`});
    await cancel.click();await page.waitForFunction(()=>plannerRecordings.main===null);assert.equal(await cancel.isVisible(),false,'Cancel discards and removes the bubble');
    await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.dataset.mode==='idle'&&!root.octiListening?.getState().rendering},null,{timeout:10000});
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) video[src]').count(),0,'Hidden contexts do not load or play duplicate clips');

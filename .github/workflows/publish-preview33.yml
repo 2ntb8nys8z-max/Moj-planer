@@ -61,6 +61,14 @@ jobs:
           npm run test:journal-browser
           npm run test:logo-browser
 
+      - name: Retain cancel bubble visual review
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cancel-bubble-review
+          path: integration/test-output/cancel-bubble-*.png
+          if-no-files-found: ignore
+
       - name: Stage publication artifacts
         run: |
           mkdir -p "$RUNNER_TEMP/preview33/fonts"
