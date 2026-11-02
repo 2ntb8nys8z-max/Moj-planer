@@ -25,6 +25,16 @@ try{
   assert.ok(cue.querySelector('svg path'),'The cue uses a side-profile vector car rather than a pill');
   assert.equal(w.getComputedStyle(cue).backgroundColor,'rgba(0, 0, 0, 0)','No soap-shaped background remains');
 
+  w.document.title='Mój Planer — test integracji 33.168';
+  w.history.replaceState({},'',w.location.pathname+'?travelDemo=1');
+  run(`tasks=[];renderAll()`);
+  assert.deepEqual([...w.document.querySelectorAll('.phone-event-title-text')].map(node=>node.textContent),['Test lokalizacji 1','Test lokalizacji'],'The explicit demo link renders a visual-only event pair without requiring copied user data');
+  assert.equal(w.document.querySelector('.phone-travel-animation')?.textContent.trim(),'40 min');
+  assert.ok(w.document.querySelector('.phone-travel-animation.travel-demo'),'The explicit demo stays visible even when the device requests reduced motion');
+
+  w.document.title='Mój Planer';
+  w.history.replaceState({},'',w.location.pathname);
+
   run(`tasks=[
     {id:'from',title:'Pierwsze',date:'2026-11-02',time:'22:00',endTime:'22:15',location:'Ten sam adres'},
     {id:'to',title:'Drugie',date:'2026-11-02',time:'23:30',endTime:'24:00',location:'  TEN   SAM ADRES '}
