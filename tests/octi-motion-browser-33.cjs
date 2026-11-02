@@ -1,12 +1,14 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const base=path.resolve('.');
-async function routeFiles(page,failMedia=false){
- await page.route('**/*',route=>{
+async function routeFiles(page,failMedia=false,holdListening=false){
+ let release;const listeningGate=holdListening?new Promise(resolve=>{release=resolve}):Promise.resolve();
+ await page.route('**/*',async route=>{
   const url=new URL(route.request().url()),file=path.resolve(base,url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));
   if(url.origin==='https://planner.test'&&file.startsWith(base+'/')&&fs.existsSync(file)&&fs.statSync(file).isFile()){
    const bytes=fs.readFileSync(file),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'};
    if(file.endsWith('octi-water-motion.webp')&&failMedia==='all-media-fail')return route.fulfill({status:404,body:'missing animated image'});
+   if(file.endsWith('octi-listening-body.mp4'))await listeningGate;
    if(file.endsWith('.mp4')){
     if(failMedia)return route.fulfill({status:404,body:'missing clip'});
     const range=route.request().headers().range?.match(/bytes=(\d+)-(\d*)/);
@@ -16,13 +18,14 @@ async function routeFiles(page,failMedia=false){
   }
   return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
  });
+ return ()=>release?.();
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--disable-accelerated-video-decode']});
  try{
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const page=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'}),errors=[];
-   page.on('pageerror',error=>errors.push(error.message));await routeFiles(page);await page.goto('https://planner.test/preview33/index.html');
+   page.on('pageerror',error=>errors.push(error.message));const releaseListening=await routeFiles(page,false,width===390);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});
    const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-motion-video');
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-playing')});
    const before=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>v.currentTime)>before,'The actual decoded clip advances');
@@ -30,9 +33,11 @@ async function routeFiles(page,failMedia=false){
    assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,0,'Decorative video margins cannot create scrollable app overflow');assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
    const media=dock.locator('.octi-motion-media'),drift=await media.evaluate(el=>getComputedStyle(el).translate);await page.waitForTimeout(350);assert.notEqual(await media.evaluate(el=>getComputedStyle(el).translate),drift,'The visible bubble drifts gently');
+   if(width===390){await page.evaluate(()=>{plannerRecordings.main={mode:'opening'}});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='opening');const openingTime=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>!v.paused&&v.currentTime)>openingTime,'Microphone permission and setup do not freeze the visible idle clip');}
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]}});
    await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='recording');
    assert.equal(await dock.locator('.commands').isVisible(),false,'Recording has no timer ribbon');
+   if(width===390){const loadingTime=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.equal(await dock.evaluate(r=>r.octiListening.getState().rendering),false,'Listening media is deliberately still loading');assert.ok(await video.evaluate(v=>!v.paused&&v.currentTime)>loadingTime,'Idle motion continues until the first rendered listening frame');releaseListening();await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);}
    await page.waitForTimeout(1100);
    const growing=await dock.locator('.dismiss-tip').evaluate(el=>Number(el.getAttribute('rx')));assert.ok(growing>0&&growing<19,'The bubble grows from the rim through intermediate sizes');
    const painted=await dock.locator('.dismiss-canvas').evaluate(c=>{const p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let blue=0;for(let i=0;i<p.length;i+=4)if(p[i+3]>20&&p[i+2]>p[i]+30)blue++;return blue});assert.ok(painted>100,'The connecting neck is actually painted blue');
@@ -42,7 +47,7 @@ async function routeFiles(page,failMedia=false){
    assert.ok(b.x+b.width/2<main.x+main.width/2&&b.y+b.height/2<main.y+main.height/2,'Cancel separates above and left of the recording finger');
    const skin=await cancel.locator('.dismiss-orb').evaluate(el=>{const r=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect(),s=getComputedStyle(el);return {offset:Math.hypot(r.x+r.width/2-p.x-p.width/2,r.y+r.height/2-p.y-p.height/2),border:s.borderTopWidth,background:s.backgroundImage}});assert.ok(skin.offset<1,'Glass and cross share the same centre');assert.notEqual(skin.border,'0px');assert.match(skin.background,/gradient/);assert.equal(await dock.locator('.dismiss-canvas').isVisible(),false,'No detached painted circle remains after the bud separates');assert.equal(await dock.locator('.dismiss-flow').isVisible(),false,'Legacy SVG rendering is disabled');
    assert.equal(await cancel.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true,'The detached bubble is reachable');
-   await page.evaluate(()=>plannerRecordings.main.mode='ready');await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='ready');assert.equal(await dock.locator('.commands').isVisible(),false,'Ready recording does not restore the send ribbon');assert.equal(await cancel.locator('.dismiss-glyph').evaluate(el=>getComputedStyle(el).color),'rgb(201, 50, 80)');
+   await page.evaluate(()=>plannerRecordings.main.mode='ready');await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='ready');assert.equal(await dock.locator('.commands').isVisible(),false,'Ready recording does not restore the send ribbon');assert.match(await cancel.locator('.dismiss-glyph').evaluate(el=>getComputedStyle(el).backgroundImage),/gradient/);
    fs.mkdirSync('test-output',{recursive:true});await page.screenshot({path:`test-output/cancel-bubble-${width}.png`});
    await cancel.click();assert.equal(await page.locator('.octi-discard-pop').count(),1,'Discard creates a visible bubble burst');await page.waitForFunction(()=>plannerRecordings.main===null);assert.equal(await cancel.isVisible(),false,'Cancel discards and removes the bubble');await page.waitForFunction(()=>!document.querySelector('.octi-discard-pop'));assert.equal(await dock.locator('.commands').isVisible(),false,'Cancelling never brings back the old ribbon');
    await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.dataset.mode==='idle'&&!root.octiListening?.getState().rendering},null,{timeout:10000});
@@ -106,7 +111,7 @@ async function routeFiles(page,failMedia=false){
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
      await page.waitForFunction(mode=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode===mode,mode);
-     assert.equal(await dock.locator('.commands').isVisible(),false,'The obsolete recorder ribbon stays hidden in every recorder state');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
+     assert.equal(await dock.locator('.commands').isVisible(),false,'The obsolete recorder ribbon stays hidden in every recorder state');if(mode==='opening')assert.equal(await video.evaluate(v=>v.paused),false,'Opening the microphone keeps the idle motion alive');else if(mode==='recording')await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);else assert.equal(await video.evaluate(v=>v.paused),true,'Idle playback pauses after the listening artwork takes over');
     }
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
     // Repeat with an already loaded event clip, when playback starts fastest.
