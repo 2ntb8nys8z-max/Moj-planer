@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.157</title>
+<title>Mój Planer — test integracji 33.158</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.157</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.157</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.157-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.158</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.158</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.158-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.157-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.158-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2996,18 +2996,18 @@ initializeEventCommands();
 .octi-dock:not(.memo-open):not(.memo-saved) .octi-copy{visibility:hidden;pointer-events:none}
 .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{animation:octi-bubble-drift 7.4s ease-in-out infinite}
 @keyframes octi-bubble-drift{0%,100%{translate:0 0}28%{translate:1.8px -2.8px}57%{translate:-1.5px -1.2px}80%{translate:-.7px 1px}}
-.octi-dock .stage>.dismiss .dismiss-orb{border-color:#d98499;border-top-color:#fff2f5;border-left-color:#f5c1ce;background:radial-gradient(ellipse at 27% 18%,#fffffff2,transparent 43%),radial-gradient(ellipse at 72% 85%,#fff7fb99,transparent 40%),linear-gradient(145deg,#fff1f67a,#f4a8bc35 65%,#db77925c);box-shadow:inset 1px 2px 3px #ffffffe8,inset -1px -2px 4px #b44b6a38,0 2px 6px #a9466620;animation:octi-discard-flex 4.6s ease-in-out infinite}
-.octi-dock .stage>.dismiss .dismiss-orb:before{display:block;border-color:#ffffffb8;border-bottom-color:#e49bb0}
-.octi-dock .stage>.dismiss .dismiss-glyph{color:#c93250;background:none;text-shadow:0 1px 1px #fff8;animation:none}
+.octi-dock .stage>.dismiss .dismiss-orb{border-color:#438fbd;border-top-color:#c4ecff;border-left-color:#9ad6f2;background:radial-gradient(ellipse at 27% 18%,#fffffff2,transparent 43%),radial-gradient(ellipse at 72% 85%,#eaf7ff99,transparent 40%),linear-gradient(145deg,#e9f9ff85,#a6d8ed24 65%,#72badd55);box-shadow:inset 1px 2px 3px #ffffffe8,inset -1px -2px 4px #247eb338,0 2px 6px #246a9f20;animation:octi-discard-flex 4.6s ease-in-out infinite}
+.octi-dock .stage>.dismiss .dismiss-orb:before{display:block;border-color:#ffffffb8;border-bottom-color:#80bedc}
+.octi-dock .stage>.dismiss .dismiss-glyph{color:transparent;background:linear-gradient(135deg,#0878cd 5%,#4875bc 42%,#a6548b 72%,#cd455e);background-clip:text;-webkit-background-clip:text;text-shadow:none;animation:none}
 .octi-discard-pop{position:fixed;z-index:1100;width:38px;height:38px;pointer-events:none}
-.octi-discard-pop .pop-ring{position:absolute;inset:0;border:1.5px solid #e49bb0;border-radius:50%;box-shadow:inset 1px 1px 2px #fff,0 0 3px #fff;background:#f9bdcd25;animation:octi-discard-burst .42s ease-out both}
-.octi-discard-pop .pop-bead{position:absolute;left:16px;top:16px;width:5px;height:6px;border:1px solid #e797ae;border-radius:50%;background:radial-gradient(circle at 25% 20%,#fff,#f3b8cb80);animation:octi-discard-spray .52s ease-out both}
+.octi-discard-pop .pop-ring{position:absolute;inset:0;border:1.5px solid #80bedc;border-radius:50%;box-shadow:inset 1px 1px 2px #fff,0 0 3px #fff;background:#a6d8ed25;animation:octi-discard-burst .42s ease-out both}
+.octi-discard-pop .pop-bead{position:absolute;left:16px;top:16px;width:5px;height:6px;border:1px solid #80bedc;border-radius:50%;background:radial-gradient(circle at 25% 20%,#fff,#a6d8ed80);animation:octi-discard-spray .52s ease-out both}
 @keyframes octi-discard-flex{0%,100%{transform:scale(1);border-radius:50%}40%{transform:scale(1.025,.975);border-radius:49% 51% 48% 52%}72%{transform:scale(.98,1.02);border-radius:51% 49% 52% 48%}}
 @keyframes octi-discard-burst{0%{transform:scale(1);opacity:1}25%{transform:scale(.87,1.08);opacity:1}72%{transform:scale(1.38);opacity:.55}100%{transform:scale(1.6);opacity:0}}
 @keyframes octi-discard-spray{0%,15%{transform:translate(0,0) scale(.5);opacity:0}25%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
 @media(prefers-reduced-motion:reduce){.octi-dock .octi-motion-media,.octi-dock .octi-listening-media,.octi-dock .stage>.dismiss .dismiss-orb{animation:none!important}}
 </style>
-<script src="octi-listening.js?v=f9651d5c5bb17dd0"></script>
+<script src="octi-listening.js?v=ce44fa1a5f228d03"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -3110,17 +3110,19 @@ function octiMotionArtwork(root,floating,motion){
  }
  fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
  fallback.addEventListener('error',()=>{if(fallback.hasAttribute('src')){fallbackFailed=true;layer.classList.remove('is-fallback');}});
- function stop(){
-  wanted=false;layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
+ function stop(preserveFrame=false){
+  wanted=false;if(!preserveFrame)layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
   if(!video.paused||pending)video.pause();
   if(octiActiveMotionStop===stop)octiActiveMotionStop=null;
  }
  function update(){
   const visible=root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0;
   listening?.update({visible,opening:root.dataset.mode==='opening',isRecording:root.dataset.mode==='recording'});
-  const eligible=visible&&root.dataset.mode==='idle'&&!motion?.matches;
+  const mode=root.dataset.mode,listeningState=listening?.getState();
+  const awaitingListening=mode==='opening'||(mode==='recording'&&listeningState&&!listeningState.rendering&&!listeningState.fallback);
+  const eligible=visible&&(mode==='idle'||awaitingListening)&&!motion?.matches;
   wanted=Boolean(eligible);
-  if(!wanted){stop();return;}
+  if(!wanted){stop(visible&&!motion?.matches&&!!listeningState?.rendering);return;}
   // Transfer playback ownership synchronously, before the new context starts.
   // Independent dock timers must never leave two contexts animating together.
   if(octiActiveMotionStop!==stop){octiActiveMotionStop?.();octiActiveMotionStop=stop;}
