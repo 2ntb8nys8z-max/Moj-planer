@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.164-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.165-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.164-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.165-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3046,6 +3046,10 @@ initializeEventCommands();
 .octi-dock .menu-bud-neck{position:absolute;width:260px;height:260px;z-index:3;pointer-events:none}
 .octi-dock .menu-bud-neck[hidden]{display:none}
 
+/* 33.165: compositor-driven menu sign rotation; recorder flight keeps its own frames. */
+.octi-dock:not([data-action-moving]) .action-rotation{transition:transform .42s cubic-bezier(.22,.7,.25,1)}
+.octi-dock:not([data-action-moving]) .action-warm{transition:opacity .42s ease}
+@media(prefers-reduced-motion:reduce){.octi-dock .action-rotation,.octi-dock .action-warm{transition:none!important}}
 </style>
 <script src="octi-listening.js?v=1bbfbf01949311ad"></script>
 <script>
@@ -3185,26 +3189,29 @@ function octiMotionArtwork(root,floating,motion){
 // Chained glass buds reuse the existing action buttons and their handlers.
 function octiMenuBuds(root,toggle,stage,menu,motion,channel){
  stage.append(menu);menu.classList.add('bubble-menu');
- const ordered=['keyboard','recorder','camera','people'].map(k=>menu.querySelector('.'+k)).filter(Boolean),items=ordered.map(button=>{button.classList.add('bubble-extra');const icon=button.querySelector('svg');button.replaceChildren();const skin=document.createElement('span');skin.className='menu-bud-skin';skin.setAttribute('aria-hidden','true');const glass=document.createElement('img');glass.src='octi-water-glass.webp?v=babdb581839accf9';glass.alt='';const symbol=document.createElement('span');symbol.className='menu-bud-symbol';if(icon)symbol.append(icon);skin.append(glass,symbol);button.append(skin);const canvas=document.createElement('canvas');canvas.className='menu-bud-neck';canvas.width=canvas.height=260;canvas.hidden=true;canvas.setAttribute('aria-hidden','true');menu.append(canvas);return{button,skin,canvas,p:0,ctx:null,pixels:null};});
- let open=false,frame=0,elapsed=0,lastTime=0,starts=[];
+ const ordered=['keyboard','recorder','camera','people'].map(k=>menu.querySelector('.'+k)).filter(Boolean),items=ordered.map(button=>{button.classList.add('bubble-extra');const icon=button.querySelector('svg');button.replaceChildren();const skin=document.createElement('span');skin.className='menu-bud-skin';skin.setAttribute('aria-hidden','true');const glass=document.createElement('img');glass.src='octi-water-glass.webp?v=babdb581839accf9';glass.alt='';const symbol=document.createElement('span');symbol.className='menu-bud-symbol';if(icon)symbol.append(icon);skin.append(glass,symbol);button.append(skin);const canvas=document.createElement('canvas');canvas.className='menu-bud-neck';canvas.width=canvas.height=260;canvas.hidden=true;canvas.setAttribute('aria-hidden','true');menu.append(canvas);return{button,skin,canvas,p:0,ctx:null};});
+ let open=false,frame=0,elapsed=0,lastTime=0,starts=[],origin=null;
+ function measure(){const box=stage.getBoundingClientRect(),plus=toggle.getBoundingClientRect();origin=plus.width?{x:plus.left+plus.width/2-box.left,y:plus.top+plus.height/2-box.top}:null;}
  const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
  function draw(item,p,index){
-  item.p=p;const box=stage.getBoundingClientRect(),plus=toggle.getBoundingClientRect();if(!plus.width)return;
-  const origin={x:plus.left+plus.width/2-box.left,y:plus.top+plus.height/2-box.top},points=items.length===4?[[-18,-70],[-79,-114],[-140,-102],[-186,-54]]:[[-18,-70],[-85,-108],[-154,-86]],end={x:origin.x+points[index][0],y:origin.y+points[index][1]},source=index?{x:origin.x+points[index-1][0],y:origin.y+points[index-1][1]}:origin;
+  item.p=p;if(!origin)return;
+  const points=items.length===4?[[-18,-70],[-79,-114],[-140,-102],[-186,-54]]:[[-18,-70],[-85,-108],[-154,-86]],end={x:origin.x+points[index][0],y:origin.y+points[index][1]},source=index?{x:origin.x+points[index-1][0],y:origin.y+points[index-1][1]}:origin;
   const dx=end.x-source.x,dy=end.y-source.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,sr=index?26:30,grow=smooth(p/.5),stretch=smooth((p-.34)/.43),distance=sr-3+28*grow+(d-sr+3-28)*stretch,r=28*grow,wobble=p>.86?Math.sin((p-.86)*Math.PI*18)*Math.exp(-(p-.86)*19):0,squeeze=1-.12*Math.sin(Math.PI*stretch)+.09*wobble,angle=Math.atan2(dy,dx)*180/Math.PI;
   const b=item.button;b.style.left=(source.x+ux*distance)+'px';b.style.top=(source.y+uy*distance)+'px';b.style.opacity=String(smooth((p-.79)/.14));b.style.transform=`translate(-50%,-50%) scale(${grow})`;b.style.visibility=p>0?'visible':'hidden';b.disabled=!open||p<.98;
   item.skin.style.transform=`rotate(${angle}deg) scale(${1/squeeze},${squeeze}) rotate(${-angle}deg)`;
   const c=item.canvas;c.style.left=(source.x-130)+'px';c.style.top=(source.y-130)+'px';c.hidden=p>=.96||r<.1||motion?.matches;if(c.hidden)return;
-  if(!item.ctx){item.ctx=c.getContext('2d');if(!item.ctx)return;item.pixels=item.ctx.createImageData(260,260);}const data=item.pixels.data;data.fill(0);const k=12*Math.min(1,r/19)*(1-smooth((p-.72)/.2)),fade=1-smooth((p-.79)/.14),bx=130+ux*distance,by=130+uy*distance;
-  for(let y=Math.max(0,Math.floor(by-r-23));y<Math.min(260,Math.ceil(by+r+23));y++)for(let x=Math.max(0,Math.floor(bx-r-23));x<Math.min(260,Math.ceil(bx+r+23));x++){
-   const u=x+.5,v=y+.5,src=Math.hypot(u-130,v-130)-sr;if(src< -2)continue;const ax=u-bx,ay=v-by,along=ax*ux+ay*uy,across=-ax*uy+ay*ux,bud=Math.hypot(along*squeeze,across/squeeze)-r,h=k?Math.max(k-Math.abs(src-bud),0)/k:0,field=Math.min(src,bud)-h*h*k*.25;if(field>1)continue;
-   const coverage=Math.min(1,Math.max(0,.5-field)),edge=Math.min(1,Math.max(0,(field+2)/2)),shine=Math.max(0,Math.min(1,(-ax-ay)/Math.max(1,r*1.5))),alpha=(.09+edge*.8)*coverage*(src<bud?Math.max(0,1-p):fade),i=(y*260+x)*4;data[i]=50+shine*175;data[i+1]=145+shine*100;data[i+2]=199+shine*56;data[i+3]=Math.round(255*alpha);
-  }item.ctx.putImageData(item.pixels,0,0);
+  if(!item.ctx)item.ctx=c.getContext('2d');const ctx=item.ctx;if(!ctx)return;ctx.clearRect(0,0,260,260);
+  const k=12*Math.min(1,r/19)*(1-smooth((p-.72)/.2)),fade=1-smooth((p-.79)/.14),bx=130+ux*distance,by=130+uy*distance;
+  const field=(x,y)=>{const src=Math.hypot(x-130,y-130)-sr,ax=x-bx,ay=y-by,along=ax*ux+ay*uy,across=-ax*uy+ay*ux,bud=Math.hypot(along*squeeze,across/squeeze)-r,h=k?Math.max(k-Math.abs(src-bud),0)/k:0;return Math.min(src,bud)-h*h*k*.25;};
+  // Trace only the water boundary; native canvas antialiasing fills the glass.
+  ctx.save();ctx.beginPath();ctx.arc(bx,by,r+23,0,Math.PI*2);ctx.clip();ctx.beginPath();ctx.rect(0,0,260,260);ctx.arc(130,130,Math.max(0,sr-2),0,Math.PI*2);ctx.clip('evenodd');ctx.beginPath();
+  for(let i=0;i<96;i++){const a=i*Math.PI*2/96,dx=Math.cos(a),dy=Math.sin(a),limit=r+24;let lo=0,hi=3;while(hi<limit&&field(bx+dx*hi,by+dy*hi)<0){lo=hi;hi+=3;}hi=Math.min(hi,limit);for(let j=0;j<5;j++){const mid=(lo+hi)/2;if(field(bx+dx*mid,by+dy*mid)<0)lo=mid;else hi=mid;}const x=bx+dx*(lo+hi)/2,y=by+dy*(lo+hi)/2;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);}
+  ctx.closePath();ctx.globalAlpha=fade;const fill=ctx.createLinearGradient(bx-r,by-r,bx+r,by+r);fill.addColorStop(0,'#eefaff38');fill.addColorStop(.55,'#a6d8ed18');fill.addColorStop(1,'#72badd30');ctx.fillStyle=fill;ctx.fill();const rim=ctx.createLinearGradient(bx-r,by-r,bx+r,by+r);rim.addColorStop(0,'#f2fcfff0');rim.addColorStop(.3,'#9ad6f2cc');rim.addColorStop(.7,'#328dc4d9');rim.addColorStop(1,'#d5f1fff0');ctx.strokeStyle=rim;ctx.lineWidth=1.7;ctx.stroke();ctx.restore();
  }
  function finish(){cancelAnimationFrame(frame);frame=0;delete root.dataset.menuBudding;items.forEach((item,i)=>draw(item,open?1:0,i));}
  function animate(now){elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;let done=true;items.forEach((item,i)=>{const delay=open?i*260:(items.length-1-i)*180,t=Math.max(0,Math.min(1,(elapsed-delay)/520));if(t<1)done=false;draw(item,starts[i]+((open?1:0)-starts[i])*t,i);});if(done)finish();else frame=requestAnimationFrame(animate);}
- function update(next){open=next;cancelAnimationFrame(frame);starts=items.map(item=>item.p);elapsed=0;lastTime=performance.now();if(motion?.matches||document.hidden||(!next&&plannerRecordings[channel]))finish();else{root.dataset.menuBudding='true';frame=requestAnimationFrame(animate);}}
- window.addEventListener('resize',()=>items.forEach((item,i)=>draw(item,item.p,i)));motion?.addEventListener?.('change',()=>{if(motion.matches)finish();});items.forEach((item,i)=>draw(item,0,i));return update;
+ function update(next){measure();open=next;cancelAnimationFrame(frame);starts=items.map(item=>item.p);elapsed=0;lastTime=performance.now();if(motion?.matches||document.hidden||(!next&&plannerRecordings[channel]))finish();else{root.dataset.menuBudding='true';frame=requestAnimationFrame(animate);}}
+ window.addEventListener('resize',()=>{measure();items.forEach((item,i)=>draw(item,item.p,i));});motion?.addEventListener?.('change',()=>{if(motion.matches)finish();});measure();items.forEach((item,i)=>draw(item,0,i));return update;
 }
 
 // One existing action target changes presentation; recording logic remains authoritative.
@@ -3237,7 +3244,7 @@ function octiActionBubble(root,toggle,stage,recorder,motion,setMenu,channel){
   if(show!==target){target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');stop();from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';frame=requestAnimationFrame(animate);}}
   else if((!visible||document.hidden||motion?.matches)&&frame)settle();else if(!frame)paint(target?1:0,0);
  }
- toggle.onclick=()=>{const state=plannerRecordings[channel];if(state&&state.mode!=='sending'){cancelPlannerRecording(channel);update(false,true,visible);}else if(!state&&!voiceDialogues[channel]?.busy)setMenu(!root.querySelector('.extras').classList.contains('expanded'));};
+ toggle.onclick=()=>{const state=plannerRecordings[channel];if(state&&state.mode!=='sending'){cancelPlannerRecording(channel);update(false,true,visible);}else if(!state&&!voiceDialogues[channel]?.busy){setMenu(!root.querySelector('.extras').classList.contains('expanded'));paint(amount,flow);}};
  window.addEventListener('resize',()=>paint(amount,flow));document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
  requestAnimationFrame(()=>paint(0,0));return update;
 }
