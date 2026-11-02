@@ -136,7 +136,7 @@ async function routeFiles(page,failMedia=false){
     await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
     assert.equal(await dock.locator('.octi-motion-media.is-playing').count(),0);assert.equal(await fallback.evaluate(img=>img.naturalWidth),320);
     assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-motion-fallback[src]').count(),0,'Hidden contexts do not load animated images');
-    const before=await layer.screenshot();await page.waitForTimeout(1200);const after=await layer.screenshot();
+    const before=await layer.screenshot({animations:'disabled'});await page.waitForTimeout(1200);const after=await layer.screenshot({animations:'disabled'});
     const changed=await page.evaluate(async frames=>{
      async function pixels(base64){const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const ctx=c.getContext('2d');ctx.drawImage(image,0,0);return {data:ctx.getImageData(0,0,c.width,c.height).data,width:c.width,height:c.height};}
      const [a,b]=await Promise.all(frames.map(pixels));let changed=0;
