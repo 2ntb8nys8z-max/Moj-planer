@@ -29,6 +29,17 @@ async function routeFiles(page,failMedia=false){
    const geometry=await dock.evaluate(root=>{const b=root.querySelector('.voice'),r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),app=document.querySelector('.app');return {hit:hit===b||b.contains(hit),width:r.width,bottom:r.bottom,overflow:document.documentElement.scrollWidth>innerWidth,verticalOverflow:app.scrollHeight-app.clientHeight,muted:root.querySelector('video').muted,inline:root.querySelector('video').playsInline}});
    assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,0,'Decorative video margins cannot create scrollable app overflow');assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
+   await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]}});
+   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='recording');
+   assert.equal(await dock.locator('.commands').isVisible(),false,'Recording has no timer ribbon');
+   await page.waitForTimeout(1100);
+   const growing=await dock.locator('.dismiss-tip').evaluate(el=>Number(el.getAttribute('rx')));assert.ok(growing>0&&growing<19,'The bubble grows from the rim through intermediate sizes');
+   await page.waitForTimeout(2100);
+   const cancel=dock.locator('.dismiss'),b=await cancel.boundingBox(),main=await dock.locator('.voice').boundingBox();
+   assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=width&&b.y+b.height<=height,'Cancel remains on screen');
+   assert.ok(b.x+b.width/2<main.x+main.width/2&&b.y+b.height/2<main.y+main.height/2,'Cancel separates above and left of the recording finger');
+   assert.equal(await cancel.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true,'The detached bubble is reachable');
+   await cancel.click();await page.waitForFunction(()=>plannerRecordings.main===null);assert.equal(await cancel.isVisible(),false,'Cancel discards and removes the bubble');
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) video[src]').count(),0,'Hidden contexts do not load or play duplicate clips');
    await page.emulateMedia({reducedMotion:'reduce'});
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.paused&&!v.parentElement.classList.contains('is-playing')});
@@ -89,7 +100,7 @@ async function routeFiles(page,failMedia=false){
     for(const mode of ['opening','recording','sending','ready']){
      await page.evaluate(mode=>{plannerRecordings.main={mode,deadline:Date.now()+RECORDING_SECONDS*1000}},mode);
      await page.waitForFunction(mode=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode===mode,mode);
-     assert.equal(await dock.locator('.commands').isVisible(),true,'Recorder status remains available');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
+     assert.equal(await dock.locator('.commands').isVisible(),mode!=='recording','Only the recording ribbon is hidden');assert.equal(await video.evaluate(v=>v.paused),true,'Recorder activity uses the microphone poster');
     }
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
     // Repeat with an already loaded event clip, when playback starts fastest.
@@ -135,7 +146,7 @@ async function routeFiles(page,failMedia=false){
     assert.equal(await dock.locator('.is-fallback').count(),0,'Reduced motion releases the animated fallback');
     await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
     await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000}});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] .octi-motion-fallback').hasAttribute('src'));
-    assert.equal(await dock.locator('.commands').isVisible(),true,'Fallback does not hide the recording status');await page.evaluate(()=>{plannerRecordings.main=null});
+    assert.equal(await dock.locator('.commands').isVisible(),false,'Recording ribbon stays absent with fallback artwork');await page.evaluate(()=>{plannerRecordings.main=null});
    }
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
    assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: correct motion fallback and working controls passed.`);

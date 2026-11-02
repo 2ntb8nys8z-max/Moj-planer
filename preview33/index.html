@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.154</title>
+<title>Mój Planer — test integracji 33.155</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.154</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.154</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.154-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.155</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.155</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.02.33.155-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.154-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.02.33.155-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2981,6 +2981,15 @@ initializeEventCommands();
 .octi-dock .octi-listening-media.is-rendered .octi-listening-canvas,.octi-dock .octi-listening-media.is-fallback .octi-listening-fallback{opacity:1}
 .octi-dock .octi-listening-source{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.octi-dock .octi-listening-media{transition:none}}
+/* The recording is indicated by Okti itself; discard buds above the finger. */
+.octi-dock[data-mode=recording] .octi-copy{visibility:hidden;pointer-events:none}
+.octi-dock .stage>.dismiss,.phone-layout .octi-dock .stage>.dismiss{right:auto;bottom:auto;width:44px;height:44px;min-width:44px;min-height:44px;border:0;background:transparent;box-shadow:none;padding:0;z-index:20;transform:translate(-50%,-50%);color:#267bc6}
+.octi-dock .stage>.dismiss .dismiss-orb{display:grid;place-items:center;width:38px;height:38px;border:0;background:none;box-shadow:none;backdrop-filter:none;animation:none;pointer-events:none}
+.octi-dock .stage>.dismiss .dismiss-orb:before{display:none}
+.octi-dock .stage>.dismiss .dismiss-glyph{font:500 29px/1 Arial,sans-serif;color:transparent;background:linear-gradient(135deg,#0878cd,#3276c9 52%,#9561a4 78%,#d95165);background-clip:text;-webkit-background-clip:text;animation:none}
+.octi-dock .stage>.dismiss-flow,.phone-layout .octi-dock .stage>.dismiss-flow{position:absolute;right:auto;bottom:auto;width:260px;height:260px;overflow:visible;z-index:19;animation:none;pointer-events:none}
+.octi-dock .stage>.dismiss-flow .dismiss-tip{animation:none;transform:none}
+@media(prefers-reduced-motion:reduce){.phone-layout .octi-dock .stage>.dismiss-flow:not([hidden]){display:block!important}}
 </style>
 <script src="octi-listening.js?v=f9651d5c5bb17dd0"></script>
 <script>
@@ -3155,9 +3164,21 @@ function initializeOctiDocks(){
   const dismiss=root.querySelector('.dismiss');stage.append(dismiss);dismiss.innerHTML='<span class="dismiss-orb" aria-hidden="true"><span class="dismiss-glyph">×</span></span>';dismiss.onclick=()=>cancelPlannerRecording(channel);
   const liquid=document.createElementNS('http://www.w3.org/2000/svg','svg');liquid.classList.add('dismiss-flow');liquid.setAttribute('viewBox','0 0 120 120');liquid.setAttribute('aria-hidden','true');liquid.setAttribute('focusable','false');liquid.setAttribute('hidden','');
   const liquidId='octi-cancel-liquid-'+channel;
-  liquid.innerHTML='<defs><linearGradient id="'+liquidId+'-fill" x2=".6" y2="1"><stop stop-color="#fffafd"/><stop offset=".55" stop-color="#f8d7e2"/><stop offset="1" stop-color="#e6a0b6"/></linearGradient><filter id="'+liquidId+'" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="3" result="soft"/><feColorMatrix in="soft" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 22 -8"/></filter></defs><g fill="url(#'+liquidId+'-fill)" filter="url(#'+liquidId+')"><circle class="dismiss-source" cx="28" cy="33" r="54"/><circle class="dismiss-tip" cx="86" cy="86" r="18"/></g>';
+  liquid.setAttribute('viewBox','0 0 260 260');
+  liquid.innerHTML=`<defs><mask id="${liquidId}-mask"><rect width="260" height="260" fill="white"/><circle class="dismiss-cut" cx="170" cy="170" r="50" fill="black"/></mask><filter id="${liquidId}" x="-35%" y="-45%" width="175%" height="185%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="soft"/><feColorMatrix in="soft" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 22 -10" result="skin"/><feMorphology in="skin" operator="erode" radius="1.5" result="inner"/><feComposite in="skin" in2="inner" operator="out" result="rimMask"/><feFlood flood-color="#328dc4" flood-opacity=".9" result="blue"/><feComposite in="blue" in2="rimMask" operator="in" result="rim"/><feFlood flood-color="#a6deff" flood-opacity=".08" result="fill"/><feComposite in="fill" in2="skin" operator="in" result="glassFill"/><feSpecularLighting in="soft" surfaceScale="4" specularConstant=".8" specularExponent="22" lighting-color="#ffffff" result="shine"><feDistantLight azimuth="225" elevation="55"/></feSpecularLighting><feColorMatrix in="shine" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .333 .333 .333 0 0" result="transparentShine"/><feComposite in="transparentShine" in2="skin" operator="in" result="clippedShine"/><feMerge><feMergeNode in="glassFill"/><feMergeNode in="rim"/><feMergeNode in="clippedShine"/></feMerge></filter></defs><g mask="url(#${liquidId}-mask)"><g fill="white" filter="url(#${liquidId})"><circle class="dismiss-source" cx="170" cy="170" r="56"/><ellipse class="dismiss-tip" cx="130" cy="130" rx="0" ry="0"/></g><ellipse class="dismiss-glint" rx="5.3" ry="1.9" fill="white" opacity="0"/></g>`;
   stage.append(liquid);
-  function fitDismissFlow(){const main=oldButton.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!main.width)return;const cx=main.left+main.width/2-(box.right+24-120),cy=main.top+main.height/2-(box.bottom+18-120),source=liquid.querySelector('.dismiss-source');source.setAttribute('cx',cx);source.setAttribute('cy',cy);source.setAttribute('r',Math.max(20,parseFloat(getComputedStyle(water).width)/2-5));for(const skin of [dismiss,liquid]){skin.style.setProperty('--bud-x',((cx-86)*.55)+'px');skin.style.setProperty('--bud-y',((cy-86)*.55)+'px');}}
+  let budFrame=0,budStart=0,budVisible=false,budProgress=0;
+  function drawDismissBud(t){
+   const main=oldButton.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!main.width)return;
+   const cx=main.left+main.width/2-box.left,cy=main.top+main.height/2-box.top,radius=main.width*.56,smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)},grow=smooth(t/.5),stretch=smooth((t-.34)/.43),release=smooth((t-.77)/.12),distance=radius-3+19*grow+12*stretch+3*release,wobble=t>.86?Math.sin((t-.86)*Math.PI*18)*Math.exp(-(t-.86)*19):0,r=19*grow,squeeze=1-.12*Math.sin(Math.PI*stretch)+.09*wobble,x=170-distance/Math.sqrt(2),y=x;
+   liquid.style.left=(cx-170)+'px';liquid.style.top=(cy-170)+'px';liquid.querySelector('.dismiss-source').setAttribute('r',radius);liquid.querySelector('.dismiss-cut').setAttribute('r',Math.max(0,radius-3));
+   const tip=liquid.querySelector('.dismiss-tip');for(const [key,value] of Object.entries({cx:x,cy:y,rx:r*squeeze,ry:r/squeeze,transform:`rotate(-45 ${x} ${y})`}))tip.setAttribute(key,value);
+   const glint=liquid.querySelector('.dismiss-glint');glint.setAttribute('cx',x-r*.3);glint.setAttribute('cy',y-r*.56);glint.setAttribute('opacity',grow*.85);
+   dismiss.style.left=(cx+x-170)+'px';dismiss.style.top=(cy+y-170)+'px';dismiss.style.opacity=String(smooth((t-.79)/.14));dismiss.style.pointerEvents=t>.8?'auto':'none';
+  }
+  function fitDismissFlow(){drawDismissBud(budProgress)}
+  function updateDismissBud(show){if(show===budVisible)return;budVisible=show;cancelAnimationFrame(budFrame);budFrame=0;if(!show){dismiss.style.opacity='0';return}budProgress=motion?.matches?1:0;budStart=performance.now();drawDismissBud(budProgress);if(motion?.matches)return;const frame=now=>{if(!budVisible)return;budProgress=Math.min(1,(now-budStart)/2900);drawDismissBud(budProgress);if(budProgress<1)budFrame=requestAnimationFrame(frame)};budFrame=requestAnimationFrame(frame)}
+  window.addEventListener('resize',fitDismissFlow);
   const hints=['Naciśnij i mów',...(channel==='main'?['Dodaj do kalendarza','Zrób listę','Nagraj notatkę','Wyszukaj']:['Zmień godzinę','Dodaj notatkę','Ustaw przypomnienie','Zmień nazwę'])];
   const reel=root.querySelector('.reel'),strip=root.querySelector('.commands');strip.onclick=()=>{if(!oldButton.disabled)oldButton.click()};let current=0,lastHint=Date.now(),hintDelay=2600,lastState=null;
   function renderHints(){
@@ -3185,7 +3206,7 @@ function initializeOctiDocks(){
    if(lastState!==mode){root.dataset.mode=mode;status.setAttribute('aria-hidden',String(mode==='idle'));oldButton.setAttribute('aria-label',mode==='recording'?'Zatrzymaj i wyślij nagranie':mode==='ready'?'Wyślij nagranie':'Naciśnij i mów');oldButton.setAttribute('aria-pressed',String(mode==='recording'));oldButton.disabled=mode==='opening'||mode==='sending';strip.disabled=oldButton.disabled;strip.setAttribute('aria-label',oldButton.getAttribute('aria-label'));lastState=mode;}
    const visible=channel==='main'?octiCurrentContext()==='main':octiCurrentContext()===channel;
    if(visible&&mode==='idle'&&!motion?.matches&&!document.hidden&&getComputedStyle(strip).visibility!=='hidden'&&Date.now()-lastHint>hintDelay){lastHint=Date.now();reel.firstElementChild?.classList.add('outgoing');current=(current+1)%hints.length;setTimeout(renderHints,250);}
-   updateLogo();if(!visible)setMenu(false);
+   updateDismissBud(showDismiss&&visible&&!document.hidden);updateLogo();if(!visible)setMenu(false);
   };setInterval(tick,200);
  }
 }
