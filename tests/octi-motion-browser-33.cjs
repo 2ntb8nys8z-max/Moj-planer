@@ -40,6 +40,7 @@ async function routeFiles(page,failMedia=false){
    assert.ok(b.x+b.width/2<main.x+main.width/2&&b.y+b.height/2<main.y+main.height/2,'Cancel separates above and left of the recording finger');
    assert.equal(await cancel.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true,'The detached bubble is reachable');
    await cancel.click();await page.waitForFunction(()=>plannerRecordings.main===null);assert.equal(await cancel.isVisible(),false,'Cancel discards and removes the bubble');
+   await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.dataset.mode==='idle'&&!root.octiListening?.getState().rendering},null,{timeout:10000});
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) video[src]').count(),0,'Hidden contexts do not load or play duplicate clips');
    await page.emulateMedia({reducedMotion:'reduce'});
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.paused&&!v.parentElement.classList.contains('is-playing')});
