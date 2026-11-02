@@ -3159,7 +3159,7 @@ function initializeOctiDocks(){
   toggle.onclick=()=>setMenu(!extras.classList.contains('expanded'));
   const extraActions=[['camera','Zrób zdjęcie'],['recorder','Nagraj notatkę głosową'],['keyboard','Edytuj ręcznie']];if(channel==='event')extraActions.push(['people','Dodaj osoby']);
   for(const [kind,label] of extraActions){const button=document.createElement('button');button.type='button';button.className='extra '+kind;button.disabled=true;button.setAttribute('aria-label',label);button.innerHTML=icons[kind]+(kind==='recorder'?'<span>REC <b class="red-dot"></b></span>':'');button.onclick=()=>{setMenu(false);if(kind==='keyboard')octiManualAction();else if(kind==='people')openEventPeoplePicker();else octiMediaAction(kind==='camera'?'photo':'audio')};menu.append(button);}
-  const dismiss=root.querySelector('.dismiss');stage.append(dismiss);dismiss.innerHTML='<span class="dismiss-orb" aria-hidden="true"><span class="dismiss-glyph">×</span></span>';dismiss.onclick=()=>cancelPlannerRecording(channel);
+  const dismiss=root.querySelector('.dismiss');stage.append(dismiss);dismiss.innerHTML='<span class="dismiss-orb" aria-hidden="true"><span class="dismiss-glyph">×</span></span>';dismiss.onclick=()=>{cancelPlannerRecording(channel);updateDismissBud(false);dismiss.hidden=true;liquid.setAttribute('hidden','')};
   const liquid=document.createElementNS('http://www.w3.org/2000/svg','svg');liquid.classList.add('dismiss-flow');liquid.setAttribute('viewBox','0 0 120 120');liquid.setAttribute('aria-hidden','true');liquid.setAttribute('focusable','false');liquid.setAttribute('hidden','');
   const liquidId='octi-cancel-liquid-'+channel;
   liquid.setAttribute('viewBox','0 0 260 260');
