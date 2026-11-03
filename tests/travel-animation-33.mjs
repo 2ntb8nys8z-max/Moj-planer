@@ -25,7 +25,7 @@ try{
   assert.ok(cue.querySelector('svg path'),'The cue uses a side-profile vector car rather than a pill');
   assert.equal(w.getComputedStyle(cue).backgroundColor,'rgba(0, 0, 0, 0)','No soap-shaped background remains');
 
-  w.document.title='Mój Planer — test integracji 33.168';
+  w.document.title='Mój Planer — test integracji 33.169';
   w.history.replaceState({},'',w.location.pathname+'?travelDemo=1');
   run(`tasks=[];renderAll()`);
   assert.deepEqual([...w.document.querySelectorAll('.phone-event-title-text')].map(node=>node.textContent),['Test lokalizacji 1','Test lokalizacji'],'The explicit demo link renders a visual-only event pair without requiring copied user data');
