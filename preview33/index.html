@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.169</title>
+<title>Mój Planer — test integracji 33.196</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.169</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.169</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.169-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.196</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.196</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.196-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.169-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.196-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3092,33 +3092,351 @@ initializeEventCommands();
   -webkit-mask-image:radial-gradient(circle closest-side,#000 0 85%,#000e 89%,#0008 93%,transparent 98%);
 }
 
-/* 33.169: denser shared water glass and a livelier blue calendar palette. */
-.phone-layout .octi-dock{--okti-cyan:#13b9ef;--okti-blue:#0878cf;--okti-deep:#14598f}
-.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
-  border:1px solid #ffffffd9;
-  background:radial-gradient(ellipse at 27% 17%,#ffffffed 12%,#dff7ffc9 30%,#8ed5f1a8 64%,#58abd68f 83%,#d9f4ffc2 100%);
-  box-shadow:0 7px 15px #174d7333,0 2px 4px #174d7324,inset 2px 2px 3px #fff,inset -2px -3px 5px #286d994d;
-  backdrop-filter:blur(4px) saturate(1.42) contrast(1.08);
-  -webkit-backdrop-filter:blur(4px) saturate(1.42) contrast(1.08)
+/* 33.172: clear pearl glass, blue/lilac edge reflections and elevated light, shared by Okti and its action bubbles.
+   Decorative skins only: targets, transforms and recorder/menu timing stay intact. */
+.octi-dock{
+  --okti-glass-light:radial-gradient(ellipse at 29% 18%,#fff 0 6%,#ffffffa6 9%,transparent 19%),radial-gradient(ellipse at 13% 37%,#ffffffc9 0 2%,transparent 8%),radial-gradient(ellipse at 78% 82%,#ffffffcf 0 2%,transparent 18%);
+  --okti-glass-depth:7px 12px 6px -7px #ffffffed,10px 21px 14px -7px #52799330,15px 30px 23px -11px #6a91ab20,inset 1px 2px 3px #fffffff2,inset -2px -3px 4px #497a9b55,inset 0 0 4px #eefaff78;
 }
-.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.58;filter:saturate(1.32) contrast(1.12)}
-.octi-dock .action-mark:before,.octi-dock .action-mark:after{background:linear-gradient(180deg,var(--action-top,#28cdf3),var(--action-bottom,#086fb7));box-shadow:inset 0 1px 1px #ffffffc9,inset 0 -1px 1px #064e7c66,0 1px 3px #075b9045}
-.octi-dock .bubble-menu .bubble-extra .menu-bud-symbol{color:#086da9;filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 0 2px #ffffffd9)}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
+  border:0;
+  background:radial-gradient(ellipse at 23% 20%,#ffffffed 0%,transparent 28%),radial-gradient(ellipse at 79% 83%,#eee1fa99 0%,transparent 36%),radial-gradient(ellipse at 34% 26%,#f6fdffad 0%,#e5f4fbb0 39%,#afd4e7a3 75%,#eaf8ffc9 100%);
+  box-shadow:var(--okti-glass-depth);
+  backdrop-filter:blur(10px) saturate(1.05);
+  -webkit-backdrop-filter:blur(10px) saturate(1.05)
+}
+/* Keep the existing moving artwork as a quiet refractive texture, without its dark rim. */
+.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.24;filter:saturate(.8);mask-image:radial-gradient(circle,#000 60%,transparent 96%);-webkit-mask-image:radial-gradient(circle,#000 60%,transparent 96%)}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--okti-glass-light);
+  box-shadow:inset 0 1px 1px #fff,inset 1px 0 2px #ffffffa6,inset -1px -1px 2px #649cb96b
+}
+.octi-dock .action-mark:before,.octi-dock .action-mark:after{background:linear-gradient(180deg,var(--action-top,#6f879b),var(--action-bottom,#3b4c60));box-shadow:inset 0 1px 1px #ffffffa6,0 1px 2px #075b9029}
+.octi-dock .bubble-menu .bubble-extra .menu-bud-symbol{color:#3b4c60;filter:drop-shadow(0 1px 1px #ffffffd9)}
+/* Preserve the original mascot pixels; never multiply two animation frames. */
 .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
   isolation:isolate;
-  background:radial-gradient(circle at 36% 27%,#ffffffb8 0 10%,#c9efff70 38%,#70c9ec42 72%,#2f8fc230 100%);
-  border:1px solid #ffffffc4;
-  box-shadow:0 10px 23px #174d7330,0 2px 5px #17345322,inset 2px 2px 3px #fff,inset -2px -3px 6px #286d9940;
-  backdrop-filter:blur(3.5px) saturate(1.38) contrast(1.07);
-  -webkit-backdrop-filter:blur(3.5px) saturate(1.38) contrast(1.07)
+  background:none;
+  border:0;box-shadow:none;
+  mask-image:none;-webkit-mask-image:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none
 }
-.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-media>video{mix-blend-mode:multiply;filter:saturate(1.24) contrast(1.07)}
+/* 33.178: shared glass material for the mascot and action bubbles. */
+.octi-dock .octi-motion-media{background:radial-gradient(ellipse at 23% 20%,#ffffffed 0%,transparent 28%),radial-gradient(ellipse at 79% 83%,#eee1fa99 0%,transparent 36%),radial-gradient(ellipse at 34% 26%,#f6fdffad 0%,#e5f4fbb0 39%,#afd4e7a3 75%,#eaf8ffc9 100%);box-shadow:inset 1px 2px 3px #fffffff2,inset -2px -3px 4px #497a9b55;backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:1;visibility:visible;transition:none}
+.octi-dock .octi-motion-media:after{background:var(--okti-glass-light)}
+/* A detached shadow must not leave the hard circular knockout of box-shadow. */
+.octi-dock .water-float:after{content:'';position:absolute;left:calc(50% + 22px);top:calc(50% + 54px);width:100px;height:42px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#52799342 0%,#6a91ab24 40%,transparent 72%);filter:blur(8px);pointer-events:none;z-index:2}
+/* Transmitted light is a detached ellipse, never a second circular shell. */
+.octi-dock .water-float:before{content:'';position:absolute;left:calc(50% + 15px);top:calc(50% + 52px);width:48px;height:16px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#ffffffe6 0%,#ffffff80 35%,transparent 72%);filter:blur(3px);pointer-events:none;z-index:11}
+.octi-dock .octi-motion-media:after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(ellipse at 27% 16%,#ffffffc9 0 3%,transparent 15%),radial-gradient(ellipse at 80% 85%,#ffffff30 0 1%,transparent 15%);
+  box-shadow:none
+}
+.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-canvas{
+  mix-blend-mode:normal;filter:none;
+  mask-image:none;-webkit-mask-image:none
+}
+.octi-dock .octi-motion-media.is-playing .octi-motion-poster,
+.octi-dock .octi-motion-media.is-fallback .octi-motion-poster{visibility:hidden}
+.octi-dock .octi-motion-media.is-fallback .octi-motion-video{opacity:0}
+/* 33.179: cool clear water, refractive edge and shadows detached from the screen. */
+.octi-dock{--okti-clear-water:radial-gradient(ellipse at 29% 17%,#ffffffe0 0 2%,#ffffff60 5%,transparent 16%),radial-gradient(ellipse at 77% 86%,#e9faffb0 0 2%,transparent 17%),radial-gradient(circle at 50% 49%,transparent 0 73%,#7297ae12 80%,#214d7266 91%,#e9faffb8 95%,#52799778 98%,#e8f8ff66 100%),linear-gradient(135deg,#d9f3ff0d,#5d91b914 65%,#ebfaff1f)}
+.octi-dock .octi-motion-media,.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{background:radial-gradient(ellipse at 29% 17%,#ffffffe0 0 2%,#ffffff60 5%,transparent 16%),radial-gradient(ellipse at 77% 86%,#e9faffb0 0 2%,transparent 17%),radial-gradient(circle at 50% 49%,transparent 0 73%,#7297ae12 80%,#214d7266 91%,#e9faffb8 95%,#52799778 98%,#e8f8ff66 100%),linear-gradient(135deg,#d9f3ff0d,#5d91b914 65%,#ebfaff1f);border:0;backdrop-filter:blur(1px) saturate(1.15);-webkit-backdrop-filter:blur(1px) saturate(1.15);box-shadow:inset 1px 2px 2px #ffffffa6,inset -1px -2px 3px #2a527144}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{box-shadow:12px 20px 13px -7px #1e3f5c52,18px 30px 22px -9px #304c6529,inset 1px 2px 2px #ffffffa6,inset -1px -2px 3px #2a527144;animation:okti-clear-flex 6.8s ease-in-out infinite}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before,.octi-dock .octi-motion-media:after{background:radial-gradient(ellipse at 25% 17%,#ffffffed 0 2%,transparent 12%),radial-gradient(ellipse at 13% 35%,#ffffff8c 0 1%,transparent 6%),radial-gradient(ellipse at 81% 80%,#ffffff8c 0 1%,transparent 10%);box-shadow:none}
+.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.13}
+.octi-dock .water-float:after{left:calc(50% + 24px);top:calc(50% + 43px);width:116px;height:72px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#294d6b66 0%,#385e7b3b 34%,transparent 72%);filter:blur(8px);animation:okti-hover-shadow 7.4s ease-in-out infinite}
+.octi-dock .water-float:before{left:calc(50% + 17px);top:calc(50% + 57px);width:61px;height:14px;opacity:.8}
+.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{animation:octi-bubble-drift 7.4s ease-in-out infinite,okti-clear-flex 7.4s ease-in-out infinite}
+@keyframes octi-bubble-drift{0%,100%{translate:0 0}28%{translate:2px -5px}57%{translate:-2px -2px}80%{translate:-1px 2px}}
+@keyframes okti-clear-flex{0%,100%{border-radius:49% 51% 50% 50% / 50% 48% 52% 50%}35%{border-radius:51% 49% 48% 52% / 48% 52% 48% 52%}70%{border-radius:48% 52% 51% 49% / 51% 49% 51% 49%}}
+@keyframes okti-hover-shadow{0%,100%{translate:0 0;scale:1;opacity:.9}28%{translate:1px 2px;scale:1.08;opacity:.72}57%{translate:-1px 1px;scale:1.04;opacity:.8}80%{translate:0 -1px;scale:.97;opacity:1}}
+@media(prefers-reduced-motion:reduce){.octi-dock .action-skin,.octi-dock .bubble-menu .menu-bud-skin,.octi-dock .water-float:after{animation:none!important}}
+/* 33.180: the bubble is a clear liquid rim, not a frosted white disc. */
+.octi-dock .octi-motion-media{
+  background:radial-gradient(ellipse at 50% 50%,transparent 0 65%,#83afc11a 70%,#e8fbff8f 78%,#31536e8f 86%,#dff8ffed 91%,#31536eb3 95%,#f4fdffe8 98%,transparent 100%);
+  box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  filter:drop-shadow(0 1px 1px #173e565c);
+  mask-image:none;-webkit-mask-image:none
+}
+.octi-dock .octi-motion-media:after{
+  background:conic-gradient(from 214deg at 51% 49%,#264a63a8 0deg,#e8fbffff 18deg,#ffffff85 34deg,#7da9bc38 63deg,transparent 128deg,#31536e9c 190deg,#b9e0eae8 224deg,#ffffff 250deg,#6d95a75c 282deg,#ffffffd9 326deg,#264a63a8 360deg);
+  mask-image:radial-gradient(ellipse at 50% 50%,transparent 0 64%,#0005 70%,#000 80% 97%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 50%,transparent 0 64%,#0005 70%,#000 80% 97%,transparent 100%);
+  opacity:1
+}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
+  background:linear-gradient(transparent,transparent);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  box-shadow:13px 22px 13px -8px #1e3f5c63,19px 31px 24px -11px #304c6538
+}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  inset:-1px;
+  background:conic-gradient(from 210deg,#456c835c,#e8fbffe8 8%,#ffffff3d 18%,transparent 31% 48%,#31536e70 62%,#b9e0eab8 73%,transparent 84%,#ffffffb8 94%,#456c835c);
+  mask-image:radial-gradient(circle,transparent 0 78%,#000 84% 96%,transparent 100%);
+  -webkit-mask-image:radial-gradient(circle,transparent 0 78%,#000 84% 96%,transparent 100%)
+}
+.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.035}
+.octi-dock .water-float:after{
+  left:calc(50% + 32px);top:calc(50% + 63px);width:122px;height:46px;
+  background:radial-gradient(ellipse,#203f596b 0%,#365b7545 38%,transparent 73%);
+  filter:blur(7px)
+}
+.octi-dock .water-float:before{left:calc(50% + 20px);top:calc(50% + 61px);width:54px;height:10px;opacity:.78}
+.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{animation:octi-bubble-drift 6.8s ease-in-out infinite,okti-clear-flex 6.8s ease-in-out infinite}
+@keyframes octi-bubble-drift{0%,100%{translate:0 1px}30%{translate:3px -9px}58%{translate:-3px -5px}82%{translate:-1px 3px}}
+@keyframes okti-hover-shadow{0%,100%{translate:0 0;scale:1;opacity:.92}30%{translate:2px 4px;scale:1.1;opacity:.66}58%{translate:-1px 2px;scale:1.06;opacity:.75}82%{translate:0 -1px;scale:.96;opacity:1}}
+/* 33.181: generated transparent liquid material replaces the CSS-drawn ring. */
+.octi-dock .octi-motion-media{background:none;filter:none;overflow:visible}
+.octi-dock .octi-motion-media:after{
+  inset:-2%;
+  border-radius:48% 52% 50% 50% / 51% 48% 52% 49%;
+  background:url('octi-liquid-rim-33-181.png?v=11c991032353a754') center/100% 100% no-repeat;
+  mask-image:none;-webkit-mask-image:none;
+  filter:drop-shadow(0 1px 1px #173e566b);
+  animation:okti-liquid-surface 6.8s ease-in-out infinite;
+  transform-origin:50% 52%
+}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  inset:-5%;
+  background:url('octi-liquid-rim-33-181.png?v=11c991032353a754') center/100% 100% no-repeat;
+  mask-image:none;-webkit-mask-image:none;
+  filter:drop-shadow(0 1px 1px #173e565c);
+  animation:okti-liquid-surface-small 6.2s ease-in-out infinite
+}
+.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:0}
+.octi-dock .water-float:after{
+  left:calc(50% + 29px);top:calc(50% + 59px);width:126px;height:48px;
+  background:radial-gradient(ellipse at 50% 45%,#17374f75 0%,#31566f4d 38%,#567a8e20 58%,transparent 75%);
+  filter:blur(7px)
+}
+.octi-dock .water-float:before{
+  left:calc(50% + 17px);top:calc(50% + 57px);width:65px;height:13px;
+  background:radial-gradient(ellipse,#fffffff0 0%,#dff8ffc4 30%,#90bdce42 55%,transparent 76%);
+  filter:blur(2.5px);opacity:.88
+}
+@keyframes okti-liquid-surface{
+  0%,100%{transform:rotate(-.35deg) scale(1.015,.985)}
+  30%{transform:rotate(.8deg) scale(.985,1.025)}
+  58%{transform:rotate(-.65deg) scale(1.025,.98)}
+  82%{transform:rotate(.25deg) scale(.99,1.012)}
+}
+@keyframes okti-liquid-surface-small{
+  0%,100%{transform:rotate(-1deg) scale(1.02,.98)}
+  42%{transform:rotate(1.2deg) scale(.985,1.025)}
+  76%{transform:rotate(-.4deg) scale(1.015,.99)}
+}
+@media(prefers-reduced-motion:reduce){.octi-dock .octi-motion-media:after,.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{animation:none!important}}
+/* 33.182: surface tension keeps every free bubble perfectly smooth and circular. */
+.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
+  border-radius:50%;
+  animation:octi-bubble-drift 6.8s ease-in-out infinite
+}
+.octi-dock .octi-motion-media{overflow:visible}
+.octi-dock .octi-motion-media:after{
+  inset:-1.5%;
+  border-radius:50%;
+  clip-path:circle(48.5% at 50% 50%);
+  background:url('octi-liquid-sphere-33-182.png?v=1fd6f2ce699c660c') center/100% 100% no-repeat;
+  opacity:.66;
+  filter:drop-shadow(0 1px 1px #173e5657);
+  animation:okti-liquid-glint 7.6s ease-in-out infinite
+}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{border-radius:50%}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  inset:-4%;
+  border-radius:50%;
+  clip-path:circle(48.5% at 50% 50%);
+  background:url('octi-liquid-sphere-33-182.png?v=1fd6f2ce699c660c') center/100% 100% no-repeat;
+  opacity:.72;
+  animation:okti-liquid-glint-small 7.1s ease-in-out infinite
+}
+@keyframes okti-liquid-glint{
+  0%,100%{transform:rotate(-.3deg) scale(1)}
+  48%{transform:rotate(.45deg) scale(1.006)}
+  76%{transform:rotate(-.15deg) scale(.998)}
+}
+@keyframes okti-liquid-glint-small{
+  0%,100%{transform:rotate(-.6deg) scale(1)}
+  52%{transform:rotate(.7deg) scale(1.008)}
+}
+@media(prefers-reduced-motion:reduce){.octi-dock .octi-motion-media:after,.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{animation:none!important}}
+/* 33.184: Gemini-like steel-blue glass and a two-stage floating shadow. */
+.octi-dock .octi-motion-media:after{
+  opacity:.62;
+  filter:hue-rotate(34deg) saturate(.52) brightness(1.02) drop-shadow(0 1px 1px #414c6852)
+}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  opacity:.68;
+  filter:hue-rotate(34deg) saturate(.52) brightness(1.02) drop-shadow(0 1px 1px #414c6848)
+}
+.octi-dock .water-float:after{
+  left:calc(50% + 35px);top:calc(50% + 63px);width:136px;height:58px;
+  transform:translate(-50%,-50%) rotate(-17deg);
+  background:
+    radial-gradient(ellipse at 28% 28%,#38435d73 0%,#4e5a713e 28%,transparent 54%),
+    radial-gradient(ellipse at 58% 58%,#65708642 0%,#77819824 43%,transparent 76%);
+  filter:blur(7.5px)
+}
+.octi-dock .water-float:before{
+  left:calc(50% + 22px);top:calc(50% + 59px);width:61px;height:12px;
+  transform:translate(-50%,-50%) rotate(-17deg);
+  background:radial-gradient(ellipse,#ffffffdb 0%,#e8ebf5a8 28%,#a9b1cb38 56%,transparent 77%);
+  filter:blur(2.8px);opacity:.72
+}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
+  box-shadow:8px 13px 9px -5px #3c48615c,15px 25px 19px -8px #64708738
+}
 .phone-layout .phone-calendar-week-number{border-color:#d9f5ff;background:radial-gradient(circle at 30% 19%,#51d3f2 0,#168dd5 51%,#075eae 100%);box-shadow:inset 2px 2px 3px #ffffffa8,inset -2px -3px 5px #064b8770,0 4px 10px #075c9d42;text-shadow:0 1px 2px #06437680}
 .phone-layout .phone-week-strip button.active{background:linear-gradient(160deg,#24bce9,#157ad0);box-shadow:inset 0 1px 2px #bfeeff,0 4px 9px #176aa638}
 .phone-layout .phone-event{background-color:#e4f4fb!important;background-image:linear-gradient(145deg,#f6fcff,#dceff9)!important;border-color:#b7d8ea;border-left-color:#189ad4;box-shadow:inset 0 1px 2px #fff,0 3px 9px #236c9b20}
 .phone-layout .phone-event.layered{background-color:#e4effb!important;background-image:linear-gradient(145deg,#f4faff,#dbeaf8)!important;border-color:#b9cee5;border-left-color:#2879c7;box-shadow:inset 0 1px 2px #fff,0 3px 9px #245f9726}
 .phone-layout .phone-event-title{color:#183b5b}.phone-layout .phone-event-time{color:#456985}
 .phone-layout .phone-hour{border-top-color:#c9dfeb}
+
+
+/* 33.184: approved pale-blue droplet and transmitted-light shadow. */
+.octi-dock .octi-motion-media{background:linear-gradient(145deg,#91c9ff0a,#b9b6f408);box-shadow:none;filter:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.octi-dock .octi-motion-media:after{
+  inset:-3%;border-radius:50%;clip-path:circle(45% at 50% 50%);
+  background:url('octi-glass-33-184.png?v=ffa5688726705d31') center/100% 100% no-repeat;
+  opacity:.86;filter:none;mask-image:none;-webkit-mask-image:none;
+  animation:none;transform:none
+}
+.octi-dock .water-float:after{
+  left:calc(50% + var(--octi-size,100px) * .26);top:calc(50% + var(--octi-size,100px) * .54);
+  width:calc(var(--octi-size,100px) * 1.2);height:calc(var(--octi-size,100px) * .53);
+  transform:translate(-50%,-50%) rotate(-12deg);
+  background:radial-gradient(ellipse closest-side,transparent 0 33%,#587ba31a 43%,#42638c55 63%,#52759e38 77%,transparent 100%);
+  filter:blur(4px);z-index:2;animation:okti-transmitted-shadow 6.8s ease-in-out infinite
+}
+.octi-dock .water-float:before{
+  left:calc(50% + var(--octi-size,100px) * .28);top:calc(50% + var(--octi-size,100px) * .55);
+  width:calc(var(--octi-size,100px) * .75);height:calc(var(--octi-size,100px) * .22);
+  transform:translate(-50%,-50%) rotate(-12deg);
+  background:radial-gradient(ellipse at center,#ffffffed 0 3%,#f2faff99 10%,transparent 54%),linear-gradient(12deg,transparent 44%,#ffffffba 49%,#fff 50%,#ffffff9c 51%,transparent 56%),linear-gradient(-17deg,transparent 43%,#ffffff91 49%,#ffffffe0 50%,#ffffff7a 51%,transparent 57%);
+  mask-image:radial-gradient(ellipse closest-side,#000 15%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse closest-side,#000 15%,transparent 100%);
+  filter:blur(.6px);opacity:.92;z-index:3
+}
+@keyframes okti-transmitted-shadow{0%,100%{translate:0 0;scale:1;opacity:.85}30%{translate:1px 2px;scale:1.035;opacity:.72}58%{translate:-1px 1px;scale:1.02;opacity:.8}82%{translate:0 -1px;scale:.99;opacity:.9}}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{background:linear-gradient(145deg,#91c9ff0a,#b9b6f408);box-shadow:none}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{inset:-3%;border-radius:50%;clip-path:circle(45% at 50% 50%);background:url('octi-glass-33-184.png?v=ffa5688726705d31') center/100% 100% no-repeat;opacity:.9;filter:none;animation:none;transform:none}
+.octi-dock .action-skin:after,.octi-dock .bubble-menu .menu-bud-skin:after{content:'';position:absolute;left:22%;top:78%;width:95%;height:40%;border-radius:50%;background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c40 65%,transparent 100%);filter:blur(2px);z-index:-1;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.octi-dock .water-float:after{animation:none!important}}
+
+
+/* 33.185: one inherited motion timeline for glass, actor, shadow and caustic. */
+@property --okti-drift-x{syntax:'<length>';inherits:true;initial-value:0px}
+@property --okti-drift-y{syntax:'<length>';inherits:true;initial-value:0px}
+@property --okti-lift{syntax:'<number>';inherits:true;initial-value:0}
+.octi-dock .water-float{
+  --okti-drift-x:0px;--okti-drift-y:1px;--okti-lift:0;
+  animation:okti-hover-physics 6.8s ease-in-out infinite!important;
+  transform:none;translate:none
+}
+.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
+  animation:none!important;translate:var(--okti-drift-x) var(--okti-drift-y)
+}
+.octi-dock .octi-motion-media:after{opacity:.94;filter:brightness(1.12) saturate(.9)}
+/* A small, irregular sun reflection follows the same moving glass surface. */
+.octi-dock .octi-motion-media:before{
+  content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse 17% 7% at 27% 19%,#ffffffeb 0%,#ffffff70 32%,transparent 100%),radial-gradient(ellipse 4% 11% at 10% 37%,#ffffffa6 0%,transparent 100%),radial-gradient(ellipse 12% 4% at 76% 87%,#ffffffd9 0%,transparent 100%);
+  opacity:calc(.78 + var(--okti-lift) * .18)
+}
+.octi-dock .water-float:after{
+  animation:none!important;
+  translate:var(--okti-drift-x) calc(var(--okti-drift-y) * -.65);
+  scale:calc(1 + var(--okti-lift) * .14);
+  opacity:calc(.85 - var(--okti-lift) * .17);
+  background:radial-gradient(ellipse closest-side,transparent 0 40%,#587ba312 49%,#42638c49 66%,#52759e2e 79%,transparent 100%);
+  filter:blur(calc(3px + var(--okti-lift) * 1.8px))
+}
+.octi-dock .water-float:before{
+  animation:none!important;
+  translate:var(--okti-drift-x) calc(var(--okti-drift-y) * -.65);
+  width:calc(var(--octi-size,100px) * .85);height:calc(var(--octi-size,100px) * .26);
+  scale:calc(1 + var(--okti-lift) * .1);opacity:1;
+  background:radial-gradient(ellipse at center,#fffffffa 0 10%,#f5fbffcc 24%,#f6fcff66 43%,transparent 76%),linear-gradient(12deg,transparent 44%,#ffffffe8 49%,#fff 50%,#ffffffcf 51%,transparent 56%),linear-gradient(-17deg,transparent 43%,#ffffffbd 49%,#fff 50%,#ffffffa1 51%,transparent 57%);
+  filter:blur(.45px)
+}
+@keyframes okti-hover-physics{
+  0%,100%{--okti-drift-x:0px;--okti-drift-y:1px;--okti-lift:0}
+  30%{--okti-drift-x:3px;--okti-drift-y:-9px;--okti-lift:1}
+  58%{--okti-drift-x:-3px;--okti-drift-y:-5px;--okti-lift:.6}
+  82%{--okti-drift-x:-1px;--okti-drift-y:3px;--okti-lift:0}
+}
+@media(prefers-reduced-motion:reduce){.octi-dock .water-float{animation:none!important}.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{translate:0 0}}
+
+
+/* 33.186: lightly tinted water softens the shadow seen through it. */
+.octi-dock .octi-motion-media{
+  background:radial-gradient(ellipse at 48% 37%,#d9ecff1c 0 40%,#a8d3ff32 76%,#bfddff45 100%);
+  backdrop-filter:blur(1.4px) saturate(1.06);-webkit-backdrop-filter:blur(1.4px) saturate(1.06)
+}
+.octi-dock .water-float:before{
+  left:calc(50% + var(--octi-size,100px) * .34);top:calc(50% + var(--octi-size,100px) * .64);
+  width:calc(var(--octi-size,100px) * .94);height:calc(var(--octi-size,100px) * .34);
+  background:url('octi-caustic-33-196.svg?v=a643000053e3f996') center/100% 100% no-repeat;
+  mask-image:none;-webkit-mask-image:none;filter:none;opacity:1
+}
+
+/* 33.188: a continuous glass contour during sequential liquid budding. */
+.octi-dock .menu-bud-neck{z-index:1}
+.octi-dock .action-skin:before{opacity:calc(.9 * var(--bud-glass-alpha,1))}
+.octi-dock .bubble-menu .menu-bud-skin:before{opacity:calc(.9 * var(--bud-glass-alpha,1))}
+.octi-dock .bubble-menu .menu-bud-skin:after,.octi-dock .action-skin:after{opacity:var(--bud-glass-alpha,1)}
+.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{background:linear-gradient(145deg,rgba(145,201,255,calc(.04 * var(--bud-glass-alpha,1))),rgba(185,182,244,calc(.03 * var(--bud-glass-alpha,1))))}
+
+
+/* 33.189: the travelling shadow belongs to the bud, never its material crossfade. */
+@property --bud-idle-x{syntax:'<length>';inherits:true;initial-value:0px}
+@property --bud-idle-y{syntax:'<length>';inherits:true;initial-value:0px}
+@property --bud-idle-swell{syntax:'<number>';inherits:true;initial-value:0}
+.octi-dock .bubble-menu>.bubble-extra{--bud-idle-x:0px;--bud-idle-y:0px;--bud-idle-swell:0}
+.octi-dock .bubble-menu>.bubble-extra[data-bud-idle]{animation:okti-bud-idle var(--bud-idle-duration,6s) ease-in-out infinite}
+.octi-dock .bubble-menu .menu-bud-skin{
+  translate:var(--bud-idle-x) var(--bud-idle-y);
+  rotate:calc(var(--bud-idle-swell) * .7deg);
+  scale:calc(1 + var(--bud-idle-swell) * .018) calc(1 - var(--bud-idle-swell) * .014)
+}
+.octi-dock .bubble-menu .menu-bud-skin:after{display:none}
+.octi-dock .menu-bud-shadow{
+  position:absolute;left:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c46 65%,#52759e22 80%,transparent 100%);
+  translate:var(--bud-idle-x) calc(var(--bud-idle-y) * -.6);
+  scale:calc(1 + var(--bud-idle-swell) * .045);
+  filter:blur(2px);opacity:calc(.85 - var(--bud-idle-swell) * .1)
+}
+.octi-dock .menu-bud-shadow:before{
+  content:'';position:absolute;inset:18% 20%;border-radius:50%;
+  background:radial-gradient(ellipse,#fffffff0 0 10%,#f5fbff91 35%,transparent 75%);
+  filter:blur(.4px)
+}
+@keyframes okti-bud-idle{
+  0%,100%{--bud-idle-x:0px;--bud-idle-y:0px;--bud-idle-swell:0}
+  27%{--bud-idle-x:1.4px;--bud-idle-y:-2.8px;--bud-idle-swell:1}
+  59%{--bud-idle-x:-1.6px;--bud-idle-y:-1px;--bud-idle-swell:-.7}
+  81%{--bud-idle-x:-.5px;--bud-idle-y:1.3px;--bud-idle-swell:.3}
+}
+@media(prefers-reduced-motion:reduce){.octi-dock .bubble-menu>.bubble-extra[data-bud-idle]{animation:none!important}}
+
+
+/* 33.190: the action shadow remains present while its glass forms the first bud. */
+.octi-dock .action-skin:after{display:none}
+.octi-dock .action-fixed-shadow{
+  position:absolute;left:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;opacity:.85;
+  background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c46 65%,#52759e22 80%,transparent 100%);
+  filter:blur(2px)
+}
+.octi-dock .action-fixed-shadow:before,.octi-dock .menu-bud-shadow:before{
+  content:'';position:absolute;inset:-12% 12% 8% -4%;border-radius:50%;
+  background:radial-gradient(ellipse at 43% 40%,#fff 0 16%,#ffffffe6 30%,#f5fbff99 48%,transparent 78%);
+  filter:blur(.3px)
+}
 
 /* 33.168: a temporary travel cue moves between consecutive located events. */
 .phone-travel-animation{position:absolute;left:0;top:0;z-index:35;display:flex;align-items:center;gap:4px;width:max-content;color:#0877df;filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 3px 4px #155f9f42);pointer-events:none;white-space:nowrap;opacity:0;will-change:transform,opacity;animation:phone-travel-drive 14s cubic-bezier(.22,.72,.22,1) infinite}
@@ -3134,7 +3452,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-listening.js?v=1bbfbf01949311ad"></script>
+<script src="octi-listening.js?v=a603f1142968fe80"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -3220,87 +3538,92 @@ function octiRibbonContour(width,height,cx,cy,radius){
  return {width:Math.max(width,cut(4),cut(height-4))+4,forms:[0,1,-.8,0].map(bend=>contour(0,bend)),innerForms:[0,1,-.8,0].map(bend=>contour(3,bend)),topShine:`M27 8 H${cut(8,3)-8}`,bottomShine:`M23 ${height-12} Q29 ${height-8} 41 ${height-8} H${cut(height-8,3)-8}`,arcStart:{x:cut(4),y:4},arcEnd:{x:cut(height-4),y:height-4}};
 }
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
-let octiActiveMotionStop=null;
 function octiMotionArtwork(root,floating,motion){
- const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
- const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=1dd2ca9a5f73bd11';
- const fallback=document.createElement('img');fallback.className='octi-motion-fallback';fallback.alt='';fallback.draggable=false;
- const video=document.createElement('video');video.className='octi-motion-video';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
- layer.append(poster,fallback,video);floating.append(layer);
- const listening=window.createOctiListeningArtwork?.(root,floating,motion,video);if(listening)root.octiListening=listening;
- let wanted=false,pending=false,blocked=false,attempted=false,fallbackFailed=false,lastTime=0,lastProgress=0;
- function useFallback(active){
-  if(!active){layer.classList.remove('is-fallback');if(fallback.hasAttribute('src'))fallback.removeAttribute('src');return;}
-  if(fallbackFailed)return;
-  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=1f3d1936011b7e13';
-  if(fallback.complete&&fallback.naturalWidth)layer.classList.add('is-fallback');
- }
- fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
- fallback.addEventListener('error',()=>{if(fallback.hasAttribute('src')){fallbackFailed=true;layer.classList.remove('is-fallback');}});
- function stop(preserveFrame=false){
-  wanted=false;if(!preserveFrame)layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
-  if(!video.paused||pending)video.pause();
-  if(octiActiveMotionStop===stop)octiActiveMotionStop=null;
- }
- function update(){
-  const visible=root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0;
-  listening?.update({visible,opening:root.dataset.mode==='opening',isRecording:root.dataset.mode==='recording'});
-  const mode=root.dataset.mode,listeningState=listening?.getState();
-  const awaitingListening=mode==='opening'||(mode==='recording'&&listeningState&&!listeningState.rendering&&!listeningState.fallback);
-  const eligible=visible&&(mode==='idle'||mode==='sending'||mode==='ready'||awaitingListening)&&!motion?.matches;
-  wanted=Boolean(eligible);
-  if(!wanted){stop(visible&&!motion?.matches&&!!listeningState?.rendering);return;}
-  // Transfer playback ownership synchronously, before the new context starts.
-  // Independent dock timers must never leave two contexts animating together.
-  if(octiActiveMotionStop!==stop){octiActiveMotionStop?.();octiActiveMotionStop=stop;}
-  const now=performance.now();
-  if(!video.canPlayType('video/mp4'))blocked=true;
-  if(blocked){useFallback(true);return;}
-  if(pending&&!lastProgress)lastProgress=now;
-  if(video.currentTime!==lastTime){lastTime=video.currentTime;lastProgress=now;if(!video.paused&&video.readyState>=2){layer.classList.add('is-playing');useFallback(false);}}
-  if(lastProgress&&now-lastProgress>1800){blocked=true;pending=false;video.pause();layer.classList.remove('is-playing');useFallback(true);return;}
-  if(pending||!video.paused||attempted)return;
-  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=b2c7f04a455a109c';
-  pending=true;attempted=true;lastTime=video.currentTime;lastProgress=now;
-  Promise.resolve(video.play()).then(()=>{pending=false;if(!wanted)video.pause();}).catch(error=>{pending=false;blocked=wanted&&error?.name!=='AbortError';if(!blocked)attempted=false;layer.classList.remove('is-playing');if(blocked)useFallback(true);});
- }
- video.addEventListener('error',()=>{blocked=true;pending=false;layer.classList.remove('is-playing');if(wanted)useFallback(true);});
- root.addEventListener('pointerdown',()=>{if(blocked){blocked=false;attempted=false;lastProgress=0;update();}},{passive:true});
- return update;
+ const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
+ const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
+ if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';poster.alt='';glass.append(poster);return ()=>{};}
+ return ()=>artwork.update({visible:root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0,isRecording:root.dataset.mode==='recording'});
 }
 
 // Chained glass buds reuse the existing action buttons and their handlers.
 function octiMenuBuds(root,toggle,stage,menu,motion,channel){
  stage.append(menu);menu.classList.add('bubble-menu');
- const ordered=['keyboard','recorder','camera','people'].map(k=>menu.querySelector('.'+k)).filter(Boolean),items=ordered.map(button=>{button.classList.add('bubble-extra');const icon=button.querySelector('svg');button.replaceChildren();const skin=document.createElement('span');skin.className='menu-bud-skin';skin.setAttribute('aria-hidden','true');const glass=document.createElement('img');glass.src='octi-water-glass.webp?v=babdb581839accf9';glass.alt='';const symbol=document.createElement('span');symbol.className='menu-bud-symbol';if(icon)symbol.append(icon);skin.append(glass,symbol);button.append(skin);const canvas=document.createElement('canvas');canvas.className='menu-bud-neck';canvas.width=canvas.height=260;canvas.hidden=true;canvas.setAttribute('aria-hidden','true');menu.append(canvas);return{button,skin,canvas,p:0,ctx:null};});
+ const ordered=['keyboard','recorder','camera','people'].map(k=>menu.querySelector('.'+k)).filter(Boolean);
+ const items=ordered.map((button,index)=>{
+  button.classList.add('bubble-extra');const icon=button.querySelector('svg');button.replaceChildren();
+  const skin=document.createElement('span');skin.className='menu-bud-skin';skin.setAttribute('aria-hidden','true');
+  const symbol=document.createElement('span');symbol.className='menu-bud-symbol';if(icon)symbol.append(icon);skin.append(symbol);const shadow=document.createElement('span');shadow.className='menu-bud-shadow';shadow.setAttribute('aria-hidden','true');button.style.setProperty('--bud-idle-duration',(5.8+index*.65)+'s');button.append(shadow,skin);
+  const canvas=document.createElement('canvas');canvas.className='menu-bud-neck';canvas.width=canvas.height=520;canvas.hidden=true;canvas.setAttribute('aria-hidden','true');menu.append(canvas);
+  return{button,skin,symbol,canvas,p:0,ctx:null,center:null};
+ });
  let open=false,frame=0,elapsed=0,lastTime=0,starts=[],origin=null;
- function measure(){const box=stage.getBoundingClientRect(),plus=toggle.getBoundingClientRect();origin=plus.width?{x:plus.left+plus.width/2-box.left,y:plus.top+plus.height/2-box.top}:null;}
  const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
+ function measure(){const box=stage.getBoundingClientRect(),plus=toggle.getBoundingClientRect();origin=plus.width?{x:plus.left+plus.width/2-box.left,y:plus.top+plus.height/2-box.top}:null;}
+ function sourceSkin(index){return index?items[index-1].skin:toggle.querySelector('.action-skin');}
+ function restoreSources(){for(let i=0;i<items.length;i++)sourceSkin(i)?.style.removeProperty('--bud-glass-alpha');}
  function draw(item,p,index){
   item.p=p;if(!origin)return;
-  const points=items.length===4?[[-18,-70],[-79,-114],[-140,-102],[-186,-54]]:[[-18,-70],[-85,-108],[-154,-86]],end={x:origin.x+points[index][0],y:origin.y+points[index][1]},source=index?{x:origin.x+points[index-1][0],y:origin.y+points[index-1][1]}:origin;
-  const dx=end.x-source.x,dy=end.y-source.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,sr=index?26:30,grow=smooth(p/.5),stretch=smooth((p-.34)/.43),distance=sr-3+28*grow+(d-sr+3-28)*stretch,r=28*grow,wobble=p>.86?Math.sin((p-.86)*Math.PI*18)*Math.exp(-(p-.86)*19):0,squeeze=1-.12*Math.sin(Math.PI*stretch)+.09*wobble,angle=Math.atan2(dy,dx)*180/Math.PI;
-  const b=item.button;b.style.left=(source.x+ux*distance)+'px';b.style.top=(source.y+uy*distance)+'px';b.style.opacity=String(smooth((p-.79)/.14));b.style.transform=`translate(-50%,-50%) scale(${grow})`;b.style.visibility=p>0?'visible':'hidden';b.disabled=!open||p<.98;
-  item.skin.style.transform=`rotate(${angle}deg) scale(${1/squeeze},${squeeze}) rotate(${-angle}deg)`;
-  const c=item.canvas;c.style.left=(source.x-130)+'px';c.style.top=(source.y-130)+'px';c.hidden=p>=.96||r<.1||motion?.matches;if(c.hidden)return;
-  if(!item.ctx)item.ctx=c.getContext('2d');const ctx=item.ctx;if(!ctx)return;ctx.clearRect(0,0,260,260);
-  const k=12*Math.min(1,r/19)*(1-smooth((p-.72)/.2)),fade=1-smooth((p-.79)/.14),bx=130+ux*distance,by=130+uy*distance;
-  const field=(x,y)=>{const src=Math.hypot(x-130,y-130)-sr,ax=x-bx,ay=y-by,along=ax*ux+ay*uy,across=-ax*uy+ay*ux,bud=Math.hypot(along*squeeze,across/squeeze)-r,h=k?Math.max(k-Math.abs(src-bud),0)/k:0;return Math.min(src,bud)-h*h*k*.25;};
-  // Trace only the water boundary; native canvas antialiasing fills the glass.
-  ctx.save();ctx.beginPath();ctx.arc(bx,by,r+23,0,Math.PI*2);ctx.clip();ctx.beginPath();ctx.rect(0,0,260,260);ctx.arc(130,130,Math.max(0,sr-2),0,Math.PI*2);ctx.clip('evenodd');ctx.beginPath();
-  for(let i=0;i<96;i++){const a=i*Math.PI*2/96,dx=Math.cos(a),dy=Math.sin(a),limit=r+24;let lo=0,hi=3;while(hi<limit&&field(bx+dx*hi,by+dy*hi)<0){lo=hi;hi+=3;}hi=Math.min(hi,limit);for(let j=0;j<5;j++){const mid=(lo+hi)/2;if(field(bx+dx*mid,by+dy*mid)<0)lo=mid;else hi=mid;}const x=bx+dx*(lo+hi)/2,y=by+dy*(lo+hi)/2;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);}
-  ctx.closePath();ctx.globalAlpha=fade;const fill=ctx.createLinearGradient(bx-r,by-r,bx+r,by+r);fill.addColorStop(0,'#eefaff38');fill.addColorStop(.55,'#a6d8ed18');fill.addColorStop(1,'#72badd30');ctx.fillStyle=fill;ctx.fill();const rim=ctx.createLinearGradient(bx-r,by-r,bx+r,by+r);rim.addColorStop(0,'#f2fcfff0');rim.addColorStop(.3,'#9ad6f2cc');rim.addColorStop(.7,'#328dc4d9');rim.addColorStop(1,'#d5f1fff0');ctx.strokeStyle=rim;ctx.lineWidth=1.7;ctx.stroke();ctx.restore();
+  const points=items.length===4?[[-18,-70],[-79,-114],[-140,-102],[-186,-54]]:[[-18,-70],[-85,-108],[-154,-86]];
+  const end={x:origin.x+points[index][0],y:origin.y+points[index][1]},source=index?(items[index-1].center||{x:origin.x+points[index-1][0],y:origin.y+points[index-1][1]}):origin;
+  const dx=end.x-source.x,dy=end.y-source.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,sr=index?25:28;
+  const grow=smooth(p/.43),travel=smooth((p-.12)/.68),distance=(sr*.58)*(1-travel)+d*travel,r=25*grow;
+  // A slower pinch-off ends in one soft compression, not a nervous multi-bounce.
+  const fuse=smooth((p-.06)/.32)*(1-smooth((p-.6)/.16));
+  const settleU=Math.max(0,Math.min(1,(p-.69)/.31));
+  const compression=settleU?-Math.sin(Math.PI*settleU)*Math.pow(1-settleU,.55):0;
+  const arrival=settleU?Math.sin(Math.PI*settleU)*Math.pow(1-settleU,1.2):0;
+  const stretch=.18*fuse+.11*compression,tension=24*(1-smooth((p-.54)/.2))*Math.min(1,r/12);
+  const dist=distance+1.45*arrival,bx=130+ux*dist,by=130+uy*dist,angle=Math.atan2(dy,dx),cs=Math.cos(angle),sn=Math.sin(angle);
+  item.center={x:source.x+ux*dist,y:source.y+uy*dist};
+  const b=item.button;b.toggleAttribute('data-bud-idle',p>=.995&&!(items[index+1]?.p>0&&items[index+1]?.p<.995));b.style.left=item.center.x+'px';b.style.top=item.center.y+'px';b.style.opacity='1';b.style.visibility=p>0?'visible':'hidden';b.style.transform=`translate(-50%,-50%) scale(${grow})`;b.disabled=!open||p<.98;
+  item.skin.style.transform=`rotate(${angle}rad) translate(${2.4*fuse+.5*arrival}px,0) scale(${1+stretch},${1-.66*stretch}) rotate(${-angle}rad)`;
+  const sourceGlass=sourceSkin(index),sourceStretch=.14*fuse+.04*compression;
+  if(sourceGlass)sourceGlass.style.transform=`rotate(${angle}rad) translate(${3.2*fuse-.3*arrival}px,0) scale(${1+sourceStretch},${1-.68*sourceStretch}) rotate(${-angle}rad)`;
+  // The real glass skin grows with the bud; the canvas now draws only the liquid bridge underneath it.
+  const skinAlpha=smooth(p/.28),neckFade=smooth((p-.72)/.18);item.skin.style.setProperty('--bud-glass-alpha',String(skinAlpha));item.symbol.style.opacity=String(smooth((p-.28)/.32));
+  const c=item.canvas;c.style.left=(source.x-130)+'px';c.style.top=(source.y-130)+'px';c.hidden=p<=.002||p>=.995||r<.1||motion?.matches;
+  if(c.hidden)return;
+  if(!item.ctx)item.ctx=c.getContext('2d');const ctx=item.ctx;if(!ctx)return;
+  ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,260,260);ctx.globalAlpha=1-neckFade;
+  const field=(x,y)=>{const a=Math.hypot(x-130,y-130)-sr,px=x-bx,py=y-by,along=(px*cs+py*sn)/(1+stretch),across=(-px*sn+py*cs)/(1-stretch),b=Math.hypot(along,across)-r,h=tension?Math.max(tension-Math.abs(a-b),0)/tension:0;return Math.min(a,b)-h*h*tension*.25;};
+  const saddle=(dist+sr-r)/2,ox=130+ux*saddle,oy=130+uy*saddle,connected=field(ox,oy)<-.03;
+  const path=new Path2D();
+  if(connected){
+   // Ray trace the entire fused surface from its interior saddle: no inner ring.
+   for(let i=0;i<144;i++){
+    const a=i*Math.PI*2/144,vx=Math.cos(a),vy=Math.sin(a);let lo=0,hi=2;
+    while(hi<210&&field(ox+vx*hi,oy+vy*hi)<0){lo=hi;hi+=3;}
+    for(let j=0;j<5;j++){const mid=(lo+hi)/2;if(field(ox+vx*mid,oy+vy*mid)<0)lo=mid;else hi=mid;}
+    const radius=(lo+hi)/2,x=ox+vx*radius,y=oy+vy*radius;if(i)path.lineTo(x,y);else path.moveTo(x,y);
+   }path.closePath();
+  }else{path.arc(130,130,sr,0,Math.PI*2);path.moveTo(bx+r*(1+stretch)*cs,by+r*(1+stretch)*sn);path.ellipse(bx,by,r*(1+stretch),r*(1-stretch),angle,0,Math.PI*2);}
+  // All shading is clipped to one surface, including the narrow liquid bridge.
+  ctx.save();ctx.clip(path);
+  const fill=ctx.createLinearGradient(100,90,bx+40,by+42);fill.addColorStop(0,'#e7f7ff42');fill.addColorStop(.48,'#75bff23d');fill.addColorStop(1,'#35c9f05c');ctx.fillStyle=fill;ctx.fillRect(0,0,260,260);
+  for(const [x,y,rad] of [[130,130,sr],[bx,by,r]]){
+   const light=ctx.createRadialGradient(x-rad*.38,y-rad*.55,0,x-rad*.38,y-rad*.55,rad*.66);light.addColorStop(0,'#ffffffef');light.addColorStop(.3,'#ffffffa0');light.addColorStop(1,'#ffffff00');
+   ctx.save();ctx.translate(x-rad*.38,y-rad*.55);ctx.rotate(-.65);ctx.scale(1,.44);ctx.translate(-x+rad*.38,-y+rad*.55);ctx.fillStyle=light;ctx.fillRect(x-rad*1.2,y-rad*1.4,rad*2.4,rad*2.8);ctx.restore();
+  }
+  ctx.restore();
+  const rim=ctx.createLinearGradient(105,94,bx+25,by+35);rim.addColorStop(0,'#78caffdf');rim.addColorStop(.2,'#fffffffa');rim.addColorStop(.46,'#4d9edbd9');rim.addColorStop(.76,'#34d5f7f2');rim.addColorStop(1,'#f8fdffff');
+  ctx.strokeStyle=rim;ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.stroke(path);
+  ctx.save();ctx.clip(path);ctx.strokeStyle='#1d82c84f';ctx.lineWidth=3;ctx.stroke(path);ctx.strokeStyle='#ffffffc4';ctx.lineWidth=.55;ctx.stroke(path);ctx.restore();
  }
- function finish(){cancelAnimationFrame(frame);frame=0;delete root.dataset.menuBudding;items.forEach((item,i)=>draw(item,open?1:0,i));}
- function animate(now){elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;let done=true;items.forEach((item,i)=>{const delay=open?i*260:(items.length-1-i)*180,t=Math.max(0,Math.min(1,(elapsed-delay)/520));if(t<1)done=false;draw(item,starts[i]+((open?1:0)-starts[i])*t,i);});if(done)finish();else frame=requestAnimationFrame(animate);}
+ function paint(){restoreSources();items.forEach((item,i)=>draw(item,item.p,i));}
+ function finish(){cancelAnimationFrame(frame);frame=0;delete root.dataset.menuBudding;items.forEach(item=>item.p=open?1:0);paint();}
+ function animate(now){
+  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;let done=true;
+  items.forEach((item,i)=>{const delay=open?i*700:(items.length-1-i)*360,duration=open?1120:920,t=Math.max(0,Math.min(1,(elapsed-delay)/duration));if(t<1)done=false;item.p=starts[i]+((open?1:0)-starts[i])*t;});paint();
+  if(done)finish();else frame=requestAnimationFrame(animate);
+ }
  function update(next){measure();open=next;cancelAnimationFrame(frame);starts=items.map(item=>item.p);elapsed=0;lastTime=performance.now();if(motion?.matches||document.hidden||(!next&&plannerRecordings[channel]))finish();else{root.dataset.menuBudding='true';frame=requestAnimationFrame(animate);}}
- window.addEventListener('resize',()=>{measure();items.forEach((item,i)=>draw(item,item.p,i));});motion?.addEventListener?.('change',()=>{if(motion.matches)finish();});measure();items.forEach((item,i)=>draw(item,0,i));return update;
+ window.addEventListener('resize',()=>{measure();paint();});document.addEventListener('visibilitychange',()=>{if(document.hidden)finish();});motion?.addEventListener?.('change',()=>{if(motion.matches)finish();});measure();paint();return update;
 }
 
 // One existing action target changes presentation; recording logic remains authoritative.
 function octiActionBubble(root,toggle,stage,recorder,motion,setMenu,channel){
  stage.append(toggle);toggle.classList.add('action-bubble');
- toggle.innerHTML='<span class="action-skin" aria-hidden="true"><img class="action-glass" src="octi-water-glass.webp?v=babdb581839accf9" alt=""><span class="action-warm"></span><span class="action-rotation"><span class="action-mark"></span></span></span>';
+ toggle.innerHTML='<span class="action-fixed-shadow" aria-hidden="true"></span><span class="action-skin" aria-hidden="true"><img class="action-glass" src="octi-water-glass.webp?v=babdb581839accf9" alt=""><span class="action-warm"></span><span class="action-rotation"><span class="action-mark"></span></span></span>';
  const skin=toggle.querySelector('.action-skin'),rotation=toggle.querySelector('.action-rotation');
  let target=false,amount=0,flow=0,frame=0,lastTime=0,elapsed=0,from=0,fromFlow=0,visible=true;
  function paint(e,stretchFlow){
