@@ -9,7 +9,7 @@ fs.cpSync('preview33',destination,{recursive:true});
 const page=path.join(destination,'index.html');
 let html=fs.readFileSync(page,'utf8');
 html=html.replace("const PREVIEW33_PREFIX='planner-preview-33:';","const PREVIEW33_PREFIX='planner-glass-33-170:';");
-html=html.replace('Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33.','Osobny podgląd szklanych baniek 33.177, przygotowany z gałęzi work/glass-bubbles-33-170.');
+html=html.replace('Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33.','Osobny podgląd szklanych baniek 33.178, przygotowany z gałęzi work/glass-bubbles-33-170.');
 fs.writeFileSync(page,html);
 const release=JSON.parse(fs.readFileSync(path.join(destination,'release.json'),'utf8'));
 release.source='work/glass-bubbles-33-170/index.html';

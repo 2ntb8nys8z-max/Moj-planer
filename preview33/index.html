@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.177</title>
+<title>Mój Planer — test integracji 33.178</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.177</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.177</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.177-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.178</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.178</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.178-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.177-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.178-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3122,14 +3122,9 @@ initializeEventCommands();
   mask-image:none;-webkit-mask-image:none;
   backdrop-filter:none;-webkit-backdrop-filter:none
 }
-/* 33.177: one persistent glass volume, independent of the actor renderer.
-   Broad translucent shading defines the shell; no extra stroked/inset ring. */
-.octi-dock .octi-motion-media{
-  background:radial-gradient(ellipse at 27% 18%,#fffffff0 0%,#ffffff75 15%,transparent 39%),radial-gradient(ellipse at 78% 80%,#70a7cc54 0%,transparent 44%),radial-gradient(circle at 43% 36%,#f4fbff52 0%,#e6f6ff70 52%,#acd3e796 79%,#eaf8ffc9 94%,#d1eafa70 100%);
-  backdrop-filter:blur(4px) saturate(1.12);-webkit-backdrop-filter:blur(4px) saturate(1.12);
-  opacity:1;visibility:visible;transition:none;
-  mask-image:radial-gradient(circle closest-side,#000 0 97%,transparent 100%);-webkit-mask-image:radial-gradient(circle closest-side,#000 0 97%,transparent 100%)
-}
+/* 33.178: shared glass material for the mascot and action bubbles. */
+.octi-dock .octi-motion-media{background:radial-gradient(ellipse at 23% 20%,#ffffffed 0%,transparent 28%),radial-gradient(ellipse at 79% 83%,#eee1fa99 0%,transparent 36%),radial-gradient(ellipse at 34% 26%,#f6fdffad 0%,#e5f4fbb0 39%,#afd4e7a3 75%,#eaf8ffc9 100%);box-shadow:inset 1px 2px 3px #fffffff2,inset -2px -3px 4px #497a9b55;backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px) saturate(1.05);opacity:1;visibility:visible;transition:none}
+.octi-dock .octi-motion-media:after{background:var(--okti-glass-light)}
 /* A detached shadow must not leave the hard circular knockout of box-shadow. */
 .octi-dock .water-float:after{content:'';position:absolute;left:calc(50% + 22px);top:calc(50% + 54px);width:100px;height:42px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#52799342 0%,#6a91ab24 40%,transparent 72%);filter:blur(8px);pointer-events:none;z-index:2}
 /* Transmitted light is a detached ellipse, never a second circular shell. */
@@ -3167,7 +3162,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-listening.js?v=e99d3b455009c774"></script>
+<script src="octi-listening.js?v=a603f1142968fe80"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -3256,7 +3251,7 @@ function octiRibbonContour(width,height,cx,cy,radius){
 function octiMotionArtwork(root,floating,motion){
  const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
  const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
- if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=75bc2c4ee1b7693d';poster.alt='';glass.append(poster);return ()=>{};}
+ if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';poster.alt='';glass.append(poster);return ()=>{};}
  return ()=>artwork.update({visible:root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0,isRecording:root.dataset.mode==='recording'});
 }
 

@@ -1,7 +1,7 @@
 /* Okti listening artwork. Presentation only: the existing recorder owns state. */
 (()=>{
 'use strict';
-const FILES={body:'octi-listening-body.mp4?v=f39db801c0c6475d',head:'octi-listening-head.webp?v=bb333f958242d2fc',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
+const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-listening-head.webp?v=bb333f958242d2fc',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
 const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1.0)*.5;gl_Position=vec4(position,0.0,1.0);}`;
 const fragment=`precision highp float;
 varying vec2 uv;
@@ -46,14 +46,14 @@ function loadImage(src){return new Promise((resolve,reject)=>{const image=new Im
 window.createOctiListeningArtwork=function(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-listening-media';layer.setAttribute('aria-hidden','true');
  const canvas=document.createElement('canvas');canvas.className='octi-listening-canvas';
- const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-actor-poster.webp?v=75bc2c4ee1b7693d';
+ const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';
  layer.append(canvas,fallback);floating.append(layer);
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
  let visible=false,isRecording=false,ready=false,failed=false,rendering=false,preparing=null,renderer=null,raf=0,lastFrame=0,lastDraw=0,pose=0,follow=0,headTurn=0,recordStart=0,starting=false,lastVideoTime=-1,lastProgress=0,reason='';
  let transition={from:0,to:0,start:0,duration:720},turnTransition=null;
  const now=()=>performance.now();
  const value=t=>transition.from+(transition.to-transition.from)*smooth((t-transition.start)/transition.duration);
- function staticFrame(){const src=motion?.matches?'octi-actor-poster.webp?v=75bc2c4ee1b7693d':'octi-actor-idle.webp?v=4c5c43c81504c8d6';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-actor-poster.webp?v=9b20c4f5b0d17977':'octi-actor-idle.webp?v=d571dd888f44cb66';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered');rendering=false;}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;video.pause();lastFrame=0;starting=false;}
  function fail(error){reason=error?.message||'Artwork unavailable';failed=true;stop();staticFrame();}
  async function prepare(){if(preparing)return preparing;preparing=(async()=>{try{video.src=FILES.body;const [head,background]=await Promise.all([loadImage(FILES.head),loadImage(FILES.background)]);renderer=createRenderer(canvas,video,head,background);ready=true;if(visible&&!motion?.matches)start();}catch(error){fail(error)}})();return preparing;}
