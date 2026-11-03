@@ -5,6 +5,14 @@ const settle=()=>new Promise(resolve=>w.setTimeout(resolve,250));
 try{
  for(const s of w.document.querySelectorAll('script'))if(!s.src)run(s.textContent);
  const dock=w.document.querySelector('.octi-dock[data-channel=main]'),menu=dock.querySelector('.bubble-menu'),toggle=dock.querySelector('.menu-toggle');
+ // Regression: a transparent movie must never reveal the static mascot underneath.
+ const media=dock.querySelector('.octi-motion-media'),poster=media.querySelector('.octi-motion-poster'),movie=media.querySelector('video'),originalClasses=media.className;
+ media.className='octi-motion-media';assert.equal(w.getComputedStyle(poster).visibility,'visible','Poster remains available before video playback');
+ for(const state of ['is-playing','is-fallback']){media.className='octi-motion-media '+state;assert.equal(w.getComputedStyle(poster).visibility,'hidden','Active animation replaces the static mascot');}
+ assert.equal(w.getComputedStyle(movie).opacity,'0','Fallback cannot overlap a previously playing movie');
+ assert.equal(w.getComputedStyle(movie).mixBlendMode,'normal','Mascot keeps the original artwork colours');
+ assert.equal(w.getComputedStyle(movie).filter,'none','Glass styling does not recolour the mascot');media.className=originalClasses;
+
  for(const [width,height,cx,cy,radius] of [[104,64,167,40,60],[159,64,230,40,64],[190,64,261,40,64]]){
   const contour=run(`octiRibbonContour(${width},${height},${cx},${cy},${radius})`);
   for(const point of [contour.arcStart,contour.arcEnd])assert.ok(Math.abs(Math.hypot(point.x-cx,point.y-cy)-radius)<.001,'Both ribbon endpoints follow the measured bubble circle');
