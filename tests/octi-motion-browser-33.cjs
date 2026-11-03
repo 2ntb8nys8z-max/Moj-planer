@@ -85,7 +85,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
     await page.evaluate(()=>{plannerRecordings.main=null});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='idle');
     for(let switchIndex=0;switchIndex<3;switchIndex++){
      await page.evaluate(()=>{tasks=[{id:'logo-test',title:'Spotkanie',date:'2026-10-25',time:'12:00',endTime:'13:00'}];openEventActions(tasks[0]);});
-     await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=event] video').paused);
+     await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=event] video').paused);await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] video').paused);
      assert.equal(await video.evaluate(v=>v.paused),true,'Switching context pauses the main logo');
      await page.evaluate(()=>closeEventActions());await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] video').paused);
     }
