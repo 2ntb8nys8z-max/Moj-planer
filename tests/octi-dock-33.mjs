@@ -5,6 +5,13 @@ const settle=()=>new Promise(resolve=>w.setTimeout(resolve,250));
 try{
  for(const s of w.document.querySelectorAll('script'))if(!s.src)run(s.textContent);
  const dock=w.document.querySelector('.octi-dock[data-channel=main]'),menu=dock.querySelector('.bubble-menu'),toggle=dock.querySelector('.menu-toggle');
+ // A missing optional animation controller keeps a transparent static mascot.
+ const media=dock.querySelector('.octi-motion-media'),poster=media.querySelector('img');
+ assert.match(poster.src,/octi-actor-poster/);
+ assert.equal(w.getComputedStyle(poster).filter,'none');
+ assert.equal(w.document.querySelector('#octi-actor-alpha'),null);
+ assert.equal(media.querySelector('video'),null,'There is no second opaque movie under the actor');
+
  for(const [width,height,cx,cy,radius] of [[104,64,167,40,60],[159,64,230,40,64],[190,64,261,40,64]]){
   const contour=run(`octiRibbonContour(${width},${height},${cx},${cy},${radius})`);
   for(const point of [contour.arcStart,contour.arcEnd])assert.ok(Math.abs(Math.hypot(point.x-cx,point.y-cy)-radius)<.001,'Both ribbon endpoints follow the measured bubble circle');
@@ -41,3 +48,4 @@ try{
  run("clearVoiceDialogue('main');plannerApiRequest=async()=>{throw Object.assign(new Error('Klucz OpenAI w Cloudflare wymaga sprawdzenia.'),{code:'openai_error'})};failureSession=beginVoiceDialogue('main',null,null);failureState={session:failureSession,mode:'ready',chunks:[new Blob(['audio'])]};plannerRecordings.main=failureState;$('toast').classList.remove('show')");await run("sendPlannerRecording('main',failureState)");await settle();assert.equal(run('plannerRecordings.main'),null);assert.equal(get('voiceHint').textContent,'Klucz OpenAI w Cloudflare wymaga sprawdzenia.');assert.equal(get('toast').classList.contains('show'),false,'A recorder error has one inline message without a duplicate navigation toast');w.document.querySelector('.phone-settings-button').click();assert.equal(get('phoneSettingsModal').classList.contains('hidden'),false);assert.equal(get('phoneSettingsModal').open,true);assert.ok(get('phoneSettingsModal').contains(get('appVersion')));get('phoneSettingsModal').querySelector('header button').click();assert.equal(w.document.querySelector('.app').inert,false,'Settings close releases navigation after an API failure');
  console.log('Octi dock: menu, context-bound manual/photo/media actions, compact clarification, and real recorder states passed.');
 }finally{dom.window.close();}
+

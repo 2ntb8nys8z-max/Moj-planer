@@ -6,7 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function verifyPreview(base,request=fetch){
  const expectedRelease=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
- for(const file of ['octi-listening.js','octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp']){
+ for(const file of ['octi-actor-poster.webp','octi-actor-idle.webp','octi-listening.js','octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp']){
   const expected=fs.readFileSync('preview33/'+file),url=new URL(file,base);url.searchParams.set('verify',expectedRelease.frontendBuildId);const response=await request(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(`${file}: HTTP ${response.status}`);if(hash(Buffer.from(await response.arrayBuffer()))!==hash(expected))throw Error(`${file}: published bytes do not match the tested build ${expectedRelease.version}`);
  }
  for(const file of ['release.json','index.html','google-calendar.js','sync-core.js','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
@@ -27,3 +27,4 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  }
  if(!verified)process.exitCode=1;
 }
+
