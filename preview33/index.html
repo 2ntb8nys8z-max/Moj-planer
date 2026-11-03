@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.175</title>
+<title>Mój Planer — test integracji 33.176</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -140,9 +140,8 @@ body.event-sheet-open{overflow:hidden}
 </style>
 </head>
 <body>
-<svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;pointer-events:none"><defs><filter id="octi-actor-alpha" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -4 0 4 0 -0.5" result="key"/><feComponentTransfer in="key" result="solid"><feFuncA type="discrete" tableValues="0 0 1 1"/></feComponentTransfer><feMorphology in="solid" operator="dilate" radius=".00735" result="wide"/><feMorphology in="wide" operator="erode" radius=".00735" result="closed"/><feGaussianBlur in="closed" stdDeviation=".00064" result="matte"/><feComposite in="SourceGraphic" in2="matte" operator="in"/></filter></defs></svg>
 <div class="app">
-<h1>Mój Planer — test 33.175</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.175</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.175-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.176</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.176</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.176-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -219,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.175-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.176-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3127,15 +3126,14 @@ initializeEventCommands();
 .octi-dock .water-float:after{content:'';position:absolute;left:calc(50% + 22px);top:calc(50% + 54px);width:100px;height:42px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#52799342 0%,#6a91ab24 40%,transparent 72%);filter:blur(8px);pointer-events:none;z-index:2}
 /* Transmitted light is a detached ellipse, never a second circular shell. */
 .octi-dock .water-float:before{content:'';position:absolute;left:calc(50% + 15px);top:calc(50% + 52px);width:48px;height:16px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#ffffffe6 0%,#ffffff80 35%,transparent 72%);filter:blur(3px);pointer-events:none;z-index:11}
-.octi-dock .octi-motion-media:after,.octi-dock .octi-listening-media:after{
+.octi-dock .octi-motion-media:after{
   content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(ellipse at 27% 16%,#ffffffc9 0 3%,transparent 15%),radial-gradient(ellipse at 80% 85%,#ffffff8c 0 1%,transparent 15%);
-  box-shadow:inset 0 1px 1px #ffffff80,inset -1px -1px 1px #7ea9c433 /* a single thin glass edge */
+  background:radial-gradient(ellipse at 27% 16%,#ffffffc9 0 3%,transparent 15%),radial-gradient(ellipse at 80% 85%,#ffffff30 0 1%,transparent 15%);
+  box-shadow:none
 }
 .octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-canvas{
-  mix-blend-mode:normal;filter:url(#octi-actor-alpha);
-  mask-image:radial-gradient(circle closest-side,#000 0 54%,#000d 58%,transparent 65%);
-  -webkit-mask-image:radial-gradient(circle closest-side,#000 0 54%,#000d 58%,transparent 65%)
+  mix-blend-mode:normal;filter:none;
+  mask-image:none;-webkit-mask-image:none
 }
 .octi-dock .octi-motion-media.is-playing .octi-motion-poster,
 .octi-dock .octi-motion-media.is-fallback .octi-motion-poster{visibility:hidden}
@@ -3161,7 +3159,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-listening.js?v=1bbfbf01949311ad"></script>
+<script src="octi-listening.js?v=e99d3b455009c774"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -3247,53 +3245,11 @@ function octiRibbonContour(width,height,cx,cy,radius){
  return {width:Math.max(width,cut(4),cut(height-4))+4,forms:[0,1,-.8,0].map(bend=>contour(0,bend)),innerForms:[0,1,-.8,0].map(bend=>contour(3,bend)),topShine:`M27 8 H${cut(8,3)-8}`,bottomShine:`M23 ${height-12} Q29 ${height-8} 41 ${height-8} H${cut(height-8,3)-8}`,arcStart:{x:cut(4),y:4},arcEnd:{x:cut(height-4),y:height-4}};
 }
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
-let octiActiveMotionStop=null;
 function octiMotionArtwork(root,floating,motion){
- const layer=document.createElement('span');layer.className='octi-motion-media';layer.setAttribute('aria-hidden','true');
- const poster=document.createElement('img');poster.className='octi-motion-poster';poster.alt='';poster.draggable=false;poster.src='octi-water-motion-poster.webp?v=1dd2ca9a5f73bd11';
- const fallback=document.createElement('img');fallback.className='octi-motion-fallback';fallback.alt='';fallback.draggable=false;
- const video=document.createElement('video');video.className='octi-motion-video';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.tabIndex=-1;video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('aria-hidden','true');
- layer.append(poster,fallback,video);floating.append(layer);
- const listening=window.createOctiListeningArtwork?.(root,floating,motion,video);if(listening)root.octiListening=listening;
- let wanted=false,pending=false,blocked=false,attempted=false,fallbackFailed=false,lastTime=0,lastProgress=0;
- function useFallback(active){
-  if(!active){layer.classList.remove('is-fallback');if(fallback.hasAttribute('src'))fallback.removeAttribute('src');return;}
-  if(fallbackFailed)return;
-  if(!fallback.hasAttribute('src'))fallback.src='octi-water-motion.webp?v=1f3d1936011b7e13';
-  if(fallback.complete&&fallback.naturalWidth)layer.classList.add('is-fallback');
- }
- fallback.addEventListener('load',()=>{if(wanted&&!layer.classList.contains('is-playing'))layer.classList.add('is-fallback');});
- fallback.addEventListener('error',()=>{if(fallback.hasAttribute('src')){fallbackFailed=true;layer.classList.remove('is-fallback');}});
- function stop(preserveFrame=false){
-  wanted=false;if(!preserveFrame)layer.classList.remove('is-playing');useFallback(false);lastProgress=0;attempted=false;
-  if(!video.paused||pending)video.pause();
-  if(octiActiveMotionStop===stop)octiActiveMotionStop=null;
- }
- function update(){
-  const visible=root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0;
-  listening?.update({visible,opening:root.dataset.mode==='opening',isRecording:root.dataset.mode==='recording'});
-  const mode=root.dataset.mode,listeningState=listening?.getState();
-  const awaitingListening=mode==='opening'||(mode==='recording'&&listeningState&&!listeningState.rendering&&!listeningState.fallback);
-  const eligible=visible&&(mode==='idle'||mode==='sending'||mode==='ready'||awaitingListening)&&!motion?.matches;
-  wanted=Boolean(eligible);
-  if(!wanted){stop(visible&&!motion?.matches&&!!listeningState?.rendering);return;}
-  // Transfer playback ownership synchronously, before the new context starts.
-  // Independent dock timers must never leave two contexts animating together.
-  if(octiActiveMotionStop!==stop){octiActiveMotionStop?.();octiActiveMotionStop=stop;}
-  const now=performance.now();
-  if(!video.canPlayType('video/mp4'))blocked=true;
-  if(blocked){useFallback(true);return;}
-  if(pending&&!lastProgress)lastProgress=now;
-  if(video.currentTime!==lastTime){lastTime=video.currentTime;lastProgress=now;if(!video.paused&&video.readyState>=2){layer.classList.add('is-playing');useFallback(false);}}
-  if(lastProgress&&now-lastProgress>1800){blocked=true;pending=false;video.pause();layer.classList.remove('is-playing');useFallback(true);return;}
-  if(pending||!video.paused||attempted)return;
-  if(!video.hasAttribute('src'))video.src='octi-water-motion.mp4?v=b2c7f04a455a109c';
-  pending=true;attempted=true;lastTime=video.currentTime;lastProgress=now;
-  Promise.resolve(video.play()).then(()=>{pending=false;if(!wanted)video.pause();}).catch(error=>{pending=false;blocked=wanted&&error?.name!=='AbortError';if(!blocked)attempted=false;layer.classList.remove('is-playing');if(blocked)useFallback(true);});
- }
- video.addEventListener('error',()=>{blocked=true;pending=false;layer.classList.remove('is-playing');if(wanted)useFallback(true);});
- root.addEventListener('pointerdown',()=>{if(blocked){blocked=false;attempted=false;lastProgress=0;update();}},{passive:true});
- return update;
+ const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
+ const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
+ if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=75bc2c4ee1b7693d';poster.alt='';glass.append(poster);return ()=>{};}
+ return ()=>artwork.update({visible:root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&octiCurrentContext()===root.dataset.channel&&root.getClientRects().length>0,isRecording:root.dataset.mode==='recording'});
 }
 
 // Chained glass buds reuse the existing action buttons and their handlers.

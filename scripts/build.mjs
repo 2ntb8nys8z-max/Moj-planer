@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.03.33.175-integration';
-const PREVIEW_VERSION='2026.11.03.33.175-test';
+const APP_VERSION='2026.11.03.33.176-integration';
+const PREVIEW_VERSION='2026.11.03.33.176-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.10.12.33.36-test';
 const WORKER_LABEL='Worker 33.36-test';
@@ -46,13 +46,13 @@ const skyBuildId=createHash('sha256').update(fs.readFileSync('header-sky.webp'))
 canonical=canonical.replace(/header-sky\.webp(?:\?v=[a-z0-9]+)?/g,'header-sky.webp?v='+skyBuildId);
 const sailboatBuildId=createHash('sha256').update(fs.readFileSync('header-sailboat.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sailboat\.webp(?:\?v=[a-z0-9]+)?/g,'header-sailboat.webp?v='+sailboatBuildId);
-const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp'];
+const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
 let listening=fs.readFileSync('octi-listening.js','utf8');
 for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
 output('octi-listening.js',listening,false);
 const listeningBuildId=createHash('sha256').update(listening).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-listening\.js(?:\?v=[a-z0-9]+)?/g,'octi-listening.js?v='+listeningBuildId);
-for(const file of ['octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
+for(const file of ['octi-actor-poster.webp','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
 }
@@ -89,3 +89,4 @@ for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','f
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);
+
