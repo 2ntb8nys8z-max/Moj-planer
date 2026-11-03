@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.03\.33\.181-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.03\.33\.181-test/);
+assert.match(root,/Aplikacja: 2026\.11\.03\.33\.183-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.03\.33\.183-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -69,7 +69,7 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.11.03.33.181-test');
+assert.equal(release.version,'2026.11.03.33.183-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
@@ -77,6 +77,6 @@ assert.equal(release.source,'integration/conversation33/index.html');
 
 for(const file of ['octi-listening.js','octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp'])assert.ok(fs.readFileSync('preview33/'+file).equals(fs.readFileSync(file)),'Listening artwork and controller must be published together');
 assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
-assert.ok(fs.readFileSync('preview33/octi-liquid-rim-33-181.png').equals(fs.readFileSync('octi-liquid-rim-33-181.png')),'The generated transparent liquid material must be published with the UI');
-console.log('Preview 33.181: preserved header and generated liquid material verified.');
+assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
+console.log('Preview 33.183: preserved header, smooth liquid sphere and floating shadow verified.');
 
