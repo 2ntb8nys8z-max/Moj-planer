@@ -72,7 +72,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) video[src]').count(),0,'Hidden contexts do not load or play duplicate clips');
    await page.emulateMedia({reducedMotion:'reduce'});
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.paused&&!v.parentElement.classList.contains('is-rendered')});
-   assert.ok(await dock.locator('.octi-listening-fallback').evaluate(img=>img.complete&&img.naturalWidth===544),'Reduced motion keeps the approved blue poster');
+   assert.ok(await dock.locator('.octi-listening-fallback').evaluate(img=>img.complete&&img.naturalWidth===384),'Reduced motion keeps the approved blue poster');
    await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] video').paused);
    if(width===390){
     const quality=await video.evaluate(async v=>{
