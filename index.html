@@ -140,8 +140,9 @@ body.event-sheet-open{overflow:hidden}
 </style>
 </head>
 <body>
+<svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;pointer-events:none"><defs><filter id="octi-actor-alpha" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -4 0 4 0 -0.5" result="key"/><feComponentTransfer in="key" result="solid"><feFuncA type="discrete" tableValues="0 0 1 1"/></feComponentTransfer><feMorphology in="solid" operator="dilate" radius=".00735" result="wide"/><feMorphology in="wide" operator="erode" radius=".00735" result="closed"/><feGaussianBlur in="closed" stdDeviation=".00064" result="matte"/><feComposite in="SourceGraphic" in2="matte" operator="in"/></filter></defs></svg>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.174-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.175-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +217,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.174-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.175-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3116,19 +3117,21 @@ initializeEventCommands();
 .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
   isolation:isolate;
   background:none;
-  border:0;box-shadow:16px 33px 23px -11px #52799330,24px 45px 34px -16px #6a91ab20;
+  border:0;box-shadow:none;
   mask-image:none;-webkit-mask-image:none;
   backdrop-filter:none;-webkit-backdrop-filter:none
 }
+/* A detached shadow must not leave the hard circular knockout of box-shadow. */
+.octi-dock .water-float:after{content:'';position:absolute;left:calc(50% + 22px);top:calc(50% + 54px);width:100px;height:42px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#52799342 0%,#6a91ab24 40%,transparent 72%);filter:blur(8px);pointer-events:none;z-index:2}
 /* Transmitted light is a detached ellipse, never a second circular shell. */
 .octi-dock .water-float:before{content:'';position:absolute;left:calc(50% + 15px);top:calc(50% + 52px);width:48px;height:16px;transform:translate(-50%,-50%) rotate(-20deg);background:radial-gradient(ellipse,#ffffffe6 0%,#ffffff80 35%,transparent 72%);filter:blur(3px);pointer-events:none;z-index:11}
 .octi-dock .octi-motion-media:after,.octi-dock .octi-listening-media:after{
   content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:radial-gradient(ellipse at 27% 16%,#ffffffc9 0 3%,transparent 15%),radial-gradient(ellipse at 80% 85%,#ffffff8c 0 1%,transparent 15%);
-  box-shadow:none /* one shell rim; this overlay supplies highlights only */
+  box-shadow:inset 0 1px 1px #ffffff80,inset -1px -1px 1px #7ea9c433 /* a single thin glass edge */
 }
 .octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-canvas{
-  mix-blend-mode:normal;filter:none;
+  mix-blend-mode:normal;filter:url(#octi-actor-alpha);
   mask-image:radial-gradient(circle closest-side,#000 0 54%,#000d 58%,transparent 65%);
   -webkit-mask-image:radial-gradient(circle closest-side,#000 0 54%,#000d 58%,transparent 65%)
 }

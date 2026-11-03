@@ -11,7 +11,7 @@ try{
  for(const state of ['is-playing','is-fallback']){media.className='octi-motion-media '+state;assert.equal(w.getComputedStyle(poster).visibility,'hidden','Active animation replaces the static mascot');}
  assert.equal(w.getComputedStyle(movie).opacity,'0','Fallback cannot overlap a previously playing movie');
  assert.equal(w.getComputedStyle(movie).mixBlendMode,'normal','Mascot keeps the original artwork colours');
- assert.equal(w.getComputedStyle(movie).filter,'none','Glass styling does not recolour the mascot');media.className=originalClasses;
+ assert.match(w.getComputedStyle(movie).filter,/octi-actor-alpha/,'The opaque source backdrop is removed from the displayed movie');assert.equal(w.document.querySelector('#octi-actor-alpha feComposite').getAttribute('in'),'SourceGraphic','The filter preserves original foreground colours');media.className=originalClasses;
 
  for(const [width,height,cx,cy,radius] of [[104,64,167,40,60],[159,64,230,40,64],[190,64,261,40,64]]){
   const contour=run(`octiRibbonContour(${width},${height},${cx},${cy},${radius})`);
