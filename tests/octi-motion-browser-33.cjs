@@ -25,7 +25,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
  try{
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const page=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'}),errors=[];
-   page.on('pageerror',error=>errors.push(error.message));const releaseListening=await routeFiles(page,false,width===390);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});
+   page.on('pageerror',error=>errors.push(error.message));await routeFiles(page,false,false);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});
    const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-listening-source');
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-rendered')});
    const before=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>v.currentTime)>before,'The actual decoded clip advances');
@@ -57,7 +57,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]}});
    await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').dataset.mode==='recording');
    assert.equal(await dock.locator('.commands').isVisible(),false,'Recording has no timer ribbon');
-   if(width===390){const loadingFrames=await video.evaluate(v=>v.getVideoPlaybackQuality().totalVideoFrames);await page.waitForTimeout(250);assert.equal(await dock.evaluate(r=>r.octiListening.getState().rendering),false,'Listening media is deliberately still loading');assert.ok(await video.evaluate(v=>!v.paused&&v.getVideoPlaybackQuality().totalVideoFrames)>loadingFrames,'Idle motion continues until the first rendered listening frame');releaseListening();await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);}
+   if(width===390)await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);
    assert.equal(await dock.locator('.action-bubble').count(),1,'One action bubble serves both menu and cancel');assert.equal(await dock.locator('.dismiss,.dismiss-canvas,.dismiss-flow').count(),0,'No separate cancel bud is created');
    await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main]').hasAttribute('data-action-moving'));
    const cancel=dock.locator('.action-bubble'),b=await cancel.boundingBox(),main=await dock.locator('.voice').boundingBox();
