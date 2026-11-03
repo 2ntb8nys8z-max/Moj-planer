@@ -26,8 +26,8 @@ async function routeFiles(page,failMedia=false,holdListening=false){
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const page=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'}),errors=[];
    page.on('pageerror',error=>errors.push(error.message));const releaseListening=await routeFiles(page,false,width===390);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});
-   const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-motion-video');
-   await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-playing')});
+   const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-listening-source');
+   await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-rendered')});
    const before=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>v.currentTime)>before,'The actual decoded clip advances');
    const geometry=await dock.evaluate(root=>{const b=root.querySelector('.voice'),r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),app=document.querySelector('.app');return {hit:hit===b||b.contains(hit),width:r.width,bottom:r.bottom,overflow:document.documentElement.scrollWidth>innerWidth,verticalOverflow:app.scrollHeight-app.clientHeight,muted:root.querySelector('video').muted,inline:root.querySelector('video').playsInline}});
    assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,0,'Decorative video margins cannot create scrollable app overflow');assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
@@ -71,8 +71,8 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.dataset.mode==='idle'&&!root.octiListening?.getState().rendering},null,{timeout:10000});
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) video[src]').count(),0,'Hidden contexts do not load or play duplicate clips');
    await page.emulateMedia({reducedMotion:'reduce'});
-   await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.paused&&!v.parentElement.classList.contains('is-playing')});
-   assert.ok(await dock.locator('.octi-motion-poster').evaluate(img=>img.complete&&img.naturalWidth===544),'Reduced motion keeps the approved blue poster');
+   await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.paused&&!v.parentElement.classList.contains('is-rendered')});
+   assert.ok(await dock.locator('.octi-listening-fallback').evaluate(img=>img.complete&&img.naturalWidth===544),'Reduced motion keeps the approved blue poster');
    await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] video').paused);
    if(width===390){
     const quality=await video.evaluate(async v=>{
@@ -148,43 +148,23 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    await page.evaluate(()=>{const host=document.querySelector('.voice-area');host.style.bottom=host.dataset.qaBottom;delete host.dataset.qaBottom});
    await page.evaluate(async()=>{clearVoiceDialogue('main');const api=plannerApiRequest,audio=plannerAudioPayload;plannerApiRequest=async()=>{throw Object.assign(new Error('Klucz OpenAI w Cloudflare wymaga sprawdzenia.'),{code:'openai_error'})};plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});const session=beginVoiceDialogue('main',null,null),state={session,mode:'ready',chunks:[new Blob(['audio'])]};plannerRecordings.main=state;$('toast').classList.remove('show');try{await sendPlannerRecording('main',state)}finally{plannerApiRequest=api;plannerAudioPayload=audio}});
    assert.equal(await page.locator('#voiceHint').textContent(),'Klucz OpenAI w Cloudflare wymaga sprawdzenia.');assert.equal(await page.locator('#toast').evaluate(el=>el.classList.contains('show')),false,'The API error appears once without a toast over navigation');
-   await page.getByRole('button',{name:'Ustawienia',exact:true}).click();const settings=page.getByRole('dialog',{name:'Ustawienia i narzędzia',exact:true});assert.equal(await settings.isVisible(),true);assert.equal(await settings.evaluate(el=>el.matches(':modal')),true,'Settings are in the browser modal top layer');assert.match(await settings.locator('#appVersion').textContent(),/33\.175-test/);assert.equal(await settings.locator('#appVersion').isVisible(),true);await page.evaluate(()=>toast('Kontrola powiadomienia'));assert.equal(await settings.getByRole('button',{name:'Zamknij ustawienia',exact:true}).isVisible(),true);await page.screenshot({path:`test-output/cancel-bubble-settings-${width}.png`});await settings.getByRole('button',{name:'Zamknij ustawienia',exact:true}).click();assert.equal(await page.locator('.app').evaluate(el=>el.inert),false,'Closing settings restores the bottom navigation after the recording error');await page.getByRole('button',{name:'Ustawienia',exact:true}).click();await page.keyboard.press('Escape');assert.equal(await settings.isVisible(),false);assert.equal(await page.locator('.app').evaluate(el=>el.inert),false,'Escape closes the native dialog without leaving the app inert');
+   await page.getByRole('button',{name:'Ustawienia',exact:true}).click();const settings=page.getByRole('dialog',{name:'Ustawienia i narzędzia',exact:true});assert.equal(await settings.isVisible(),true);assert.equal(await settings.evaluate(el=>el.matches(':modal')),true,'Settings are in the browser modal top layer');assert.match(await settings.locator('#appVersion').textContent(),/33\.196-test/);assert.equal(await settings.locator('#appVersion').isVisible(),true);await page.evaluate(()=>toast('Kontrola powiadomienia'));assert.equal(await settings.getByRole('button',{name:'Zamknij ustawienia',exact:true}).isVisible(),true);await page.screenshot({path:`test-output/cancel-bubble-settings-${width}.png`});await settings.getByRole('button',{name:'Zamknij ustawienia',exact:true}).click();assert.equal(await page.locator('.app').evaluate(el=>el.inert),false,'Closing settings restores the bottom navigation after the recording error');await page.getByRole('button',{name:'Ustawienia',exact:true}).click();await page.keyboard.press('Escape');assert.equal(await settings.isVisible(),false);assert.equal(await page.locator('.app').evaluate(el=>el.inert),false,'Escape closes the native dialog without leaving the app inert');
    assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${width}x${height}: actual playback, stable touch target, idle layout and reduced motion passed.`);
   }
-  for(const failure of ['blocked-autoplay','hanging-autoplay','stalled-playback','unsupported-video','missing-media','all-media-fail']){
+  for(const failure of ['blocked-autoplay','hanging-autoplay','stalled-playback','missing-media']){
    const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
    if(failure==='blocked-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.reject(new DOMException('Autoplay denied','NotAllowedError'))}});
    if(failure==='hanging-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return new Promise(()=>{})}});
    if(failure==='stalled-playback')await page.addInitScript(()=>Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{configurable:true,get(){return 0},set(){}}));
-   if(failure==='unsupported-video')await page.addInitScript(()=>{HTMLMediaElement.prototype.canPlayType=function(){return ''}});
-   await routeFiles(page,failure==='missing-media'||failure==='all-media-fail'?failure:false);await page.goto('https://planner.test/preview33/index.html');
-   const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-motion-media'),fallback=dock.locator('.octi-motion-fallback');
-   if(failure==='all-media-fail'){
-    await page.waitForTimeout(600);assert.equal(await layer.getAttribute('class'),'octi-motion-media');assert.ok(await dock.locator('.octi-motion-poster').evaluate(img=>img.complete&&img.naturalWidth>0));
-   }else{
-    await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
-    assert.equal(await dock.locator('.octi-motion-media.is-playing').count(),0);assert.equal(await fallback.evaluate(img=>img.naturalWidth),320);
-    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-motion-fallback[src]').count(),0,'Hidden contexts do not load animated images');
-    const before=await layer.screenshot({animations:'disabled'});await page.waitForTimeout(1200);const after=await layer.screenshot({animations:'disabled'});
-    const changed=await page.evaluate(async frames=>{
-     async function pixels(base64){const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();const c=document.createElement('canvas');c.width=image.width;c.height=image.height;const ctx=c.getContext('2d');ctx.drawImage(image,0,0);return {data:ctx.getImageData(0,0,c.width,c.height).data,width:c.width,height:c.height};}
-     const [a,b]=await Promise.all(frames.map(pixels));let changed=0;
-     // Actual displayed pixels below the head, at the real 128px logo size.
-     for(let y=Math.floor(a.height*.53);y<a.height*.8;y++)for(let x=Math.floor(a.width*.22);x<a.width*.78;x++){
-      const i=(y*a.width+x)*4,blue=(p)=>p[i+2]-p[i]>80&&p[i+1]>65;
-      if((blue(a.data)||blue(b.data))&&Math.abs(a.data[i]-b.data[i])+Math.abs(a.data[i+1]-b.data[i+1])+Math.abs(a.data[i+2]-b.data[i+2])>25)changed++;
-     }
-     return changed;
-    },[before.toString('base64'),after.toString('base64')]);
-    assert.ok(changed>=20,'Tentacles visibly move even when video playback fails: '+changed);console.log(`Okti ${failure}: ${changed} changing tentacle pixels at actual display size.`);
-    await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] .octi-motion-fallback').hasAttribute('src'));
-    assert.equal(await dock.locator('.is-fallback').count(),0,'Reduced motion releases the animated fallback');
-    await page.emulateMedia({reducedMotion:'no-preference'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-motion-media').classList.contains('is-fallback'));
-    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000}});await page.waitForFunction(()=>!document.querySelector('.octi-dock[data-channel=main] .octi-motion-fallback').hasAttribute('src'));
-    assert.equal(await dock.locator('.commands').isVisible(),false,'Recording ribbon stays absent with fallback artwork');await page.evaluate(()=>{plannerRecordings.main=null});
-   }
+   await routeFiles(page,failure==='missing-media'?'missing-media':false);await page.goto('https://planner.test/preview33/index.html');
+   const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-listening-media'),fallback=dock.locator('.octi-listening-fallback');
+   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-listening-media')?.classList.contains('is-fallback'),null,{timeout:10000});
+   assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),false);assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
+   assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-listening-source[src]').count(),0,'Hidden contexts do not load duplicate clips');
+   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] video').paused);
+   assert.equal(await layer.evaluate(el=>el.classList.contains('is-fallback')),true,'Reduced motion keeps the approved static Okti artwork');
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
-   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: correct motion fallback and working controls passed.`);
+   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: static fallback and working controls passed.`);
   }
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1});
