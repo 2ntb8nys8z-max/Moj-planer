@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.169-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.170-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +216,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.169-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.170-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3090,27 +3090,47 @@ initializeEventCommands();
   -webkit-mask-image:radial-gradient(circle closest-side,#000 0 85%,#000e 89%,#0008 93%,transparent 98%);
 }
 
-/* 33.169: denser shared water glass and a livelier blue calendar palette. */
-.phone-layout .octi-dock{--okti-cyan:#13b9ef;--okti-blue:#0878cf;--okti-deep:#14598f}
-.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
-  border:1px solid #ffffffd9;
-  background:radial-gradient(ellipse at 27% 17%,#ffffffed 12%,#dff7ffc9 30%,#8ed5f1a8 64%,#58abd68f 83%,#d9f4ffc2 100%);
-  box-shadow:0 7px 15px #174d7333,0 2px 4px #174d7324,inset 2px 2px 3px #fff,inset -2px -3px 5px #286d994d;
-  backdrop-filter:blur(4px) saturate(1.42) contrast(1.08);
-  -webkit-backdrop-filter:blur(4px) saturate(1.42) contrast(1.08)
+/* 33.170: soft refracted blue glass, shared by Okti and its action bubbles.
+   Decorative skins only: targets, transforms and recorder/menu timing stay intact. */
+.octi-dock{
+  --okti-glass-light:radial-gradient(ellipse at 29% 18%,#fff 0 6%,#ffffffa6 9%,transparent 19%),radial-gradient(ellipse at 13% 37%,#ffffffc9 0 2%,transparent 8%),radial-gradient(ellipse at 78% 82%,#ffffffcf 0 2%,transparent 18%);
+  --okti-glass-depth:0 7px 14px #12658b26,0 2px 4px #127a9c18,inset 1px 2px 3px #ffffffed,inset -2px -3px 5px #278caf38,inset 0 0 7px 2px #e7faffb8;
 }
-.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.58;filter:saturate(1.32) contrast(1.12)}
-.octi-dock .action-mark:before,.octi-dock .action-mark:after{background:linear-gradient(180deg,var(--action-top,#28cdf3),var(--action-bottom,#086fb7));box-shadow:inset 0 1px 1px #ffffffc9,inset 0 -1px 1px #064e7c66,0 1px 3px #075b9045}
-.octi-dock .bubble-menu .bubble-extra .menu-bud-symbol{color:#086da9;filter:drop-shadow(0 1px 0 #fff) drop-shadow(0 0 2px #ffffffd9)}
+.octi-dock .action-skin,.octi-dock .bubble-menu .bubble-extra .menu-bud-skin{
+  border:0;
+  background:radial-gradient(ellipse at 34% 26%,#f6fdfff0 0%,#d5f2ffe8 39%,#9dddf0dc 73%,#dff8fff0 100%);
+  box-shadow:var(--okti-glass-depth);
+  backdrop-filter:blur(10px) saturate(1.3);
+  -webkit-backdrop-filter:blur(10px) saturate(1.3)
+}
+/* Keep the existing moving artwork as a quiet refractive texture, without its dark rim. */
+.octi-dock .action-glass,.octi-dock .menu-bud-skin>img{opacity:.12;filter:saturate(1.15);mask-image:radial-gradient(circle,#000 60%,transparent 96%);-webkit-mask-image:radial-gradient(circle,#000 60%,transparent 96%)}
+.octi-dock .action-skin:before,.octi-dock .bubble-menu .menu-bud-skin:before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--okti-glass-light);
+  box-shadow:inset 0 1px 1px #fff,inset 1px 0 2px #ffffffa6,inset -1px -1px 2px #8bcfe46b
+}
+.octi-dock .action-mark:before,.octi-dock .action-mark:after{background:linear-gradient(180deg,var(--action-top,#139fcb),var(--action-bottom,#075584));box-shadow:inset 0 1px 1px #ffffffa6,0 1px 2px #075b9029}
+.octi-dock .bubble-menu .bubble-extra .menu-bud-symbol{color:#084d7a;filter:drop-shadow(0 1px 1px #ffffffd9)}
 .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
   isolation:isolate;
-  background:radial-gradient(circle at 36% 27%,#ffffffb8 0 10%,#c9efff70 38%,#70c9ec42 72%,#2f8fc230 100%);
-  border:1px solid #ffffffc4;
-  box-shadow:0 10px 23px #174d7330,0 2px 5px #17345322,inset 2px 2px 3px #fff,inset -2px -3px 6px #286d9940;
-  backdrop-filter:blur(3.5px) saturate(1.38) contrast(1.07);
-  -webkit-backdrop-filter:blur(3.5px) saturate(1.38) contrast(1.07)
+  background:radial-gradient(ellipse at 34% 26%,#f6fdfff0 0%,#d5f2ffe8 39%,#9dddf0dc 73%,#dff8fff0 100%);
+  border:0;
+  box-shadow:var(--okti-glass-depth);
+  mask-image:none;-webkit-mask-image:none;
+  backdrop-filter:blur(10px) saturate(1.3);
+  -webkit-backdrop-filter:blur(10px) saturate(1.3)
 }
-.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-media>video{mix-blend-mode:multiply;filter:saturate(1.24) contrast(1.07)}
+.octi-dock .octi-motion-media:after,.octi-dock .octi-listening-media:after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--okti-glass-light);
+  box-shadow:inset 1px 2px 3px #ffffffed,inset -1px -2px 3px #a0dae78c
+}
+.octi-dock .octi-motion-media>img,.octi-dock .octi-motion-media>video,.octi-dock .octi-listening-media>img,.octi-dock .octi-listening-canvas{
+  mix-blend-mode:multiply;filter:saturate(1.2) contrast(1.03);
+  mask-image:radial-gradient(circle closest-side,#000 0 50%,#000d 59%,#0003 67%,transparent 71%);
+  -webkit-mask-image:radial-gradient(circle closest-side,#000 0 50%,#000d 59%,#0003 67%,transparent 71%)
+}
 .phone-layout .phone-calendar-week-number{border-color:#d9f5ff;background:radial-gradient(circle at 30% 19%,#51d3f2 0,#168dd5 51%,#075eae 100%);box-shadow:inset 2px 2px 3px #ffffffa8,inset -2px -3px 5px #064b8770,0 4px 10px #075c9d42;text-shadow:0 1px 2px #06437680}
 .phone-layout .phone-week-strip button.active{background:linear-gradient(160deg,#24bce9,#157ad0);box-shadow:inset 0 1px 2px #bfeeff,0 4px 9px #176aa638}
 .phone-layout .phone-event{background-color:#e4f4fb!important;background-image:linear-gradient(145deg,#f6fcff,#dceff9)!important;border-color:#b7d8ea;border-left-color:#189ad4;box-shadow:inset 0 1px 2px #fff,0 3px 9px #236c9b20}
