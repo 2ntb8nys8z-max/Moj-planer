@@ -2481,14 +2481,15 @@ function initializePhoneSkin(){
  journal.fitBottom=()=>{const view=$('ideasView'),dock=document.querySelector('.voice-area');if(!dock||view.classList.contains('hidden'))return;const bounds=view.getBoundingClientRect(),top=dock.getBoundingClientRect().top;view.style.setProperty('--journal-bottom-space',Math.max(12,Math.ceil(bounds.bottom-top+12))+'px')};
  window.addEventListener('resize',journal.fitBottom);if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(journal.fitBottom);observer.observe(voiceArea);observer.observe($('ideasView'))}
  // Slide the outgoing and incoming day together, keeping real controls live.
- const renderDayBeforeSlide=renderDay;let lastSlideDate=iso(selected),daySlideCleanup=null;
+ const renderDayBeforeSlide=renderDay;let lastSlideDate=iso(selected),daySlideCleanup=null,daySlideSerial=0;
  renderDay=function(...args){
   daySlideCleanup?.();const view=$('dayView'),nextDate=iso(selected),direction=nextDate>lastSlideDate?1:-1;
   const animate=nextDate!==lastSlideDate&&!view.classList.contains('hidden')&&view.getBoundingClientRect().width>0&&typeof view.animate==='function'&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   let ghost=null;
   if(animate){
-   ghost=view.cloneNode(true);const originals=[view,...view.querySelectorAll('*')],copies=[ghost,...ghost.querySelectorAll('*')];
-   originals.forEach((original,index)=>{const copy=copies[index];if(original.id){const computed=getComputedStyle(original);copy.style.cssText=Array.from(computed,property=>property+':'+computed.getPropertyValue(property)+';').join('');copy.removeAttribute('id')}if(original.scrollTop||original.scrollLeft){copy.dataset.slideScrollTop=original.scrollTop;copy.dataset.slideScrollLeft=original.scrollLeft}});
+   ghost=view.cloneNode(true);const originals=[view,...view.querySelectorAll('*')],copies=[ghost,...ghost.querySelectorAll('*')],artIds=new Map(),serial=++daySlideSerial;
+   originals.forEach((original,index)=>{const copy=copies[index];if(original.id){if(original.namespaceURI==='http://www.w3.org/2000/svg'){const id=original.id+'-slide-'+serial;artIds.set(original.id,id);copy.id=id}else{const computed=getComputedStyle(original);copy.style.cssText=Array.from(computed,property=>property+':'+computed.getPropertyValue(property)+';').join('');copy.removeAttribute('id')}}if(original.scrollTop||original.scrollLeft){copy.dataset.slideScrollTop=original.scrollTop;copy.dataset.slideScrollLeft=original.scrollLeft}});
+   for(const copy of copies)for(const attr of [...copy.attributes]){let value=attr.value;for(const [from,to] of artIds)value=value.replaceAll('#'+from,'#'+to);if(value!==attr.value)copy.setAttribute(attr.name,value)}
    ghost.classList.add('okti-day-slide-ghost');ghost.setAttribute('aria-hidden','true');ghost.inert=true;
   }
   lastSlideDate=nextDate;const result=renderDayBeforeSlide.apply(this,args);

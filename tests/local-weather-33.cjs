@@ -49,12 +49,16 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   denied=false;coords={latitude:54.352,longitude:18.6466,accuracy:20};failForecast=true;await run('OktiLocalWeather.refresh(true)');assert.equal(w.document.querySelector('.phone-day-temperature'),null,'Forecast from the old city is hidden if fetching for new location fails');assert.match(w.document.querySelector('#localWeatherStatus').textContent,/Gdańsk/);
   run('OktiLocalWeather.disable()');assert.equal(w.document.querySelector('.phone-day-temperature'),null);assert.equal(run('OktiLocalWeather.snapshot().place'),undefined);assert.equal(run('OktiLocalWeather.snapshot().enabled'),false);
   // Exercise actual day renders with controllable browser animations.
+  failForecast=false;await run('OktiLocalWeather.enable()');
   const animations=[];w.matchMedia=()=>({matches:false});
   w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(animation);return animation};
   const dayView=w.document.querySelector('#dayView');dayView.getBoundingClientRect=()=>({width:360,height:500,left:0,top:0});
   run('selected.setDate(selected.getDate()+1);renderDay()');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1);
-  assert.equal(w.document.querySelector('.okti-day-slide-ghost').querySelector('[id]'),null,'Outgoing copy has no duplicate control IDs');
+  assert.ok([...w.document.querySelector('.okti-day-slide-ghost').querySelectorAll('[id]')].every(node=>node.namespaceURI==='http://www.w3.org/2000/svg'),'Only uniquely renamed SVG artwork IDs remain in the outgoing copy');
+  assert.ok(w.document.querySelector('.okti-day-slide-ghost linearGradient[id]'),'Outgoing weather artwork retains its gradient definitions');
+  for(const node of w.document.querySelectorAll('.okti-day-slide-ghost [fill^="url(#"]')){const id=node.getAttribute('fill').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
+  const ids=[...w.document.querySelectorAll('[id]')].map(node=>node.id);assert.equal(new Set(ids).size,ids.length,'Outgoing copy has no duplicate IDs');
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
   assert.equal(animations[1].frames[0].transform,'translateX(360px)','Next day enters from the right');
   const firstCount=animations.length;run('selected.setDate(selected.getDate()-1);renderDay()');
