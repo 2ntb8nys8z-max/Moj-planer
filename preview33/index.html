@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.200</title>
+<title>Mój Planer — test integracji 33.201</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.200</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.200</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.200-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.201</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.201</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.201-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.200-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.201-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2280,7 +2280,7 @@ function initializePhoneSkin(){
   if(view==='week'){const start=new Date(value);start.setDate(start.getDate()-(start.getDay()||7)+1);const end=new Date(start);end.setDate(end.getDate()+6);anchor=iso(start);same=nowDate>=anchor&&nowDate<=iso(end)}
   if(view==='month'){anchor=iso(new Date(cursor.getFullYear(),cursor.getMonth(),1));same=cursor.getFullYear()===now.getFullYear()&&cursor.getMonth()===now.getMonth()}
   const button=$('todayBtn'),bar=(entryDate?$('journalCalendarNavigation'):$(viewId)).querySelector('.daybar');if(!bar)return;const host=entryDate?bar:calendarMeta;
-  const direction=anchor>nowDate?'left':'right',enter=!same&&(button.classList.contains('hidden')||button.parentElement!==bar||button.dataset.direction!==direction),label=document.documentElement.lang.toLowerCase().startsWith('en')?'Today':'Dzisiaj';
+  const direction=anchor>nowDate?'left':'right',enter=!same&&(button.classList.contains('hidden')||button.parentElement!==host||button.dataset.direction!==direction),label=document.documentElement.lang.toLowerCase().startsWith('en')?'Today':'Dzisiaj';
   if(!button.querySelector('.today-drop'))button.innerHTML='<span class="today-drop"><svg viewBox="0 0 36 32" aria-hidden="true" focusable="false"><path d="M28 26v-5a8 8 0 0 0-8-8H8m0 0 7-7m-7 7 7 7"/></svg><span class="today-label"></span></span>';
   button.querySelector('.today-label').textContent=label;button.setAttribute('aria-label',label);button.title=label;
   if(!button.classList.contains('hidden')&&(same||button.dataset.direction!==direction))popPhoneToday(button);
@@ -2289,7 +2289,7 @@ function initializePhoneSkin(){
  }
 
  // The return bubble floats outside the navigation row; arrow targets never move.
- function positionPhoneToday(){const button=$('todayBtn');if(button.classList.contains('hidden'))return;if(button.parentElement===calendarMeta){button.style.left='';button.style.top='';return}const bar=button.parentElement,rect=bar.getBoundingClientRect();if(!rect.width)return;const size=button.getBoundingClientRect().width||52;button.style.left=(button.dataset.side==='right'?rect.right-size-48:rect.left+48)+'px';button.style.top=rect.top+'px'}
+ function positionPhoneToday(){const button=$('todayBtn');if(button.classList.contains('hidden'))return;if(button.parentElement===calendarMeta){button.style.left='';button.style.top='';return}const bar=button.parentElement,rect=bar.getBoundingClientRect();if(!rect.width)return;const size=button.getBoundingClientRect().width||52;button.style.left=(rect.right-size-48)+'px';button.style.top=rect.top+'px'}
  window.addEventListener('resize',positionPhoneToday);
  if(typeof ResizeObserver==='function'){const todayLayout=new ResizeObserver(positionPhoneToday);for(const bar of document.querySelectorAll('#dayView .daybar,#weekView .daybar,#monthView .daybar'))todayLayout.observe(bar)}
 
@@ -4352,5 +4352,36 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
 .phone-layout #taskList{background:#fbfaf8}
 .phone-layout .phone-free-time{background:#edf7f2;border-color:#d7e3e4;color:#40516c}
 @media(max-width:359px){.phone-day-speaker{width:46px;height:46px;margin-left:3px}.phone-day-speaker svg{width:25px;height:25px}.phone-day-weekday{font-size:20px}.phone-day-weather .weather-icon{width:48px;height:48px}.phone-layout #dayView .daybar h2{padding-left:13px;padding-right:7px}}
+</style>
+<style id="okti-today-bubble-33-201">
+/* Reuse the approved octopus glass asset; the icon is independent of its host. */
+.phone-layout #todayBtn{color:#164c7a;text-shadow:0 1px 1px #ffffffd9;overflow:visible;isolation:isolate}
+.phone-layout .phone-calendar-meta #todayBtn{right:4px;top:0;color:#164c7a}
+.phone-layout #todayBtn .today-drop,.phone-layout .phone-today-pop .today-drop{
+ display:flex;position:relative;align-items:center;justify-content:center;flex-direction:column;gap:0;
+ width:100%;height:100%;padding:5px 2px 6px;border:0;border-radius:50%;
+ background:linear-gradient(145deg,#91c9ff0a,#b9b6f408);box-shadow:none;
+ backdrop-filter:none;-webkit-backdrop-filter:none;isolation:isolate
+}
+.phone-layout #todayBtn .today-drop:before,.phone-layout .phone-today-pop .today-drop:before{
+ content:"";position:absolute;inset:-3%;border:0;border-radius:50%;
+ clip-path:circle(45% at 50% 50%);
+ background:url('octi-glass-33-184.png?v=ffa5688726705d31') center/100% 100% no-repeat;
+ box-shadow:none;opacity:.94;transform:none;pointer-events:none;z-index:-1
+}
+.phone-layout #todayBtn .today-drop:after,.phone-layout .phone-today-pop .today-drop:after{
+ content:"";position:absolute;left:22%;top:84%;width:95%;height:35%;border:0;border-radius:50%;
+ background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c40 65%,transparent 100%);
+ box-shadow:none;filter:blur(2px);transform:none;z-index:-2;pointer-events:none
+}
+.phone-layout #todayBtn svg{
+ display:block;position:relative;z-index:1;flex:none;width:28px;height:25px;
+ fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;
+ filter:none;transform:none
+}
+.phone-layout #todayBtn[data-direction="right"] svg{transform:scaleX(-1)}
+.phone-layout #todayBtn .today-label{position:relative;z-index:1;color:inherit;font-size:10px;font-weight:800;line-height:12px}
+.phone-layout #todayBtn:focus-visible{outline:3px solid #267dc0;outline-offset:3px}
+.phone-layout .phone-today-pop .today-pop-bead{border-color:#9bcde6;background:radial-gradient(ellipse at 30% 20%,#fff 8%,#cdeeff88 55%,#8dc6e5aa);box-shadow:inset 1px 1px 1px #fff,0 2px 4px #42638c30}
 </style>
 </body></html>
