@@ -138,10 +138,59 @@ body.event-sheet-open{overflow:hidden}
 
 
 </style>
+<style id="okti-day-weather-33-205">
+/* Expanded coastal weather card, with native dialog focus and reduced motion. */
+body.okti-weather-open{overflow:hidden}
+#dayWeatherModal{border:0;padding:18px;margin:auto;background:transparent;color:#163f58;width:100%;height:100%;max-width:none;max-height:none;inset:0;box-sizing:border-box;overflow:hidden}
+#dayWeatherModal:not([open]){display:none}
+#dayWeatherModal[open]{display:flex;align-items:center;justify-content:center}
+#dayWeatherModal::backdrop{background:#173f5940;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#dayWeatherModal .okti-weather-card{position:relative;width:min(390px,100%);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain;padding:18px 20px 8px;border-radius:30px;background:radial-gradient(ellipse at 5% 5%,#fff5df80,transparent 45%),linear-gradient(140deg,#f6fcfd,#def3f8);box-shadow:0 22px 55px #173f5940,inset 0 1px 2px #fff;transform-origin:center;box-sizing:border-box;font-family:Nunito,system-ui,sans-serif}
+#dayWeatherModal header{position:relative;text-align:center;padding:4px 28px 0;background:none;display:block}
+#dayWeatherModal h2{font-size:25px;line-height:1.3;margin:0;color:#173d58;text-transform:capitalize;font-weight:850}
+#dayWeatherModal .okti-weather-x{position:absolute;right:-8px;top:-8px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;box-shadow:none;color:#527488;font-size:27px}
+#dayWeatherModal p{margin:0}
+#dayWeatherModal .okti-weather-place{text-align:center;color:#5c7888;font-size:12px;margin-top:7px;line-height:1.5}
+#dayWeatherModal .okti-weather-hero{display:flex;align-items:center;justify-content:center;gap:24px;margin:15px 0 0}
+#dayWeatherModal .okti-weather-hero>.okti-weather-icon{width:76px;height:76px}
+#dayWeatherModal .okti-weather-hero strong{font-size:64px;letter-spacing:-3px;line-height:1.15;font-weight:600}
+#dayWeatherModal .okti-weather-description{text-align:center;margin-top:4px;font-size:15px;font-weight:750}
+#dayWeatherModal .okti-weather-range{text-align:center;margin-top:5px;font-size:12px;color:#607c8c}
+#dayWeatherModal .okti-weather-astronomy{display:grid;grid-template-columns:1fr 1fr 1.22fr;gap:6px;border-top:1px solid #b5d3de77;padding-top:14px;margin-top:19px;text-align:center}
+#dayWeatherModal .okti-weather-astronomy>div{min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px}
+#dayWeatherModal .okti-weather-astronomy strong{font-size:12px;line-height:1.4;font-weight:800}
+#dayWeatherModal .okti-weather-astronomy small{font-size:10px;line-height:1.3;color:#5c7788}
+#dayWeatherModal .okti-astro-icon{display:block;width:48px;height:46px}
+#dayWeatherModal .okti-astro-icon svg{width:100%;height:100%;overflow:visible}
+#dayWeatherModal .okti-hour-heading{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:19px;font-size:12px}
+#dayWeatherModal .okti-hour-heading>span{color:#af693e;font-size:11px;white-space:nowrap}
+#dayWeatherModal .okti-weather-hours{position:relative;display:flex;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;padding:11px 0 8px;margin-top:6px;scrollbar-width:thin;scrollbar-color:#91bbcc transparent;scroll-snap-type:x proximity}
+#dayWeatherModal .okti-weather-hour{position:relative;flex:0 0 58px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:8px 0;scroll-snap-align:start;color:#214e67}
+#dayWeatherModal .okti-weather-hour.is-past{opacity:.4}
+#dayWeatherModal .okti-weather-hour.is-now{background:#fff7e28a;border-radius:10px}
+#dayWeatherModal .okti-weather-hour.is-now:before{position:absolute;content:'';width:2px;left:0;top:4px;bottom:5px;border-radius:2px;background:#d99b42}
+#dayWeatherModal .okti-weather-hour time{font-size:11px;font-weight:700}
+#dayWeatherModal .okti-weather-hour strong{font-size:20px;font-weight:800}
+#dayWeatherModal .okti-weather-hour small{font-size:11px;color:#4381a1}
+#dayWeatherModal .okti-weather-hour .okti-hour-wind{font-size:10px;color:#678491}
+.okti-weather-icon{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+.okti-weather-icon svg{display:block;width:100%;height:100%;filter:drop-shadow(0 3px 2px #355f7512)}
+#dayWeatherModal .okti-weather-ruler{height:4px;border-radius:5px;background:#cadee8;position:relative;margin-top:4px}
+#dayWeatherModal .okti-weather-window{position:absolute;top:0;bottom:0;background:#6fa9bf;border-radius:5px}
+#dayWeatherModal .okti-weather-now{position:absolute;top:-3px;width:2px;height:10px;background:#d99b42}
+#dayWeatherModal .okti-ruler-labels{display:flex;justify-content:space-between;font-size:10px;color:#678491;margin-top:6px}
+#dayWeatherModal .okti-weather-source{font-size:10px;line-height:1.4;text-align:center;color:#678491;margin-top:14px}
+#dayWeatherModal a{color:#326b88}
+#dayWeatherModal .okti-weather-collapse{width:100%;min-height:44px;padding:8px;border:0;background:transparent;box-shadow:none;color:#234e66;font-size:12px;font-weight:750;margin-top:4px}
+#dayWeatherModal .okti-weather-empty{padding:28px 4px;line-height:1.6;font-size:14px}
+#dayWeatherModal .okti-weather-closing #dayWeatherBody{opacity:0;transition:opacity .15s}
+@media(max-width:359px){#dayWeatherModal{padding:12px}#dayWeatherModal .okti-weather-card{padding:16px 14px 6px;max-height:calc(100dvh - 24px)}#dayWeatherModal .okti-weather-astronomy{gap:3px}#dayWeatherModal .okti-weather-hero{margin-top:10px}#dayWeatherModal .okti-weather-hero strong{font-size:54px}}
+@media(prefers-reduced-motion:reduce){#dayWeatherModal *{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.201-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.205-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -216,7 +265,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.201-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.205-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1720,6 +1769,139 @@ async function approvePlannerSchedule(proposed,excluded=[]){
 const WEATHER_TEXT=Object.freeze({details:'Podaj kraj, region, kod pocztowy albo pobliskie większe miasto, żebym ustalił właściwą miejscowość.',missing:'Nie znalazłem jednoznacznego dopasowania. Podaj kod pocztowy, kraj lub region.',waiting:'Doprecyzuj miejscowość w rozmowie poniżej.'});
 const WEATHER_CACHE_MS=2*60*60*1000,GEOCODING_CACHE_MS=24*60*60*1000,GEOCODING_FAILURE_MS=60*60*1000;
 const plannerWeatherCache=new Map();let plannerWeatherSequence=0,plannerWeatherAbort=null;
+// Local weather is independent of every event address and event forecast.
+// Okti 33.205 — one restrained, shaded icon family for header, detail and hours.
+let oktiWeatherArtId=0;
+function oktiWeatherArtwork(kind,day=true){
+ const id='okti-weather-art-'+(++oktiWeatherArtId),sun=`url(#${id}-sun)`,cloud=`url(#${id}-cloud)`;
+ const defs=`<defs><linearGradient id="${id}-sun" x2=".7" y2="1"><stop stop-color="#ffe17b"/><stop offset="1" stop-color="#f4b328"/></linearGradient><linearGradient id="${id}-cloud" x2=".3" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#edf3f6"/><stop offset="1" stop-color="#bacbd5"/></linearGradient><linearGradient id="${id}-rain" x2=".5" y2="1"><stop stop-color="#72d6f6"/><stop offset="1" stop-color="#289bd1"/></linearGradient></defs>`;
+ const rays='<path d="M32 3v6M32 55v6M3 32h6M55 32h6M11.5 11.5l4 4M48.5 48.5l4 4M52.5 11.5l-4 4M15.5 48.5l-4 4" fill="none" stroke="#efb42d" stroke-width="2.5" stroke-linecap="round"/>';
+ const sunny=`<circle cx="32" cy="32" r="17" fill="${sun}"/>${rays}`;
+ const moon='<path d="M44 9a24 24 0 1 0 11 39A24 24 0 0 1 44 9Z" fill="#b4c9dc"/>';
+ const clouds=`<path d="M17 49C5 49 3 32 15 29c0-14 20-20 28-6 12-2 22 15 10 23-3 3-7 3-12 3Z" fill="${cloud}"/><path d="M16 49c-9 0-12-12-4-17 4-3 9-2 11 0 4-10 21-8 23 3 11 0 14 14 1 14Z" fill="${cloud}"/>`;
+ const drops=`<g fill="url(#${id}-rain)"><path d="M23 49c0 6-6 7-6 2 0-2 4-6 6-8Z"/><path d="M40 49c0 6-6 7-6 2 0-2 4-6 6-8Z"/></g>`;
+ let art=kind==='sun'?(day?sunny:moon):kind==='partly'?`<g transform="translate(-1 -1) scale(.78)">${day?sunny:moon}</g>${clouds}`:kind==='cloud'?clouds:kind==='rain'?clouds+drops:kind==='storm'?clouds+'<path d="m33 37-9 13h7l-3 11 15-18h-8l3-6Z" fill="#efb83d"/>':kind==='snow'?clouds+'<g stroke="#69a9cb" stroke-width="2" stroke-linecap="round"><path d="M21 48v12m-5-9 10 6m0-6-10 6M43 48v12m-5-9 10 6m0-6-10 6"/></g>':kind==='fog'?clouds+'<path d="M9 45h46M14 52h36M19 59h26" stroke="#9cb8c7" stroke-width="2.5" stroke-linecap="round"/>':'<text x="32" y="42" text-anchor="middle" fill="#52798c" font-size="32">?</text>';
+ return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">${defs}${art}</svg>`;
+}
+function oktiSunHorizonArtwork(setting){
+ const c=setting?'#f07443':'#eeb535',fill=setting?'#ff9865':'#ffd269';
+ return `<svg viewBox="0 0 80 72" aria-hidden="true"><path d="M19 48a21 21 0 0 1 42 0Z" fill="${fill}"/><path d="M12 35 7 33M19 23l-4-5M61 23l4-5M68 35l5-2" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M5 49h70M15 57h50" stroke="#286368" stroke-width="3" stroke-linecap="round"/><path d="${setting?'M40 18v49m-6-6 6 6 6-6':'M40 43V4m-6 6 6-6 6 6'}" fill="none" stroke="${c}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+// Astronomical moon illumination equations adapted from SunCalc, (c) Vladimir
+// Agafonkin, MIT. Calculated locally: no additional provider requests or tracking.
+function oktiMoonPhase(date){
+ const rad=Math.PI/180,d=Date.parse(date+'T12:00:00Z')/86400000-10957.5,e=rad*23.4397;
+ const ra=(l,b)=>Math.atan2(Math.sin(l)*Math.cos(e)-Math.tan(b)*Math.sin(e),Math.cos(l));
+ const dec=(l,b)=>Math.asin(Math.sin(b)*Math.cos(e)+Math.cos(b)*Math.sin(e)*Math.sin(l));
+ const M=rad*(357.5291+.98560028*d),C=rad*(1.9148*Math.sin(M)+.02*Math.sin(2*M)+.0003*Math.sin(3*M)),L=M+C+rad*102.9372+Math.PI;
+ const ml=rad*(218.316+13.176396*d),mm=rad*(134.963+13.064993*d),mf=rad*(93.272+13.229350*d),l=ml+rad*6.289*Math.sin(mm),b=rad*5.128*Math.sin(mf),dist=385001-20905*Math.cos(mm);
+ const sr=ra(L,0),sd=dec(L,0),mr=ra(l,b),md=dec(l,b),phi=Math.acos(Math.max(-1,Math.min(1,Math.sin(sd)*Math.sin(md)+Math.cos(sd)*Math.cos(md)*Math.cos(sr-mr)))),inc=Math.atan2(149598000*Math.sin(phi),dist-149598000*Math.cos(phi)),angle=Math.atan2(Math.cos(sd)*Math.sin(sr-mr),Math.sin(sd)*Math.cos(md)-Math.cos(sd)*Math.sin(md)*Math.cos(sr-mr));
+ const phase=.5+.5*inc*(angle<0?-1:1)/Math.PI,fraction=(1+Math.cos(inc))/2;
+ const labels=['Nów','Przybywający sierp','Pierwsza kwadra','Przybywający garb','Pełnia','Ubywający garb','Ostatnia kwadra','Ubywający sierp'];
+ return {phase,fraction,label:labels[Math.round(phase*8)%8],description:phase<.5?'Przed pełnią · przybywa':'Po pełni · maleje'};
+}
+function oktiMoonArtwork(phase){
+ const k=Math.cos(2*Math.PI*phase),rx=Math.max(.01,Math.abs(24*k)),wax=phase<.5;
+ return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="#426379"/><path d="M32 8A24 24 0 0 ${wax?1:0}32 56A${rx} 24 0 0 ${wax?(k>=0?0:1):(k>=0?1:0)}32 8Z" fill="#e6edf1"/></svg>`;
+}
+function oktiCreateDayWeather({app,getDate,weather,symbol,formatDate}){
+ const dialog=document.createElement('dialog');dialog.id='dayWeatherModal';dialog.className='okti-weather-dialog';dialog.setAttribute('aria-labelledby','dayWeatherTitle');dialog.innerHTML='<section class="okti-weather-card"><header><h2 id="dayWeatherTitle"></h2><button type="button" class="okti-weather-x" aria-label="Zamknij pogodę">×</button></header><div id="dayWeatherBody" role="status"></div><button type="button" class="okti-weather-collapse">⌃ Zwiń pogodę</button></section>';document.body.append(dialog);
+ const card=dialog.querySelector('section'),body=dialog.querySelector('#dayWeatherBody'),collapse=dialog.querySelector('.okti-weather-collapse');let focus=null,closing=false,opening=null,date=null,scrollTimer=null;
+ const dateKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n};
+ const icon=(kind,day)=>{const n=el('span',null,'okti-weather-icon');n.innerHTML=oktiWeatherArtwork(kind,day);return n};
+ function render(){
+  body.replaceChildren();const key=dateKey(date),details=weather.details(date),status=weather.snapshot(),summary=weather.get(date);dialog.querySelector('h2').textContent=date.toLocaleDateString('pl-PL',{weekday:'long'});
+  const place=el('p',(details?.place||status.place?.label||'')+' · '+formatDate(date),'okti-weather-place');body.append(place);
+  if(!details||!summary){body.append(el('p',!status.enabled?'Włącz lokalizację w Ustawieniach → Pogoda i Twoja lokalizacja.':status.busy?'Pobieram prognozę…':status.error||'Brak prognozy dla tej daty. Dostępne są najbliższe dni.','okti-weather-empty'));return}
+  const hero=el('div',null,'okti-weather-hero');hero.append(icon(symbol(summary.code).kind,summary.isDay!==false),el('strong',summary.temperature+'°'));body.append(hero,el('p',summary.label,'okti-weather-description'));
+  const temps=details.rows.map(r=>r.temperature).filter(Number.isFinite);if(temps.length)body.append(el('p','Najwyższa '+Math.round(Math.max(...temps))+'° · Najniższa '+Math.round(Math.min(...temps))+'°','okti-weather-range'));
+  const astronomy=el('div',null,'okti-weather-astronomy'),moon=oktiMoonPhase(key);
+  for(const [name,time,setting] of [['Wschód',details.sunrise,false],['Zachód',details.sunset,true]]){const item=el('div'),art=el('span',null,'okti-astro-icon');art.innerHTML=oktiSunHorizonArtwork(setting);item.append(el('span',name),el('strong',time?time.slice(11,16):'—'),art);astronomy.append(item)}
+  const moonItem=el('div'),moonArt=el('span',null,'okti-astro-icon');moonArt.innerHTML=oktiMoonArtwork(moon.phase);moonItem.append(el('span','Księżyc'),el('strong',moon.label),moonArt,el('small',moon.description));moonItem.title='Oświetlenie tarczy: '+Math.round(moon.fraction*100)+'% · faza obliczona astronomicznie';astronomy.append(moonItem);body.append(astronomy);
+  let nowParts;try{nowParts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:details.timezone||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]))}catch(_){nowParts={year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0'),day:String(new Date().getDate()).padStart(2,'0'),hour:new Date().getHours(),minute:new Date().getMinutes()}}
+  const isToday=key===`${nowParts.year}-${nowParts.month}-${nowParts.day}`,nowHour=Number(nowParts.hour)+Number(nowParts.minute)/60;
+  const heading=el('div',null,'okti-hour-heading');heading.append(el('strong','Godzina po godzinie'));if(isToday)heading.append(el('span','Teraz · '+String(nowParts.hour).padStart(2,'0')+':'+String(nowParts.minute).padStart(2,'0')));body.append(heading);
+  const hours=el('div',null,'okti-weather-hours');hours.setAttribute('aria-label','Prognoza godzinowa, przesuń w lewo lub w prawo');hours.tabIndex=0;let target=null;
+  for(const row of details.rows){const h=Number(row.time.slice(0,2)),current=isToday&&h===Math.floor(nowHour),past=isToday&&h<Math.floor(nowHour),item=el('div',null,'okti-weather-hour'+(current?' is-now':'')+(past?' is-past':''));item.dataset.hour=h;item.setAttribute('aria-label',row.time+', '+symbol(row.code).label);item.append(el('time',current?'Teraz':row.time),icon(symbol(row.code).kind,row.isDay!==false),el('strong',Number.isFinite(row.temperature)?Math.round(row.temperature)+'°':'—'),el('small',Number.isFinite(row.rain)?row.rain+'%':'—'),el('small',Number.isFinite(row.wind)?Math.round(row.wind)+' km/h':'—','okti-hour-wind'));hours.append(item);if(current)target=item}
+  body.append(hours);const ruler=el('div',null,'okti-weather-ruler'),windowMark=el('span',null,'okti-weather-window');ruler.append(windowMark);if(isToday){const nowMark=el('span',null,'okti-weather-now');nowMark.style.left=(nowHour/24*100)+'%';ruler.append(nowMark)}const rulerLabels=el('div',null,'okti-ruler-labels');rulerLabels.append(el('span','00:00'),el('span','12:00'),el('span','24:00'));body.append(ruler,rulerLabels);
+  function syncRuler(){windowMark.style.width=(hours.clientWidth/(hours.scrollWidth||1)*100)+'%';windowMark.style.left=(hours.scrollLeft/(hours.scrollWidth||1)*100)+'%'}
+  hours.addEventListener('scroll',syncRuler,{passive:true});hours.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();hours.scrollBy({left:e.key==='ArrowRight'?144:-144,behavior:'smooth'})}});
+  clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{if(!dialog.open)return;if(target)hours.scrollLeft=Math.max(0,target.offsetLeft-hours.offsetLeft-12);syncRuler()},0);
+  const source=el('a','Open-Meteo');source.href='https://open-meteo.com/';source.target='_blank';source.rel='noopener noreferrer';const footer=el('p',null,'okti-weather-source');footer.append(document.createTextNode((summary.stale?'Zapisana prognoza · ':'')+'Pobrano '+new Date(details.at).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+' · '),source);body.append(footer);
+ }
+ function motion(reverse){const from=document.querySelector('#dayTitle').getBoundingClientRect(),to=card.getBoundingClientRect();if(!from.width||!to.width||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!card.animate)return null;const small={transform:`translate(${from.left+from.width/2-to.left-to.width/2}px,${from.top+from.height/2-to.top-to.height/2}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'25px'},large={transform:'translate(0,0) scale(1,1)',borderRadius:'30px'};return card.animate(reverse?[large,small]:[small,large],{duration:reverse?420:650,easing:'cubic-bezier(.22,.8,.2,1)'})}
+ function finishClose(){dialog.close?.();dialog.removeAttribute('open');app.inert=false;document.body.classList.remove('okti-weather-open');card.classList.remove('okti-weather-closing');closing=false;focus?.focus()}
+ function close(){if(!dialog.open||closing)return;closing=true;opening?.cancel();card.classList.add('okti-weather-closing');const animation=motion(true);if(animation){animation.onfinish=finishClose;animation.oncancel=finishClose}else finishClose()}
+ function open(){if(dialog.open||closing)return;focus=document.activeElement;date=new Date(getDate());render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;document.body.classList.add('okti-weather-open');card.scrollTop=0;opening=motion(false);dialog.querySelector('.okti-weather-x').focus();weather.refresh()}
+ dialog.querySelector('.okti-weather-x').onclick=close;collapse.onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('click',e=>{if(e.target===dialog)close()});window.addEventListener('okti-local-weather',()=>{if(dialog.open&&!closing)render()});
+ return {open,close};
+}
+const OktiLocalWeather=(()=>{
+ const key=(typeof PREVIEW33_PREFIX==='string'?PREVIEW33_PREFIX:'')+'okti-local-weather-v1';
+ const LOCATION_AGE=15*60*1000,RETRY_AGE=60*1000;let state={},busy=null,lastAttempt=0,error='';
+ try{const saved=JSON.parse(localStorage.getItem(key)||'{}');if(saved&&typeof saved==='object')state=saved}catch(_){}
+ const valid=p=>p&&Number.isFinite(p.latitude)&&Math.abs(p.latitude)<=90&&Number.isFinite(p.longitude)&&Math.abs(p.longitude)<=180;
+ if(!valid(state.place))delete state.place;
+ if(!Array.isArray(state.forecast?.data?.hourly?.time))delete state.forecast;
+ const notify=()=>window.dispatchEvent(new Event('okti-local-weather'));
+ function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch(_){error='Nie udało się zapisać pogody na urządzeniu.'}}
+ function distance(a,b){const rad=Math.PI/180,dlat=(a.latitude-b.latitude)*rad,dlon=(a.longitude-b.longitude)*rad,h=Math.sin(dlat/2)**2+Math.cos(a.latitude*rad)*Math.cos(b.latitude*rad)*Math.sin(dlon/2)**2;return 6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))}
+ async function json(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const r=await fetch(url,{signal:controller.signal});if(!r.ok)throw Error('Usługa pogody jest chwilowo niedostępna.');return await r.json()}finally{clearTimeout(timer)}}
+ function position(){return new Promise((resolve,reject)=>{if(!navigator.geolocation){reject(Error('Ta przeglądarka nie udostępnia lokalizacji.'));return}navigator.geolocation.getCurrentPosition(p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),e=>reject(Error(e.code===1?'Brak zgody na lokalizację. Włącz ją w ustawieniach telefonu lub przeglądarki.':e.code===3?'Nie udało się ustalić lokalizacji w wyznaczonym czasie. Spróbuj ponownie.':'Telefon nie mógł ustalić lokalizacji. Spróbuj ponownie.')),{enableHighAccuracy:false,maximumAge:60000,timeout:12000})})}
+ async function refresh(manual=false){
+  if(!state.enabled)return;if(busy)return busy;
+  if(!manual&&(document.visibilityState==='hidden'||Date.now()-lastAttempt<RETRY_AGE))return;
+  const needsLocation=manual||!state.place||Date.now()-Number(state.place.checkedAt||0)>=LOCATION_AGE;
+  if(!needsLocation&&state.forecast?.data?.daily?.sunrise&&Date.now()-state.forecast.at<WEATHER_CACHE_MS)return;
+  lastAttempt=Date.now();error='';
+  busy=(async()=>{
+   try{
+    let place=state.place;
+    if(needsLocation){
+     const live=await position();if(!state.enabled)return;if(!valid(live))throw Error('Telefon zwrócił nieprawidłową lokalizację.');
+     const same=place&&distance(place,live)<5;
+     place={latitude:Number(live.latitude.toFixed(3)),longitude:Number(live.longitude.toFixed(3)),accuracy:live.accuracy,checkedAt:Date.now(),label:same?place.label:''};
+     if(!same){
+      // The free client endpoint is used only for a freshly obtained device fix.
+      try{const q=new URLSearchParams({latitude:String(live.latitude),longitude:String(live.longitude),localityLanguage:'pl'}),name=await json('https://api.bigdatacloud.net/data/reverse-geocode-client?'+q);place.label=[name.city||name.locality,name.countryName].filter(Boolean).join(', ')}catch(_){}
+     }
+     if(!state.enabled)return;state.place=place;save();notify();
+    }
+    if(!place)return;
+    const cached=state.forecast,fresh=cached?.data?.daily?.sunrise&&Date.now()-cached.at<WEATHER_CACHE_MS&&valid(cached.place)&&distance(cached.place,place)<5;
+    if(fresh)return;
+    const q=new URLSearchParams({latitude:String(place.latitude),longitude:String(place.longitude),current:'temperature_2m,weather_code,is_day',hourly:'temperature_2m,precipitation_probability,wind_speed_10m,weather_code,is_day',daily:'sunrise,sunset',timezone:'auto',forecast_days:'16'});
+    const data=await json('https://api.open-meteo.com/v1/forecast?'+q);if(!state.enabled)return;
+    if(!Array.isArray(data.hourly?.time)||!Array.isArray(data.hourly?.temperature_2m)||!Array.isArray(data.hourly?.weather_code))throw Error('Usługa nie zwróciła kompletnej prognozy.');
+    state.forecast={at:Date.now(),place:{latitude:place.latitude,longitude:place.longitude},data};save();
+   }catch(e){error=e.name==='AbortError'?'Przekroczono czas pobierania pogody. Spróbuj ponownie.':e.message||'Nie udało się pobrać pogody.'}
+   finally{busy=null;notify()}
+  })();notify();return busy;
+ }
+ function get(date){
+  if(!state.enabled||!state.place||!state.forecast||!valid(state.forecast.place)||distance(state.forecast.place,state.place)>=5)return null;
+  const {data,at}=state.forecast,dateKey=iso(date),current=data.current;
+  let temperature,code,isDay=true;
+  if(dateKey===iso(new Date())&&Number.isFinite(current?.temperature_2m)&&String(current.time||'').startsWith(dateKey)){temperature=current.temperature_2m;code=current.weather_code;isDay=current.is_day!==0}
+  else{const i=data.hourly.time.indexOf(dateKey+'T12:00');if(i<0)return null;temperature=data.hourly.temperature_2m[i];code=data.hourly.weather_code[i];isDay=data.hourly.is_day?.[i]!==0}
+  if(!Number.isFinite(temperature)||!Number.isFinite(code))return null;
+  return {temperature:Math.round(temperature),code,isDay,label:plannerWeatherSymbol(code).label,fetchedAt:at,stale:Date.now()-at>=WEATHER_CACHE_MS,place:state.place.label||'Lokalizacja telefonu'};
+ }
+ function snapshot(){return {enabled:!!state.enabled,place:state.place,at:state.forecast?.at,busy:!!busy,error}}
+ function enable(){state.enabled=true;save();return refresh(true)}
+ function disable(){state={enabled:false};error='';save();notify()}
+ function details(date){
+  if(!get(date))return null;
+  const {data,at}=state.forecast,h=data.hourly,day=iso(date),rows=[];
+  h.time.forEach((time,i)=>{if(time.startsWith(day+'T'))rows.push({time:time.slice(11,16),temperature:h.temperature_2m[i],code:h.weather_code[i],rain:h.precipitation_probability?.[i],wind:h.wind_speed_10m?.[i],isDay:h.is_day?.[i]!==0})});
+  const dailyIndex=data.daily?.time?.indexOf(day)??-1;
+  return {place:state.place.label||'Lokalizacja telefonu',at,timezone:data.timezone,sunrise:data.daily?.sunrise?.[dailyIndex],sunset:data.daily?.sunset?.[dailyIndex],stale:Date.now()-at>=WEATHER_CACHE_MS,rows};
+ }
+ return {get,details,refresh,snapshot,enable,disable};
+})();
+window.OktiLocalWeather=OktiLocalWeather;
+
 function plannerWeatherLabel(p){return [...new Set([p.name,p.admin1,p.admin2,p.country].filter(Boolean))].join(', ')}
 async function plannerWeatherJson(url,signal,maxAge=WEATHER_CACHE_MS){const cached=plannerWeatherCache.get(url);if(cached&&Date.now()-cached.at<maxAge)return cached.data;const response=await fetch(url,{signal});if(!response.ok)throw Error('Pogoda jest teraz niedostępna.');const data=await response.json();plannerWeatherCache.set(url,{at:Date.now(),data});return data}
 function plannerWeatherRows(hourly,task){
@@ -1736,19 +1918,7 @@ function plannerWeatherSymbol(code){
   if(code>=71&&code<=77||code===85||code===86)return {kind:'snow',label:'Śnieg'};
   return {kind:'rain',label:'Opady'};
 }
-function plannerWeatherArtwork(kind){
-  const cloudPath='M16 38.5c-5.8 0-10.5-4.6-10.5-10.3S10.2 18 16 18c1.1 0 2.2.2 3.2.5C21.7 12.3 26.8 9 32.7 9c7.6 0 13.8 5.9 14.1 13.3H48c4.7 0 8.5 3.6 8.5 8.1s-3.8 8.1-8.5 8.1H16Z';
-  const cloud='<path class="weather-cloud-fill" d="'+cloudPath+'"/><path class="weather-cloud-rim" d="'+cloudPath+'"/>';
-  const sun='<circle class="weather-sun" cx="28" cy="28" r="10"/><g class="weather-rays"><path d="M28 7v7M28 42v7M7 28h7M42 28h7M13 13l5 5M38 38l5 5M43 13l-5 5M18 38l-5 5"/></g>';
-  const partlySun='<circle class="weather-sun" cx="17" cy="17" r="8.5"/><g class="weather-rays"><path d="M17 3v6M17 25v6M3 17h6M25 17h6M7 7l4.5 4.5M26.5 26.5l3.5 3.5M27 7l-4.5 4.5M11.5 22.5L7 27"/></g>';
-  const drops='<g class="weather-drops"><path d="M21 38l-2 5M30 38l-2 5M39 38l-2 5"/></g>';
-  const snow='<g class="weather-snow"><path d="M21 39v7M17.5 41l7 3M24.5 41l-7 3M36 39v7M32.5 41l7 3M39.5 41l-7 3"/></g>';
-  const lightning='<path class="weather-lightning" d="M30 34h7l-6 8h5l-10 10 3-8h-5Z"/>';
-  const fog='<g class="weather-fog"><path d="M12 24h32M9 31h38M14 38h28"/></g>';
-  const question='<path class="weather-question" d="M21 20c.5-5 11-6 13-.5 2 5-5 6-6 10v2M28 39h.1"/>';
-  const art=kind==='sun'?sun:kind==='partly'?partlySun+cloud:kind==='cloud'?cloud:kind==='fog'?fog:kind==='storm'?cloud+lightning:kind==='snow'?cloud+snow:kind==='rain'?cloud+drops:question;
-  return '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false">'+art+'</svg>';
-}
+function plannerWeatherArtwork(kind,day=true){return oktiWeatherArtwork(kind,day)}
 function plannerWeatherCityQueries(location){
   const withoutNearby=String(location||'').replace(/\s+(?:pod|koło|kolo|w pobliżu|w poblizu|near|bei)\s+[^,;\n]+/i,'');
   const parts=withoutNearby.split(/[,;\n]/).map(p=>p.trim()).filter(Boolean),queries=[];
@@ -2191,6 +2361,19 @@ function initializePhoneSkin(){
  $('apiAccessButton').onclick=async()=>{closeSettings();await askApiAccess(true);openSettings()};
  $('ideasShortcut').classList.add('hidden');const tabs=$('tabDay').parentElement;tabs.classList.add('phone-view-tabs');$('tabEntries').classList.add('hidden');const skyHeader=document.createElement('section');skyHeader.className='phone-sky-header';header.before(skyHeader);skyHeader.append(header,tabs);const notebook=document.createElement('nav');notebook.className='phone-bottom-bar';notebook.setAttribute('aria-label','Główna nawigacja');notebook.innerHTML='<button id="phoneCalendar" class="active" type="button" aria-label="Widok dnia"><span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 2v4M16 2v4M8 10h8M8 14h5"/></svg></span><span class="phone-calendar-label">Dzień</span></button><button id="phoneTasks" type="button"><span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></span><span>Zadania</span></button><button id="phoneEntries" type="button"><span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4"/></svg></span><span>Wpisy</span></button>';app.append(notebook);const systemBar=document.createElement('div');systemBar.className='phone-system-bar';systemBar.setAttribute('aria-hidden','true');systemBar.innerHTML='<span>'+new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'</span><svg viewBox="0 0 54 16" fill="currentColor"><path d="M0 12h3v3H0zm5-3h3v6H5zm5-4h3v10h-3zm5-4h3v14h-3z"/><path d="M21 5q7-6 14 0l-2 2q-5-4-10 0zm4 4q3-3 6 0l-3 4q-3-3-6 0l-3 4z"/><rect x="38" y="3" width="13" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M40 5h9v6h-9zm12 2h2v3h-2z"/></svg>';app.append(systemBar);
  const calendarMeta=document.createElement('div');calendarMeta.className='phone-calendar-meta';const calendarMonth=document.createElement('span');calendarMonth.className='phone-calendar-month';const calendarWeek=document.createElement('span');calendarWeek.className='phone-calendar-week-number';calendarWeek.setAttribute('aria-label','Numer tygodnia');calendarWeek.setAttribute('aria-live','off');calendarMeta.append(calendarWeek,calendarMonth);skyHeader.append(calendarMeta);
+ const weatherSettings=document.createElement('section');weatherSettings.className='card';weatherSettings.id='localWeatherSettings';weatherSettings.innerHTML='<h2>Pogoda i Twoja lokalizacja</h2><p>Pogoda na głównym ekranie dotyczy miejsca, w którym jesteś. Pogodę dla adresu spotkania pobieramy dopiero po jego otwarciu.</p><p id="localWeatherStatus" role="status"></p><button type="button" id="enableLocalWeather" class="secondary">Użyj lokalizacji telefonu</button> <button type="button" id="disableLocalWeather" class="secondary hidden">Wyłącz</button><p>Po włączeniu współrzędne są przekazywane do Open-Meteo po prognozę i do BigDataCloud po nazwę miejscowości. Aktualizujemy je tylko podczas korzystania z Okti, nie w tle. Ostatnie miejsce i prognoza pozostają na tym urządzeniu. Prognozę odświeżamy po 2 godzinach lub zmianie miejsca o około 5 km.</p><p>Źródła: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener noreferrer">BigDataCloud</a></p>';settings.prepend(weatherSettings);
+ function updateLocalWeatherUI(){
+  const data=OktiLocalWeather.snapshot(),place=data.place,time=stamp=>new Date(stamp).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),coordinates=place?place.latitude.toFixed(3)+', '+place.longitude.toFixed(3):'';
+  $('enableLocalWeather').disabled=data.busy;$('enableLocalWeather').textContent=data.busy?'Ustalam lokalizację…':data.enabled?'Odśwież lokalizację':'Użyj lokalizacji telefonu';$('disableLocalWeather').classList.toggle('hidden',!data.enabled);
+  $('localWeatherStatus').textContent=(place&&data.enabled?(place.label||'Lokalizacja telefonu')+' · '+coordinates+' · lokalizacja sprawdzona '+time(place.checkedAt)+(data.at?' · prognoza pobrana '+time(data.at):''):data.enabled?'Oczekuję na lokalizację telefonu.':'Lokalizacja jest wyłączona.')+(data.error?' '+data.error:'');
+  const weather=phoneCalendarWeather(selected);if(!$('dayView').classList.contains('hidden'))renderPhoneDateNavigation(selected,date=>{selected=date;$('date').value=iso(selected);renderDay()});
+  const node=$('dayTitle').querySelector('.phone-day-weather');if(node&&weather?.stale){node.classList.add('weather-stale');node.title='Zapisana prognoza — dane starsze niż 2 godziny'}
+ }
+ $('enableLocalWeather').onclick=()=>OktiLocalWeather.enable();$('disableLocalWeather').onclick=()=>OktiLocalWeather.disable();
+ window.addEventListener('okti-local-weather',updateLocalWeatherUI);
+ window.addEventListener('pageshow',()=>OktiLocalWeather.refresh());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')OktiLocalWeather.refresh()});
+ setInterval(()=>OktiLocalWeather.refresh(),15*60*1000);
+
  const shoppingButton=document.createElement('button');shoppingButton.id='phoneShopping';shoppingButton.type='button';shoppingButton.setAttribute('aria-haspopup','dialog');shoppingButton.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6M9 20h.01M18 20h.01"/></svg></span><span>Zakupy</span><b class="shopping-count">0</b>';shoppingButton.onclick=()=>openShoppingSummary();notebook.insertBefore(shoppingButton,$('phoneEntries'));gear.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span><span>Ustawienia</span>';notebook.insertBefore(gear,$('phoneCalendar'));updateShoppingBadge();
  const actions=document.createElement('div');actions.className='phone-actions';$('recordMemo').textContent='🎙 Nagraj notatkę';actions.append($('createPhotoNote'),$('recordMemo'));app.append(actions,voiceArea);
  const memoControls=document.createElement('div');memoControls.className='row';for(const id of ['stopMemo','cancelMemo','memoHint','photoNoteStatus'])memoControls.append($(id));voiceArea.before(memoControls);settings.append($('photoNoteLocation').closest('label'));settings.append($('toolsArea'));
@@ -2206,19 +2389,15 @@ function initializePhoneSkin(){
  function openReminder(group){closeReminder();const pop=document.createElement('section');pop.className='phone-reminder-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Przypomnienia');pop.innerHTML='<button class="close-x" aria-label="Zamknij">×</button><h3>Przypomnienie</h3>';pop.querySelector('button').onclick=closeReminder;for(const idea of group){const button=entryButton('',()=>{closeReminder();openIdeaActions(idea)},'secondary');const time=document.createElement('time');time.textContent=idea.alarm.time||idea.alarm.startTime;button.append(time,document.createTextNode(idea.alarm.message||idea.title||idea.text));pop.append(button)}document.body.append(pop);pop.querySelector('button').focus()}
  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReminder()});
  function phoneIsoWeek(value){const date=new Date(Date.UTC(value.getFullYear(),value.getMonth(),value.getDate())),day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-day);const first=new Date(Date.UTC(date.getUTCFullYear(),0,1));return Math.ceil((((date-first)/86400000)+1)/7)}
- function phoneCalendarWeather(value){
-  const date=iso(value),forecasts=tasks.filter(task=>task.date===date&&Array.isArray(task.weatherForecast?.rows));
-  for(const task of forecasts){const rows=task.weatherForecast.rows,preferred=rows.find(row=>row.index>=0&&row.temperature!=null&&(row.label==='Początek'||row.label==='Południe'))||rows.find(row=>row.index>=0&&row.temperature!=null);if(preferred)return {code:preferred.code,temperature:Math.round(preferred.temperature),label:plannerWeatherSymbol(preferred.code).label}}
-  if(document.title.includes('test integracji'))return {code:2,temperature:12,label:'Częściowe zachmurzenie · dane podglądowe'};
-  return null;
- }
+ function phoneCalendarWeather(value){return OktiLocalWeather.get(value)}
  let phoneWeekDigits=null,phoneCalendarMetaDate=null;
  function renderPhoneWeekNumber(week,direction=0){const digits=String(week).padStart(2,'0').split(''),previous=phoneWeekDigits;calendarWeek.replaceChildren();digits.forEach((digit,index)=>{const slot=document.createElement('span');slot.className='phone-week-digit';slot.setAttribute('aria-hidden','true');const current=document.createElement('span');current.className='phone-week-digit-current';current.textContent=digit;if(previous&&previous[index]!==digit&&direction){slot.classList.add(direction>0?'roll-forward':'roll-back');slot.dataset.old=previous[index]}slot.append(current);calendarWeek.append(slot)});phoneWeekDigits=digits}
  function updatePhoneCalendarMeta(value){const month=value.toLocaleDateString('pl-PL',{month:'long'});calendarMonth.textContent=month;const week=phoneIsoWeek(value),direction=phoneCalendarMetaDate?(value.getTime()>phoneCalendarMetaDate.getTime()?1:value.getTime()<phoneCalendarMetaDate.getTime()?-1:0):0;renderPhoneWeekNumber(week,direction);phoneCalendarMetaDate=new Date(value);calendarWeek.setAttribute('aria-label','Tydzień '+week)}
  function announcePhoneDayWeather(){const data=phoneCalendarWeather(selected);toast(data?data.label+' · '+data.temperature+'°':'Brak prognozy dla tego dnia')}
- $('dayTitle').setAttribute('role','button');$('dayTitle').setAttribute('tabindex','0');$('dayTitle').setAttribute('title','Pokaż pogodę dla wybranego dnia');$('dayTitle').onclick=announcePhoneDayWeather;$('dayTitle').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();announcePhoneDayWeather()}};
+ const dayWeatherController=oktiCreateDayWeather({app,getDate:()=>selected,weather:OktiLocalWeather,symbol:plannerWeatherSymbol,formatDate});
+ $('dayTitle').setAttribute('role','button');$('dayTitle').setAttribute('tabindex','0');$('dayTitle').setAttribute('title','Pokaż pogodę dla wybranego dnia');$('dayTitle').onclick=dayWeatherController.open;$('dayTitle').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();dayWeatherController.open()}};
  function renderPhoneDateNavigation(value,pick){
-  updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}const speaker=document.createElement('span');speaker.className='phone-day-speaker';speaker.setAttribute('aria-hidden','true');speaker.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16 9c1.3 1.3 1.3 4.7 0 6M19 6c3.2 3.2 3.2 8.8 0 12"/></svg>';$('dayTitle').append(weekday,weather,speaker);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':'')+' · Dotknij, aby odsłuchać podsumowanie dnia');strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}
+  updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind,weatherData.isDay!==false);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}const speaker=document.createElement('span');speaker.className='phone-day-speaker';speaker.setAttribute('aria-hidden','true');speaker.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16 9c1.3 1.3 1.3 4.7 0 6M19 6c3.2 3.2 3.2 8.8 0 12"/></svg>';$('dayTitle').append(weekday,weather,speaker);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':'')+' · Dotknij, aby zobaczyć szczegóły pogody');strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}
  }
  function phoneTravelDemoEnabled(){return document.title.includes('test integracji')&&new URLSearchParams(location.search).get('travelDemo')==='1'}
  function phoneTravelDemoTasks(source,date){
@@ -2297,7 +2476,7 @@ function initializePhoneSkin(){
  journal.fitBottom=()=>{const view=$('ideasView'),dock=document.querySelector('.voice-area');if(!dock||view.classList.contains('hidden'))return;const bounds=view.getBoundingClientRect(),top=dock.getBoundingClientRect().top;view.style.setProperty('--journal-bottom-space',Math.max(12,Math.ceil(bounds.bottom-top+12))+'px')};
  window.addEventListener('resize',journal.fitBottom);if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(journal.fitBottom);observer.observe(voiceArea);observer.observe($('ideasView'))}
  let touchOrigin=null,swipedAt=0;for(const target of [$('taskList'),strip,$('ideasList')]){target.addEventListener('touchstart',event=>{touchOrigin=event.touches.length===1?{x:event.touches[0].clientX,y:event.touches[0].clientY}:null},{passive:true});target.addEventListener('touchmove',event=>{if(event.touches.length!==1){touchOrigin=null;return}if(!touchOrigin)return;const dx=event.touches[0].clientX-touchOrigin.x,dy=event.touches[0].clientY-touchOrigin.y;if(Math.abs(dx)>25&&Math.abs(dx)>Math.abs(dy)*1.5&&event.cancelable)event.preventDefault()},{passive:false});target.addEventListener('touchend',event=>{if(!touchOrigin||!event.changedTouches.length)return;const dx=event.changedTouches[0].clientX-touchOrigin.x,dy=event.changedTouches[0].clientY-touchOrigin.y;touchOrigin=null;if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;swipedAt=Date.now();closeReminder();if(!$('ideasView').classList.contains('hidden')){journalMove(dx<0?1:-1);return}selected.setDate(selected.getDate()+(dx<0?1:-1));$('date').value=iso(selected);renderDay()},{passive:true});target.addEventListener('touchcancel',()=>{touchOrigin=null},{passive:true});target.addEventListener('click',event=>{if(Date.now()-swipedAt<450){event.preventDefault();event.stopImmediatePropagation()}},true)}
- showView('day');
+ showView('day');updateLocalWeatherUI();OktiLocalWeather.refresh();
  const recoveryWarning=$('dataWarning');function showRecoveryTools(){if(recoveryWarning.hidden)return;openSettings();$('backupCard').scrollIntoView({block:'center'})}new MutationObserver(showRecoveryTools).observe(recoveryWarning,{attributes:true,attributeFilter:['hidden'],childList:true,subtree:true});showRecoveryTools();
 }
 initializePhoneSkin();
@@ -4381,5 +4560,11 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
 .phone-layout #todayBtn .today-label{position:relative;z-index:1;color:inherit;font-size:10px;font-weight:800;line-height:12px}
 .phone-layout #todayBtn:focus-visible{outline:3px solid #267dc0;outline-offset:3px}
 .phone-layout .phone-today-pop .today-pop-bead{border-color:#9bcde6;background:radial-gradient(ellipse at 30% 20%,#fff 8%,#cdeeff88 55%,#8dc6e5aa);box-shadow:inset 1px 1px 1px #fff,0 2px 4px #42638c30}
+</style>
+<style id="okti-local-weather-33-203">
+#localWeatherSettings p{font-size:13px;line-height:1.5;color:#4b6275}
+#localWeatherStatus{font-weight:700}
+#localWeatherSettings a{color:#24658d}
+.phone-day-weather.weather-stale{opacity:.65}
 </style>
 </body></html>
