@@ -66,7 +66,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   for(const node of w.document.querySelectorAll('.okti-day-content-ghost [fill^="url(#"]')){const id=node.getAttribute('fill').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
   const ids=[...w.document.querySelectorAll('[id]')].map(node=>node.id);assert.equal(new Set(ids).size,ids.length,'Outgoing copy has no duplicate IDs');
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
-  assert.ok(animations.some(animation=>animation.element.classList.contains('phone-day-content')&&!animation.element.classList.contains('okti-day-content-ghost')&&animation.frames[0].transform==='translateX(360px)'),'New day content enters inside the fixed tile');
+  const headerMotion=animations.find(animation=>animation.element.classList.contains('phone-day-track'));
+  assert.ok(headerMotion,'Header uses one synchronized track rather than independent content animations');
+  assert.equal(headerMotion.frames[1].transform,'translateX(-360px)');
+  assert.equal(viewport.querySelector('.phone-day-content:not(.okti-day-content-ghost)').style.left,'100%','Incoming page starts exactly one full content width after outgoing page');
+  assert.ok(animations.every(animation=>!animation.element.classList.contains('phone-day-content')),'Text, icon and temperature cannot animate on separate clocks');
+  assert.equal(w.document.querySelector('.okti-day-slide-ghost .phone-day-speaker'),null,'Outgoing day snapshot contains no speaker copy');
   assert.ok(animations.every(animation=>animation.element.id!=='dayTitle'&&!animation.element.classList.contains('daybar')),'The tile frame never moves');
   assert.equal(w.document.querySelector('.okti-day-slide-ghost .daybar').style.opacity,'0','The outgoing snapshot cannot show a second tile frame');
   const weekStrip=w.document.querySelector('.phone-week-strip');
@@ -78,8 +83,13 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const firstCount=animations.length;run('selected.setDate(selected.getDate()-1);renderDay()');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1,'Rapid reverse swipe replaces the prior transition');
   assert.equal(animations[firstCount].frames[1].transform,'translateX(360px)');
+  const reverseTrack=animations.slice(firstCount).find(animation=>animation.element.classList.contains('phone-day-track'));
+  assert.equal(reverseTrack.frames[1].transform,'translateX(360px)','Previous day moves the same complete header track in the opposite direction');
+  assert.equal(w.document.querySelector('#dayTitle .phone-day-content:not(.okti-day-content-ghost)').style.left,'-100%');
   animations.forEach(animation=>animation.finish());await new Promise(resolve=>setImmediate(resolve));
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,0);
+  assert.equal(w.document.querySelectorAll('.phone-day-track').length,0,'Completed track is removed without leaving translated header content');
+  assert.equal(w.document.querySelector('#dayTitle .phone-day-content').style.left,'');
   assert.equal(dayView.style.clipPath,'','Transition restores the normal view');
   const beforeReduced=animations.length;w.matchMedia=()=>({matches:true});run('selected.setDate(selected.getDate()+1);renderDay()');assert.equal(animations.length,beforeReduced,'Reduced motion skips day animation');
   const gesture=(type,x,y)=>{const event=new w.Event(type,{bubbles:true,cancelable:true});Object.defineProperty(event,type==='touchend'?'changedTouches':'touches',{value:[{clientX:x,clientY:y}]});w.document.querySelector('#taskList').dispatchEvent(event)};

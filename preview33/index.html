@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.209</title>
+<title>Mój Planer — test integracji 33.210</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -202,7 +202,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.209</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.209</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.209-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.210</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.210</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.210-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -279,7 +279,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.209-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.210-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2501,31 +2501,32 @@ function initializePhoneSkin(){
  renderDay=function(...args){
   daySlideCleanup?.();const view=$('dayView'),nextDate=iso(selected),direction=nextDate>lastSlideDate?1:-1;
   const animate=nextDate!==lastSlideDate&&!view.classList.contains('hidden')&&view.getBoundingClientRect().width>0&&typeof view.animate==='function'&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  let ghost=null;
+  let ghost=null,headerGhost=null;
   if(animate){
    ghost=view.cloneNode(true);const originals=[view,...view.querySelectorAll('*')],copies=[ghost,...ghost.querySelectorAll('*')],artIds=new Map(),serial=++daySlideSerial;
    originals.forEach((original,index)=>{const copy=copies[index];if(original.id){if(original.namespaceURI==='http://www.w3.org/2000/svg'){const id=original.id+'-slide-'+serial;artIds.set(original.id,id);copy.id=id}else{const computed=getComputedStyle(original);copy.style.cssText=Array.from(computed,property=>property+':'+computed.getPropertyValue(property)+';').join('');copy.removeAttribute('id')}}if(original.scrollTop||original.scrollLeft){copy.dataset.slideScrollTop=original.scrollTop;copy.dataset.slideScrollLeft=original.scrollLeft}});
    for(const copy of copies)for(const attr of [...copy.attributes]){let value=attr.value;for(const [from,to] of artIds)value=value.replaceAll('#'+from,'#'+to);if(value!==attr.value)copy.setAttribute(attr.name,value)}
    ghost.classList.add('okti-day-slide-ghost');ghost.setAttribute('aria-hidden','true');ghost.inert=true;
    const ghostWeek=ghost.querySelector('.phone-week-strip');if(ghostWeek)ghostWeek.style.visibility='hidden';
-   const ghostBar=ghost.querySelector('.daybar');if(ghostBar){ghostBar.style.visibility='hidden';ghostBar.style.opacity='0'}
+   headerGhost=ghost.querySelector('.phone-day-content');headerGhost?.remove();
+   const ghostBar=ghost.querySelector('.daybar');if(ghostBar){const height=view.querySelector('.daybar')?.getBoundingClientRect().height;ghostBar.replaceChildren();if(height)ghostBar.style.height=height+'px';ghostBar.style.visibility='hidden';ghostBar.style.opacity='0'}
   }
   lastSlideDate=nextDate;const result=renderDayBeforeSlide.apply(this,args);
   if(!ghost)return result;
   const oldPosition=view.style.position,oldClip=view.style.clipPath,width=view.getBoundingClientRect().width;
   view.style.position='relative';view.style.clipPath='inset(0 -1px)';
-  const incoming=[...view.children].filter(node=>node!==strip&&!node.classList.contains('daybar')),dayContent=$('dayTitle').querySelector('.phone-day-content'),oldContent=ghost.querySelector('.phone-day-content');Object.assign(ghost.style,{position:'absolute',inset:'0 auto auto 0',width:width+'px',margin:'0',background:'transparent',pointerEvents:'none'});view.append(ghost);
-  const contentWidth=dayContent?.parentElement.getBoundingClientRect().width||width;
-  if(dayContent&&oldContent){oldContent.classList.add('okti-day-content-ghost');Object.assign(oldContent.style,{visibility:'visible',left:'0',top:'0',width:'100%',height:'100%'});oldContent.setAttribute('aria-hidden','true');oldContent.inert=true;dayContent.parentElement.append(oldContent);incoming.push(dayContent)}
+  const incoming=[...view.children].filter(node=>node!==strip&&!node.classList.contains('daybar')),dayContent=$('dayTitle').querySelector('.phone-day-content'),oldContent=headerGhost,viewport=dayContent?.parentElement;Object.assign(ghost.style,{position:'absolute',inset:'0 auto auto 0',width:width+'px',margin:'0',background:'transparent',pointerEvents:'none'});view.append(ghost);
+  const contentWidth=viewport?.getBoundingClientRect().width||width;let track=null;
+  if(dayContent&&oldContent&&viewport){track=document.createElement('span');track.className='phone-day-track';oldContent.classList.add('okti-day-content-ghost');Object.assign(oldContent.style,{visibility:'visible',left:'0',top:'0',width:'100%',height:'100%'});oldContent.setAttribute('aria-hidden','true');oldContent.inert=true;dayContent.style.left=(direction*100)+'%';dayContent.style.right='auto';track.append(oldContent,dayContent);viewport.append(track)}
   for(const node of ghost.querySelectorAll('[data-slide-scroll-top]')){node.scrollTop=Number(node.dataset.slideScrollTop);node.scrollLeft=Number(node.dataset.slideScrollLeft)}
   const options={duration:380,easing:'cubic-bezier(.22,.75,.24,1)',fill:'both'},animations=[];
   let cleaned=false;
-  const cleanup=()=>{if(cleaned)return;cleaned=true;for(const animation of animations)animation.cancel();ghost.remove();oldContent?.remove();view.style.position=oldPosition;view.style.clipPath=oldClip;if(daySlideCleanup===cleanup)daySlideCleanup=null};
+  const cleanup=()=>{if(cleaned)return;cleaned=true;for(const animation of animations)animation.cancel();ghost.remove();oldContent?.remove();if(track){if(viewport.isConnected&&track.parentElement===viewport){dayContent.style.left='';dayContent.style.right='';viewport.append(dayContent)}track.remove()}view.style.position=oldPosition;view.style.clipPath=oldClip;if(daySlideCleanup===cleanup)daySlideCleanup=null};
   daySlideCleanup=cleanup;
   try{
    animations.push(ghost.animate([{transform:'translateX(0)'},{transform:'translateX('+(-direction*width)+'px)'}],options));
-   if(oldContent)animations.push(oldContent.animate([{transform:'translateX(0)'},{transform:'translateX('+(-direction*contentWidth)+'px)'}],options));
-   for(const node of incoming){const distance=node===dayContent?contentWidth:width;animations.push(node.animate([{transform:'translateX('+(direction*distance)+'px)'},{transform:'translateX(0)'}],options))}
+   if(track)animations.push(track.animate([{transform:'translateX(0)'},{transform:'translateX('+(-direction*contentWidth)+'px)'}],options));
+   for(const node of incoming)animations.push(node.animate([{transform:'translateX('+(direction*width)+'px)'},{transform:'translateX(0)'}],options));
    Promise.all(animations.map(animation=>animation.finished)).then(cleanup,cleanup);
   }catch(_){cleanup()}
   return result;
@@ -4623,15 +4624,16 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
 .phone-day-weather.weather-stale{opacity:.65}
 </style>
 <style id="okti-fixed-speaker-33-209">
-.phone-layout #dayView #dayTitle{display:grid;grid-template-columns:minmax(0,1fr) 50px;column-gap:10px;align-items:center}
-.phone-layout #dayTitle .phone-day-viewport{position:relative;display:block;min-width:0;width:100%;height:54px;overflow:hidden;isolation:isolate;contain:paint}
+.phone-layout #dayView #dayTitle{display:block;height:72px;min-height:72px}
+.phone-layout #dayTitle .phone-day-viewport{position:relative;display:block;min-width:0;width:calc(100% - 64px);height:54px;overflow:hidden;clip-path:inset(0);-webkit-mask-image:linear-gradient(#000,#000);isolation:isolate;contain:paint}
+.phone-layout #dayTitle .phone-day-track{display:block;position:absolute;inset:0;width:100%;height:100%;overflow:visible;will-change:transform}
 .phone-layout #dayTitle .phone-day-content{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:5px;width:100%;height:100%;min-width:0;overflow:hidden}
 .phone-layout #dayTitle .phone-day-weekday{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-size:clamp(16px,5vw,21px)}
 .phone-layout #dayTitle .phone-day-weather{display:flex;gap:2px;min-width:0;margin:0;white-space:nowrap}
 .phone-layout #dayTitle .phone-day-weather.unavailable{display:none}
 .phone-layout #dayTitle .phone-day-weather .weather-icon{width:40px;height:40px;flex:none}
 .phone-layout #dayTitle .phone-day-temperature{font-size:24px;min-width:32px;white-space:nowrap}
-.phone-layout #dayTitle .phone-day-speaker{grid-column:2;grid-row:1;position:relative;transform:none!important;margin:0;width:50px;height:50px;justify-self:end;z-index:3}
-@media(max-width:359px){.phone-layout #dayView #dayTitle{grid-template-columns:minmax(0,1fr) 46px;column-gap:8px}.phone-layout #dayTitle .phone-day-speaker{width:46px;height:46px}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:35px;height:35px}.phone-layout #dayTitle .phone-day-temperature{font-size:23px;min-width:29px}}
+.phone-layout #dayTitle .phone-day-speaker{position:absolute;right:10px;top:50%;transform:translateY(-50%)!important;margin:0;width:50px;height:50px;z-index:3}
+@media(max-width:359px){.phone-layout #dayTitle .phone-day-viewport{width:calc(100% - 58px)}.phone-layout #dayTitle .phone-day-speaker{width:46px;height:46px}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:35px;height:35px}.phone-layout #dayTitle .phone-day-temperature{font-size:23px;min-width:29px}}
 </style>
 </body></html>
