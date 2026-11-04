@@ -62,6 +62,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
   assert.ok(animations.some(animation=>animation.element.classList.contains('phone-day-content')&&!animation.element.classList.contains('okti-day-content-ghost')&&animation.frames[0].transform==='translateX(360px)'),'New day content enters inside the fixed tile');
   assert.ok(animations.every(animation=>animation.element.id!=='dayTitle'&&!animation.element.classList.contains('daybar')),'The tile frame never moves');
+  assert.equal(w.document.querySelector('.okti-day-slide-ghost .daybar').style.opacity,'0','The outgoing snapshot cannot show a second tile frame');
   const weekStrip=w.document.querySelector('.phone-week-strip');
   assert.ok(animations.every(animation=>animation.element!==weekStrip),'Seven weekdays remain stationary during the day slide');
   assert.equal(w.document.querySelector('.okti-day-slide-ghost .phone-week-strip').style.visibility,'hidden','Outgoing slide does not duplicate the stationary weekdays');

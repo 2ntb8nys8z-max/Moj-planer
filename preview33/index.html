@@ -2508,7 +2508,7 @@ function initializePhoneSkin(){
    for(const copy of copies)for(const attr of [...copy.attributes]){let value=attr.value;for(const [from,to] of artIds)value=value.replaceAll('#'+from,'#'+to);if(value!==attr.value)copy.setAttribute(attr.name,value)}
    ghost.classList.add('okti-day-slide-ghost');ghost.setAttribute('aria-hidden','true');ghost.inert=true;
    const ghostWeek=ghost.querySelector('.phone-week-strip');if(ghostWeek)ghostWeek.style.visibility='hidden';
-   const ghostBar=ghost.querySelector('.daybar');if(ghostBar)ghostBar.style.visibility='hidden';
+   const ghostBar=ghost.querySelector('.daybar');if(ghostBar){ghostBar.style.visibility='hidden';ghostBar.style.opacity='0'}
   }
   lastSlideDate=nextDate;const result=renderDayBeforeSlide.apply(this,args);
   if(!ghost)return result;
