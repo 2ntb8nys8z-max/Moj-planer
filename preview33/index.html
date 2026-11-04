@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.196</title>
+<title>Mój Planer — test integracji 33.198</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -141,7 +141,7 @@ body.event-sheet-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.196</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.196</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.03.33.196-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.198</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.198</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.198-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -218,7 +218,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.03.33.196-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.198-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1739,14 +1739,16 @@ function plannerWeatherSymbol(code){
   return {kind:'rain',label:'Opady'};
 }
 function plannerWeatherArtwork(kind){
-  const cloud='<path class="weather-cloud-fill" d="M17 34h24.5a7.5 7.5 0 0 0 .5-15 12 12 0 0 0-22.8-2.5A8.8 8.8 0 0 0 17 34Z"/><path class="weather-cloud-rim" d="M17 34h24.5a7.5 7.5 0 0 0 .5-15 12 12 0 0 0-22.8-2.5A8.8 8.8 0 0 0 17 34Z"/>';
-  const sun='<circle class="weather-sun" cx="23" cy="21" r="8"/><g class="weather-rays"><path d="M23 7v5M23 30v5M9 21h5M32 21h5M13 11l4 4M29 27l4 4M33 11l-4 4M17 27l-4 4"/></g>';
+  const cloudPath='M16 38.5c-5.8 0-10.5-4.6-10.5-10.3S10.2 18 16 18c1.1 0 2.2.2 3.2.5C21.7 12.3 26.8 9 32.7 9c7.6 0 13.8 5.9 14.1 13.3H48c4.7 0 8.5 3.6 8.5 8.1s-3.8 8.1-8.5 8.1H16Z';
+  const cloud='<path class="weather-cloud-fill" d="'+cloudPath+'"/><path class="weather-cloud-rim" d="'+cloudPath+'"/>';
+  const sun='<circle class="weather-sun" cx="28" cy="28" r="10"/><g class="weather-rays"><path d="M28 7v7M28 42v7M7 28h7M42 28h7M13 13l5 5M38 38l5 5M43 13l-5 5M18 38l-5 5"/></g>';
+  const partlySun='<circle class="weather-sun" cx="17" cy="17" r="8.5"/><g class="weather-rays"><path d="M17 3v6M17 25v6M3 17h6M25 17h6M7 7l4.5 4.5M26.5 26.5l3.5 3.5M27 7l-4.5 4.5M11.5 22.5L7 27"/></g>';
   const drops='<g class="weather-drops"><path d="M21 38l-2 5M30 38l-2 5M39 38l-2 5"/></g>';
   const snow='<g class="weather-snow"><path d="M21 39v7M17.5 41l7 3M24.5 41l-7 3M36 39v7M32.5 41l7 3M39.5 41l-7 3"/></g>';
   const lightning='<path class="weather-lightning" d="M30 34h7l-6 8h5l-10 10 3-8h-5Z"/>';
   const fog='<g class="weather-fog"><path d="M12 24h32M9 31h38M14 38h28"/></g>';
   const question='<path class="weather-question" d="M21 20c.5-5 11-6 13-.5 2 5-5 6-6 10v2M28 39h.1"/>';
-  const art=kind==='sun'?sun:kind==='partly'?sun+cloud:kind==='cloud'?cloud:kind==='fog'?fog:kind==='storm'?cloud+lightning:kind==='snow'?cloud+snow:kind==='rain'?cloud+drops:question;
+  const art=kind==='sun'?sun:kind==='partly'?partlySun+cloud:kind==='cloud'?cloud:kind==='fog'?fog:kind==='storm'?cloud+lightning:kind==='snow'?cloud+snow:kind==='rain'?cloud+drops:question;
   return '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false">'+art+'</svg>';
 }
 function plannerWeatherCityQueries(location){
@@ -2218,7 +2220,7 @@ function initializePhoneSkin(){
  function announcePhoneDayWeather(){const data=phoneCalendarWeather(selected);toast(data?data.label+' · '+data.temperature+'°':'Brak prognozy dla tego dnia')}
  $('dayTitle').setAttribute('role','button');$('dayTitle').setAttribute('tabindex','0');$('dayTitle').setAttribute('title','Pokaż pogodę dla wybranego dnia');$('dayTitle').onclick=announcePhoneDayWeather;$('dayTitle').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();announcePhoneDayWeather()}};
  function renderPhoneDateNavigation(value,pick){
-  updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}$('dayTitle').append(weekday,weather);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':''));strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}
+  updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}const speaker=document.createElement('span');speaker.className='phone-day-speaker';speaker.setAttribute('aria-hidden','true');speaker.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16 9c1.3 1.3 1.3 4.7 0 6M19 6c3.2 3.2 3.2 8.8 0 12"/></svg>';$('dayTitle').append(weekday,weather,speaker);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':'')+' · Dotknij, aby odsłuchać podsumowanie dnia');strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}
  }
  function phoneTravelDemoEnabled(){return document.title.includes('test integracji')&&new URLSearchParams(location.search).get('travelDemo')==='1'}
  function phoneTravelDemoTasks(source,date){
@@ -3925,7 +3927,7 @@ body,.octi-dock{font-family:var(--okti-font)}
 <style id="okti-calendar-33-95">
 /* Keep navigation geometry independent of the decorative return-to-today bubble. */
 .phone-layout .phone-sky-header{margin-bottom:0;padding-bottom:32px;border-radius:0;isolation:isolate;background:none;box-shadow:none}
-.phone-layout .phone-sky-header:before{content:"";position:absolute;inset:0 0 -56px;z-index:-1;pointer-events:none;background:url("header-sailboat.webp?v=7d63998a747f1107") center/cover;mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%);-webkit-mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%)}
+.phone-layout .phone-sky-header:before{content:"";position:absolute;inset:0 0 -56px;z-index:-1;pointer-events:none;background:url("header-sailboat.webp?v=dca6b6d83020b336") center/cover;mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%);-webkit-mask-image:linear-gradient(180deg,#000 32%,#0008 57%,#0001 82%,transparent 100%)}
 .phone-layout .phone-sky-header .notebook-tabs button{font-size:15px;font-weight:750}
 .phone-layout .phone-sky-header>.tabs button{font-size:16px;font-weight:700}
 .phone-layout .phone-sky-header>.tabs button.active{background:#cfe5f7;border:1px solid #a6cbe8;color:#164d7c;box-shadow:inset 0 1px 0 #e7f4fd,0 2px 5px #164d781a;font-weight:800}
@@ -4306,5 +4308,51 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #phoneSettingsModal::backdrop{background:transparent}
 .phone-layout .toast{bottom:calc(100px + max(0px,env(safe-area-inset-bottom)));width:max-content;max-width:calc(100vw - 32px);font-size:14px;line-height:1.4;pointer-events:none}
 
+</style>
+<style id="okti-calendar-production-33-198">
+/* Final calendar palette: lively coastal header, calm warm-white working area. */
+html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
+.phone-layout .app{background:#fbfaf8}
+.phone-layout .phone-sky-header:before{
+ background-image:linear-gradient(180deg,#0f5f9420 0%,#ffffff00 58%,#fbfaf8 100%),url("header-sailboat.webp?v=dca6b6d83020b336");
+ background-position:center;
+ mask-image:linear-gradient(180deg,#000 39%,#000c 63%,#0002 86%,transparent 100%);
+ -webkit-mask-image:linear-gradient(180deg,#000 39%,#000c 63%,#0002 86%,transparent 100%)
+}
+.phone-layout #dayView{background:linear-gradient(180deg,#f5f9fb8a 0,#fbfaf8 150px)}
+.phone-layout #dayView .daybar{display:block;min-height:78px;padding:8px 0 6px}
+.phone-layout #dayView .daybar>.navbutton:not(#todayBtn){display:none}
+.phone-layout #dayView .daybar h2{
+ display:flex;min-height:72px;width:100%;padding:8px 10px 8px 18px;border:1px solid #ffffffdc;border-radius:22px;
+ background:linear-gradient(105deg,#fffaf3f2 0%,#fbfcfdf0 51%,#e7edf2e8 100%);
+ box-shadow:0 9px 20px #263f5528,0 2px 5px #28465c16,inset 0 1px 1px #fff,inset 0 -1px 1px #90a6b64d;
+ backdrop-filter:blur(7px) saturate(1.05);-webkit-backdrop-filter:blur(7px) saturate(1.05)
+}
+.phone-layout #dayView .daybar h2:before{
+ padding:1px;background:linear-gradient(130deg,#ffffff 0%,#dbe9f1 36%,#a9bdcc 72%,#f9fcff 100%);
+ backdrop-filter:none;-webkit-backdrop-filter:none;filter:none
+}
+.phone-layout #dayView .daybar h2:after{display:none}
+.phone-layout #dayTitle{justify-content:flex-start;gap:8px}
+.phone-day-weekday{flex:1 1 auto;color:#17366b;font-size:clamp(20px,6vw,27px);font-weight:820;letter-spacing:-.04em}
+.phone-day-weather{margin-left:auto;color:#17366b}
+.phone-day-weather .weather-icon{width:52px;height:52px}
+.phone-day-temperature{min-width:42px;color:#17366b;font-size:27px}
+.phone-day-speaker{
+ position:relative;z-index:2;display:grid;place-items:center;flex:none;width:50px;height:50px;margin-left:7px;border:1px solid #f9fcff;border-radius:50%;
+ background:linear-gradient(145deg,#fffdfa,#e8ecef);color:#17366b;
+ box-shadow:0 5px 12px #29485f30,0 0 0 4px #657c8e12,inset 1px 1px 2px #fff,inset -1px -1px 2px #899dab52
+}
+.phone-day-speaker svg{width:28px;height:28px;fill:currentColor;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.phone-day-speaker svg path:nth-child(n+2){fill:none}
+.phone-layout .phone-week-strip{margin:2px 0 10px;padding:3px 0 5px;background:transparent}
+.phone-layout .phone-week-strip button{color:#243c68;background:transparent;border:1px solid transparent;border-radius:12px;box-shadow:none}
+.phone-layout .phone-week-strip button.active{
+ color:#17366b;background:linear-gradient(145deg,#fffffff0,#eef2f5e6);border:1px solid #d7e4ec;
+ box-shadow:0 5px 11px #263f5521,inset 0 1px 1px #fff,inset 0 -1px 1px #a9bac740
+}
+.phone-layout #taskList{background:#fbfaf8}
+.phone-layout .phone-free-time{background:#edf7f2;border-color:#d7e3e4;color:#40516c}
+@media(max-width:359px){.phone-day-speaker{width:46px;height:46px;margin-left:3px}.phone-day-speaker svg{width:25px;height:25px}.phone-day-weekday{font-size:20px}.phone-day-weather .weather-icon{width:48px;height:48px}.phone-layout #dayView .daybar h2{padding-left:13px;padding-right:7px}}
 </style>
 </body></html>
