@@ -53,7 +53,13 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const animations=[];w.matchMedia=()=>({matches:false});
   w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish();this.onfinish?.()}};animations.push(animation);return animation};
   const dayView=w.document.querySelector('#dayView');dayView.getBoundingClientRect=()=>({width:360,height:500,left:0,top:0});
+  const fixedSpeaker=w.document.querySelector('#dayTitle .phone-day-speaker');
   run('selected.setDate(selected.getDate()+1);renderDay()');
+  assert.equal(w.document.querySelector('#dayTitle .phone-day-speaker'),fixedSpeaker,'Speaker node is preserved across day changes');
+  assert.ok(animations.every(animation=>!animation.element.contains(fixedSpeaker)),'Neither speaker nor any of its parents is animated');
+  const viewport=w.document.querySelector('#dayTitle .phone-day-viewport');
+  assert.equal(viewport.querySelectorAll('.phone-day-content').length,2,'Both old and new content share one clipped viewport');
+  assert.equal(viewport.querySelector('.phone-day-speaker'),null,'Moving content never includes the speaker');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1);
   assert.ok([...w.document.querySelector('.okti-day-slide-ghost').querySelectorAll('[id]')].every(node=>node.namespaceURI==='http://www.w3.org/2000/svg'),'Only uniquely renamed SVG artwork IDs remain in the outgoing copy');
   assert.ok(w.document.querySelector('.okti-day-content-ghost linearGradient[id]'),'Outgoing weather content retains its gradient definitions');
