@@ -48,6 +48,26 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   denied=true;await run('OktiLocalWeather.refresh(true)');assert.match(w.document.querySelector('#localWeatherStatus').textContent,/Brak zgody/);assert.equal(count(),3,'Denied location does not send a new forecast request');
   denied=false;coords={latitude:54.352,longitude:18.6466,accuracy:20};failForecast=true;await run('OktiLocalWeather.refresh(true)');assert.equal(w.document.querySelector('.phone-day-temperature'),null,'Forecast from the old city is hidden if fetching for new location fails');assert.match(w.document.querySelector('#localWeatherStatus').textContent,/Gdańsk/);
   run('OktiLocalWeather.disable()');assert.equal(w.document.querySelector('.phone-day-temperature'),null);assert.equal(run('OktiLocalWeather.snapshot().place'),undefined);assert.equal(run('OktiLocalWeather.snapshot().enabled'),false);
+  // Exercise actual day renders with controllable browser animations.
+  const animations=[];w.matchMedia=()=>({matches:false});
+  w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(animation);return animation};
+  const dayView=w.document.querySelector('#dayView');dayView.getBoundingClientRect=()=>({width:360,height:500,left:0,top:0});
+  run('selected.setDate(selected.getDate()+1);renderDay()');
+  assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1);
+  assert.equal(w.document.querySelector('.okti-day-slide-ghost').querySelector('[id]'),null,'Outgoing copy has no duplicate control IDs');
+  assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
+  assert.equal(animations[1].frames[0].transform,'translateX(360px)','Next day enters from the right');
+  const firstCount=animations.length;run('selected.setDate(selected.getDate()-1);renderDay()');
+  assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1,'Rapid reverse swipe replaces the prior transition');
+  assert.equal(animations[firstCount].frames[1].transform,'translateX(360px)');
+  animations.forEach(animation=>animation.finish());await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,0);
+  assert.equal(dayView.style.clipPath,'','Transition restores the normal view');
+  const beforeReduced=animations.length;w.matchMedia=()=>({matches:true});run('selected.setDate(selected.getDate()+1);renderDay()');assert.equal(animations.length,beforeReduced,'Reduced motion skips day animation');
+  const gesture=(type,x,y)=>{const event=new w.Event(type,{bubbles:true,cancelable:true});Object.defineProperty(event,type==='touchend'?'changedTouches':'touches',{value:[{clientX:x,clientY:y}]});w.document.querySelector('#taskList').dispatchEvent(event)};
+  const beforeSwipe=run('iso(selected)'),expectedAfterSwipe=new Date(beforeSwipe+'T12:00:00');expectedAfterSwipe.setDate(expectedAfterSwipe.getDate()+1);gesture('touchstart',250,200);gesture('touchend',120,205);assert.equal(run('iso(selected)'),iso(expectedAfterSwipe),'An actual leftward touch gesture advances the date');
+  const afterSwipe=run('iso(selected)');gesture('touchstart',200,200);gesture('touchend',190,330);assert.equal(run('iso(selected)'),afterSwipe,'Vertical scrolling does not change the day');
+  assert.match(html,/#dayWeatherModal \.okti-weather-x:focus-visible\{outline:2px solid #5294b4/,'Keyboard focus remains visible without a filled square');
   console.log('Local weather: explicit location consent, real source isolation, per-location two-hour cache, no event preload, event date/hour, foreground-only refresh, denied/offline handling and disable verified (GPS and providers mocked).');
  }finally{w.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

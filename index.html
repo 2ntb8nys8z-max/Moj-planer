@@ -144,11 +144,14 @@ body.okti-weather-open{overflow:hidden}
 #dayWeatherModal{border:0;padding:18px;margin:auto;background:transparent;color:#163f58;width:100%;height:100%;max-width:none;max-height:none;inset:0;box-sizing:border-box;overflow:hidden}
 #dayWeatherModal:not([open]){display:none}
 #dayWeatherModal[open]{display:flex;align-items:center;justify-content:center}
-#dayWeatherModal::backdrop{background:#173f5940;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-#dayWeatherModal .okti-weather-card{position:relative;width:min(390px,100%);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain;padding:18px 20px 8px;border-radius:30px;background:radial-gradient(ellipse at 5% 5%,#fff5df80,transparent 45%),linear-gradient(140deg,#f6fcfd,#def3f8);box-shadow:0 22px 55px #173f5940,inset 0 1px 2px #fff;transform-origin:center;box-sizing:border-box;font-family:Nunito,system-ui,sans-serif}
+#dayWeatherModal::backdrop{background:#4598bf20;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#dayWeatherModal .okti-weather-card{position:relative;width:min(390px,100%);max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain;padding:18px 20px 8px;border-radius:30px;background:linear-gradient(140deg,#fff 0%,#f3fcff 58%,#e4f7ff);box-shadow:0 18px 45px #326b892b,inset 0 1px 2px #fff;transform-origin:center;box-sizing:border-box;font-family:Nunito,system-ui,sans-serif}
 #dayWeatherModal header{position:relative;text-align:center;padding:4px 28px 0;background:none;display:block}
 #dayWeatherModal h2{font-size:25px;line-height:1.3;margin:0;color:#173d58;text-transform:capitalize;font-weight:850}
-#dayWeatherModal .okti-weather-x{position:absolute;right:-8px;top:-8px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;box-shadow:none;color:#527488;font-size:27px}
+#dayWeatherModal .okti-weather-x,#dayWeatherModal .okti-weather-x:hover,#dayWeatherModal .okti-weather-x:active,#dayWeatherModal .okti-weather-x:focus{appearance:none;-webkit-appearance:none;position:absolute;right:-8px;top:-8px;min-width:44px;min-height:44px;padding:0;border:0;border-radius:0;background:transparent!important;background-image:none!important;box-shadow:none!important;outline:none;color:#426d86;font-size:27px;-webkit-tap-highlight-color:transparent}
+#dayWeatherModal .okti-weather-x:focus-visible{outline:2px solid #5294b4;outline-offset:-9px;border-radius:50%}
+#dayWeatherModal .okti-weather-x:before,#dayWeatherModal .okti-weather-x:after{content:none!important}
+.okti-day-slide-ghost{pointer-events:none!important;user-select:none;z-index:30}
 #dayWeatherModal p{margin:0}
 #dayWeatherModal .okti-weather-place{text-align:center;color:#5c7888;font-size:12px;margin-top:7px;line-height:1.5}
 #dayWeatherModal .okti-weather-hero{display:flex;align-items:center;justify-content:center;gap:24px;margin:15px 0 0}
@@ -190,7 +193,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.205-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.206-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -265,7 +268,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.205-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.206-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2475,6 +2478,34 @@ function initializePhoneSkin(){
  const journalNav=document.createElement('section');journalNav.id='journalCalendarNavigation';journalNav.hidden=true;journalNav.setAttribute('aria-label','Nawigacja dat wpisów');skyHeader.after(journalNav);journalNav.append($('journalPeriod'));
  journal.fitBottom=()=>{const view=$('ideasView'),dock=document.querySelector('.voice-area');if(!dock||view.classList.contains('hidden'))return;const bounds=view.getBoundingClientRect(),top=dock.getBoundingClientRect().top;view.style.setProperty('--journal-bottom-space',Math.max(12,Math.ceil(bounds.bottom-top+12))+'px')};
  window.addEventListener('resize',journal.fitBottom);if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(journal.fitBottom);observer.observe(voiceArea);observer.observe($('ideasView'))}
+ // Slide the outgoing and incoming day together, keeping real controls live.
+ const renderDayBeforeSlide=renderDay;let lastSlideDate=iso(selected),daySlideCleanup=null;
+ renderDay=function(...args){
+  daySlideCleanup?.();const view=$('dayView'),nextDate=iso(selected),direction=nextDate>lastSlideDate?1:-1;
+  const animate=nextDate!==lastSlideDate&&!view.classList.contains('hidden')&&view.getBoundingClientRect().width>0&&typeof view.animate==='function'&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  let ghost=null;
+  if(animate){
+   ghost=view.cloneNode(true);const originals=[view,...view.querySelectorAll('*')],copies=[ghost,...ghost.querySelectorAll('*')];
+   originals.forEach((original,index)=>{const copy=copies[index];if(original.id){const computed=getComputedStyle(original);copy.style.cssText=Array.from(computed,property=>property+':'+computed.getPropertyValue(property)+';').join('');copy.removeAttribute('id')}if(original.scrollTop||original.scrollLeft){copy.dataset.slideScrollTop=original.scrollTop;copy.dataset.slideScrollLeft=original.scrollLeft}});
+   ghost.classList.add('okti-day-slide-ghost');ghost.setAttribute('aria-hidden','true');ghost.inert=true;
+  }
+  lastSlideDate=nextDate;const result=renderDayBeforeSlide.apply(this,args);
+  if(!ghost)return result;
+  const oldPosition=view.style.position,oldClip=view.style.clipPath,width=view.getBoundingClientRect().width;
+  view.style.position='relative';view.style.clipPath='inset(0 -1px)';
+  const incoming=[...view.children];Object.assign(ghost.style,{position:'absolute',inset:'0 auto auto 0',width:width+'px',margin:'0',pointerEvents:'none'});view.append(ghost);
+  for(const node of ghost.querySelectorAll('[data-slide-scroll-top]')){node.scrollTop=Number(node.dataset.slideScrollTop);node.scrollLeft=Number(node.dataset.slideScrollLeft)}
+  const options={duration:380,easing:'cubic-bezier(.22,.75,.24,1)',fill:'both'},animations=[];
+  let cleaned=false;
+  const cleanup=()=>{if(cleaned)return;cleaned=true;for(const animation of animations)animation.cancel();ghost.remove();view.style.position=oldPosition;view.style.clipPath=oldClip;if(daySlideCleanup===cleanup)daySlideCleanup=null};
+  daySlideCleanup=cleanup;
+  try{
+   animations.push(ghost.animate([{transform:'translateX(0)'},{transform:'translateX('+(-direction*width)+'px)'}],options));
+   for(const node of incoming)animations.push(node.animate([{transform:'translateX('+(direction*width)+'px)'},{transform:'translateX(0)'}],options));
+   Promise.all(animations.map(animation=>animation.finished)).then(cleanup,cleanup);
+  }catch(_){cleanup()}
+  return result;
+ };
  let touchOrigin=null,swipedAt=0;for(const target of [$('taskList'),strip,$('ideasList')]){target.addEventListener('touchstart',event=>{touchOrigin=event.touches.length===1?{x:event.touches[0].clientX,y:event.touches[0].clientY}:null},{passive:true});target.addEventListener('touchmove',event=>{if(event.touches.length!==1){touchOrigin=null;return}if(!touchOrigin)return;const dx=event.touches[0].clientX-touchOrigin.x,dy=event.touches[0].clientY-touchOrigin.y;if(Math.abs(dx)>25&&Math.abs(dx)>Math.abs(dy)*1.5&&event.cancelable)event.preventDefault()},{passive:false});target.addEventListener('touchend',event=>{if(!touchOrigin||!event.changedTouches.length)return;const dx=event.changedTouches[0].clientX-touchOrigin.x,dy=event.changedTouches[0].clientY-touchOrigin.y;touchOrigin=null;if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;swipedAt=Date.now();closeReminder();if(!$('ideasView').classList.contains('hidden')){journalMove(dx<0?1:-1);return}selected.setDate(selected.getDate()+(dx<0?1:-1));$('date').value=iso(selected);renderDay()},{passive:true});target.addEventListener('touchcancel',()=>{touchOrigin=null},{passive:true});target.addEventListener('click',event=>{if(Date.now()-swipedAt<450){event.preventDefault();event.stopImmediatePropagation()}},true)}
  showView('day');updateLocalWeatherUI();OktiLocalWeather.refresh();
  const recoveryWarning=$('dataWarning');function showRecoveryTools(){if(recoveryWarning.hidden)return;openSettings();$('backupCard').scrollIntoView({block:'center'})}new MutationObserver(showRecoveryTools).observe(recoveryWarning,{attributes:true,attributeFilter:['hidden'],childList:true,subtree:true});showRecoveryTools();
