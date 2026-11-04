@@ -51,16 +51,17 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   // Exercise actual day renders with controllable browser animations.
   failForecast=false;await run('OktiLocalWeather.enable()');
   const animations=[];w.matchMedia=()=>({matches:false});
-  w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(animation);return animation};
+  w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish();this.onfinish?.()}};animations.push(animation);return animation};
   const dayView=w.document.querySelector('#dayView');dayView.getBoundingClientRect=()=>({width:360,height:500,left:0,top:0});
   run('selected.setDate(selected.getDate()+1);renderDay()');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1);
   assert.ok([...w.document.querySelector('.okti-day-slide-ghost').querySelectorAll('[id]')].every(node=>node.namespaceURI==='http://www.w3.org/2000/svg'),'Only uniquely renamed SVG artwork IDs remain in the outgoing copy');
-  assert.ok(w.document.querySelector('.okti-day-slide-ghost linearGradient[id]'),'Outgoing weather artwork retains its gradient definitions');
-  for(const node of w.document.querySelectorAll('.okti-day-slide-ghost [fill^="url(#"]')){const id=node.getAttribute('fill').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
+  assert.ok(w.document.querySelector('.okti-day-content-ghost linearGradient[id]'),'Outgoing weather content retains its gradient definitions');
+  for(const node of w.document.querySelectorAll('.okti-day-content-ghost [fill^="url(#"]')){const id=node.getAttribute('fill').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
   const ids=[...w.document.querySelectorAll('[id]')].map(node=>node.id);assert.equal(new Set(ids).size,ids.length,'Outgoing copy has no duplicate IDs');
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
-  assert.equal(animations[1].frames[0].transform,'translateX(360px)','Next day enters from the right');
+  assert.ok(animations.some(animation=>animation.element.classList.contains('phone-day-content')&&!animation.element.classList.contains('okti-day-content-ghost')&&animation.frames[0].transform==='translateX(360px)'),'New day content enters inside the fixed tile');
+  assert.ok(animations.every(animation=>animation.element.id!=='dayTitle'&&!animation.element.classList.contains('daybar')),'The tile frame never moves');
   const weekStrip=w.document.querySelector('.phone-week-strip');
   assert.ok(animations.every(animation=>animation.element!==weekStrip),'Seven weekdays remain stationary during the day slide');
   assert.equal(w.document.querySelector('.okti-day-slide-ghost .phone-week-strip').style.visibility,'hidden','Outgoing slide does not duplicate the stationary weekdays');
@@ -78,6 +79,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const beforeSwipe=run('iso(selected)'),expectedAfterSwipe=new Date(beforeSwipe+'T12:00:00');expectedAfterSwipe.setDate(expectedAfterSwipe.getDate()+1);gesture('touchstart',250,200);gesture('touchend',120,205);assert.equal(run('iso(selected)'),iso(expectedAfterSwipe),'An actual leftward touch gesture advances the date');
   const afterSwipe=run('iso(selected)');gesture('touchstart',200,200);gesture('touchend',190,330);assert.equal(run('iso(selected)'),afterSwipe,'Vertical scrolling does not change the day');
   assert.match(html,/#dayWeatherModal \.okti-weather-x:focus-visible\{outline:2px solid #5294b4/,'Keyboard focus remains visible without a filled square');
+  w.matchMedia=()=>({matches:false});w.document.querySelector('#dayTitle').click();
+  assert.equal(w.document.querySelector('.okti-weather-collapse'),null,'No redundant bottom close button');
+  w.document.querySelector('.okti-weather-x').click();const dismissal=animations.at(-1);
+  assert.equal(dismissal.frames[1].opacity,0,'Closing fades the whole card away');
+  assert.ok(dismissal.frames.every(frame=>frame.transform===undefined),'Closing never scales text or morphs back into a tile');
+  dismissal.finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
   console.log('Local weather: explicit location consent, real source isolation, per-location two-hour cache, no event preload, event date/hour, foreground-only refresh, denied/offline handling and disable verified (GPS and providers mocked).');
  }finally{w.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
