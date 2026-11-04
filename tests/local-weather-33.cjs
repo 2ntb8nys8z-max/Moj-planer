@@ -61,6 +61,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const ids=[...w.document.querySelectorAll('[id]')].map(node=>node.id);assert.equal(new Set(ids).size,ids.length,'Outgoing copy has no duplicate IDs');
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
   assert.equal(animations[1].frames[0].transform,'translateX(360px)','Next day enters from the right');
+  const weekStrip=w.document.querySelector('.phone-week-strip');
+  assert.ok(animations.every(animation=>animation.element!==weekStrip),'Seven weekdays remain stationary during the day slide');
+  assert.equal(w.document.querySelector('.okti-day-slide-ghost .phone-week-strip').style.visibility,'hidden','Outgoing slide does not duplicate the stationary weekdays');
+  assert.equal(weekStrip.querySelectorAll('button').length,7);
+  assert.equal(weekStrip.querySelectorAll('[aria-pressed="true"]').length,1,'A single moving highlight identifies the selected day');
+  assert.ok(weekStrip.classList.contains('okti-week-cursor'));
   const firstCount=animations.length;run('selected.setDate(selected.getDate()-1);renderDay()');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1,'Rapid reverse swipe replaces the prior transition');
   assert.equal(animations[firstCount].frames[1].transform,'translateX(360px)');
