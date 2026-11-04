@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.04\.33\.210-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.04\.33\.210-test/);
+assert.match(root,/Aplikacja: 2026\.11\.04\.33\.211-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.04\.33\.211-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -38,6 +38,9 @@ for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.phone-calendar-month\{[^}]*top:59px[^}]*border:0[^}]*background:none[^}]*font:750 21px/,'the larger plain month label must sit under the week bubble');
   assert.match(page,/className='phone-day-speaker'/,'the day summary keeps a visible speaker control');
   assert.match(page,/\.phone-day-weather \.weather-icon\{width:52px;height:52px\}/,'the selected-day weather symbol must remain large and legible');
+  assert.match(page,/#dayTitle \.phone-day-weekday\{[^}]*font-size:clamp\(20px,6vw,27px\)/,'the sliding weekday must keep its original large type');
+  assert.match(page,/#dayTitle \.phone-day-weather \.weather-icon\{width:52px;height:52px/,'the sliding weather artwork must keep its original 52px size');
+  assert.match(page,/#dayTitle \.phone-day-temperature\{font-size:27px;min-width:42px/,'the sliding temperature must keep its original size');
   assert.match(page,/function plannerWeatherArtwork\(kind,day=true\)\{return oktiWeatherArtwork\(kind,day\)\}/,'event and header weather share the approved icon family');
   assert.match(page,/function oktiWeatherArtwork\(kind,day=true\)/,'shaded icon renderer must be published in both builds');
   assert.match(page,/background:linear-gradient\(145deg,#fffdfa,#e8ecef\);color:#17366b/,'the nested speaker must use pearl silver with a restrained navy glyph');
@@ -76,7 +79,7 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.11.04.33.210-test');
+assert.equal(release.version,'2026.11.04.33.211-test');
 assert.equal(release.workerVersion,'2026.10.12.33.36-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
@@ -87,5 +90,5 @@ assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
 assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-glass-33-184.png').equals(fs.readFileSync('octi-glass-33-184.png')),'The approved pale-blue glass sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-caustic-33-196.svg').equals(fs.readFileSync('octi-caustic-33-196.svg')),'The bright lens caustic must be published with the UI');
-console.log('Preview 33.210: unclipped day control, removed top strip and visible coastal glow verified.');
+console.log('Preview 33.211: restored day and weather scale with synchronized header slide verified.');
 
