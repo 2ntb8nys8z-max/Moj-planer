@@ -28,6 +28,7 @@ t=task();t.title='B';c.tasks=[t];c.googleDeleteQueue=()=>[];c.googleEventStopped
 // Valid conversions and local-zone preservation; nonexistent spring clock is rejected.
 assert.equal(core.parts(original).time,'13:00');assert.throws(()=>core.instant('2026-03-29','02:30','Europe/Warsaw'));
 const all=core.body({...task(),time:'',endTime:'',endDate:'2026-10-07'},'');assert.equal(all.start.date,'2026-10-06');assert.equal(all.end.date,'2026-10-07');
+const midnight=core.body({...task(),time:'23:00',endTime:'00:00',endDate:'2026-10-07'},'');assert.deepEqual(core.parts({start:midnight.start,end:midnight.end}),{date:'2026-10-06',time:'23:00',endDate:'2026-10-07',endTime:'00:00',timeZone:'Europe/Warsaw',allDay:false});
 console.log('Sync 29: disjoint merge, conflict, ETag, stale reply, full verification, multi-day, reminders, baseline, time zone passed.');
 
 // Creation retry keeps the original payload and never acknowledges a later edit.

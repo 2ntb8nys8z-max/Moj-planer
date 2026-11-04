@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 44">
+  <defs>
+    <radialGradient id="halo">
+      <stop stop-color="#fff" stop-opacity="1"/>
+      <stop offset=".42" stop-color="#f8fdff" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#e7f8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="focus">
+      <stop stop-color="#fff" stop-opacity="1"/>
+      <stop offset=".28" stop-color="#fff" stop-opacity="1"/>
+      <stop offset=".68" stop-color="#f4fbff" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#d9f4ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ray">
+      <stop stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".4" stop-color="#fff" stop-opacity=".94"/>
+      <stop offset=".55" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="haloBlur" x="-50%" y="-120%" width="200%" height="340%"><feGaussianBlur stdDeviation="2.5"/></filter>
+    <filter id="focusGlow" x="-180%" y="-320%" width="460%" height="740%"><feGaussianBlur stdDeviation="1.9"/></filter>
+    <filter id="softCore" x="-100%" y="-180%" width="300%" height="460%"><feGaussianBlur stdDeviation=".55"/></filter>
+  </defs>
+  <ellipse cx="64" cy="23" rx="55" ry="20" fill="url(#halo)"/>
+  <ellipse cx="64" cy="23" rx="27" ry="9.5" fill="#fff" opacity=".98" filter="url(#haloBlur)"/>
+  <ellipse cx="45" cy="15" rx="31" ry="8" fill="#fff" opacity=".84" filter="url(#haloBlur)"/>
+  <path d="M21 18 Q43 9 66 20" fill="none" stroke="url(#ray)" stroke-width="2.8" filter="url(#softCore)"/>
+  <g fill="none" stroke="url(#ray)" stroke-linecap="round">
+    <path d="M7 30 Q47 27 66 23 Q86 17 112 7" stroke-width="1.8"/>
+    <path d="M20 8 Q49 19 66 23 Q82 27 107 29" stroke-width="1.35"/>
+    <path d="M38 39 Q58 27 66 23 Q75 17 83 3" stroke-width="1"/>
+  </g>
+  <ellipse cx="68" cy="23" rx="20" ry="6.4" fill="url(#focus)" filter="url(#focusGlow)"/>
+  <ellipse cx="68" cy="23" rx="12.5" ry="4" fill="#fff" opacity=".99" filter="url(#softCore)"/>
+  <ellipse cx="68" cy="23" rx="7.4" ry="2.35" fill="#fff"/>
+  <ellipse cx="68" cy="23" rx="3.4" ry="1.05" fill="#fff"/>
+  <path d="M50 30 Q68 22 94 19" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" filter="url(#softCore)"/>
+  <path d="M68 14.5 L68 31.5" fill="none" stroke="#fff" stroke-opacity=".98" stroke-width=".95" stroke-linecap="round" filter="url(#softCore)"/>
+</svg>

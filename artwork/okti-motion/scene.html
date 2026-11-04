@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;width:500px;height:500px;overflow:hidden;background:#edf6fd}#result{display:block;width:500px;height:500px}#mesh{display:none}</style><canvas id="mesh"></canvas><canvas id="result" width="640" height="640"></canvas><script src="rig.js"></script><script>
+const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)},mix=(a,b,t)=>a+(b-a)*t;
+const result=document.getElementById('result'),ctx=result.getContext('2d');
+function face(t,forced){
+ const p=((t%4.8)+4.8)%4.8,smile=forced??ease((p-.45)/.8)*(1-ease((p-3.05)/.8));
+ const cx=627,cy=535,w=220,h=319,collapse=ease(smile/.5),spread=ease((smile-.5)/.5),lineWidth=w*.058;
+ const apex=cy-h*.055,anchorY=mix(cy,apex,collapse),remainingHalf=h*.087*(1-collapse),half=w*.143*spread;
+ ctx.fillStyle=ctx.strokeStyle='#fff';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=lineWidth;
+ for(const side of [-1,1]){
+  const ex=cx+side*w*.204;
+  if(spread<.00001){ctx.beginPath();if(remainingHalf>.001){ctx.moveTo(ex,anchorY-remainingHalf);ctx.lineTo(ex,anchorY+remainingHalf);ctx.stroke();}else{ctx.arc(ex,anchorY,lineWidth/2,0,Math.PI*2);ctx.fill();}}
+  else{
+   const rise=w*.081*spread,endsY=apex+rise,outerRise=w*.110*spread,innerRise=w*.052*spread,temporaryStroke=lineWidth*(1-spread);
+   if(temporaryStroke>.01){ctx.lineWidth=temporaryStroke;ctx.beginPath();ctx.moveTo(ex-half,endsY);ctx.bezierCurveTo(ex-half*2/3,endsY-rise*4/3,ex+half*2/3,endsY-rise*4/3,ex+half,endsY);ctx.stroke();}
+   ctx.beginPath();ctx.moveTo(ex-half,endsY);ctx.bezierCurveTo(ex-half*.60,endsY-outerRise*4/3,ex+half*.60,endsY-outerRise*4/3,ex+half,endsY);ctx.bezierCurveTo(ex+half*.55,endsY-innerRise*4/3,ex-half*.55,endsY-innerRise*4/3,ex-half,endsY);ctx.fill();
+  }
+ }
+ ctx.globalAlpha=1-smile;ctx.lineWidth=lineWidth;ctx.beginPath();ctx.moveTo(cx,cy-h*.155);ctx.lineTo(cx,cy+h*.155);ctx.stroke();ctx.globalAlpha=1;
+}
+fetch('chains.json').then(r=>r.json()).then(chains=>createOktiRig(document.getElementById('mesh'),chains,'art.webp')).then(rig=>{
+ window.rig=rig;window.render=(t,forced)=>{rig.draw(t);ctx.clearRect(0,0,640,640);ctx.save();const bob=forced===undefined?Math.sin(2*Math.PI*t/4.8)*.7:0;ctx.translate(0,bob);ctx.drawImage(document.getElementById('mesh'),0,0,640,640);ctx.scale(640/1254,640/1254);face(t,forced);ctx.restore();};window.render(0);window.ready=true;
+}).catch(e=>{window.failed=e.message});
+</script>
