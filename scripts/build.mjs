@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.05.33.224-integration';
-const PREVIEW_VERSION='2026.11.05.33.224-test';
+const APP_VERSION='2026.11.05.33.225-integration';
+const PREVIEW_VERSION='2026.11.05.33.225-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.05.33.37-test';
 const WORKER_LABEL='Worker 33.37-test';
