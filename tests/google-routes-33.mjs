@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'));
+const token='test-only-token-1234567890123456',calls=[];let limited=false,status=200,payload={routes:[{duration:'1531s',staticDuration:'1400s',distanceMeters:12400}]};
+const env={PLANNER_ACCESS_TOKEN:token,OPENAI_API_KEY:'dummy',GOOGLE_MAPS_API_KEY:'route-secret',API_LIMITS_DB:{prepare(sql){return {run:async()=>{},bind(){return this},first:async()=>limited&&sql.includes('planner_routes_quota')?null:{}}}}};
+const saved=globalThis.fetch;globalThis.fetch=async(url,options)=>{calls.push({url:String(url),options});return Response.json(payload,{status})};
+async function post(body){const response=await worker.fetch(new Request('https://worker/routes/compute',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,Origin:'https://okti-glass-test-33-170.oakgait2.chatgpt.site'},body:JSON.stringify(body)}),env);return {status:response.status,data:await response.json()}}
+try{
+ let result=await post({origin:'Plac Konstytucji 5, Warszawa',destination:'Powstańców Śląskich 109, Warszawa',mode:'DRIVE'});assert.equal(result.status,200);assert.equal(result.data.route.durationMinutes,26);assert.equal(result.data.route.distanceMeters,12400);const call=calls[0];assert.equal(call.options.redirect,'manual');assert.equal(call.options.headers['X-Goog-Api-Key'],env.GOOGLE_MAPS_API_KEY);assert.equal(call.options.headers['X-Goog-FieldMask'],'routes.duration,routes.staticDuration,routes.distanceMeters');const request=JSON.parse(call.options.body);assert.equal(request.travelMode,'DRIVE');assert.equal(request.routingPreference,'TRAFFIC_AWARE');assert.equal(JSON.stringify(result.data).includes(env.GOOGLE_MAPS_API_KEY),false);
+ result=await post({origin:'A',destination:'B',mode:'WALK'});assert.equal(JSON.parse(calls.at(-1).options.body).routingPreference,undefined);assert.equal(result.data.route.mode,'WALK');result=await post({origin:'A',destination:'B',mode:'TRANSIT'});assert.equal(result.data.route.mode,'TRANSIT');
+ for(const body of [{origin:'',destination:'B',mode:'DRIVE'},{origin:'A',destination:'B',mode:'FLY'}])assert.equal((await post(body)).status,400);
+ const before=calls.length;limited=true;assert.equal((await post({origin:'A',destination:'B',mode:'DRIVE'})).data.code,'routes_limit');assert.equal(calls.length,before);limited=false;
+ status=403;assert.equal((await post({origin:'A',destination:'B',mode:'DRIVE'})).data.code,'routes_denied');status=200;payload={routes:[]};assert.equal((await post({origin:'A',destination:'B',mode:'DRIVE'})).data.route.available,false);
+ const blocked=await worker.fetch(new Request('https://worker/routes/compute',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,Origin:'https://evil.invalid'},body:'{}'}),env);assert.equal(blocked.status,403);
+ const info=await worker.fetch(new Request('https://worker/api-info',{headers:{Origin:'https://okti-glass-test-33-170.oakgait2.chatgpt.site'}}),env);assert.deepEqual((await info.json()).routeLookup.modes,['DRIVE','WALK','TRANSIT']);console.log('Google Routes: auth, origin, quota, modes, traffic duration, field mask and failures passed.');
+}finally{globalThis.fetch=saved}

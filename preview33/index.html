@@ -420,7 +420,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.05.33.37-test',EXPECTED_WORKER_BUILD_ID='3703188b14dbb33d';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.05.33.38-test',EXPECTED_WORKER_BUILD_ID='4954448724b3623e';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -969,7 +969,7 @@ function askApiAccess(force=false){
   });return apiAccessPending;
 }
 function plannerWorkerCompatible(info){
-  return info.apiVersion===EXPECTED_WORKER_VERSION&&info.buildId===EXPECTED_WORKER_BUILD_ID||info.apiVersion==='2026.10.12.33.36-test'&&info.buildId==='23c0806de3a19eeb'&&info.protocolVersion===2;
+  return info.apiVersion===EXPECTED_WORKER_VERSION&&info.buildId===EXPECTED_WORKER_BUILD_ID||info.apiVersion==='2026.11.05.33.37-test'&&info.buildId==='3703188b14dbb33d'&&info.protocolVersion===2||info.apiVersion==='2026.10.12.33.36-test'&&info.buildId==='23c0806de3a19eeb'&&info.protocolVersion===2;
 }
 async function getApiInfo(){
   if(apiInfoCache&&Date.now()-apiInfoAt<60000)return apiInfoCache;
