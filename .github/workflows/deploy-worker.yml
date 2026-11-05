@@ -2,7 +2,7 @@ name: Deploy and verify Planner Worker
 
 on:
   push:
-    branches: [integration/conversation33]
+    branches: [integration/conversation33, main]
     paths:
       - worker.js
       - worker.txt
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   deploy-and-verify:
-    if: github.ref == 'refs/heads/integration/conversation33'
+    if: github.ref == 'refs/heads/integration/conversation33' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

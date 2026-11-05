@@ -1,3 +1,9 @@
+## Lokalizacje Google — 33.224
+
+Adres wpisany ręcznie albo rozpoznany przez rozmowę może zostać przypięty do wyniku Google przed zapisem wydarzenia. Użytkownik wybiera wynik; ulica bez numeru pozostaje ulicą z punktem orientacyjnym. Częściowe dopasowania i przybliżona pozycja są opisane. Brak wyniku lub błąd pozwala poprawić zapytanie albo jawnie zachować tekst bez przypięcia. Nawigacja korzysta z wybranego `place_id`, a pogoda z jego współrzędnych.
+
+Worker wymaga sekretu `GOOGLE_MAPS_API_KEY` oraz włączonego Geocoding API i rozliczeń w Google Cloud. Klucz pozostaje na serwerze. Uwierzytelnione `POST /locations/resolve` ma osobny licznik D1 `planner_maps_quota`: 10/min, 100/dzień, 1000/miesiąc; nie zużywa limitu AI. Zmiana lub usunięcie adresu unieważnia poprzednie przypięcie. Zestaw `tests/google-location-33.mjs` sprawdza Worker → frontend → kolejną turę → zapis, także dla audio; odpowiedzi zewnętrznych dostawców są podstawione.
+
 ## Preview33 33.57 i Worker 33.36
 
 Polecenia w otwartym wydarzeniu są związane z jego identyfikatorem. Ustawienie, zmiana i usunięcie przypomnienia aktualizują tylko to wydarzenie; brak minut powoduje pytanie tylko o odstęp. Notatki są zatwierdzane w aktualnym oknie i przechowywane jako datowane karty. Starsze wydarzenia bez `endDate` pozostają zgodne.

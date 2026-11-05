@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.36-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.37-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -456,7 +456,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="23c0806de3a19eeb";
+const BUILD_ID="78588182a8d39a6c";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -602,6 +602,39 @@ async function checkApiAccess(request,env){
   const expected=new Uint8Array(await crypto.subtle.digest('SHA-256',encode.encode(env.PLANNER_ACCESS_TOKEN)));
   let different=0;for(let i=0;i<expected.length;i++)different|=actual[i]^expected[i];
   if(different)throw new PlannerApiError('Nieprawidłowy kod dostępu do AI.',401,'access_denied','authentication');
+}
+// Address lookup has its own atomic quota; it never consumes an AI turn.
+async function resolveGoogleLocation(body,env){
+  if(typeof body?.query!=='string'||!body.query.trim()||body.query.length>500||body.countryCode!=null&&!/^[A-Z]{2}$/.test(body.countryCode))throw new PlannerApiError('Podaj adres lub ulicę i miejscowość.');
+  if(typeof env.GOOGLE_MAPS_API_KEY!=='string'||!env.GOOGLE_MAPS_API_KEY.trim())throw new PlannerApiError('Brakuje klucza Google Maps w Cloudflare.',503,'maps_not_configured','configuration');
+  const period=quotaPeriod();
+  await env.API_LIMITS_DB.prepare(QUOTA_SCHEMA.replaceAll('planner_api_quota','planner_maps_quota')).run();
+  const reserved=await env.API_LIMITS_DB.prepare(QUOTA_RESERVE.replaceAll('planner_api_quota','planner_maps_quota')).bind(period.month,period.day,period.minute,1000,100,10).first();
+  if(!reserved)throw new PlannerApiError('Osiągnięto limit wyszukiwania miejsc. Spróbuj później lub zachowaj wpisany adres bez przypięcia.',429,'maps_limit','maps');
+  const params=new URLSearchParams({address:body.query.trim(),language:'pl',key:env.GOOGLE_MAPS_API_KEY.trim()});
+  if(body.countryCode)params.set('components','country:'+body.countryCode);
+  let response,data;
+  try{
+    response=await fetch('https://maps.googleapis.com/maps/api/geocode/json?'+params,{signal:AbortSignal.timeout(10000),redirect:'error'});
+    if(response.ok)data=await response.json();
+  }catch(_){throw new PlannerApiError('Nie udało się połączyć z Google Maps. Spróbuj ponownie.',502,'maps_unavailable','maps');}
+  if(!response.ok)throw new PlannerApiError('Google Maps jest chwilowo niedostępne. Spróbuj ponownie.',502,'maps_unavailable','maps');
+  if(data?.status==='ZERO_RESULTS')return [];
+  if(data?.status!=='OK'||!Array.isArray(data.results)){
+    const denied=data?.status==='REQUEST_DENIED',limited=['OVER_QUERY_LIMIT','OVER_DAILY_LIMIT'].includes(data?.status);
+    throw new PlannerApiError(denied?'Google odrzuciło wyszukiwanie. Sprawdź Geocoding API, ograniczenia klucza i rozliczenia w Google Cloud.':limited?'Google zgłosiło limit zapytań. Sprawdź limity i rozliczenia w Google Cloud.':'Google Maps nie zwróciło poprawnej odpowiedzi.',denied?503:limited?429:502,denied?'maps_denied':limited?'maps_google_limit':'maps_unavailable','maps');
+  }
+  const seen=new Set(),places=[];
+  for(const result of data.results){
+    const location=result?.geometry?.location,types=Array.isArray(result?.types)?result.types:[],components=Array.isArray(result?.address_components)?result.address_components:[];
+    if(typeof result?.place_id!=='string'||!result.place_id||result.place_id.length>300||typeof result.formatted_address!=='string'||!result.formatted_address||result.formatted_address.length>1000||typeof location?.lat!=='number'||!Number.isFinite(location.lat)||Math.abs(location.lat)>90||typeof location.lng!=='number'||!Number.isFinite(location.lng)||Math.abs(location.lng)>180||seen.has(result.place_id))continue;
+    const component=(type,short=false)=>{const c=components.find(c=>Array.isArray(c?.types)&&c.types.includes(type));return String((short?c?.short_name:c?.long_name)||'').slice(0,200)};
+    seen.add(result.place_id);
+    const street=component('route'),number=component('street_number');
+    places.push({placeId:result.place_id,label:result.formatted_address,latitude:location.lat,longitude:location.lng,kind:number?'address':types.includes('route')?'street':types.some(t=>['locality','postal_town','administrative_area_level_3'].includes(t))?'city':'place',partialMatch:result.partial_match===true,locationType:String(result.geometry.location_type||'').slice(0,40),street,number,city:component('locality')||component('postal_town')||component('administrative_area_level_3'),country:component('country'),countryCode:component('country',true),region:component('administrative_area_level_1')});
+    if(places.length===5)break;
+  }
+  return places;
 }
 async function limitFailedAccess(request,env){
   const minute=Math.floor(Date.now()/60000),ip=request.headers.get('CF-Connecting-IP')||'unknown';
@@ -967,7 +1000,7 @@ export default {
 
     if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.10.12.33.36-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create"],buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.05.33.37-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -983,6 +1016,11 @@ export default {
         throw error;
       }
       if(request.method==="GET")return json({success:true,usage:await quotaRead(env)});
+      if(new URL(request.url).pathname==='/locations/resolve'){
+        if(!(request.headers.get('Content-Type')||'').includes('application/json'))throw new PlannerApiError('Wyszukiwanie miejsca wymaga JSON.',415);
+        const body=parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,2048)));
+        return json({success:true,provider:'google',places:await resolveGoogleLocation(body,env)});
+      }
       /* ===== 1. AUDIO ===== */
 
       let dialogue = [];
