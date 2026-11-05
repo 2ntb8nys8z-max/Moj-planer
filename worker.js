@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.37-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.38-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -456,7 +456,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="3703188b14dbb33d";
+const BUILD_ID="4954448724b3623e";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -637,6 +637,30 @@ async function resolveGoogleLocation(body,env){
     if(places.length===5)break;
   }
   return places;
+}
+function plannerRouteSeconds(value){
+ const match=typeof value==='string'&&value.match(/^(\d+)(?:\.(\d+))?s$/);if(!match)return null;
+ const seconds=Number(match[1])+Number('0.'+(match[2]||0));return Number.isFinite(seconds)&&seconds>0?seconds:null;
+}
+async function computeGoogleRoute(body,env){
+ const origin=typeof body?.origin==='string'?body.origin.trim():'',destination=typeof body?.destination==='string'?body.destination.trim():'',mode=String(body?.mode||'DRIVE').toUpperCase();
+ if(!origin||!destination||origin.length>500||destination.length>500||!['DRIVE','WALK','TRANSIT'].includes(mode))throw new PlannerApiError('Podaj dwie lokalizacje i prawidłowy środek transportu.',400,'invalid_route','routes');
+ if(typeof env.GOOGLE_MAPS_API_KEY!=='string'||!env.GOOGLE_MAPS_API_KEY.trim())throw new PlannerApiError('Brakuje klucza Google Maps w Cloudflare.',503,'maps_not_configured','configuration');
+ const period=quotaPeriod(),schema=QUOTA_SCHEMA.replaceAll('planner_api_quota','planner_routes_quota'),reserve=QUOTA_RESERVE.replaceAll('planner_api_quota','planner_routes_quota');
+ await env.API_LIMITS_DB.prepare(schema).run();
+ const reserved=await env.API_LIMITS_DB.prepare(reserve).bind(period.month,period.day,period.minute,1500,200,15).first();
+ if(!reserved)throw new PlannerApiError('Osiągnięto limit obliczania tras. Spróbuj później.',429,'routes_limit','routes');
+ const requestBody={origin:{address:origin},destination:{address:destination},travelMode:mode,languageCode:'pl',units:'METRIC'};
+ if(mode==='DRIVE')requestBody.routingPreference='TRAFFIC_AWARE';
+ let response,data;
+ try{
+  response=await fetch('https://routes.googleapis.com/directions/v2:computeRoutes',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':env.GOOGLE_MAPS_API_KEY.trim(),'X-Goog-FieldMask':'routes.duration,routes.staticDuration,routes.distanceMeters'},body:JSON.stringify(requestBody),signal:AbortSignal.timeout(12000),redirect:'manual'});
+  data=await response.json();
+ }catch(_){throw new PlannerApiError('Nie udało się połączyć z Google Routes. Spróbuj ponownie.',502,'routes_unavailable','routes');}
+ if(!response.ok){const denied=[401,403].includes(response.status),limited=response.status===429;throw new PlannerApiError(denied?'Google odrzuciło trasę. Sprawdź Routes API i ograniczenia klucza.':limited?'Google zgłosiło limit zapytań o trasy.':'Google Routes nie obliczyło trasy.',denied?503:limited?429:502,denied?'routes_denied':limited?'routes_google_limit':'routes_unavailable','routes');}
+ const route=Array.isArray(data?.routes)?data.routes[0]:null,seconds=plannerRouteSeconds(route?.duration||route?.staticDuration);
+ if(!seconds)return {available:false,mode};
+ return {available:true,provider:'google',mode,durationMinutes:Math.max(1,Math.ceil(seconds/60)),distanceMeters:Number.isFinite(route.distanceMeters)?Math.max(0,Math.round(route.distanceMeters)):null};
 }
 async function limitFailedAccess(request,env){
   const minute=Math.floor(Date.now()/60000),ip=request.headers.get('CF-Connecting-IP')||'unknown';
@@ -981,7 +1005,7 @@ export default {
   async fetch(request, env) {
 
     const origin=request.headers.get("Origin");
-    const allowedOrigin="https://2ntb8nys8z-max.github.io";
+    const allowedOrigins=new Set(["https://2ntb8nys8z-max.github.io","https://okti-glass-test-33-170.oakgait2.chatgpt.site"]),allowedOrigin=allowedOrigins.has(origin)?origin:"https://2ntb8nys8z-max.github.io";
     const cors = {
       "Access-Control-Allow-Origin": allowedOrigin,
       "Vary": "Origin",
@@ -1000,9 +1024,9 @@ export default {
         }
       });
 
-    if(origin && origin!==allowedOrigin)return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
+    if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.05.33.37-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.05.33.38-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1022,6 +1046,11 @@ export default {
         if(!(request.headers.get('Content-Type')||'').includes('application/json'))throw new PlannerApiError('Wyszukiwanie miejsca wymaga JSON.',415);
         const body=parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,2048)));
         return json({success:true,provider:'google',places:await resolveGoogleLocation(body,env)});
+      }
+      if(new URL(request.url).pathname==='/routes/compute'){
+        if(!(request.headers.get('Content-Type')||'').includes('application/json'))throw new PlannerApiError('Obliczanie trasy wymaga JSON.',415);
+        const body=parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,4096)));
+        return json({success:true,route:await computeGoogleRoute(body,env)});
       }
       /* ===== 1. AUDIO ===== */
 
