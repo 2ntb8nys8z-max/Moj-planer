@@ -32,6 +32,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(normalizeArt(w.document.querySelector('.phone-day-weather .weather-icon')),normalizeArt(w.document.querySelector('.okti-weather-hero .okti-weather-icon')),'Header and detail share identical weather artwork');
   assert.match(run('oktiSunHorizonArtwork(true)'),/M40 18v49/,'Sunset arrow starts at ray level and ends beneath horizon');
   assert.ok(run("oktiMoonPhase('2026-11-24').fraction")>.9,'Astronomical moon phase near full moon');
+ assert.equal(run('plannerWeatherSymbol(51).kind'),'drizzle');assert.equal(run('plannerWeatherSymbol(61).kind'),'rain');assert.equal(run('plannerWeatherSymbol(68).kind'),'sleet');
+ for(const kind of ['sun','partly','cloud','drizzle','rain','storm','snow','sleet','fog','wind'])assert.match(run(`oktiWeatherArtwork('${kind}')`),/weather-icons-33-221\.webp/,'Approved artwork is shared across weather surfaces');
  const sharedMoon=run("oktiWeatherArtwork('partly',false)");assert.match(sharedMoon,/weather-moon-33-219\.webp/,'Night weather uses the detailed lunar surface');assert.doesNotMatch(sharedMoon,/weather-moon-craters/,'No drawn circular crater holes');
  for(const phase of [0,.125,.25,.5,.75,.875]){const svg=run(`oktiMoonArtwork(${phase})`);assert.match(svg,/weather-moon-33-219\.webp/,'Every phase retains the same recognizable surface');assert.match(svg,/-lit/,'Lit phase clips the surface instead of drawing a flat disc');}
  const phaseDoc=new JSDOM(run('oktiMoonArtwork(.875)')).window.document;
@@ -75,8 +77,9 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(viewport.querySelector('.phone-day-speaker'),null,'Moving content never includes the speaker');
   assert.equal(w.document.querySelectorAll('.okti-day-slide-ghost').length,1);
   assert.ok([...w.document.querySelector('.okti-day-slide-ghost').querySelectorAll('[id]')].every(node=>node.namespaceURI==='http://www.w3.org/2000/svg'),'Only uniquely renamed SVG artwork IDs remain in the outgoing copy');
-  assert.ok(w.document.querySelector('.okti-day-content-ghost linearGradient[id]'),'Outgoing weather content retains its gradient definitions');
-  for(const node of w.document.querySelectorAll('.okti-day-content-ghost [fill^="url(#"]')){const id=node.getAttribute('fill').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
+  assert.ok(w.document.querySelector('.okti-day-content-ghost clipPath[id]'),'Outgoing weather content retains its sprite clipping definitions');
+  assert.match(w.document.querySelector('.okti-day-content-ghost image').getAttribute('href'),/weather-icons-33-221\.webp/,'Outgoing weather content retains the approved texture');
+  for(const node of w.document.querySelectorAll('.okti-day-content-ghost [clip-path^="url(#"]')){const id=node.getAttribute('clip-path').slice(5,-1);assert.ok(w.document.getElementById(id),'Every outgoing icon gradient resolves during the slide')}
   const ids=[...w.document.querySelectorAll('[id]')].map(node=>node.id);assert.equal(new Set(ids).size,ids.length,'Outgoing copy has no duplicate IDs');
   assert.equal(animations[0].frames[1].transform,'translateX(-360px)','Next day pushes the outgoing view left');
   const headerMotion=animations.find(animation=>animation.element.classList.contains('phone-day-track'));
@@ -132,6 +135,37 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(dismissal.frames[1].opacity,0,'Closing fades the whole card away');
   assert.ok(dismissal.frames.every(frame=>frame.transform===undefined),'Closing never scales text or morphs back into a tile');
   dismissal.finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
+  // Real shared-element setup with deterministic layout and controllable WAAPI.
+  run(`selected=new Date('${day}T12:00:00');renderDay()`);
+  for(const animation of [...animations])animation.finish();
+  await Promise.resolve();await Promise.resolve();
+  const rect=w.Element.prototype.getBoundingClientRect;
+  w.Element.prototype.getBoundingClientRect=function(){
+   const source=this.closest?.('#dayTitle');return {left:source?140:60,top:source?110:220,width:this.id==='dayTitle'?190:this.classList.contains('okti-weather-card')?350:source?40:76,height:this.id==='dayTitle'?70:this.classList.contains('okti-weather-card')?540:source?40:76};
+  };
+  const startMotion=animations.length;
+  w.document.querySelector('#dayTitle').click();
+  assert.equal(w.document.querySelectorAll('.okti-weather-shared').length,3,'Weekday, actual weather artwork and actual temperature travel separately');
+  assert.equal(w.document.querySelector('.phone-day-weekday').style.visibility,'hidden','Original shared content is hidden while its copy travels');
+  assert.equal(w.document.querySelector('.phone-day-speaker').style.visibility,'','The speaker does not join the weather transition');
+  const sharedIds=[...w.document.querySelectorAll('[id]')].map(n=>n.id);assert.equal(new Set(sharedIds).size,sharedIds.length,'Traveling icon gradients have unique identifiers');
+  for(const node of w.document.querySelectorAll('.okti-weather-shared [clip-path^="url(#"]'))assert(w.document.getElementById(node.getAttribute('clip-path').slice(5,-1)),'Traveling icon gradients resolve');
+  const firstFlight=[...animations.slice(startMotion)];assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-build-panel')),'The panel grows separately from its contents');
+  assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-astronomy')&&a.options.delay>=400),'Forecast details appear after the shared elements begin moving');
+  w.dispatchEvent(new w.Event('okti-local-weather'));
+  assert.equal(w.document.querySelectorAll('.okti-weather-shared').length,3,'Forecast refresh during opening does not remove the traveling targets');
+  for(const animation of firstFlight)animation.finish();
+  for(let i=0;i<5;i++)await Promise.resolve();
+  assert.equal(w.document.querySelectorAll('.okti-weather-shared,.okti-weather-build-panel').length,0,'Completed opening removes every temporary element');
+  assert.equal(w.document.querySelector('.phone-day-weekday').style.visibility,'','Completed motion restores the header');
+  assert.equal(w.document.querySelector('.okti-weather-card').classList.contains('okti-weather-building'),false);
+  w.document.querySelector('.okti-weather-x').click();animations.at(-1).finish();
+  w.document.querySelector('#dayTitle').click();assert.equal(w.document.querySelectorAll('.okti-weather-shared').length,3);
+  w.document.querySelector('.okti-weather-x').click();
+  assert.equal(w.document.querySelectorAll('.okti-weather-shared,.okti-weather-build-panel').length,0,'Closing mid-flight removes all temporary artwork immediately');
+  assert.equal(w.document.querySelector('.phone-day-temperature').style.visibility,'','Interrupted opening restores the original temperature');
+  animations.at(-1).finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
+  w.Element.prototype.getBoundingClientRect=rect;
   console.log('Local weather: explicit location consent, real source isolation, per-location two-hour cache, no event preload, event date/hour, foreground-only refresh, denied/offline handling and disable verified (GPS and providers mocked).');
  }finally{w.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -140,6 +140,10 @@ body.event-sheet-open{overflow:hidden}
 </style>
 <style id="okti-day-weather-33-205">
 /* Expanded coastal weather card, with native dialog focus and reduced motion. */
+#dayWeatherModal .okti-weather-card.okti-weather-building{background:transparent;box-shadow:none}
+#dayWeatherModal .okti-weather-build-panel{position:fixed;pointer-events:none;transform-origin:0 0;z-index:-1;border-radius:30px;background:linear-gradient(140deg,#fff 0%,#f3fcff 58%,#e4f7ff);box-shadow:0 18px 45px #326b892b,inset 0 1px 2px #fff}
+#dayWeatherModal .okti-weather-shared{contain:layout style}
+
 body.okti-weather-open{overflow:hidden}
 #dayWeatherModal{border:0;padding:18px;margin:auto;background:transparent;color:#163f58;width:100%;height:100%;max-width:none;max-height:none;inset:0;box-sizing:border-box;overflow:hidden}
 #dayWeatherModal:not([open]){display:none}
@@ -206,7 +210,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.04.33.220-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.05.33.221-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -281,7 +285,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.04.33.220-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.05.33.221-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1797,7 +1801,16 @@ function oktiMoonSurface(id,phase=null){
  }
  return `<g class="weather-moon-disc"><defs><clipPath id="${id}-disc"><circle cx="28" cy="28" r="24"/></clipPath></defs><g clip-path="url(#${id}-disc)"><circle cx="28" cy="28" r="24" fill="#a6aaad"/>${image}${illumination}</g><circle cx="28" cy="28" r="24" fill="none" stroke="#9da5ad" stroke-width=".35"/></g>`;
 }
+// Approved pearl weather collection. A clipped atlas keeps one cached texture
+// shared by the collapsed tile, large forecast and every hourly symbol.
+function oktiWeatherSprite(kind){
+ const cells={sun:[0,0],partly:[1,0],cloud:[2,0],drizzle:[3,0],rain:[0,1],storm:[1,1],snow:[2,1],sleet:[3,1],fog:[0,2],wind:[1,2],moon:[2,2],nightCloud:[3,2]},cell=cells[kind];
+ if(!cell)return '';
+ const id='okti-weather-art-'+(++oktiWeatherArtId);
+ return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><clipPath id="${id}-sprite"><rect width="64" height="64"/></clipPath></defs><g clip-path="url(#${id}-sprite)"><image href="weather-icons-33-221.webp?v=7a323b52f4f90c19" x="${-cell[0]*64}" y="${-cell[1]*64}" width="256" height="192" preserveAspectRatio="none"/></g></svg>`;
+}
 function oktiWeatherArtwork(kind,day=true){
+ if(day||!['sun','partly'].includes(kind)){const sprite=oktiWeatherSprite(kind);if(sprite)return sprite;}
  const id='okti-weather-art-'+(++oktiWeatherArtId),sun=`url(#${id}-sun)`,cloud=`url(#${id}-cloud)`;
  const defs=`<defs><linearGradient id="${id}-sun" x2=".7" y2="1"><stop stop-color="#ffe17b"/><stop offset="1" stop-color="#f4b328"/></linearGradient><linearGradient id="${id}-cloud" x2=".3" y2="1"><stop stop-color="#fff"/><stop offset=".48" stop-color="#edf3f6"/><stop offset="1" stop-color="#bacbd5"/></linearGradient><radialGradient id="${id}-moon" cx=".28" cy=".2" r=".9"><stop stop-color="#f0f2f5"/><stop offset=".44" stop-color="#b4bdc8"/><stop offset="1" stop-color="#788594"/></radialGradient><linearGradient id="${id}-rain" x2=".5" y2="1"><stop stop-color="#72d6f6"/><stop offset="1" stop-color="#289bd1"/></linearGradient></defs>`;
  const rays='<path d="M32 3v6M32 55v6M3 32h6M55 32h6M11.5 11.5l4 4M48.5 48.5l4 4M52.5 11.5l-4 4M15.5 48.5l-4 4" fill="none" stroke="#efb42d" stroke-width="2.5" stroke-linecap="round"/>';
@@ -1805,7 +1818,7 @@ function oktiWeatherArtwork(kind,day=true){
  const moon=oktiMoonSurface(id);
  const clouds=`<path d="M17 49C5 49 3 32 15 29c0-14 20-20 28-6 12-2 22 15 10 23-3 3-7 3-12 3Z" fill="${cloud}"/><path d="M16 49c-9 0-12-12-4-17 4-3 9-2 11 0 4-10 21-8 23 3 11 0 14 14 1 14Z" fill="${cloud}"/>`;
  const drops=`<g fill="url(#${id}-rain)"><path d="M23 49c0 6-6 7-6 2 0-2 4-6 6-8Z"/><path d="M40 49c0 6-6 7-6 2 0-2 4-6 6-8Z"/></g>`;
- let art=kind==='sun'?(day?sunny:`<g transform="translate(4 4)">${moon}</g>`):kind==='partly'?(day?`<g transform="translate(-1 -1) scale(.78)">${sunny}</g>${clouds}`:`${moon}<g class="weather-night-cloud" transform="translate(25 27) scale(.6)">${clouds}</g>`):kind==='cloud'?clouds:kind==='rain'?clouds+drops:kind==='storm'?clouds+'<path d="m33 37-9 13h7l-3 11 15-18h-8l3-6Z" fill="#efb83d"/>':kind==='snow'?clouds+'<g stroke="#69a9cb" stroke-width="2" stroke-linecap="round"><path d="M21 48v12m-5-9 10 6m0-6-10 6M43 48v12m-5-9 10 6m0-6-10 6"/></g>':kind==='fog'?clouds+'<path d="M9 45h46M14 52h36M19 59h26" stroke="#9cb8c7" stroke-width="2.5" stroke-linecap="round"/>':'<text x="32" y="42" text-anchor="middle" fill="#52798c" font-size="32">?</text>';
+ let art=kind==='sun'?(day?sunny:`<g transform="translate(4 4)">${moon}</g>`):kind==='partly'?(day?`<g transform="translate(-1 -1) scale(.78)">${sunny}</g>${clouds}`:`${moon}<g class="weather-night-cloud" transform="translate(25 27) scale(.6)">${oktiWeatherSprite('cloud')}</g>`):kind==='cloud'?clouds:kind==='rain'?clouds+drops:kind==='storm'?clouds+'<path d="m33 37-9 13h7l-3 11 15-18h-8l3-6Z" fill="#efb83d"/>':kind==='snow'?clouds+'<g stroke="#69a9cb" stroke-width="2" stroke-linecap="round"><path d="M21 48v12m-5-9 10 6m0-6-10 6M43 48v12m-5-9 10 6m0-6-10 6"/></g>':kind==='fog'?clouds+'<path d="M9 45h46M14 52h36M19 59h26" stroke="#9cb8c7" stroke-width="2.5" stroke-linecap="round"/>':'<text x="32" y="42" text-anchor="middle" fill="#52798c" font-size="32">?</text>';
  return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">${defs}${art}</svg>`;
 }
 function oktiSunHorizonArtwork(setting){
@@ -1856,12 +1869,57 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
   clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{if(!dialog.open)return;if(target)hours.scrollLeft=Math.max(0,target.offsetLeft-hours.offsetLeft-12);syncRuler()},0);
   const source=el('a','Open-Meteo');source.href='https://open-meteo.com/';source.target='_blank';source.rel='noopener noreferrer';const footer=el('p',null,'okti-weather-source');footer.append(document.createTextNode((summary.stale?'Zapisana prognoza · ':'')+'Pobrano '+new Date(details.at).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+' · '),source);body.append(footer);
  }
- function motion(reverse){const from=document.querySelector('#dayTitle').getBoundingClientRect(),to=card.getBoundingClientRect();if(!from.width||!to.width||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!card.animate)return null;const small={transform:`translate(${from.left+from.width/2-to.left-to.width/2}px,${from.top+from.height/2-to.top-to.height/2}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'25px'},large={transform:'translate(0,0) scale(1,1)',borderRadius:'30px'};return card.animate(reverse?[large,small]:[small,large],{duration:reverse?420:650,easing:'cubic-bezier(.22,.8,.2,1)'})}
+ // Shared elements travel in the dialog top layer; the forecast itself never scales.
+ let pendingWeatherRender=false;
+ function motion(){
+  const source=document.querySelector('#dayTitle'),from=source.getBoundingClientRect(),to=card.getBoundingClientRect();
+  if(!from.width||!to.width||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!card.animate)return null;
+  const animations=[],ghosts=[],hidden=[],token={cancel:()=>settle()},duration=760;
+  let settled=false;
+  function settle(){
+   if(settled)return;settled=true;
+   for(const animation of animations){animation.onfinish=null;animation.oncancel=null;animation.cancel()}
+   for(const ghost of ghosts)ghost.remove();
+   for(const [node,visibility] of hidden)node.style.visibility=visibility;
+   card.classList.remove('okti-weather-building');
+   if(opening===token)opening=null;
+   if(pendingWeatherRender&&!closing){pendingWeatherRender=false;render()}
+  }
+  function animate(node,frames,options){const animation=node.animate(frames,options);animations.push(animation);return animation}
+  function hide(node){hidden.push([node,node.style.visibility]);node.style.visibility='hidden'}
+  const options={duration,easing:'cubic-bezier(.22,.75,.22,1)',fill:'both'};
+  try{
+   const panel=document.createElement('div');panel.className='okti-weather-build-panel';panel.setAttribute('aria-hidden','true');
+   Object.assign(panel.style,{left:to.left+'px',top:to.top+'px',width:to.width+'px',height:to.height+'px'});dialog.append(panel);ghosts.push(panel);card.classList.add('okti-weather-building');
+   const small={transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`,opacity:.15,borderRadius:'25px'},large={transform:'translate(0,0) scale(1)',opacity:1,borderRadius:'30px'};
+   animate(panel,[small,large],{...options,delay:100,duration:660});
+   const pairs=[['.phone-day-weekday','h2'],['.phone-day-weather .weather-icon','.okti-weather-hero .okti-weather-icon'],['.phone-day-temperature','.okti-weather-hero strong']];
+   for(const [sourceSelector,targetSelector] of pairs){
+    const a=source.querySelector(sourceSelector),b=page.querySelector(targetSelector);if(!a||!b)continue;
+    const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();if(!ar.width||!ar.height||!br.width||!br.height)continue;
+    const ghost=b.cloneNode(true),style=getComputedStyle(b);ghost.removeAttribute('id');ghost.classList.add('okti-weather-shared');ghost.setAttribute('aria-hidden','true');
+    // SVG gradient/clip identifiers must remain unique while both copies exist.
+    const suffix='-flight-'+(++oktiWeatherArtId),ids=[...ghost.querySelectorAll('[id]')];
+    for(const node of ids){const old=node.id;node.id=old+suffix;for(const element of [ghost,...ghost.querySelectorAll('*')])for(const attr of [...element.attributes])if(attr.value.includes('#'+old))element.setAttribute(attr.name,attr.value.replaceAll('#'+old,'#'+old+suffix))}
+    Object.assign(ghost.style,{position:'fixed',left:br.left+'px',top:br.top+'px',width:br.width+'px',height:br.height+'px',margin:'0',padding:'0',font:style.font,letterSpacing:style.letterSpacing,color:style.color,textTransform:style.textTransform,lineHeight:style.lineHeight,display:'block',transformOrigin:'0 0',zIndex:'4',pointerEvents:'none'});
+    const svg=ghost.querySelector('svg');if(svg)Object.assign(svg.style,{display:'block',width:'100%',height:'100%',overflow:'visible'});
+    dialog.append(ghost);ghosts.push(ghost);hide(a);hide(b);
+    animate(ghost,[{transform:`translate(${ar.left-br.left}px,${ar.top-br.top}px) scale(${ar.width/br.width},${ar.height/br.height})`},{transform:'translate(0,0) scale(1)'}],options);
+   }
+   for(const node of [dialog.querySelector('.okti-weather-x'),...body.children]){
+    if(node.classList.contains('okti-weather-hero'))continue;
+    animate(node,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:330,delay:480,easing:'ease-out',fill:'both'});
+   }
+   Promise.all(animations.map(animation=>animation.finished.catch(()=>{}))).then(settle);
+   return token;
+  }catch(_){settle();return null}
+ }
+
  function finishClose(){dialog.close?.();dialog.removeAttribute('open');app.inert=false;document.body.classList.remove('okti-weather-open');dialog.classList.remove('okti-weather-dismiss');if(dismissal){const animation=dismissal;dismissal=null;animation.onfinish=null;animation.oncancel=null;animation.cancel()}closing=false;focus?.focus()}
  function close(){if(!dialog.open||closing)return;closing=true;gesture=null;dayMotion?.cancel();opening?.cancel();dialog.classList.add('okti-weather-dismiss');if(!card.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){finishClose();return}dismissal=card.animate([{opacity:1},{opacity:0}],{duration:180,easing:'ease-out',fill:'forwards'});dismissal.onfinish=finishClose;dismissal.oncancel=finishClose}
- function open(){if(dialog.open||closing)return;focus=document.activeElement;date=new Date(getDate());render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;document.body.classList.add('okti-weather-open');card.scrollTop=0;opening=motion(false);dialog.querySelector('.okti-weather-x').focus();weather.refresh()}
+ function open(){if(dialog.open||closing)return;focus=document.activeElement;date=new Date(getDate());pendingWeatherRender=false;render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;document.body.classList.add('okti-weather-open');card.scrollTop=0;opening=motion();dialog.querySelector('.okti-weather-x').focus();weather.refresh()}
  function moveDay(direction){
-  if(!dialog.open||closing)return;if(dayMotion){pendingDay+=direction;return}
+  if(!dialog.open||closing)return;opening?.cancel();if(dayMotion){pendingDay+=direction;return}
   if(!track.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){date=new Date(moveDate(direction));render();return}
   const outgoing=page,oldHeight=outgoing.getBoundingClientRect().height;
   outgoing.inert=true;outgoing.setAttribute('aria-hidden','true');outgoing.querySelector('#dayWeatherTitle').removeAttribute('id');outgoing.querySelector('#dayWeatherBody').removeAttribute('id');
@@ -1890,7 +1948,7 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
  card.addEventListener('touchcancel',()=>{gesture=null},{passive:true});
  card.addEventListener('click',e=>{if(Date.now()-swipedAt<450){e.preventDefault();e.stopImmediatePropagation()}},true);
  card.addEventListener('keydown',e=>{if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!hourlyTarget(e.target)&&!e.target.closest?.('input,textarea,select')){e.preventDefault();moveDay(e.key==='ArrowRight'?1:-1)}});
- dialog.querySelector('.okti-weather-x').onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('click',e=>{if(e.target===dialog)close()});window.addEventListener('okti-local-weather',()=>{if(dialog.open&&!closing)render()});
+ dialog.querySelector('.okti-weather-x').onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('click',e=>{if(e.target===dialog)close()});window.addEventListener('okti-local-weather',()=>{if(dialog.open&&!closing){if(opening)pendingWeatherRender=true;else render()}});
  return {open,close};
 }
 const OktiLocalWeather=(()=>{
@@ -1971,6 +2029,8 @@ function plannerWeatherSymbol(code){
   if(code===3)return {kind:'cloud',label:'Pochmurno'};
   if(code===45||code===48)return {kind:'fog',label:'Mgła'};
   if(code>=95)return {kind:'storm',label:'Burza'};
+  if(code>=51&&code<=57)return {kind:'drizzle',label:code>=56?'Marznąca mżawka':'Mżawka'};
+  if(code===68||code===69||code===83||code===84)return {kind:'sleet',label:'Deszcz ze śniegiem'};
   if(code>=71&&code<=77||code===85||code===86)return {kind:'snow',label:'Śnieg'};
   return {kind:'rain',label:'Opady'};
 }
