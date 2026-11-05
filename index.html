@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.05.33.227-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.05.33.228-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.05.33.227-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.05.33.228-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1110,6 +1110,7 @@ async function requestVoiceDialogue(session,body){
       showVoiceClarification(session,question);return null;
     }
     session.lastUtterance=spoken;result.inputSource=session.inputSource;
+    if(plannerGoogleLookupRequest(spoken)&&await handleEventGoogleLookupCommand(session))return null;
     const question=result.status==='continue'?result.reply:result.clarification?.question||null;
     if(question){session.history.push({role:'user',content:spoken||'Polecenie głosowe'},{role:'assistant',content:question});showVoiceClarification(session,question);return null}
     result.dialogueResolved=session.history.length>0;
@@ -1122,6 +1123,29 @@ async function requestVoiceDialogue(session,body){
 }
 
 let plannerGooglePicker=null;
+function plannerGoogleLookupRequest(text){
+  const plain=String(text||'').toLocaleLowerCase('pl-PL').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');
+  return /\b(?:sprawdz|zweryfikuj|wyszukaj|znajdz|poszukaj)\w*\b/.test(plain)&&/\b(?:google\s*maps|map(?:ie|ach)\s+google)\b/.test(plain);
+}
+async function handleEventGoogleLookupCommand(session){
+  const task=openEventCommandTask(session);if(!task)return false;
+  const location=plannerLocation(task);
+  if(!location){showVoiceClarification(session,'Najpierw podaj adres wydarzenia, który mam sprawdzić w Google Maps.');return true}
+  const candidate=structuredClone(task),current=()=>voiceDialogueValid(session)&&openEventCommandTask(session)===task&&plannerLocation(task)===location;
+  if(!await choosePlannerGoogleLocation(candidate,current,'event')){
+    if(current())showVoiceClarification(session,'Nie wybrano miejsca z Google Maps. Adres wydarzenia pozostał bez zmian.');
+    return true;
+  }
+  if(!current())return true;
+  const place=plannerGooglePlace(candidate);
+  if(!place){showVoiceClarification(session,'Adres pozostał zapisany jako tekst, bez przypięcia do Google Maps.');return true}
+  PlannerData.assertWritable();clearPlannerWeatherResolution(task);task.location=candidate.location;applyVoicePlaceMetadata(task,candidate);
+  if(task.googleEventId){task.googleDirty=true;task.googleSynced=false}
+  historyAdd(task,'conversation','Sprawdzono lokalizację w Google Maps: '+task.location);saveTasks();
+  retainEventSession(session,task);$('eventClarification')?.remove();renderAll();openEventActions(task);
+  session.history.push({role:'assistant',content:'Adres sprawdzony i przypięty do wydarzenia: '+task.location+'.'});renderVoiceConversation(session);
+  return true;
+}
 function plannerGooglePlace(item){
   const place=item?.googlePlace;
   return place?.provider==='google'&&place.location===plannerLocation(item)&&typeof place.placeId==='string'&&place.placeId&&Number.isFinite(place.latitude)&&Math.abs(place.latitude)<=90&&Number.isFinite(place.longitude)&&Math.abs(place.longitude)<=180?place:null;
@@ -1188,7 +1212,10 @@ async function choosePlannerGoogleLocation(item,current=()=>true,channel=null){
 async function prepareVoiceLocation(session,result){
   const item=result?.item;
   if(!voiceDialogueValid(session)||item?.type!=='event'||!plannerLocation(item))return false;
-  if(session.currentItem?.type==='event'&&plannerLocation(session.currentItem)===plannerLocation(item)){applyVoicePlaceMetadata(item,session.currentItem);return false;}
+  if(session.currentItem?.type==='event'&&plannerLocation(session.currentItem)===plannerLocation(item)){
+    applyVoicePlaceMetadata(item,session.currentItem);
+    if(plannerGooglePlace(item))return false;
+  }
   if(!await choosePlannerGoogleLocation(item,()=>voiceDialogueValid(session),session.channel)){
     if(voiceDialogueValid(session))showVoiceClarification(session,'Możesz poprawić lokalizację lub kontynuować rozmowę. Wydarzenie nie zostało zapisane.');
     return true;
@@ -5012,7 +5039,7 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
  function hit(node){if(!node||!node.getClientRects().length)return 'niewidoczny';const r=node.getBoundingClientRect(),target=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return (node.disabled?'disabled':node.closest('[inert]')?'inert':'aktywny')+' → '+label(target)}
  function render(){
   const modal=document.getElementById('eventModal'),state=plannerRecordings.event;
-  box.textContent='Diagnostyka 33.227\n'+events.join(' | ')+'\nStan: '+(state?.mode||'idle')+(voiceDialogues.event?.busy?' busy':'')+'\nOkti: '+hit(document.getElementById('eventVoice'))+'\nPlus: '+hit(modal.querySelector('.action-bubble'))+(error?'\nBłąd: '+error:'');
+  box.textContent='Diagnostyka 33.228\n'+events.join(' | ')+'\nStan: '+(state?.mode||'idle')+(voiceDialogues.event?.busy?' busy':'')+'\nOkti: '+hit(document.getElementById('eventVoice'))+'\nPlus: '+hit(modal.querySelector('.action-bubble'))+(error?'\nBłąd: '+error:'');
  }
  // Wait until the touch/click sequence has finished; diagnostics must not
  // mutate page content between touchstart and Safari's synthesized click.
@@ -5021,7 +5048,7 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
   if(type==='touchend'||type==='click')timer=setTimeout(render,700);
  },{capture:true,passive:true});
  window.addEventListener('error',event=>{error=(event.error?.name||'Error')+' '+event.lineno+':'+event.colno});
- box.textContent='Diagnostyka 33.227 · Otwórz wydarzenie i dotknij Okti oraz plusa.';
+ box.textContent='Diagnostyka 33.228 · Otwórz wydarzenie i dotknij Okti oraz plusa.';
 })();
 </script>
 </body></html>

@@ -106,6 +106,16 @@ try{
   await waitFor(()=>get('googleLocationChoices')?.children.length);get('googleLocationChoices').firstChild.click();await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
   assert.equal(run('tasks[0].location'),'');get('eventChangeConfirm').click();await edit;assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);run('closeEventActions()');
 
+  // An already typed address can be explicitly verified later. The model's
+  // capability disclaimer must not suppress the real Google lookup.
+  run("delete tasks[0].googlePlace;delete tasks[0].weatherPlace;tasks[0].location='Wyszogrodzka 10, Warszawa';saveTasks();openEventActions(tasks[0]);testSession=beginVoiceDialogue('event',activeTask.id,voiceEventSnapshot(activeTask))");
+  model={kind:'command',intent:'continue',action:'continue',reply:'Nie mogę sprawdzić Google Maps.',operations:[],focus:'',ambiguity:null,uiAction:null};googleResults=[building];
+  const verify=run("requestVoiceDialogue(testSession,'Sprawdź ten adres w Google Maps')");
+  await waitFor(()=>get('googleLocationChoices')?.children.length);assert.equal(run('tasks[0].googlePlace'),undefined,'No place is saved before the user chooses a Google result');
+  get('googleLocationChoices').firstChild.click();await verify;
+  assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);assert.equal(run('tasks[0].location'),building.formatted_address);
+  assert.match(get('eventConversation').textContent,/Adres sprawdzony i przypięty/);run('closeEventActions()');
+
   // Multiple results require an explicit choice; partial matching is visible.
   w.item={type:'event',location:'Wyszogrodzka'};googleResults=[{...street,partial_match:true},building];
   let pending=run('choosePlannerGoogleLocation(item)');await waitFor(()=>get('googleLocationChoices')?.children.length===2);
