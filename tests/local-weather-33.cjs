@@ -18,6 +18,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(w.document.querySelector('.phone-day-temperature'),null,'No fabricated preview weather');
   await run('OktiLocalWeather.enable()');assert.equal(fixes,1);assert.equal(w.document.querySelector('.phone-day-temperature').textContent,'7°');assert.equal(w.document.querySelector('#phoneLocalWeather'),null,'No location controls on the main screen');assert.ok(w.document.querySelector('#phoneSettingsModal #enableLocalWeather'),'Location is configured only in settings');assert.match(w.document.querySelector('#localWeatherStatus').textContent,/Poznań/);assert.match(w.document.querySelector('#localWeatherStatus').textContent,/52\.406, 16\.925/);
   const count=()=>requests.filter(u=>u.includes('api.open-meteo.com/v1/forecast')).length;assert.equal(count(),1);
+ const touch=(target,type,points)=>{const e=new w.Event(type,{bubbles:true,cancelable:true});Object.defineProperty(e,type==='touchend'?'changedTouches':'touches',{value:points.map(([x,y])=>({clientX:x,clientY:y}))});target.dispatchEvent(e);return e};
+ const swipe=(target,from=[250,200],to=[120,205])=>{touch(target,'touchstart',[from]);touch(target,'touchmove',[to]);touch(target,'touchend',[to])};
   w.document.querySelector('#dayTitle').click();
   assert.ok(w.document.querySelector('#dayWeatherModal').open);
   assert.match(w.document.querySelector('#dayWeatherBody').textContent,/Poznań/);
@@ -30,6 +32,17 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(normalizeArt(w.document.querySelector('.phone-day-weather .weather-icon')),normalizeArt(w.document.querySelector('.okti-weather-hero .okti-weather-icon')),'Header and detail share identical weather artwork');
   assert.match(run('oktiSunHorizonArtwork(true)'),/M40 18v49/,'Sunset arrow starts at ray level and ends beneath horizon');
   assert.ok(run("oktiMoonPhase('2026-11-24').fraction")>.9,'Astronomical moon phase near full moon');
+ const sharedMoon=run("oktiWeatherArtwork('partly',false)");assert.match(sharedMoon,/weather-moon-33-219\.webp/,'Night weather uses the detailed lunar surface');assert.doesNotMatch(sharedMoon,/weather-moon-craters/,'No drawn circular crater holes');
+ for(const phase of [0,.125,.25,.5,.75,.875]){const svg=run(`oktiMoonArtwork(${phase})`);assert.match(svg,/weather-moon-33-219\.webp/,'Every phase retains the same recognizable surface');assert.match(svg,/-lit/,'Lit phase clips the surface instead of drawing a flat disc');}
+ const phaseDoc=new JSDOM(run('oktiMoonArtwork(.875)')).window.document;
+ assert.match(phaseDoc.querySelector('clipPath[id$="-lit"] path').getAttribute('d'),/^M28 4A24 24 0 0 0/,'A waning crescent lights the left limb');
+ const hero=()=>w.document.querySelector('.okti-weather-hero');
+ swipe(hero());assert.equal(run('iso(selected)'),next,'Upper weather swipe advances the whole selected day');assert.equal(w.document.querySelector('#date').value,next);assert.equal(w.document.querySelectorAll('.okti-weather-hour').length,4);assert.equal(w.document.querySelector('.okti-weather-hero strong').textContent,'10°');assert(w.document.querySelector('#dayWeatherModal').open,'Day browsing keeps the weather card open');
+ swipe(hero(),[100,200],[240,204]);assert.equal(run('iso(selected)'),day,'Rightward weather swipe returns to the previous day');
+ const hours=w.document.querySelector('.okti-weather-hours');touch(hours,'touchstart',[[240,300]]);assert(!touch(hours,'touchmove',[[90,303]]).defaultPrevented,'Hourly scrolling stays native');touch(hours,'touchend',[[90,303]]);assert.equal(run('iso(selected)'),day,'Hours never switch the day');
+ swipe(hero(),[180,100],[190,270]);assert.equal(run('iso(selected)'),day,'Vertical card scrolling never switches the day');
+ touch(hero(),'touchstart',[[240,200]]);touch(hero(),'touchmove',[[200,200],[220,220]]);touch(hero(),'touchend',[[90,200]]);assert.equal(run('iso(selected)'),day,'Multi-touch cancels day navigation');
+ now+=500;
   assert.equal(count(),1,'Opening day details reuses downloaded weather');
   w.document.querySelector('#dayWeatherModal button').click();
   assert.equal(w.document.querySelector('.app')?.inert||false,false);
@@ -95,8 +108,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const gesture=(type,x,y)=>{const event=new w.Event(type,{bubbles:true,cancelable:true});Object.defineProperty(event,type==='touchend'?'changedTouches':'touches',{value:[{clientX:x,clientY:y}]});w.document.querySelector('#taskList').dispatchEvent(event)};
   const beforeSwipe=run('iso(selected)'),expectedAfterSwipe=new Date(beforeSwipe+'T12:00:00');expectedAfterSwipe.setDate(expectedAfterSwipe.getDate()+1);gesture('touchstart',250,200);gesture('touchend',120,205);assert.equal(run('iso(selected)'),iso(expectedAfterSwipe),'An actual leftward touch gesture advances the date');
   const afterSwipe=run('iso(selected)');gesture('touchstart',200,200);gesture('touchend',190,330);assert.equal(run('iso(selected)'),afterSwipe,'Vertical scrolling does not change the day');
+  swipe(w.document.querySelector('#dayTitle'),[100,200],[245,205]);const previousDate=new Date(afterSwipe+'T12:00:00');previousDate.setDate(previousDate.getDate()-1);assert.equal(run('iso(selected)'),iso(previousDate),'Collapsed weather header also supports day swipes');
+  w.document.querySelector('#dayTitle').click();assert.equal(w.document.querySelector('#dayWeatherModal').open,false,'The synthetic click after a header swipe does not open the weather');now+=500;
   assert.match(html,/#dayWeatherModal \.okti-weather-x:focus-visible\{outline:2px solid #5294b4/,'Keyboard focus remains visible without a filled square');
   w.matchMedia=()=>({matches:false});w.document.querySelector('#dayTitle').click();
+  run("selected=new Date('2026-12-31T12:00:00');renderDay()");
+  swipe(w.document.querySelector('#dayWeatherModal header'));assert.equal(run('iso(selected)'),'2027-01-01','Weather swipe crosses the year boundary');assert.match(w.document.querySelector('#dayWeatherBody').textContent,/Brak prognozy/,'Unavailable forecasts are explicit rather than reusing the previous day');assert.equal(w.document.querySelector('#dayWeatherModal').open,true);now+=500;
   assert.equal(w.document.querySelector('.okti-weather-collapse'),null,'No redundant bottom close button');
   w.document.querySelector('.okti-weather-x').click();const dismissal=animations.at(-1);
   assert.equal(dismissal.frames[1].opacity,0,'Closing fades the whole card away');
