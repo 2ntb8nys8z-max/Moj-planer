@@ -6,6 +6,7 @@ on:
     paths:
       - worker.js
       - worker.txt
+      - worker-code.html
       - preview33/worker.txt
       - scripts/deploy-worker.mjs
       - tests/deploy-worker-33.mjs
