@@ -64,7 +64,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   // Exercise actual day renders with controllable browser animations.
   failForecast=false;await run('OktiLocalWeather.enable()');
   const animations=[];w.matchMedia=()=>({matches:false});
-  w.Element.prototype.animate=function(frames){let finish;const animation={element:this,frames,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish();this.onfinish?.()}};animations.push(animation);return animation};
+  w.Element.prototype.animate=function(frames,options){let finish;const animation={element:this,frames,options,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish();this.onfinish?.()}};animations.push(animation);return animation};
   const dayView=w.document.querySelector('#dayView');dayView.getBoundingClientRect=()=>({width:360,height:500,left:0,top:0});
   const fixedSpeaker=w.document.querySelector('#dayTitle .phone-day-speaker');
   run('selected.setDate(selected.getDate()+1);renderDay()');
@@ -114,8 +114,21 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   w.matchMedia=()=>({matches:false});w.document.querySelector('#dayTitle').click();
   run("selected=new Date('2026-12-31T12:00:00');renderDay()");
   swipe(w.document.querySelector('#dayWeatherModal header'));assert.equal(run('iso(selected)'),'2027-01-01','Weather swipe crosses the year boundary');assert.match(w.document.querySelector('#dayWeatherBody').textContent,/Brak prognozy/,'Unavailable forecasts are explicit rather than reusing the previous day');assert.equal(w.document.querySelector('#dayWeatherModal').open,true);now+=500;
+  const weatherTrack=w.document.querySelector('.okti-weather-day-track'),weatherViewport=w.document.querySelector('.okti-weather-day-viewport'),slide=animations.findLast(animation=>animation.element===weatherTrack);
+  assert.equal(weatherTrack.children.length,2,'Both complete weather pages remain present during the transition');
+  assert.equal(slide.frames[0].transform,'translateX(0)');assert.equal(slide.frames[1].transform,'translateX(-100%)','The outgoing day travels a full page width');assert(slide.options.duration>=600,'The day movement is long enough to follow');
+  assert(slide.frames.every(frame=>frame.opacity===undefined),'Day contents remain solid instead of blinking');
+  assert(weatherTrack.children[0].inert);assert.equal(weatherTrack.children[0].getAttribute('aria-hidden'),'true');assert(weatherTrack.children[1].contains(w.document.querySelector('#dayWeatherTitle')),'The day heading shares the same moving track as the forecast');
+  assert.equal(weatherTrack.querySelector('.okti-weather-x'),null,'The close control stays outside the moving pages');
+  const weatherIds=[...w.document.querySelectorAll('#dayWeatherModal [id]')].map(n=>n.id);assert.equal(new Set(weatherIds).size,weatherIds.length,'Outgoing and incoming SVG clips and headings have no duplicate IDs');
+  swipe(w.document.querySelector('#dayWeatherTitle'),[100,200],[240,205]);assert.equal(run('iso(selected)'),'2027-01-01','A rapid reverse gesture waits for the current transition');assert.equal(weatherTrack.children.length,2,'Rapid gestures do not stack extra pages');
+  slide.finish();assert.equal(run('iso(selected)'),'2026-12-31','The queued reverse gesture is applied after the first slide settles');
+  const reverseWeather=animations.findLast(animation=>animation.element===weatherTrack);assert.notEqual(reverseWeather,slide);assert.equal(reverseWeather.frames[0].transform,'translateX(-100%)');assert.equal(reverseWeather.frames[1].transform,'translateX(0)');
+  reverseWeather.finish();assert.equal(weatherTrack.children.length,1);assert.equal(weatherTrack.style.transform,'');assert.equal(weatherViewport.style.height,'','A settled slide releases its fixed height');
+  swipe(w.document.querySelector('#dayWeatherTitle'));now+=500;
   assert.equal(w.document.querySelector('.okti-weather-collapse'),null,'No redundant bottom close button');
   w.document.querySelector('.okti-weather-x').click();const dismissal=animations.at(-1);
+  assert.equal(weatherTrack.children.length,1,'Closing cleans up an in-progress slide');assert.equal(weatherTrack.style.transform,'');
   assert.equal(dismissal.frames[1].opacity,0,'Closing fades the whole card away');
   assert.ok(dismissal.frames.every(frame=>frame.transform===undefined),'Closing never scales text or morphs back into a tile');
   dismissal.finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
