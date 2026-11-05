@@ -15,5 +15,7 @@ assert.match(source,/\?'safe'/,'Safe journeys are marked green');
 assert.doesNotMatch(source,/travel-trial-toolbar|data-layout|function demo\(/,'Production has no test toolbar or demo event replacement');
 assert.match(source,/localStorage\.setItem\(modeKey/,'Selected travel mode persists without changing event data');
 assert.match(source,/okti-route-spinner/,'Recalculation has a visible working state');
+assert.match(source,/\{hidden:true\}/,'An empty Google route hides the connector instead of showing a false no-route badge');
+assert.match(source,/if\(state\?\.hidden\)continue/,'Same-place empty routes draw neither a line nor a badge');
 
 console.log('Production travel connector: real routes, three modes, risk colors, spinner and no test toolbar passed.');
