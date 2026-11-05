@@ -47,6 +47,15 @@ try{
  const originalHandlers=Object.fromEntries(['actionDone','actionEdit','actionTimer','actionDelete','eventVoice','eventRecordCancel','navigateBtn'].map(id=>[id,get(id).onclick]));
  for(const [id,handler] of Object.entries(originalHandlers))assert.equal(typeof handler,'function',`${id} retains its original actionable handler`);
  assert.equal(get('eventVoice').classList.contains('event-voice-idle'),true,'the idle microphone receives its presentation label');
+ const noteCard=get('eventNotesCards').firstElementChild,noteCopy=noteCard.querySelector('button');
+ const artwork=footer.querySelector('.octi-motion-media');
+ noteCopy.focus();
+ for(let frame=0;frame<5;frame++){artwork.classList.toggle('is-rendered',frame%2===0);await settle()}
+ assert.equal(get('eventNotesCards').firstElementChild,noteCard,'Artwork updates must not replace the note during touch');
+ assert.equal(w.document.activeElement,noteCopy,'Artwork updates preserve focused copy control');
+ run("activeTask.notes='Zmieniona notatka';renderEventContextDetails(activeTask)");await settle();
+ assert.match(get('eventNotesCards').textContent,/Zmieniona notatka/,'Real note changes still render');
+ assert.notEqual(get('eventNotesCards').firstElementChild,noteCard);
  get('eventVoice').textContent='Wyślij';get('eventVoice').classList.add('recording');await settle();
  assert.equal(get('eventVoice').classList.contains('event-voice-idle'),false,'the recording send button never displays the idle microphone label');
  get('eventVoice').classList.remove('recording');await settle();
