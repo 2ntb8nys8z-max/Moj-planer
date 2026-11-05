@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.221</title>
+<title>Mój Planer — test integracji 33.222</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -210,7 +210,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.221</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.221</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.05.33.221-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.222</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.222</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.05.33.222-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -287,7 +287,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.05.33.221-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.05.33.222-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1808,8 +1808,8 @@ function oktiMoonSurface(id,phase=null){
 function oktiWeatherSprite(kind){
  const cells={sun:[0,0],partly:[1,0],cloud:[2,0],drizzle:[3,0],rain:[0,1],storm:[1,1],snow:[2,1],sleet:[3,1],fog:[0,2],wind:[1,2],moon:[2,2],nightCloud:[3,2]},cell=cells[kind];
  if(!cell)return '';
- const id='okti-weather-art-'+(++oktiWeatherArtId);
- return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><clipPath id="${id}-sprite"><rect width="64" height="64"/></clipPath></defs><g clip-path="url(#${id}-sprite)"><image href="weather-icons-33-221.webp?v=7a323b52f4f90c19" x="${-cell[0]*64}" y="${-cell[1]*64}" width="256" height="192" preserveAspectRatio="none"/></g></svg>`;
+ const id='okti-weather-art-'+(++oktiWeatherArtId),offsets=[[25,23],[-1.5,17.5],[-10,25.5],[-5,31.5],[25.5,-12],[-7,-10.5],[-6,-7.5],[-10.5,-17],[24,-32],[11.5,-39],[19,-28],[-12.5,-34.5]],offset=offsets[cell[1]*4+cell[0]],dx=-offset[0]*64/362,dy=-offset[1]*64/362;
+ return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><clipPath id="${id}-sprite"><rect width="64" height="64"/></clipPath></defs><g clip-path="url(#${id}-sprite)"><g transform="translate(32 32) scale(1.08) translate(${dx-32} ${dy-32})"><g clip-path="url(#${id}-sprite)"><image href="weather-icons-33-221.webp?v=7a323b52f4f90c19" x="${-cell[0]*64}" y="${-cell[1]*64}" width="256" height="192" preserveAspectRatio="none"/></g></g></g></svg>`;
 }
 function oktiWeatherArtwork(kind,day=true){
  if(day||!['sun','partly'].includes(kind)){const sprite=oktiWeatherSprite(kind);if(sprite)return sprite;}
@@ -1895,15 +1895,19 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
    Object.assign(panel.style,{left:to.left+'px',top:to.top+'px',width:to.width+'px',height:to.height+'px'});dialog.append(panel);ghosts.push(panel);card.classList.add('okti-weather-building');
    const small={transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`,opacity:.15,borderRadius:'25px'},large={transform:'translate(0,0) scale(1)',opacity:1,borderRadius:'30px'};
    animate(panel,[small,large],{...options,delay:100,duration:660});
+   function sharedRect(node,textOnly){
+    if(textOnly){const range=document.createRange();range.selectNodeContents(node);const rect=range.getBoundingClientRect?.();if(rect?.width&&rect?.height)return rect;}
+    return node.getBoundingClientRect();
+   }
    const pairs=[['.phone-day-weekday','h2'],['.phone-day-weather .weather-icon','.okti-weather-hero .okti-weather-icon'],['.phone-day-temperature','.okti-weather-hero strong']];
    for(const [sourceSelector,targetSelector] of pairs){
     const a=source.querySelector(sourceSelector),b=page.querySelector(targetSelector);if(!a||!b)continue;
-    const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();if(!ar.width||!ar.height||!br.width||!br.height)continue;
-    const ghost=b.cloneNode(true),style=getComputedStyle(b);ghost.removeAttribute('id');ghost.classList.add('okti-weather-shared');ghost.setAttribute('aria-hidden','true');
+    const textOnly=targetSelector==='h2',ar=sharedRect(a,textOnly),br=sharedRect(b,textOnly);if(!ar.width||!ar.height||!br.width||!br.height)continue;
+    const ghost=textOnly?document.createElement('span'):b.cloneNode(true),style=getComputedStyle(b);if(textOnly)ghost.textContent=b.textContent;ghost.removeAttribute('id');ghost.classList.add('okti-weather-shared');ghost.setAttribute('aria-hidden','true');
     // SVG gradient/clip identifiers must remain unique while both copies exist.
     const suffix='-flight-'+(++oktiWeatherArtId),ids=[...ghost.querySelectorAll('[id]')];
     for(const node of ids){const old=node.id;node.id=old+suffix;for(const element of [ghost,...ghost.querySelectorAll('*')])for(const attr of [...element.attributes])if(attr.value.includes('#'+old))element.setAttribute(attr.name,attr.value.replaceAll('#'+old,'#'+old+suffix))}
-    Object.assign(ghost.style,{position:'fixed',left:br.left+'px',top:br.top+'px',width:br.width+'px',height:br.height+'px',margin:'0',padding:'0',font:style.font,letterSpacing:style.letterSpacing,color:style.color,textTransform:style.textTransform,lineHeight:style.lineHeight,display:'block',transformOrigin:'0 0',zIndex:'4',pointerEvents:'none'});
+    Object.assign(ghost.style,{position:'fixed',left:br.left+'px',top:br.top+'px',width:br.width+'px',height:br.height+'px',margin:'0',padding:'0',font:style.font,letterSpacing:style.letterSpacing,color:style.color,textTransform:style.textTransform,lineHeight:style.lineHeight,display:'block',whiteSpace:'nowrap',textAlign:'left',visibility:'visible',transformOrigin:'0 0',zIndex:'4',pointerEvents:'none'});
     const svg=ghost.querySelector('svg');if(svg)Object.assign(svg.style,{display:'block',width:'100%',height:'100%',overflow:'visible'});
     dialog.append(ghost);ghosts.push(ghost);hide(a);hide(b);
     animate(ghost,[{transform:`translate(${ar.left-br.left}px,${ar.top-br.top}px) scale(${ar.width/br.width},${ar.height/br.height})`},{transform:'translate(0,0) scale(1)'}],options);

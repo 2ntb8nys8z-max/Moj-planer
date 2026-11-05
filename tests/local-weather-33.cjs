@@ -143,6 +143,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   w.Element.prototype.getBoundingClientRect=function(){
    const source=this.closest?.('#dayTitle');return {left:source?140:60,top:source?110:220,width:this.id==='dayTitle'?190:this.classList.contains('okti-weather-card')?350:source?40:76,height:this.id==='dayTitle'?70:this.classList.contains('okti-weather-card')?540:source?40:76};
   };
+  w.Range.prototype.getBoundingClientRect=function(){return {left:155,top:120,width:110,height:28}};
   const startMotion=animations.length;
   w.document.querySelector('#dayTitle').click();
   assert.equal(w.document.querySelectorAll('.okti-weather-shared').length,3,'Weekday, actual weather artwork and actual temperature travel separately');
@@ -150,7 +151,14 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(w.document.querySelector('.phone-day-speaker').style.visibility,'','The speaker does not join the weather transition');
   const sharedIds=[...w.document.querySelectorAll('[id]')].map(n=>n.id);assert.equal(new Set(sharedIds).size,sharedIds.length,'Traveling icon gradients have unique identifiers');
   for(const node of w.document.querySelectorAll('.okti-weather-shared [clip-path^="url(#"]'))assert(w.document.getElementById(node.getAttribute('clip-path').slice(5,-1)),'Traveling icon gradients resolve');
-  const firstFlight=[...animations.slice(startMotion)];assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-build-panel')),'The panel grows separately from its contents');
+  const firstFlight=[...animations.slice(startMotion)];
+  const movingDay=w.document.querySelector('.okti-weather-shared');
+  assert.equal(movingDay.tagName,'SPAN','Traveling weekday is independent of heading block styles');
+  assert.equal(movingDay.style.width,'110px','Weekday travels using the measured text width, not the full heading width');
+  assert.equal(movingDay.style.visibility,'visible');
+  const sharedFlights=firstFlight.filter(a=>a.element.classList.contains('okti-weather-shared'));
+  assert.equal(sharedFlights.length,3);assert(sharedFlights.every(a=>!a.options.delay&&a.options.duration===760),'Weekday, icon and temperature start together on the same clock');
+assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-build-panel')),'The panel grows separately from its contents');
   assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-astronomy')&&a.options.delay>=400),'Forecast details appear after the shared elements begin moving');
   w.dispatchEvent(new w.Event('okti-local-weather'));
   assert.equal(w.document.querySelectorAll('.okti-weather-shared').length,3,'Forecast refresh during opening does not remove the traveling targets');
