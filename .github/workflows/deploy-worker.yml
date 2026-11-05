@@ -40,6 +40,8 @@ jobs:
         run: npm ci
 
       - name: Verify generated artifacts and all regression tests
+        env:
+          TZ: Europe/Warsaw
         run: npm test
 
       - name: Verify deployment safety checks
