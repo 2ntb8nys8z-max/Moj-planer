@@ -15,7 +15,10 @@ try{
  for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
  run(`selected=new Date('2026-11-05T12:00:00');tasks=[{id:'event',title:'Wziąć lek',date:'2026-11-05',time:'15:00',endTime:'15:30',reminder:{minutesBefore:15}}];ideas=[{id:'standalone',type:'idea',title:'Telefon',text:'Telefon',alarm:{date:'2026-11-05',time:'18:00',startTime:'18:00',message:'Zadzwonić',deliveredAt:'2026-11-04T18:00:00.000Z'}}];renderAll()`);
  const initial=storage(),list=q('#taskList');list.scrollTop=120;
+ const animations=[];
+ w.HTMLElement.prototype.animate=function(keyframes,options){const animation={element:this,keyframes,options,cancelled:false,cancel(){this.cancelled=true}};animations.push(animation);return animation;};
  open('event:event');
+ assert.equal(JSON.stringify(animations.at(-1).keyframes.map(f=>Object.keys(f))),JSON.stringify([['opacity'],['opacity']]),'Reduced motion retains a gentle fade without scaling');
  assert.equal(q('.phone-reminder-editor h3').textContent,'Wziąć lek');
  assert.equal(q('.phone-reminder-offset').textContent,'15 minut wcześniej');
  assert.equal(q('.phone-reminder-wheels').children.length,3);
@@ -30,6 +33,21 @@ try{
  q('.phone-reminder-cancel').click();
  assert.equal(storage(),initial);assert.equal(list.scrollTop,120,'Cancel restores original plan scroll');
  assert.equal(marker('event:event').querySelector('.phone-reminder-time').textContent,'14:45');
+ // An hour change traverses the gap; retarget from its current visible position.
+ w.matchMedia=()=>({matches:false});
+ const originalRect=w.HTMLElement.prototype.getBoundingClientRect;
+ let inFlightTop=null,inFlightElement=null;
+ w.HTMLElement.prototype.getBoundingClientRect=function(){if(this.classList?.contains('phone-reminder-axis-label')){const top=this===inFlightElement?inFlightTop:parseFloat(this.style.top);return {top,bottom:top+22,height:22};}return originalRect.call(this);};
+ open('event:event');
+ const opening=animations.at(-1);assert(opening.options.duration>=650,'Opening remains visible long enough to perceive');assert(opening.keyframes[0].transform.includes('scale('));
+ choose(12,45);
+ const travel=animations.at(-1);assert.equal(travel.element,marker('event:event'));assert.match(travel.keyframes[0].transform,/138px/,'Marker travels the full two-hour gap');assert(!travel.keyframes.some(f=>'opacity' in f),'Marker stays visible during travel');
+ const settled=12*60*1.15+45*1.15;inFlightTop=settled+40;inFlightElement=marker('event:event');
+ q('.phone-reminder-wheel').querySelectorAll('button')[11].click();
+ const retarget=animations.at(-1);assert(travel.cancelled,'Superseded animation stops');assert.equal(retarget.element,marker('event:event'));assert.match(retarget.keyframes[0].transform,/109px/,'Rapid hour changes continue from the visible marker');
+ const count=animations.length;q('.phone-reminder-wheel').querySelectorAll('button')[11].click();assert.equal(animations.length,count,'An unchanged rounded wheel value does not restart motion');
+ q('.phone-reminder-cancel').click();assert(retarget.cancelled);assert(opening.cancelled);assert.equal(storage(),initial);
+ inFlightTop=null;w.HTMLElement.prototype.getBoundingClientRect=originalRect;w.matchMedia=()=>({matches:true});
  open('event:event');choose(14,43);q('.phone-reminder-save').click();
  assert.equal(run("tasks[0].reminder.minutesBefore"),17);assert.equal(run('tasks[0].time'),'15:00','The event start is unchanged');
  assert.equal(run('JSON.parse(PlannerData.storage.getItem(TASK_KEY))[0].reminder.minutesBefore'),17);
