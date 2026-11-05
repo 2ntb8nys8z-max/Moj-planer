@@ -4,12 +4,12 @@ import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 
 const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true});
-const w=dom.window,ctx=dom.getInternalVMContext(),run=code=>vm.runInContext(code,ctx),q=s=>w.document.querySelector(s);
+const w=dom.window,ctx=dom.getInternalVMContext(),run=code=>vm.runInContext(code,ctx),q=s=>w.document.querySelector('.phone-reminder-editor')?.querySelector(s)||w.document.querySelector(s);
 Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>true,alert(){},fetch:async()=>new Response('{}')});
 w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};
 const marker=(key)=>[...w.document.querySelectorAll('.phone-reminder-axis-label')].find(n=>JSON.parse(n.dataset.reminderKeys).includes(key));
 const open=key=>{marker(key).click();assert(q('.phone-reminder-editor'));};
-const choose=(h,m)=>{const wheels=[...w.document.querySelectorAll('.phone-reminder-wheel')];wheels[0].querySelectorAll('button')[h].click();wheels[1].querySelectorAll('button')[m].click();};
+const choose=(h,m)=>{const wheels=[...q('.phone-reminder-editor').querySelectorAll('.phone-reminder-wheel')];wheels[0].querySelectorAll('button')[h].click();wheels[1].querySelectorAll('button')[m].click();};
 const storage=()=>run('JSON.stringify({tasks,ideas})');
 try{
  for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
@@ -41,12 +41,13 @@ try{
  open('event:event');
  const opening=animations.at(-1);assert(opening.options.duration>=650,'Opening remains visible long enough to perceive');assert(opening.keyframes[0].transform.includes('scale('));
  choose(12,45);
- const travel=animations.at(-1);assert.equal(travel.element,marker('event:event'));assert.match(travel.keyframes[0].transform,/138px/,'Marker travels the full two-hour gap');assert(!travel.keyframes.some(f=>'opacity' in f),'Marker stays visible during travel');
+ const travel=animations.at(-1);assert.equal(travel.element,marker('event:event'));assert(travel.options.duration>=780,'Hour travel is deliberately slower');assert.match(travel.keyframes[0].transform,/138px/,'Marker travels the full two-hour gap');assert(!travel.keyframes.some(f=>'opacity' in f),'Marker stays visible during travel');
  const settled=12*60*1.15+45*1.15;inFlightTop=settled+40;inFlightElement=marker('event:event');
  q('.phone-reminder-wheel').querySelectorAll('button')[11].click();
  const retarget=animations.at(-1);assert(travel.cancelled,'Superseded animation stops');assert.equal(retarget.element,marker('event:event'));assert.match(retarget.keyframes[0].transform,/109px/,'Rapid hour changes continue from the visible marker');
  const count=animations.length;q('.phone-reminder-wheel').querySelectorAll('button')[11].click();assert.equal(animations.length,count,'An unchanged rounded wheel value does not restart motion');
  q('.phone-reminder-cancel').click();assert(retarget.cancelled);assert(opening.cancelled);assert.equal(storage(),initial);
+ const closing=animations.at(-1);assert(closing.element.classList.contains('phone-reminder-editor-closing'));assert(closing.element.inert);assert.equal(closing.element.getAttribute('aria-hidden'),'true');assert.equal(closing.keyframes.at(-1).opacity,0);assert(closing.options.duration>=600);assert(closing.element.isConnected,'Closing remains visible until the animation ends');closing.onfinish();assert(!closing.element.isConnected,'Closing removes the finished panel');
  inFlightTop=null;w.HTMLElement.prototype.getBoundingClientRect=originalRect;w.matchMedia=()=>({matches:true});
  open('event:event');choose(14,43);q('.phone-reminder-save').click();
  assert.equal(run("tasks[0].reminder.minutesBefore"),17);assert.equal(run('tasks[0].time'),'15:00','The event start is unchanged');
@@ -58,7 +59,7 @@ try{
  open('event:event');choose(12,0);
  const eventBefore=storage();run('savedTaskWriter=saveTasks;saveTasks=()=>{throw Error("quota")};');q('.phone-reminder-save').click();
  assert.equal(storage(),eventBefore,'A storage failure rolls back reminder/history');assert.match(q('.phone-reminder-error').textContent,/Nie udało/);run('saveTasks=savedTaskWriter');q('.phone-reminder-cancel').click();
- open('entry:standalone');choose(19,23);assert.equal(q('.phone-reminder-offset').textContent,'O godzinie 19:23');q('.phone-reminder-save').click();
+ open('entry:standalone');choose(19,23);assert.equal(q('.phone-reminder-offset').textContent,'');assert(q('.phone-reminder-offset').hidden,'Standalone time is not repeated below the wheels');q('.phone-reminder-save').click();
  assert.equal(run('ideas[0].alarm.time'),'19:23',q('.phone-reminder-error')?.textContent);assert.equal(run('ideas[0].alarm.startTime'),'19:23');assert.equal(run('ideas[0].alarm.deliveredAt'),null);
  open('entry:standalone');choose(20,0);w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape'}));assert(!q('.phone-reminder-editor'));assert.equal(run('ideas[0].alarm.time'),'19:23',q('.phone-reminder-error')?.textContent);
  // Across midnight: edit only the reminder on the selected (previous) day.
@@ -77,5 +78,14 @@ try{
  q('.phone-reminder-wheel').querySelectorAll('button')[10].click();assert.notEqual(targetScroll,null,'Moving outside the visible plan triggers scroll following');
  assert(q('.phone-reminder-editor'),'The editor remains open while the plan follows');
  w.HTMLElement.prototype.getBoundingClientRect=proto;q('.phone-reminder-cancel').click();
+ // Plan following shares the slower travel instead of jumping to its destination.
+ w.matchMedia=()=>({matches:false});list.scrollTop=800;
+ w.HTMLElement.prototype.getBoundingClientRect=function(){if(this.classList?.contains('phone-reminder-axis-label'))return {top:100,bottom:122,height:22};return proto.call(this);};
+ open('entry:one');list.scrollTop=800;choose(9,50);
+ assert.equal(list.scrollTop,800,'Animated following does not jump immediately');
+ await new Promise(resolve=>w.setTimeout(resolve,50));assert(list.scrollTop<800&&list.scrollTop>525,'The plan visibly traverses intermediate scroll positions');
+ q('.phone-reminder-cancel').click();assert.equal(list.scrollTop,800);
+ await new Promise(resolve=>w.setTimeout(resolve,35));assert.equal(list.scrollTop,800,'Closing cancels any pending follow frames');
+ w.HTMLElement.prototype.getBoundingClientRect=proto;
  console.log('Reminder editor: event-relative live preview, independent wheels, persistence, rollback, stale-data rejection, midnight, groups, standalone alarms, cancel/scroll restoration and plan following passed (DOM geometry simulated).');
 }finally{dom.window.close()}
