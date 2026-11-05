@@ -4,11 +4,14 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  const requests=[];let fixes=0,denied=false,failForecast=false,coords={latitude:52.4064,longitude:16.9252,accuracy:20},now=Date.now();w.Date.now=()=>now;
  const date=new Date(),tomorrow=new Date(date);tomorrow.setDate(date.getDate()+1);const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,day=iso(date),next=iso(tomorrow);
  const hourly={time:[day+'T12:00',next+'T12:00',next+'T14:00',next+'T15:00',next+'T16:00'],temperature_2m:[9,10,17,18,16],weather_code:[2,3,2,2,3],precipitation_probability:[10,20,10,10,20],wind_speed_10m:[5,6,7,8,9]};
+ const previous=new Date(date);previous.setDate(previous.getDate()-1);const past=iso(previous);
+ hourly.apparent_temperature=[7.1,8.2,15,16,14];hourly.relative_humidity_2m=[65,60,58,56,55];
+ for(const [name,value] of Object.entries({time:past+'T12:00',temperature_2m:6,weather_code:2,precipitation_probability:20,wind_speed_10m:9,apparent_temperature:3.2,relative_humidity_2m:77}))hourly[name].push(value);
  Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>true,alert(){},fetch:async value=>{
   const url=String(value);requests.push(url);
   if(url.includes('api.bigdatacloud.net'))return new Response(JSON.stringify({city:coords.latitude<53?'Poznań':'Gdańsk',countryName:'Polska'}));
   if(url.includes('geocoding-api.open-meteo.com'))return new Response(JSON.stringify({results:[{id:1,name:'Warszawa',country:'Polska',country_code:'PL',latitude:52.23,longitude:21.01,population:1800000,timezone:'Europe/Warsaw'}]}));
-  if(url.includes('api.open-meteo.com/v1/forecast')){if(failForecast)throw Error('offline');return new Response(JSON.stringify({timezone:'Europe/Warsaw',current:{time:day+'T10:00',temperature_2m:7.2,weather_code:3,is_day:1},hourly,daily:{time:[day,next],sunrise:[day+'T06:35',next+'T06:37'],sunset:[day+'T16:02',next+'T16:00']}}))}
+  if(url.includes('api.open-meteo.com/v1/forecast')){if(failForecast)throw Error('offline');return new Response(JSON.stringify({timezone:'Europe/Warsaw',current:{time:day+'T10:00',temperature_2m:7.2,apparent_temperature:5.2,relative_humidity_2m:68,weather_code:3,is_day:1},hourly,daily:{time:[day,next],sunrise:[day+'T06:35',next+'T06:37'],sunset:[day+'T16:02',next+'T16:00']}}))}
   return new Response('{}');
  }});
  Object.defineProperty(w.navigator,'geolocation',{value:{getCurrentPosition(ok,error){fixes++;denied?error({code:1}):ok({coords})}}});w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};
@@ -20,6 +23,16 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   const count=()=>requests.filter(u=>u.includes('api.open-meteo.com/v1/forecast')).length;assert.equal(count(),1);
  const touch=(target,type,points)=>{const e=new w.Event(type,{bubbles:true,cancelable:true});Object.defineProperty(e,type==='touchend'?'changedTouches':'touches',{value:points.map(([x,y])=>({clientX:x,clientY:y}))});target.dispatchEvent(e);return e};
  const swipe=(target,from=[250,200],to=[120,205])=>{touch(target,'touchstart',[from]);touch(target,'touchmove',[to]);touch(target,'touchend',[to])};
+  const forecastRequest=new URL(requests.find(u=>u.includes('api.open-meteo.com/v1/forecast')));
+  assert.equal(forecastRequest.searchParams.get('past_days'),'7');
+  assert(forecastRequest.searchParams.get('current').includes('apparent_temperature'));
+  assert(forecastRequest.searchParams.get('hourly').includes('relative_humidity_2m'));
+  assert.equal(run(`OktiLocalWeather.get(new Date('${past}T12:00:00')).humidity`),77);
+  assert.equal(run(`OktiLocalWeather.get(new Date('${next}T12:00:00')).apparent`),8.2,'Other days use noon comfort values');
+  run(`selected=new Date('${past}T12:00:00');renderDay()`);w.document.querySelector('#dayTitle').click();
+  assert.match(w.document.querySelector('.okti-weather-comfort').textContent,/Odczuwalna3°Wilgotność77%/,'Past days show stored comfort values');
+  assert.equal(count(),1,'Browsing history reuses the same downloaded forecast');w.document.querySelector('.okti-weather-x').click();
+  run(`selected=new Date('${day}T12:00:00');renderDay()`);
   w.document.querySelector('#dayTitle').click();
   assert.ok(w.document.querySelector('#dayWeatherModal').open);
   assert.match(w.document.querySelector('#dayWeatherBody').textContent,/Poznań/);
@@ -27,6 +40,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
   assert.equal(w.document.querySelector('#dayWeatherBody .okti-weather-hour strong').textContent,'9°');
   assert.match(w.document.querySelector('.okti-weather-astronomy').textContent,/06:35/);
   assert.match(w.document.querySelector('.okti-weather-astronomy').textContent,/16:02/);
+  assert.match(w.document.querySelector('.okti-weather-comfort').textContent,/Odczuwalna5°Wilgotność68%/);
+  assert.equal(w.document.querySelector('.okti-weather-description'),null);assert.equal(w.document.querySelector('.okti-hour-heading>span'),null,'No duplicate current clock');
+  assert.equal(w.document.querySelectorAll('.okti-hour-legend [role=img]').length,2,'Each hourly row has one persistent explanation');
+  assert.match(w.document.querySelector('#dayWeatherTitle').textContent,/^[A-ZĄĆĘŁŃÓŚŹŻ]/,'The actual weekday text is capitalized, including its animation copy');
+  assert.equal(w.document.querySelector('.okti-weather-place').textContent.includes('listopada'),false,'Location never repeats the date');
+  assert(w.document.querySelector('.okti-weather-date').textContent);
   assert.equal(w.document.querySelector('.okti-weather-hero strong').textContent,'7°','Header and detail use the same current value');
   const normalizeArt=n=>n.innerHTML.replace(/okti-weather-art-\d+/g,'art');
   assert.equal(normalizeArt(w.document.querySelector('.phone-day-weather .weather-icon')),normalizeArt(w.document.querySelector('.okti-weather-hero .okti-weather-icon')),'Header and detail share identical weather artwork');
@@ -174,6 +193,24 @@ assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-build-pane
   assert.equal(w.document.querySelector('.phone-day-temperature').style.visibility,'','Interrupted opening restores the original temperature');
   animations.at(-1).finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
   w.Element.prototype.getBoundingClientRect=rect;
+  // A fresh old-format cache must be upgraded without another GPS prompt.
+  const saved=JSON.parse(w.localStorage.getItem('okti-local-weather-v1'));delete saved.forecast.schema;
+  let upgraded=0;
+  const cacheContext={Date,URLSearchParams,AbortController,setTimeout,clearTimeout,Event,document:{visibilityState:'visible'},window:{dispatchEvent(){}},localStorage:{getItem:()=>JSON.stringify(saved),setItem(){}},navigator:{geolocation:{getCurrentPosition(){throw Error('Unexpected GPS request')}}},fetch:async()=>{upgraded++;return new Response(JSON.stringify(saved.forecast.data))}};
+  const module=html.slice(html.indexOf('const OktiLocalWeather=(()=>{'),html.indexOf('window.OktiLocalWeather=OktiLocalWeather;'));
+  const migrated=vm.runInNewContext('const WEATHER_CACHE_MS=7200000;'+module+'OktiLocalWeather',cacheContext);
+  await migrated.refresh();assert.equal(upgraded,1,'A fresh cache from the old version fetches the new fields once');await migrated.refresh();assert.equal(upgraded,1,'The upgraded fresh forecast is reused');
+  // Exercise the actual centering code with a complete 24-hour day.
+  w.document.querySelector('#dayWeatherModal').remove();
+  for(const [property,get] of Object.entries({clientWidth(){return this.classList?.contains('okti-weather-hours')?280:0},scrollWidth(){return this.classList?.contains('okti-weather-hours')?1484:0},offsetLeft(){return this.classList?.contains('okti-weather-hour')?Number(this.dataset.hour)*62:0},offsetWidth(){return this.classList?.contains('okti-weather-hour')?58:0}}))Object.defineProperty(w.HTMLElement.prototype,property,{configurable:true,get});
+  w.matchMedia=()=>({matches:true});
+  run(`var centerDate=new Date('${day}T12:00:00');var centerWeather={snapshot:()=>({enabled:true}),refresh(){},get:()=>({code:0,temperature:9,apparent:7,humidity:68,label:'Bezchmurnie'}),details:()=>({place:'Test',timezone:'UTC',at:Date.now(),rows:Array.from({length:24},(_,h)=>({time:String(h).padStart(2,'0')+':00',temperature:9,code:0,rain:0,wind:10}))})};var centerController=oktiCreateDayWeather({app:document.querySelector('.app'),getDate:()=>centerDate,moveDate:()=>centerDate,weather:centerWeather,symbol:plannerWeatherSymbol,formatDate:()=>''});centerController.open()`);
+  await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(w.document.querySelector('.okti-weather-hours').scrollLeft,Math.max(0,Math.min(1204,new Date().getUTCHours()*62-111)),'Today centers the current hour');
+  run(`centerController.close();centerDate=new Date('${next}T12:00:00');centerController.open()`);await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(w.document.querySelector('.okti-weather-hours').scrollLeft,633,'Other days center noon');
+  run(`centerController.close();centerDate=new Date('${past}T12:00:00');centerController.open()`);await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(w.document.querySelector('.okti-weather-hours').scrollLeft,633,'History also centers noon');run('centerController.close()');
   console.log('Local weather: explicit location consent, real source isolation, per-location two-hour cache, no event preload, event date/hour, foreground-only refresh, denied/offline handling and disable verified (GPS and providers mocked).');
  }finally{w.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
