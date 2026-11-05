@@ -5,8 +5,8 @@ const CHECK=process.argv.includes('--check');
 const APP_VERSION='2026.11.05.33.230-integration';
 const PREVIEW_VERSION='2026.11.05.33.230-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
-const WORKER_VERSION='2026.11.05.33.37-test';
-const WORKER_LABEL='Worker 33.37-test';
+const WORKER_VERSION='2026.11.05.33.38-test';
+const WORKER_LABEL='Worker 33.38-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -31,7 +31,7 @@ for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','promp
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.37-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.38-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
