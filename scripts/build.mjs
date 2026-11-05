@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.05.33.230-integration';
-const PREVIEW_VERSION='2026.11.05.33.230-test';
+const APP_VERSION='2026.11.06.33.231-integration';
+const PREVIEW_VERSION='2026.11.06.33.231-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.05.33.38-test';
 const WORKER_LABEL='Worker 33.38-test';
@@ -73,6 +73,11 @@ for(const file of ['sync-core.js','google-calendar.js']){
   preview=preview.replace(new RegExp('src="'+file.replace('.',String.fromCharCode(92)+'.')+'[^" ]*"'),'src="'+file+'?v='+buildId+'"');
   output('preview33/'+file,content,false);
 }
+const travelRoutes=fs.readFileSync('travel-routes.js','utf8');
+const travelRoutesBuildId=createHash('sha256').update(travelRoutes).digest('hex').slice(0,16);
+canonical=canonical.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
+preview=preview.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
+output('preview33/travel-routes.js',travelRoutes,false);
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
