@@ -5,16 +5,18 @@ import {JSDOM} from 'jsdom';
 
 const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'));
 const token='test-only-token-1234567890123456';
-let mapsCalls=0,modelCalls=0,limited=false,googleStatus='OK',googleResults=[],model,transcript='',delayMaps=null;
+let mapsCalls=0,modelCalls=0,limited=false,googleStatus='OK',googleResults=[],model,transcript='',delayMaps=null,googleHttpStatus=200;
 const queries=[],sqlCalls=[];
 const env={PLANNER_ACCESS_TOKEN:token,OPENAI_API_KEY:'dummy',GOOGLE_MAPS_API_KEY:'test-secret-do-not-expose',API_LIMITS_DB:{prepare(sql){sqlCalls.push(sql);return {run:async()=>{},bind(){return this},first:async()=>limited&&sql.includes('INSERT INTO planner_maps_quota')?null:{}}}}};
 const savedFetch=globalThis.fetch;
 globalThis.fetch=async(url,options)=>{
   if(String(url).startsWith('https://maps.googleapis.com/')){
+    if(options.redirect==='error')throw new TypeError('Invalid redirect value, must be one of follow or manual');
     mapsCalls++;const query=new URL(url);queries.push(query);
     assert.equal(query.searchParams.get('key'),env.GOOGLE_MAPS_API_KEY);
-    assert.equal(query.searchParams.get('language'),'pl');assert.equal(options.redirect,'error');
+    assert.equal(query.searchParams.get('language'),'pl');assert.equal(options.redirect,'manual');
     if(delayMaps)await delayMaps;
+    if(googleHttpStatus!==200)return new Response(null,{status:googleHttpStatus,headers:{Location:'https://another-host.invalid/'}});
     return Response.json({status:googleStatus,results:googleResults,error_message:env.GOOGLE_MAPS_API_KEY});
   }
   if(String(url).includes('/audio/transcriptions'))return Response.json({text:transcript});
@@ -22,7 +24,7 @@ globalThis.fetch=async(url,options)=>{
   return Response.json({choices:[{message:{content:JSON.stringify(model)}}]});
 };
 const component=(type,long,short=long)=>({types:[type],long_name:long,short_name:short});
-const street={place_id:'google-street-id',formatted_address:'Wyszogrodzka, Warszawa, Polska',types:['route'],geometry:{location:{lat:52.29,lng:21.04},location_type:'GEOMETRIC_CENTER'},address_components:[component('route','Wyszogrodzka'),component('locality','Warszawa'),component('country','Polska','PL')]};
+const street={partial_match:true,place_id:'google-street-id',formatted_address:'Wyszogrodzka, Warszawa, Polska',types:['route'],geometry:{location:{lat:52.29,lng:21.04},location_type:'GEOMETRIC_CENTER'},address_components:[component('route','Wyszogrodzka'),component('locality','Warszawa'),component('country','Polska','PL')]};
 const building={...street,place_id:'google-building-id',formatted_address:'Wyszogrodzka 10, Warszawa, Polska',types:['street_address'],geometry:{location:{lat:52.291,lng:21.041},location_type:'ROOFTOP'},address_components:[...street.address_components,component('street_number','10')]};
 async function post(path,body,overrides={}){
   const response=await worker.fetch(new Request('https://worker'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body)}),{...env,...overrides});
@@ -48,6 +50,7 @@ try{
   limited=true;assert.equal((await post('/locations/resolve',{query:'Warszawa'})).data.code,'maps_limit');assert.equal(mapsCalls,before);limited=false;
   googleStatus='REQUEST_DENIED';result=await post('/locations/resolve',{query:'Warszawa'});assert.equal(result.status,503);assert.equal(result.data.code,'maps_denied');assert.equal(JSON.stringify(result.data).includes(env.GOOGLE_MAPS_API_KEY),false);
   googleStatus='OVER_QUERY_LIMIT';assert.equal((await post('/locations/resolve',{query:'Warszawa'})).status,429);
+  googleHttpStatus=302;assert.equal((await post('/locations/resolve',{query:'Warszawa'})).status,502,'Redirects are rejected without forwarding the Google key');googleHttpStatus=200;
   googleStatus='ZERO_RESULTS';assert.deepEqual((await post('/locations/resolve',{query:'Nic'})).data.places,[]);
   googleStatus='OK';googleResults=[{...street,partial_match:true}];
   result=await post('/locations/resolve',{query:'Wyszogrodzka, Warszawa, Polska',countryCode:'PL'});assert.equal(result.data.places[0].partialMatch,true);assert.equal(queries.at(-1).searchParams.get('components'),'country:PL');
@@ -89,6 +92,14 @@ try{
     assert.equal(run('PlannerData.storage.getItem(TASK_KEY).includes("google-street-id")'),true);
   }
 
+  // A unique exact town (whose centre is approximate by nature) resolves with
+  // no picker. Exact buildings do too; partial results still require choice.
+  const city={...street,partial_match:false,place_id:'ruciane-nida',formatted_address:'Ruciane-Nida, Polska',types:['locality','political'],geometry:{location:{lat:53.64,lng:21.54},location_type:'APPROXIMATE'},address_components:[component('locality','Ruciane-Nida'),component('country','Polska','PL')]};
+  googleResults=[city];w.item={type:'event',location:'Ruciane Nida'};
+  assert.equal(await run('choosePlannerGoogleLocation(item)'),true);assert.equal(w.item.googlePlace.placeId,'ruciane-nida');assert.equal(get('googleLocationModal'),null,'A unique town does not ask for confirmation');
+  googleResults=[{...building,partial_match:false}];w.item={type:'event',location:'Wyszogrodzka 10, Warszawa'};
+  assert.equal(await run('choosePlannerGoogleLocation(item)'),true);assert.equal(w.item.googlePlace.placeId,building.place_id);assert.equal(get('googleLocationModal'),null);
+
   // Manual create/edit use the same lookup and retain the selected coordinates.
   googleResults=[street];run("tasks=[];saveTasks();document.getElementById('title').value='Ręczne spotkanie';document.getElementById('date').value='2026-11-06';document.getElementById('time').value='16:00';document.getElementById('endTime').value='17:00';document.getElementById('newLocation').value='Wyszogrodzka, Warszawa'");
   let manual=run("document.getElementById('form').onsubmit({preventDefault(){}})");await waitFor(()=>get('googleLocationChoices')?.children.length);get('googleLocationChoices').firstChild.click();await manual;
@@ -115,6 +126,12 @@ try{
   get('googleLocationChoices').firstChild.click();await verify;
   assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);assert.equal(run('tasks[0].location'),building.formatted_address);
   assert.match(get('eventConversation').textContent,/Adres sprawdzony i przypięty/);run('closeEventActions()');
+  for(const audio of [false,true]){
+    run("delete tasks[0].googlePlace;delete tasks[0].weatherPlace;tasks[0].location='Ruciane Nida';saveTasks();openEventActions(tasks[0]);testSession=beginVoiceDialogue('event',activeTask.id,voiceEventSnapshot(activeTask))");
+    googleResults=[city];transcript='Sprawdź ten adres w Google Maps';
+    await run(`requestVoiceDialogue(testSession,${audio?'testAudio':JSON.stringify(transcript)})`);
+    assert.equal(run('tasks[0].googlePlace.placeId'),'ruciane-nida');assert.equal(run('tasks[0].location'),'Ruciane-Nida, Polska');assert.equal(get('googleLocationModal'),null,'Text and normalized audio resolve the town without a picker');run('closeEventActions()');
+  }
 
   // Multiple results require an explicit choice; partial matching is visible.
   w.item={type:'event',location:'Wyszogrodzka'};googleResults=[{...street,partial_match:true},building];
@@ -134,7 +151,7 @@ try{
 
   // Closing an event invalidates an in-flight response, with no stale mutation.
   run('openEventActions(tasks[0])');w.item={type:'event',location:'Nowy adres'};let release;delayMaps=new Promise(r=>release=r);
-  pending=run('choosePlannerGoogleLocation(item,()=>!!activeTask,"event")');await waitFor(()=>get('googleLocationModal'));run('closeEventActions()');release();assert.equal(await pending,false);delayMaps=null;await new Promise(r=>setTimeout(r,10));assert.equal(w.item.googlePlace,undefined);assert.equal(get('googleLocationModal'),null);
+  const beforeDelayed=mapsCalls;pending=run('choosePlannerGoogleLocation(item,()=>!!activeTask,"event")');await waitFor(()=>mapsCalls>beforeDelayed);run('closeEventActions()');release();assert.equal(await pending,false);delayMaps=null;await new Promise(r=>setTimeout(r,10));assert.equal(w.item.googlePlace,undefined);assert.equal(get('googleLocationModal'),null);
   run('clearPlannerWeatherResolution(tasks[0])');assert.equal(run('tasks[0].googlePlace'),undefined);
   console.log('Google location: authenticated bounded lookup, separate atomic quota, street/building/partial choices, errors and cancellation; real Worker → frontend → next turn → save for text and normalized audio (external providers mocked).');
 }finally{globalThis.fetch=savedFetch;dom?.window.close()}

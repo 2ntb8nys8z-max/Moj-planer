@@ -456,7 +456,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="78588182a8d39a6c";
+const BUILD_ID="3703188b14dbb33d";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -615,7 +615,9 @@ async function resolveGoogleLocation(body,env){
   if(body.countryCode)params.set('components','country:'+body.countryCode);
   let response,data;
   try{
-    response=await fetch('https://maps.googleapis.com/maps/api/geocode/json?'+params,{signal:AbortSignal.timeout(10000),redirect:'error'});
+    // Workers supports manual/follow only. Manual also prevents forwarding the
+    // key to a redirect target; non-2xx responses are rejected below.
+    response=await fetch('https://maps.googleapis.com/maps/api/geocode/json?'+params,{signal:AbortSignal.timeout(10000),redirect:'manual'});
     if(response.ok)data=await response.json();
   }catch(_){throw new PlannerApiError('Nie udało się połączyć z Google Maps. Spróbuj ponownie.',502,'maps_unavailable','maps');}
   if(!response.ok)throw new PlannerApiError('Google Maps jest chwilowo niedostępne. Spróbuj ponownie.',502,'maps_unavailable','maps');
