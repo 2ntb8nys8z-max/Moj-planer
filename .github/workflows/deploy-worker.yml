@@ -2,12 +2,11 @@ name: Deploy and verify Planner Worker
 
 on:
   push:
-    branches: [integration/conversation33, main]
+    branches: [main]
     paths:
       - worker.js
       - worker.txt
       - preview33/worker.txt
-      - release.json
       - scripts/deploy-worker.mjs
       - tests/deploy-worker-33.mjs
       - .github/workflows/deploy-worker.yml
@@ -22,11 +21,11 @@ concurrency:
 
 jobs:
   deploy-and-verify:
-    if: github.ref == 'refs/heads/integration/conversation33' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out the exact integration commit
+      - name: Check out the exact production commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}

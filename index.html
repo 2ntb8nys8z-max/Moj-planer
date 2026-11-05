@@ -966,13 +966,16 @@ function askApiAccess(force=false){
     $('apiAccessCancel').onclick=()=>finish(null);input.onkeydown=e=>{if(e.key==='Enter')$('apiAccessSave').click();if(e.key==='Escape')finish(null)};
   });return apiAccessPending;
 }
+function plannerWorkerCompatible(info){
+  return info.apiVersion===EXPECTED_WORKER_VERSION&&info.buildId===EXPECTED_WORKER_BUILD_ID||info.apiVersion==='2026.10.12.33.36-test'&&info.buildId==='23c0806de3a19eeb'&&info.protocolVersion===2;
+}
 async function getApiInfo(){
   if(apiInfoCache&&Date.now()-apiInfoAt<60000)return apiInfoCache;
   const response=await fetch(API_URL+'/api-info',{cache:'no-store'}),text=await response.text();
   if(!response.ok)throw new Error('Nie udało się sprawdzić połączenia z API.');
   let data;try{data=JSON.parse(text)}catch(_){if(text.trim()!=='Moj Planer API działa')throw new Error('API zwróciło nieprawidłową odpowiedź.');data={requiresAccess:false}}
   if(data.requiresAccess!==true&&data.requiresAccess!==false)throw new Error('API wymaga sprawdzenia konfiguracji.');
-  apiInfoCache=data;apiInfoAt=Date.now();const version=document.getElementById('workerVersion');if(version){const matches=data.apiVersion===EXPECTED_WORKER_VERSION&&data.buildId===EXPECTED_WORKER_BUILD_ID;version.textContent='Worker: '+(data.apiVersion||'nieznana wersja')+(data.buildId?' · '+data.buildId:'')+(matches?' · zgodny':' · NIEZGODNY Z TĄ WERSJĄ APLIKACJI');version.style.color=matches?'':'#b42318'}return data;
+  apiInfoCache=data;apiInfoAt=Date.now();const version=document.getElementById('workerVersion');if(version){const matches=data.apiVersion===EXPECTED_WORKER_VERSION&&data.buildId===EXPECTED_WORKER_BUILD_ID;version.textContent='Worker: '+(data.apiVersion||'nieznana wersja')+(data.buildId?' · '+data.buildId:'')+(matches?' · zgodny':plannerWorkerCompatible(data)?' · poprzednia wersja; Google Maps czeka na aktualizację':' · NIEZGODNY Z TĄ WERSJĄ APLIKACJI');version.style.color=matches?'':'#b42318'}return data;
 }
 function renderApiUsage(usage){
   if(!usage)return;apiServerUsage=usage;
@@ -996,7 +999,7 @@ async function plannerAudioPayload(blob){
 }
 async function plannerApiRequest(path,options={}){
   PlannerData.assertWritable();
-  const info=await getApiInfo();if(path===''&&(info.apiVersion!==EXPECTED_WORKER_VERSION||info.buildId!==EXPECTED_WORKER_BUILD_ID))throw Error(`Wersja Workera nie pasuje do aplikacji. Wymagany: ${EXPECTED_WORKER_VERSION} (${EXPECTED_WORKER_BUILD_ID}); wykryty: ${info.apiVersion||'brak'} (${info.buildId||'brak'}).`);if(path===''&&!info.conversationEngines?.includes(3))throw Error('Rozmowa 33 wymaga Workera z Engine 3.');if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
+  const info=await getApiInfo();if(path===''&&!plannerWorkerCompatible(info))throw Error(`Wersja Workera nie pasuje do aplikacji. Wymagany: ${EXPECTED_WORKER_VERSION} (${EXPECTED_WORKER_BUILD_ID}); wykryty: ${info.apiVersion||'brak'} (${info.buildId||'brak'}).`);if(path===''&&!info.conversationEngines?.includes(3))throw Error('Rozmowa 33 wymaga Workera z Engine 3.');if(path===''&&info.protocolVersion!==2)throw Error('Ta wersja Planera wymaga Workera 29. Wklej aktualny Worker w Cloudflare i wybierz Deploy.');const headers={...(options.headers||{})};
   let token=readApiAccess();
   if(info.requiresAccess&&!token){token=await askApiAccess();if(!token){const e=new Error('Anulowano dostęp do AI. Niczego nie zmieniono.');e.cancelled=true;throw e}}
   if(token)headers.Authorization='Bearer '+token;
