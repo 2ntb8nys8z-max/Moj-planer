@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import './travel-routes-production-33.mjs';
 const {default:worker}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'));
 const token='test-only-token-1234567890123456',calls=[];let limited=false,status=200,payload={routes:[{duration:'1531s',staticDuration:'1400s',distanceMeters:12400}]};
 const env={PLANNER_ACCESS_TOKEN:token,OPENAI_API_KEY:'dummy',GOOGLE_MAPS_API_KEY:'route-secret',API_LIMITS_DB:{prepare(sql){return {run:async()=>{},bind(){return this},first:async()=>limited&&sql.includes('planner_routes_quota')?null:{}}}}};
