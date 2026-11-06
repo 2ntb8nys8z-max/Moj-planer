@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.237-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.238-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.237-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.238-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -943,10 +943,10 @@ function renderIdeas(){
  }journalPhotos();journalQueueRings();
 }
 function syncLabel(task){const queued=window.googleDeleteQueue?window.googleDeleteQueue().find(item=>item.seriesRange&&item.googleEventId===task.googleSeriesParentId):null;if(queued)return queued.state==='conflict'?"Sync ⚠️":"Sync ⏳";if(task.googleConflict)return "Sync ⚠️";if(task.googleSeriesStopPending)return "Sync ⏳";if(task.googleDirty||task.googleSynced===false)return "Sync ⏳";if(task.googleEventId&&task.googleSynced===true)return "Sync ✓";if(task.googleSeriesParentId)return "Sync ⏳";return "Sync —"}
-function renderDayBase(){$("dayTitle").textContent=formatDate(selected);$("todayBtn").classList.toggle("hidden",iso(selected)===iso(today()));$("todayBtn").textContent="Przejdź do dzisiaj";const list=tasks.filter(t=>t.date===iso(selected)).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));$("taskList").innerHTML="";if(!list.length){$("taskList").innerHTML='<div class="empty">Brak wydarzeń na ten dzień</div>';return}list.forEach(task=>{const div=document.createElement("div");div.className="task"+(task.done?" done":"");let timeText=task.time||"Całodniowe";if(task.time&&task.endTime)timeText=`${task.time}–${task.endTime}`;div.innerHTML=`<input type="checkbox" ${task.done?"checked":""} style="width:auto"><div class="task-time">${timeText}</div><div class="task-title">${task.seriesId?'<span title="Wydarzenie cykliczne">🔁</span> ':""}${escapeHtml(task.title)}${task.reminder?(task.seriesReminder?' <span title="Przypomnienie cykliczne">🔁🔔</span>':' <span title="Przypomnienie">🔔</span>'):""} <span style="font-size:12px;color:#667085;white-space:nowrap">${syncLabel(task)}</span></div><button class="delete">⋯</button>`;div.querySelector("input").onclick=e=>e.stopPropagation();div.querySelector("input").onchange=e=>{task.done=e.target.checked;saveTasks();renderAll()};div.querySelector(".delete").onclick=e=>{e.stopPropagation();openEventActions(task)};div.onclick=()=>openEventActions(task);$("taskList").appendChild(div)})}
+function renderDayBase(){$("dayTitle").textContent=formatDate(selected);$("todayBtn").classList.toggle("hidden",iso(selected)===iso(today()));$("todayBtn").textContent="Przejdź do dzisiaj";const list=tasks.filter(t=>t.date===iso(selected)).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));$("taskList").innerHTML="";if(!list.length){$("taskList").innerHTML='<div class="empty">Brak wydarzeń na ten dzień</div>';return}list.forEach(task=>{const div=document.createElement("div");div.className="task"+(task.done?" done":"");div.dataset.eventId=task.id;let timeText=task.time||"Całodniowe";if(task.time&&task.endTime)timeText=`${task.time}–${task.endTime}`;div.innerHTML=`<input type="checkbox" ${task.done?"checked":""} style="width:auto"><div class="task-time">${timeText}</div><div class="task-title">${task.seriesId?'<span title="Wydarzenie cykliczne">🔁</span> ':""}${escapeHtml(task.title)}${task.reminder?(task.seriesReminder?' <span title="Przypomnienie cykliczne">🔁🔔</span>':' <span title="Przypomnienie">🔔</span>'):""} <span style="font-size:12px;color:#667085;white-space:nowrap">${syncLabel(task)}</span></div><button class="delete">⋯</button>`;div.querySelector("input").onclick=e=>e.stopPropagation();div.querySelector("input").onchange=e=>{task.done=e.target.checked;saveTasks();renderAll()};div.querySelector(".delete").onclick=e=>{e.stopPropagation();openEventActions(task)};div.onclick=()=>openEventActions(task);$("taskList").appendChild(div)})}
 function renderWeekBase(){$("weekGrid").innerHTML="";const start=new Date(selected),weekday=start.getDay()||7;start.setDate(start.getDate()-weekday+1);for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const date=iso(d),dayTasks=tasks.filter(t=>t.date===date).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99")),dayIdeas=ideas.filter(idea=>iso(new Date(idea.createdAt))===date),div=document.createElement("div");div.className="week-day";const heading=document.createElement("strong");heading.textContent=d.toLocaleDateString("pl-PL",{weekday:"short",day:"numeric"});div.appendChild(heading);div.appendChild(document.createElement("br"));div.appendChild(document.createElement("br"));dayTasks.forEach(task=>{const item=document.createElement("div");item.className="week-event"+(task.done?" done":"");const tm=task.time?(task.endTime?`${task.time}–${task.endTime}`:task.time):"Całodniowe";item.textContent=`${tm}${tm?" ":""}${task.seriesId?"🔁 ":""}${task.title}${task.reminder?(task.seriesReminder?" 🔁🔔":" 🔔"):""} · ${syncLabel(task)}`;item.onclick=e=>{e.stopPropagation();openEventActions(task)};div.appendChild(item)});dayIdeas.forEach(idea=>{const item=document.createElement("div");item.className="week-idea";item.textContent=`${idea.title||idea.text}`;item.onclick=e=>{e.stopPropagation();showView("ideas")};div.appendChild(item)});$("weekGrid").appendChild(div)}}
 function renderMonthBase(){$("monthGrid").innerHTML="";$("monthTitle").textContent=monthCursor.toLocaleDateString("pl-PL",{month:"long",year:"numeric"});const first=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),1);let offset=first.getDay();if(offset===0)offset=7;for(let i=1;i<offset;i++)$("monthGrid").appendChild(document.createElement("div"));const days=new Date(monthCursor.getFullYear(),monthCursor.getMonth()+1,0).getDate();for(let day=1;day<=days;day++){const d=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),day),date=iso(d),dayTasks=tasks.filter(t=>t.date===date),count=dayTasks.length,ideaCount=ideas.filter(i=>i.createdAt&&iso(new Date(i.createdAt))===date).length,div=document.createElement("div");div.className="month-day"+(date===iso(today())?" today":"");div.innerHTML=`<strong>${day}</strong>${count||ideaCount?`<div style="margin-top:8px">${count?`📅 ${count}`:""}${count&&ideaCount?" &nbsp; ":""}${ideaCount?`📋 ${ideaCount}`:""}</div>`:""}`;div.onclick=()=>{selected=d;$("date").value=date;showView("day")};$("monthGrid").appendChild(div)}}
-function renderDay(){renderDayBase();renderEntryDeadlines('day')}
+function renderDay(){renderDayBase();renderEntryDeadlines('day');paintCreatedEventCue()}
 function renderWeek(){renderWeekBase();renderEntryDeadlines('week')}
 function renderMonth(){renderMonthBase();renderEntryDeadlines('month')}
 function renderAll(){renderDay();renderWeek();renderMonth();renderIdeas();updateShoppingBadge()}function showView(view){if(view==="tasks"||view==="ideas"){view="ideas";ideasTypeMode="all"}$("dayView").classList.toggle("hidden",view!=="day");$("weekView").classList.toggle("hidden",view!=="week");$("monthView").classList.toggle("hidden",view!=="month");$("ideasView").classList.toggle("hidden",view!=="ideas");$("manualCard").classList.toggle("hidden",view==="ideas");$("tabDay").classList.toggle("active",view==="day");$("tabWeek").classList.toggle("active",view==="week");$("tabMonth").classList.toggle("active",view==="month");$("tabEntries").classList.toggle("active",view==="ideas");renderAll()}
@@ -1432,8 +1432,30 @@ function fitDefaultEventDuration(item){
   const end=start+duration,day=Math.floor(end/1440),clock=end-day*1440;
   return {...item,endTime:String(Math.floor(clock/60)).padStart(2,'0')+':'+String(clock%60).padStart(2,'0'),endDate:new Date(day*86400000).toISOString().slice(0,10)};
 }
+let plannerCreatedEventCue=null,plannerCreatedEventCueTimer=null;
+function paintCreatedEventCue(){
+  const cue=plannerCreatedEventCue;if(!cue||cue.at==null||cue.date!==iso(selected)||Date.now()>=cue.until)return;
+  const target=[...$('taskList').querySelectorAll('[data-event-id]')].find(node=>node.dataset.eventId===String(cue.id));
+  if(!target||target.classList.contains('okti-event-created'))return;
+  target.classList.add('okti-event-created');target.style.setProperty('--okti-cue-elapsed',-(Date.now()-cue.at)+'ms');
+}
+function revealCreatedEvent(task){
+  if(!task||!tasks.includes(task))return;
+  clearTimeout(plannerCreatedEventCueTimer);
+  const cue={id:task.id,date:task.date,at:null,until:null};plannerCreatedEventCue=cue;
+  selected=new Date(task.date+'T12:00:00');monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);$('date').value=task.date;
+  showView('day');
+  requestAnimationFrame(()=>{
+    if(plannerCreatedEventCue!==cue||!tasks.includes(task)||iso(selected)!==task.date)return;
+    const target=[...$('taskList').querySelectorAll('[data-event-id]')].find(node=>node.dataset.eventId===String(task.id));
+    if(target){const list=$('taskList'),rect=target.getBoundingClientRect(),viewport=list.getBoundingClientRect();list.scrollTop=Math.max(0,list.scrollTop+rect.top-viewport.top-(list.clientHeight-Math.min(rect.height,list.clientHeight))/2)}
+    cue.at=Date.now();cue.until=cue.at+2200;paintCreatedEventCue();
+    plannerCreatedEventCueTimer=setTimeout(()=>{if(plannerCreatedEventCue!==cue)return;plannerCreatedEventCue=null;for(const node of $('taskList').querySelectorAll('.okti-event-created')){node.classList.remove('okti-event-created');node.style.removeProperty('--okti-cue-elapsed')}},2200);
+  });
+}
 function offerCreatedEventLocation(task,inputSource=null){
-  if(!task||!tasks.includes(task)||plannerLocation(task))return;
+  if(!task||!tasks.includes(task))return;
+  if(plannerLocation(task)){revealCreatedEvent(task);return}
   const snapshot=JSON.stringify(voiceEventSnapshot(task));
   const current=()=>tasks.includes(task)&&!plannerLocation(task)&&JSON.stringify(voiceEventSnapshot(task))===snapshot;
   window.OktiCommunication?.showActions('main','Dodać lokalizację?',[
@@ -1445,8 +1467,8 @@ function offerCreatedEventLocation(task,inputSource=null){
       session.history.push({role:'assistant',content:'Podaj lokalizację tego wydarzenia.'});
       window.OktiCommunication.startVoice('event');
     }},
-    {label:'Nie — zakończ',run:()=>{}}
-  ],current,{speak:inputSource==='audio',eventId:task.id});
+    {label:'Nie — zakończ',run:()=>revealCreatedEvent(task)}
+  ],current,{speak:inputSource==='audio',eventId:task.id,motion:'created-event',onDismiss:()=>revealCreatedEvent(task)});
 }
 async function saveCreatedVoiceEvent(item,sourceEntryId=null,history=[],inputSource=null){
   sourceEntryId=sourceEntryId??pendingIdeaConversion?.ideaId??null;
@@ -2923,7 +2945,7 @@ function initializePhoneSkin(){
  }
  renderDay=function(){
  if($('ideasView').classList.contains('hidden'))renderPhoneDateNavigation(selected,date=>{selected=date;$('date').value=iso(selected);renderDay()});updatePhoneToday('day');
- const list=$('taskList');list.replaceChildren();const date=iso(selected);for(const task of tasks.filter(t=>t.date===date&&!t.time)){const b=entryButton('Całodniowe · '+task.title,()=>openEventActions(task),'entry-deadline-row');list.append(b)}
+ const list=$('taskList');list.replaceChildren();const date=iso(selected);for(const task of tasks.filter(t=>t.date===date&&!t.time)){const b=entryButton('Całodniowe · '+task.title,()=>openEventActions(task),'entry-deadline-row');b.dataset.eventId=task.id;list.append(b)}
  const events=phoneEventLayout(phoneTravelDemoTasks(tasks,date),date),alarms=phoneReminderRefs(date),deadlines=ideas.filter(i=>i.deadline&&i.deadline.date===date&&isValidPlannerTime(i.deadline.time,false));
  const points=[...alarms.map(i=>phoneMinutes(i.alarm.time||i.alarm.startTime)),...deadlines.map(i=>phoneMinutes(i.deadline.time))],values=[...events.flatMap(e=>[e.start,e.end]),...points];const from=Math.min(480,values.length?Math.floor(Math.min(...values)/60)*60:480),to=Math.min(1440,Math.max(1320,values.length?Math.ceil(Math.max(...values)/60)*60:1320));const axis=phoneTimeAxis(events,points,from,to),position=phoneReminderEditor?(minute=>minute*1.15):axis.y;
  const scroll=document.createElement('div');scroll.className='phone-timeline-scroll';const timeline=document.createElement('div');timeline.className='phone-timeline';timeline.style.height=position(phoneReminderEditor?1440:to)+'px';scroll.append(timeline);list.append(scroll);
@@ -2933,6 +2955,7 @@ function initializePhoneSkin(){
  phoneRenderTravelAnimation(timeline,events,position);
  const groups=new Map();for(const i of alarms){const time=i.alarm.time||i.alarm.startTime;if(!groups.has(time))groups.set(time,[]);groups.get(time).push(i)}for(const [time,group] of groups){const minute=phoneMinutes(time),top=position(minute);hourLabels.get(minute)?.classList.add('phone-reminder-hour-hidden');const b=entryButton('',()=>openReminder(group,b),'phone-reminder-axis-label');b.dataset.reminderKeys=JSON.stringify(group.map(phoneReminderKey));b.style.top=top+'px';const value=document.createElement('span');value.className='phone-reminder-time';value.textContent=time;const bell=document.createElement('span');bell.className='phone-reminder-corner-bell';bell.innerHTML=entryIcon('bell');if(group.length>1){const count=document.createElement('span');count.className='phone-reminder-count';count.textContent=group.length;bell.append(count)}b.append(value,bell);b.setAttribute('aria-label',time+' · '+group.map(i=>i.alarm.message||i.title||i.text).join(', '));timeline.append(b)}
  if(deadlines.length){const box=document.createElement('div');box.className='phone-deadlines';for(const i of deadlines)box.append(entryDeadlineButton(i));list.append(box)}
+ paintCreatedEventCue();
  };
  function popPhoneToday(button){
   if(button.classList.contains('hidden')||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
@@ -5186,6 +5209,23 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
 @media(max-height:700px){.okti-decision-card{gap:11px;padding:16px}.okti-decision-card h2{font-size:25px;margin:0 0 6px}.okti-decision-option{min-height:66px;padding:13px 15px}.okti-decision-wheel{height:132px}.okti-decision-wheel-pad{height:44px}.okti-decision-voice{min-height:64px}.okti-decision-header{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.okti-decision-card{animation:none}}
 </style>
+<style id="okti-created-event-motion-33-238">
+/* A saved event stays in place; one light sweep identifies the new card. */
+.okti-decision-shade.is-created-event{animation:okti-created-shade-in 420ms ease-out both}
+.okti-decision-shade.is-created-event .okti-decision-card{transform-origin:50% 65%;animation:okti-created-question-in 420ms cubic-bezier(.2,.8,.2,1) both}
+.okti-decision-shade.is-created-event.is-leaving{animation:okti-created-shade-out 260ms ease-in both;pointer-events:none}
+.okti-decision-shade.is-created-event.is-leaving .okti-decision-card{animation:okti-created-question-out 260ms cubic-bezier(.4,0,.8,.3) both}
+.okti-event-created{isolation:isolate;overflow:hidden!important;animation:okti-created-glow 1800ms ease-out both;animation-delay:var(--okti-cue-elapsed,0ms)}
+.task.okti-event-created,.entry-deadline-row.okti-event-created{position:relative}
+.okti-event-created:after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(105deg,transparent 12%,#fff4 35%,#ffffffe8 49%,#fff6 61%,transparent 84%);transform:translateX(-115%);animation:okti-created-shine 1250ms cubic-bezier(.2,.65,.3,1) both;animation-delay:var(--okti-cue-elapsed,0ms)}
+@keyframes okti-created-shade-in{from{opacity:0}to{opacity:1}}
+@keyframes okti-created-shade-out{from{opacity:1}to{opacity:0}}
+@keyframes okti-created-question-in{from{opacity:0;transform:translateY(26px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes okti-created-question-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(18px) scale(.97)}}
+@keyframes okti-created-shine{0%,12%{transform:translateX(-115%)}100%{transform:translateX(115%)}}
+@keyframes okti-created-glow{0%,20%{box-shadow:inset 0 0 0 2px #48addd,0 0 18px #42b9ee80}100%{box-shadow:inset 0 0 0 0 #48addd00,0 0 0 #42b9ee00}}
+@media(prefers-reduced-motion:reduce){.okti-decision-shade.is-created-event,.okti-decision-shade.is-created-event .okti-decision-card,.okti-event-created,.okti-event-created:after{animation:none!important}.okti-event-created{outline:2px solid #268bb8;outline-offset:-2px}.okti-event-created:after{display:none}}
+</style>
 <style>
 /* Replies use the large decision surface; old chat containers remain for their handlers. */
 html.okti-communication-ready .octi-chat-frame:not(#eventConversationPanel),
@@ -5213,7 +5253,19 @@ window.OktiCommunication=(()=>{
   try{const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('pl'));if(voice)u.voice=voice;speechSynthesis.speak(u)}catch(_){}
  }
  function restore(){for(const [n,inert] of suspended)n.inert=inert;suspended=[]}
- function close(hideSource=false){stopSpeech();shade.hidden=true;restore();if(hideSource&&current?.channel){$(current.channel+'Conversation')?.classList.add('hidden');$(current.channel+'Clarification')?.classList.add('hidden');if(current.channel==='main')$('mainConversationTools')?.classList.add('hidden');if(current.channel==='event')$('eventConversationPanel')?.classList.add('hidden')}const focus=returnFocus;current=null;if(focus?.isConnected&&!focus.closest('[inert]'))focus.focus({preventScroll:true})}
+ function close(hideSource=false){stopSpeech();shade.hidden=true;shade.classList.remove('is-created-event','is-leaving');restore();if(hideSource&&current?.channel){$(current.channel+'Conversation')?.classList.add('hidden');$(current.channel+'Clarification')?.classList.add('hidden');if(current.channel==='main')$('mainConversationTools')?.classList.add('hidden');if(current.channel==='event')$('eventConversationPanel')?.classList.add('hidden')}const focus=returnFocus;current=null;if(focus?.isConnected&&!focus.closest('[inert]'))focus.focus({preventScroll:true})}
+ async function dismiss(state,run){
+  if(current!==state||state.leaving)return;
+  state.leaving=true;stopSpeech();
+  if(state.motion==='created-event'&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+    for(const button of card.querySelectorAll('button,input'))button.disabled=true;
+    shade.classList.add('is-leaving');
+    await new Promise(resolve=>{let timer;const finish=event=>{if(event&&(event.target!==card||event.animationName!=='okti-created-question-out'))return;card.removeEventListener('animationend',finish);clearTimeout(timer);resolve()};card.addEventListener('animationend',finish);timer=setTimeout(finish,300)});
+  }
+  // A new decision can replace this one while the exit animation is finishing.
+  if(current!==state)return;
+  const active=valid(state);close(true);if(active&&run)await run();
+ }
  function valid(state){return current===state&&(!state.session||voiceDialogueValid(state.session)&&(state.session.dialogueState?.revision??0)===state.revision)&&(!state.owner||state.owner.isConnected)&&(!state.isCurrent||state.isCurrent())}
  function setBusy(session,busy){if(!current||current.session!==session)return;current.busy=busy;for(const b of card.querySelectorAll('button,input'))b.disabled=busy;const status=card.querySelector('.okti-decision-status');if(status)status.textContent=busy?'Chwila…':''}
  function fail(state,error){if(current!==state)return;state.busy=false;for(const b of card.querySelectorAll('button,input'))b.disabled=false;card.querySelector('.okti-decision-error').textContent=error?.message||'Nie udało się wykonać wyboru. Spróbuj ponownie.'}
@@ -5256,16 +5308,17 @@ window.OktiCommunication=(()=>{
   stopSpeech();restore();const old=current;current={...config,revision:config.session?.dialogueState?.revision??0,busy:false};const state=current;
   if(shade.hidden)returnFocus=document.activeElement;
   for(const n of [document.querySelector('.app'),$('eventModal'),$('ideaModal')])if(n){suspended.push([n,n.inert]);n.inert=true}
-  card.replaceChildren();shade.hidden=false;
+  card.replaceChildren();shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
+  if(state.motion==='created-event'){void card.offsetWidth;shade.classList.add('is-created-event')}
   const header=node('div','okti-decision-header');header.append(node('span','','OCTI'));
   const read=node('button','okti-decision-icon');read.type='button';read.setAttribute('aria-label','Odczytaj pytanie');read.innerHTML=speaker;read.onclick=()=>speak(state.question);header.append(read);
   const key=node('button','okti-decision-icon');key.type='button';key.setAttribute('aria-label','Odpowiedz tekstowo');key.innerHTML=keyboard;header.append(key);
-  const hide=node('button','okti-decision-icon','×');hide.type='button';hide.setAttribute('aria-label','Zamknij pytanie');hide.onclick=()=>{if(state.onClose)state.onClose();else close(true)};header.append(hide);card.append(header);
+  const hide=node('button','okti-decision-icon','×');hide.type='button';hide.setAttribute('aria-label','Zamknij pytanie');hide.onclick=()=>{if(state.onClose)state.onClose();else if(state.motion==='created-event')return dismiss(state,state.onDismiss);else close(true)};header.append(hide);card.append(header);
   const h=node('h2','',state.question);h.id='oktiDecisionQuestion';h.tabIndex=-1;card.append(h);
   const options=node('div','okti-decision-options');card.append(options);
   const ds=state.session?.dialogueState||{},clock=!!state.session&&(ds.activeHourChoice||['startTime','endTime'].includes(ds.pendingField)&&['create','reminder'].includes(ds.mode));
   if(clock)wheels(state,options);
-  else if(state.actions?.length){for(const action of state.actions)options.append(choiceButton(state,action.label,action.detail,async()=>{close(true);await action.run()},action.primary===true))}
+  else if(state.actions?.length){for(const action of state.actions)options.append(choiceButton(state,action.label,action.detail,()=>dismiss(state,action.run),action.primary===true))}
   else if(state.buttons?.length){for(const [i,b] of state.buttons.entries())options.append(choiceButton(state,b.label,b.detail,async()=>{if(!b.original.isConnected||b.original.disabled)return;if(b.original.onclick)await b.original.onclick();else b.original.click();if(current===state&&(!b.original.isConnected||b.done))close()},b.primary??(!state.buttons.some(button=>button.primary===true)&&i===state.buttons.length-1)))}
   else{
    const choices=ds.clarificationChoices?.options||[];
@@ -5286,7 +5339,7 @@ window.OktiCommunication=(()=>{
  function finishLegacy(owner,approved){if(current?.owner!==owner)return;const previous=current.previous;close();if(!approved&&previous?.owner?.isConnected)show(previous)}
  function clear(channel){if(current?.channel===channel)close()}
  shade.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(current?.onClose)current.onClose();else close(true);}
+  if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(current?.onClose)current.onClose();else if(current?.motion==='created-event')dismiss(current,current.onDismiss);else close(true);}
   if(e.key==='Tab'){const nodes=[...card.querySelectorAll('button:not(:disabled):not([tabindex="-1"]),input:not(:disabled),[role="spinbutton"]')].filter(n=>!n.hidden&&!n.closest('[hidden]'));const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===card.querySelector('h2'))){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}
  },true);
  function viewport(){shade.style.setProperty('--okti-dialog-height',(window.visualViewport?.height||window.innerHeight)+'px')};window.visualViewport?.addEventListener('resize',viewport);window.addEventListener('resize',viewport);viewport();
