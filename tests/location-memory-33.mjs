@@ -45,8 +45,8 @@ try{
  model={kind:'event',intent:'modify',action:'continue',reply:'Sprawdź miejsce.',operations:[{op:'set',field:'location',value:'Centrum Meißen, Niemcy'}],focus:'',ambiguity:null,uiAction:null,locationContext:{city:'Meißen',clarification:null,alternativeCity:null}};
  const choose=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent.includes('Meißen')&&!b.textContent.includes('głosowo'));
  const changing=choose.onclick();await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
- assert.match(lastPayload.text,/Tak, nadal chodzi/);assert.ok(lastPayload.clarificationChoice);assert.equal(mapsCalls,3);assert.equal(run('tasks[0].location'),'');assert.match(get('oktiDecisionQuestion').textContent,/Zmienić lokalizację/);
- const confirm=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Tak — zmień');await confirm.onclick();await changing;
+ assert.match(lastPayload.text,/Tak, nadal chodzi/);assert.ok(lastPayload.clarificationChoice);assert.equal(mapsCalls,3);assert.equal(run('tasks[0].location'),'');assert.match(get('oktiDecisionQuestion').textContent,/Dodać lokalizację/);
+ const confirm=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak — (?:dodaj|zmień)$/.test(b.textContent));await confirm.onclick();await changing;
  assert.equal(run('tasks[0].googlePlace.placeId'),'test-'+mapCity);assert.equal(run('tasks[0].notes'),'Ważna notatka');assert.equal(get('oktiDecision').hidden,true);
  // An unresolved guessed new city is not allowed into a reviewed location mutation.
  begin();await turn('Meissen.',ask('Potwierdź.',{city:'Meissen',clarification:'city'}));
@@ -75,7 +75,7 @@ try{
   }
   const response=await worker.fetch(new Request('https://worker',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({...sent,currentItem:{...sent.currentItem,eventId:'different',id:'different'}})}),env);
   assert.equal(response.status,409,'Old choices cannot edit a different event');
-  await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Tak — zmień').onclick();await changing;
+  await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak — (?:dodaj|zmień)$/.test(b.textContent)).onclick();await changing;
   assert.equal(run('tasks[0].googlePlace.placeId'),'test-'+city);assert.match(run('tasks[0].location'),new RegExp(city));assert.equal(run('tasks[0].notes'),'Ważna notatka');
  }
  // The same selection on a new event preserves the draft and the immediate one-hour default.
