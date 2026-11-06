@@ -49,5 +49,25 @@ try{
  begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());const old=choices()[0];run("tasks[0].location='Adres dodany w międzyczasie';saveTasks()");await old.onclick();assert.equal(microphones,1);get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]').click();
  // Failed storage cannot produce the post-save offer; the existing retry remains available.
  begin();run("originalCommit=PlannerData.commit;PlannerData.commit=()=>{throw Error('Storage unavailable')}");await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());assert.equal(run('tasks.length'),0);assert.notEqual(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');run('PlannerData.commit=originalCommit');
+ // Motion changes presentation only: durable save first, close animation, then reveal the exact event.
+ w.matchMedia=query=>({matches:!query.includes('prefers-reduced-motion')});
+ begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create(),true);
+ assert.equal(get('oktiDecision').classList.contains('is-created-event'),true);
+ const saved=run('JSON.stringify(tasks)'),decline=choices()[1],leaving=decline.onclick();
+ assert.equal(get('oktiDecision').hidden,false,'The question remains mounted through its exit animation');
+ assert.equal(get('oktiDecision').classList.contains('is-leaving'),true);
+ assert.equal(!!w.document.querySelector('.app').inert,true,'Background remains inert while closing');
+ assert.equal(get('taskList').querySelector('.okti-event-created'),null,'The shine waits until the question has closed');
+ await decline.onclick();await leaving;await waitFor(()=>get('taskList').querySelector('.okti-event-created'));
+ assert.equal(get('oktiDecision').hidden,true);assert.equal(run('JSON.stringify(tasks)'),saved);
+ let lit=get('taskList').querySelector('.okti-event-created');assert.equal(lit.dataset.eventId,String(run('tasks[0].id')));assert.equal(run('iso(selected)'),run('tasks[0].date'));
+ run('renderDay()');lit=get('taskList').querySelector('.okti-event-created');assert.ok(lit,'A calendar repaint retains the cue without restarting its clock');
+ // A replacement decision must survive an older exit callback and must not reveal the wrong event.
+ begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());const pending=choices()[1].onclick();
+ run("OktiCommunication.showActions('main','Nowe pytanie',[{label:'Zostaw',run:()=>{}}],()=>true)");await pending;
+ assert.equal(get('oktiDecision').hidden,false);assert.equal(get('oktiDecisionQuestion').textContent,'Nowe pytanie');
+ // X uses the same exit/reveal sequence; an already-located all-day event skips the question.
+ begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());await get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]').onclick();assert.equal(get('oktiDecision').hidden,true);await waitFor(()=>get('taskList').querySelector('.okti-event-created'));
+ begin();run("tasks=[{id:'all-day',title:'Cały dzień',date:'2027-01-05',time:'',location:'Warszawa'}];offerCreatedEventLocation(tasks[0])");await waitFor(()=>get('taskList').querySelector('.okti-event-created'));assert.equal(get('taskList').querySelector('.okti-event-created').dataset.eventId,'all-day');assert.equal(get('oktiDecision').hidden,true);
  console.log('New-event location: Worker → frontend → durable creation → optional offer → existing event recorder → normalized audio → Google → add-location review → same saved event; text/audio, skip/X, duplicate responses, manual/recurring/already-located creation, stale targets and storage failures passed (external providers and microphone mocked).');
 }finally{dom.window.close();globalThis.fetch=nativeFetch}
