@@ -1,3 +1,11 @@
+## Natychmiastowe tworzenie wydarzeń — 33.233 / Worker 33.39
+
+Nowy frontend negocjuje `dialogueState.eventCreationPolicy: immediate-v1`. Bezpośrednie polecenie tworzenia zapisuje wydarzenie, gdy znane są dzień i jednoznaczny początek (lub jawne całodniowe). Domyślna nazwa to „Wydarzenie”, a przy konwersji nazwa źródłowego wpisu. Brak końca/długości oznacza godzinę; frontend skraca wyłącznie ten domyślny czas, zostawiając 15 minut przed najbliższym kolejnym wydarzeniem, także następnego dnia. Podana długość/koniec mają pierwszeństwo. Brak miejsca, niejasne godziny i konflikty wymagają rozstrzygnięcia; pytania i niepewne propozycje nie zapisują danych.
+
+Komunikat sukcesu pochodzi z aplikacji po atomowym zapisie kalendarza i ewentualnej konwersji źródła. Błąd zachowuje możliwość ponowienia, bez pozornego wydarzenia w pamięci. Odpowiedź nie może zostać zastosowana dwukrotnie. Starsze klienty bez nowej polityki oraz edycja istniejącego wydarzenia zachowują wcześniejszy przepływ zatwierdzania.
+
+`tests/immediate-events-33.mjs` obejmuje rzeczywisty Worker → aktualny frontend → trwały zapis → kolejną turę, tekst i normalizowane audio, domyślne wartości, bufor, północ, jawny czas, propozycje, konflikty, błąd zapisu, powtórzoną odpowiedź i konwersję. Dostawcy modelu i transkrypcji są zastąpieni kontrolowanymi odpowiedziami. Testy historycznego potwierdzania nadal sprawdzają starszy kontrakt klienta.
+
 ## Lokalizacje Google — 33.224
 
 Adres wpisany ręcznie albo rozpoznany przez rozmowę może zostać przypięty do wyniku Google przed zapisem wydarzenia. Użytkownik wybiera wynik; ulica bez numeru pozostaje ulicą z punktem orientacyjnym. Częściowe dopasowania i przybliżona pozycja są opisane. Brak wyniku lub błąd pozwala poprawić zapytanie albo jawnie zachować tekst bez przypięcia. Nawigacja korzysta z wybranego `place_id`, a pogoda z jego współrzędnych.
