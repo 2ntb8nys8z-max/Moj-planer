@@ -25,7 +25,7 @@ async function turn(text,answer,audio=false){model=answer;audioTranscript=text;w
 const stored=()=>JSON.parse(run('PlannerData.storage.getItem(TASK_KEY)'));
 try{
  begin();await turn('Utwórz wydarzenie 4 stycznia o 15:00',command({date:day,startTime:'15:00'}));
- assert.equal(stored().length,1);assert.equal(stored()[0].title,'Wydarzenie');assert.equal(stored()[0].endTime,'16:00');assert.equal(get('conversationConfirm'),null);assert.match(get('voiceHint').textContent,/Zapisano/);assert.doesNotMatch(get('voiceHint').textContent,/szkic/);
+ assert.equal(stored().length,1);assert.equal(stored()[0].title,'Wydarzenie');assert.equal(stored()[0].endTime,'16:00');assert.equal(get('conversationConfirm'),null);assert.match(get('toast').textContent,/Zapisano/);assert.equal(get('voiceHint').textContent,'');assert.doesNotMatch(get('voiceHint').textContent,/szkic/);
  assert.match(modelContext[0].content,/NOWE WYDARZENIA/);assert.equal(lastPayload.dialogueState.eventCreationPolicy,'immediate-v1');
  w.duplicate=lastResult;await run('applyVoiceDialogueResult(testSession,duplicate)');assert.equal(stored().length,1,'Applying the same response twice does not duplicate an event');
  for(const [next,end] of [['15:50','15:35'],['16:15','16:00'],['18:00','16:00'],['15:16','15:01']]){
