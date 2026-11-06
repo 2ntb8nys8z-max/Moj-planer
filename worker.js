@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.40-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.41-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -361,10 +361,46 @@ function conversationChoiceList(value){
     return {label:choice.label.trim(),answer:choice.answer.trim(),...(choice.detail?{detail:choice.detail.trim()}:{})};
   });
 }
+function conversationLocationSelection(context,city){
+  // A deliberate city selection settles the question. Let Google establish its region.
+  const next={...context,city};
+  delete next.region;delete next.alternativeCity;delete next.clarification;
+  return {context:next,answer:{reply:'Sprawdź miejsce.',kind:'event',intent:'modify',action:'continue',
+    operations:[{op:'set',field:'location',value:[next.area,city,next.country].filter(Boolean).join(', ')}],
+    focus:'',ambiguity:null,uiAction:null,locationContext:{...next,cityChange:'replace',alternativeCity:null,clarification:null}}};
+}
+function conversationLocationChoice(text,context){
+  if(!context.clarification)return null;
+  const key=value=>dialoguePlain(String(value).replaceAll('ß','ss')).replace(/[.,!?]/g,'').trim();
+  const spoken=key(text).replace(/^(?:tak[, ]+|(?:zmien|zmień|wybierz|ustaw)(?: miejscowosc| miasto| lokalizacje)?(?: na)? |(?:chodzi|nadal chodzi) o )/,'');
+  return [context.city,context.alternativeCity].filter(Boolean).find(city=>key(city)===spoken)||null;
+}
 async function runConversationTurn(args){
   const changedEvent=args.original?.type==='event'&&args.state.eventContextId!=null&&args.state.eventContextId!==(args.original.eventId??args.original.id);
   const locationMemory={value:conversationLocationMemory(changedEvent?null:args.state.locationContext),touched:false};
-  const result=await runConversationTurnCore({...args,locationMemory});
+  let forcedLocationAnswer=null;
+  const selection=args.clarificationChoice,choices=args.state.clarificationChoices;
+  if(selection){
+    if(changedEvent||!choices||selection.id!==choices.id||selection.revision!==args.state.revision||!Number.isInteger(selection.index)||!choices.options?.[selection.index])throw new PlannerApiError('Ten wybór jest nieaktualny. Otwórz pytanie ponownie.',409,'stale_clarification_choice');
+    const choice=choices.options[selection.index];
+    if(choice.locationSearch===true){
+      const context={...locationMemory.value};delete context.city;delete context.region;delete context.alternativeCity;delete context.clarification;
+      const next={...args.state,revision:(Number(args.state.revision)||0)+1,locationContext:context,pendingProposal:null,lastOperation:{status:'location_search_needed'}};
+      delete next.clarificationChoices;
+      return {engine:3,success:true,status:'continue',reply:'Jaką inną miejscowość mam wyszukać? Możesz podać nazwę głosem.',dialogueState:next};
+    }
+    if(choice.locationCity){
+      if(!locationMemory.value.clarification||![locationMemory.value.city,locationMemory.value.alternativeCity].includes(choice.locationCity))throw new PlannerApiError('Ten wybór miejsca jest nieaktualny.',409,'stale_clarification_choice');
+      const selected=conversationLocationSelection(locationMemory.value,choice.locationCity);
+      locationMemory.value=selected.context;forcedLocationAnswer=selected.answer;
+    }
+  }else if(!changedEvent&&choices?.options?.some(choice=>choice.locationCity)){
+    const city=conversationLocationChoice(args.text,locationMemory.value);
+    if(city){const selected=conversationLocationSelection(locationMemory.value,city);locationMemory.value=selected.context;forcedLocationAnswer=selected.answer;}
+  }
+  // Consume a choice once; subsequent questions must receive a fresh set.
+  const state={...args.state};delete state.clarificationChoices;
+  const result=await runConversationTurnCore({...args,state,locationMemory,forcedLocationAnswer});
   const context=locationMemory.value;
   if(result.uiAction&&!['set_event_reminder','remove_event_reminder'].includes(result.uiAction.type))return result;
   if(Object.keys(context).length&&result.dialogueState)result.dialogueState.locationContext=context;
@@ -382,16 +418,16 @@ async function runConversationTurn(args){
   if(result.status==='continue'&&result.dialogueState){
     let choices=locationMemory.choices||[];
     if(locationMemory.touched&&context.city&&context.clarification){
-      choices=[{label:context.city,detail:context.area||'Potwierdź miejscowość',answer:'Tak, nadal chodzi o '+(context.area?context.area+' ':'')+context.city+'. Dodaj tę lokalizację z właściwym regionem.'},
-        ...(context.alternativeCity?[{label:context.alternativeCity,detail:'Zmień miejscowość',answer:'Zmień miejscowość na '+context.alternativeCity+'.'}]:[]),
-        {label:'Nie — szukaj dalej',answer:'To nie jest właściwe miejsce. Poszukaj innych dopasowań, nie zapisuj jeszcze lokalizacji.'}];
+      choices=[{label:context.city,locationCity:context.city,detail:context.area||'Potwierdź miejscowość',answer:'Tak, nadal chodzi o '+(context.area?context.area+' ':'')+context.city+'. Dodaj tę lokalizację z właściwym regionem.'},
+        ...(context.alternativeCity?[{label:context.alternativeCity,locationCity:context.alternativeCity,detail:'Zmień miejscowość',answer:'Zmień miejscowość na '+context.alternativeCity+'.'}]:[]),
+        {label:'Nie — szukaj dalej',locationSearch:true,answer:'To nie jest właściwe miejsce. Poszukaj innych dopasowań, nie zapisuj jeszcze lokalizacji.'}];
     }
     if(!result.dialogueState.activeHourChoice&&choices.length)result.dialogueState.clarificationChoices={id:crypto.randomUUID(),options:choices};
     else delete result.dialogueState.clarificationChoices;
   }
   return result;
 }
-async function runConversationTurnCore({text,history,original,state,env,today,lastOperation,inputSource='text',locationMemory,manualTimeChoice}){
+async function runConversationTurnCore({text,history,original,state,env,today,lastOperation,inputSource='text',locationMemory,manualTimeChoice,forcedLocationAnswer}){
   original=conversationEventContext(original);
   if(original?.type==='event'){
     if(state.eventContextId!=null&&state.eventContextId!==original.eventId)state={engine:3,revision:state.revision,eventContextId:original.eventId};
@@ -408,7 +444,7 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
   const active=state.activeHourChoice;
   const mentions=conversationHourMentions(text,state,inputSource);
   const unresolved=!selectedHour&&mentions.find(m=>m.ambiguous);
-  let forcedAnswer=null;
+  let forcedAnswer=forcedLocationAnswer||null;
   if(selectedHour&&(manualTimeChoice||active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
     const field=manualTimeChoice?.field||active?.field||(state.pendingField==='endTime'?'endTime':'startTime');
     const mode=active?.mode||state.mode;
@@ -464,6 +500,15 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
       let appliedState=state;
       if(answer.intent==='reject')appliedState={...state,draft:state.pendingProposal.baseDraft,allDay:state.pendingProposal.baseAllDay};
       answer.action='continue';
+      if(answer.locationContext&&locationMemory.value.city&&/^(?:prosze[ ,]+)?(?:zmien (?:miejscowosc|miasto|lokalizacje) na|przelacz(?: miejscowosc| miasto| lokalizacje)? na)\b/.test(dialoguePlain(text))){
+        const proposed=answer.locationContext.city;
+        const city=proposed&&dialoguePlain(proposed)!==dialoguePlain(locationMemory.value.city)?proposed:answer.locationContext.alternativeCity;
+        if(city&&dialoguePlain(city)!==dialoguePlain(locationMemory.value.city)){
+          const selected=conversationLocationSelection({...locationMemory.value,...answer.locationContext},city);
+          answer={...selected.answer,operations:[...(answer.operations||[]).filter(op=>op.field!=='location'),...selected.answer.operations]};
+          locationMemory.value=selected.context;
+        }
+      }
       candidate=conversationCandidate(original,appliedState,answer);
       locationMemory.value=conversationLocationMemory(locationMemory.value,answer.locationContext);
       locationMemory.touched=answer.locationContext!=null;
@@ -558,7 +603,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="94a86097c15e9c54";
+const BUILD_ID="15a9adb1d3eb97d5";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1128,7 +1173,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.06.33.40-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.06.33.41-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1160,7 +1205,7 @@ export default {
       let currentItem = null;
       let weatherContext = null;
       let dialogueState = null;
-      let conversationEngine=2,lastOperation=null,manualTimeChoice=null;
+      let conversationEngine=2,lastOperation=null,manualTimeChoice=null,clarificationChoice=null;
       let bodyCurrent = null, uploadedAudio=null, uploadedAudioType=null, transcribeOnly=false;
       if ((request.headers.get("Content-Type") || "").includes("application/json")) {
         const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,API_LIMITS.jsonBytes)));
@@ -1189,7 +1234,7 @@ export default {
         weatherContext = body.weatherContext || null;
         dialogueState = body.dialogueState || null;
         conversationEngine=body.conversationEngine===3?3:2;
-        lastOperation=body.lastOperation||null;manualTimeChoice=body.manualTimeChoice||null;
+        lastOperation=body.lastOperation||null;manualTimeChoice=body.manualTimeChoice||null;clarificationChoice=body.clarificationChoice||null;
       }
       if(JSON.stringify({dialogue,bodyCurrent,weatherContext,dialogueState}).length>64000)throw new PlannerApiError('Kontekst rozmowy jest za duży.',413);
       const dialogueHeader = request.headers.get("X-Voice-Dialogue");
@@ -1316,7 +1361,7 @@ export default {
       // deterministic Engine 2 date/time shortcuts so both engines keep their
       // own state protocol and response shape.
       if(conversationEngine===3){
-        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation,manualTimeChoice,inputSource:uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')?'audio':'text'});
+        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation,manualTimeChoice,clarificationChoice,inputSource:uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')?'audio':'text'});
         return json({...turn,usage:apiUsage,transcription:spokenText,utterance:spokenText});
       }
 
