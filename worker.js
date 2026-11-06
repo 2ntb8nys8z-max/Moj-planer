@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.39-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.40-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -325,27 +325,97 @@ function conversationHourWait(state,choice){
     conversationAmbiguity:{field:choice.field,choices:choice.choices},pendingField:choice.field,
     revision:(Number(state.revision)||0)+1,lastOperation:{status:'hour_choice_required'}}};
 }
-async function runConversationTurn({text,history,original,state,env,today,lastOperation,inputSource='text'}){
+// An unresolved location is conversational memory, never a calendar mutation.
+// Keep the known city while a region or a suspect transcription is clarified.
+function conversationLocationMemory(prior,patch){
+  const clean=value=>{
+    if(value==null)return {};
+    if(typeof value!=='object'||Array.isArray(value))throw conversationFault('invalid_location_context');
+    const result={};
+    for(const field of ['city','region','country','area','alternativeCity']){
+      if(value[field]==null)continue;
+      if(typeof value[field]!=='string'||value[field].length>200)throw conversationFault('invalid_location_context');
+      if(value[field].trim())result[field]=value[field].trim();
+    }
+    if(value.clarification!=null&&!['city','region','area'].includes(value.clarification))throw conversationFault('invalid_location_context');
+    if(value.clarification)result.clarification=value.clarification;
+    return result;
+  };
+  const current=clean(prior);if(patch==null)return current;
+  const next=clean(patch),key=value=>dialoguePlain(String(value).replaceAll('ß','ss'));
+  const unconfirmedChange=current.city&&next.city&&key(current.city)!==key(next.city)&&patch.cityChange!=='replace';
+  if(unconfirmedChange){
+    next.alternativeCity=next.city;next.city=current.city;next.clarification='city';
+  }
+  const merged={...current,...next};
+  if(!unconfirmedChange&&Object.hasOwn(patch,'alternativeCity')&&patch.alternativeCity==null)delete merged.alternativeCity;
+  if(patch.cityChange==='replace'){delete merged.alternativeCity;delete merged.clarification;}
+  else if(!unconfirmedChange&&Object.hasOwn(patch,'clarification')&&patch.clarification==null)delete merged.clarification;
+  return merged;
+}
+function conversationChoiceList(value){
+  if(value==null)return [];
+  if(!Array.isArray(value)||value.length>5)throw conversationFault('invalid_clarification_choices');
+  return value.map(choice=>{
+    if(!choice||typeof choice.label!=='string'||!choice.label.trim()||choice.label.length>120||typeof choice.answer!=='string'||!choice.answer.trim()||choice.answer.length>500||choice.detail!=null&&(typeof choice.detail!=='string'||choice.detail.length>180))throw conversationFault('invalid_clarification_choices');
+    return {label:choice.label.trim(),answer:choice.answer.trim(),...(choice.detail?{detail:choice.detail.trim()}:{})};
+  });
+}
+async function runConversationTurn(args){
+  const changedEvent=args.original?.type==='event'&&args.state.eventContextId!=null&&args.state.eventContextId!==(args.original.eventId??args.original.id);
+  const locationMemory={value:conversationLocationMemory(changedEvent?null:args.state.locationContext),touched:false};
+  const result=await runConversationTurnCore({...args,locationMemory});
+  const context=locationMemory.value;
+  if(result.uiAction&&!['set_event_reminder','remove_event_reminder'].includes(result.uiAction.type))return result;
+  if(Object.keys(context).length&&result.dialogueState)result.dialogueState.locationContext=context;
+  if(locationMemory.touched&&context.city&&context.clarification==='city'){
+    // A doubtful new place name cannot replace the previously named city.
+    const location=result.item?.location;
+    if(result.item?.type==='event'&&location&&dialoguePlain(location)!==dialoguePlain(args.state.draft?.location||args.original?.location||'')){
+      delete result.item;delete result.saveEvent;result.status='continue';
+      result.dialogueState.draft.location=args.state.draft?.location??args.original?.location??'';
+      result.dialogueState.pendingProposal=null;result.dialogueState.lastOperation={status:'location_clarification'};
+    }
+    if(result.status==='continue')result.reply=context.alternativeCity?`Nadal chodzi o ${context.area?context.area+' ':''}${context.city}, czy o ${context.alternativeCity}?`:`Czy chodzi o ${context.area?context.area+' ':''}${context.city}?`;
+  }
+  if(locationMemory.touched&&context.city&&context.clarification==='region'&&result.status==='continue'&&!result.uiAction)result.reply=`Czy chodzi o ${context.area?context.area+' ':''}${context.city}?`;
+  if(result.status==='continue'&&result.dialogueState){
+    let choices=locationMemory.choices||[];
+    if(locationMemory.touched&&context.city&&context.clarification){
+      choices=[{label:context.city,detail:context.area||'Potwierdź miejscowość',answer:'Tak, nadal chodzi o '+(context.area?context.area+' ':'')+context.city+'. Dodaj tę lokalizację z właściwym regionem.'},
+        ...(context.alternativeCity?[{label:context.alternativeCity,detail:'Zmień miejscowość',answer:'Zmień miejscowość na '+context.alternativeCity+'.'}]:[]),
+        {label:'Nie — szukaj dalej',answer:'To nie jest właściwe miejsce. Poszukaj innych dopasowań, nie zapisuj jeszcze lokalizacji.'}];
+    }
+    if(!result.dialogueState.activeHourChoice&&choices.length)result.dialogueState.clarificationChoices={id:crypto.randomUUID(),options:choices};
+    else delete result.dialogueState.clarificationChoices;
+  }
+  return result;
+}
+async function runConversationTurnCore({text,history,original,state,env,today,lastOperation,inputSource='text',locationMemory,manualTimeChoice}){
   original=conversationEventContext(original);
   if(original?.type==='event'){
     if(state.eventContextId!=null&&state.eventContextId!==original.eventId)state={engine:3,revision:state.revision,eventContextId:original.eventId};
     else state={...state,eventContextId:original.eventId??null};
   }
   const draft={...(original||{}),...(state.draft||{})};
-  const parsedHour=conversationHourChoice(text,state,history);
-  const audioAmbiguous=inputSource==='audio'&&!state.activeHourChoice&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
+  if(manualTimeChoice){
+    const expected=state.activeHourChoice?.field||state.pendingField;
+    if(!manualTimeChoice||!['startTime','endTime'].includes(manualTimeChoice.field)||manualTimeChoice.field!==expected||plannerMinutes(manualTimeChoice.time)===null||manualTimeChoice.revision!==state.revision||!state.activeHourChoice&&!['create','reminder'].includes(state.mode)&&original?.type!=='event')throw new PlannerApiError('Wybór godziny jest nieaktualny. Otwórz pytanie ponownie.',409,'stale_time_choice');
+  }
+  const parsedHour=manualTimeChoice?.time||conversationHourChoice(text,state,history);
+  const audioAmbiguous=!manualTimeChoice&&inputSource==='audio'&&!state.activeHourChoice&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
   const selectedHour=audioAmbiguous?null:parsedHour;
   const active=state.activeHourChoice;
   const mentions=conversationHourMentions(text,state,inputSource);
   const unresolved=!selectedHour&&mentions.find(m=>m.ambiguous);
   let forcedAnswer=null;
-  if(selectedHour&&(active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
-    const field=active?.field||(state.pendingField==='endTime'?'endTime':'startTime');
+  if(selectedHour&&(manualTimeChoice||active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
+    const field=manualTimeChoice?.field||active?.field||(state.pendingField==='endTime'?'endTime':'startTime');
     const mode=active?.mode||state.mode;
-    if(mode==='reminder'||mode==='create'){
+    if(mode==='reminder'||mode==='create'||manualTimeChoice){
       forcedAnswer={reply:'Sprawdź ustalenia.',kind:'command',intent:'execute',action:'continue',operations:[],focus:'',ambiguity:null,
         uiAction:{type:mode==='reminder'?'set_entry_reminder':'open_create_event',[field]:selectedHour}};
-      if(original?.type==='event'&&mode==='create')forcedAnswer={reply:'Sprawdź ustalenia.',kind:'event',intent:'modify',action:'continue',operations:[{op:'set',field,value:selectedHour}],focus:'',ambiguity:null,uiAction:null};
+      if(original?.type==='event'&&(mode==='create'||manualTimeChoice))forcedAnswer={reply:'Sprawdź ustalenia.',kind:'event',intent:'modify',action:'continue',operations:[{op:'set',field,value:selectedHour}],focus:'',ambiguity:null,uiAction:null};
       state={...state};delete state.activeHourChoice;delete state.conversationAmbiguity;
     }
   }
@@ -353,9 +423,11 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
   const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':text;
   const immediateCreate=state.eventCreationPolicy==='immediate-v1'&&original?.type!=='event';
   const creationRules=immediateCreate?'\nNOWE WYDARZENIA — TE REGUŁY MAJĄ PIERWSZEŃSTWO: wykonuj bezpośrednie polecenie tworzenia od razu, zwracając open_create_event lub operacje wydarzenia, nigdy samą obietnicę ani odpowiedź continue bez akcji. Wystarczą dzień i jednoznaczny początek (lub jawne całodniowe). Tytuł jest opcjonalny: aplikacja użyje „Wydarzenie”, a przy konwersji nazwy wpisu. Koniec i długość są opcjonalne: aplikacja domyślnie rezerwuje 60 minut i skraca przed kolejnym wydarzeniem o bufor 15 minut. Nie wymyślaj endTime ani durationMinutes, gdy nie podał ich użytkownik. Nie pytaj o nazwę, długość ani potwierdzenie tworzenia. Zachowaj jawnie podany koniec/długość. Niejednoznaczne godziny nadal wymagają wyjaśnienia. Propozycja lub pytanie informacyjne nie jest zgodą na zapis. Nie mów o utworzeniu szkicu ani sukcesie zapisu — zapis i komunikat wykona aplikacja.':'';
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT+creationRules},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:!immediateCreate,immediateEventCreation:immediateCreate,defaultEventMinutes:60,eventGapMinutes:15,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
+  const locationRules=`\nPAMIĘĆ DOPRECYZOWANIA LOKALIZACJI: locationContext to niezatwierdzone ustalenia, NIE zapisana lokalizacja. Gdy rozmowa dotyczy miejsca, zwróć dodatkowe locationContext {city,region,country,area,alternativeCity,clarification}. Zachowaj podaną miejscowość od pierwszej wypowiedzi, nawet gdy nie zwracasz operacji i tylko pytasz o sprzeczny region. Odpowiedź podająca sam region/kraj lub „centrum” uzupełnia te pola, nigdy nie usuwa miasta. Null i pominięte city/region/country/area zachowują pamięć. clarification to city, region, area albo null po wyjaśnieniu. Przy niepewnym nowym słowie w transkrypcji zachowaj city, wpisz nowe słowo w alternativeCity i clarification city; zapytaj, czy nadal chodzi o poprzednią miejscowość, wymieniając jej nazwę. Nie ogłaszaj nieznajomości miasta, które już podano. Tylko jednoznaczne polecenie zmiany miasta albo jawny wybór alternatywy pozwala zwrócić cityChange replace z nowym city. Sama odpowiedź „w [niejasna nazwa]” po korekcie regionu nie wystarcza. Przy potwierdzeniu poprzedniego miasta alternativeCity null i clarification null (lub region, jeśli region nadal sprzeczny). Przykład: „centrum Meissen w Dolnej Saksonii” => zachowaj city Meißen i area centrum, spór dotyczy regionu. Po „mój błąd, w Excelsior” nie zakładaj nowego miasta: nadal city Meißen, alternativeCity Excelsior i pytanie „Nadal chodzi o centrum Meißen?”. Po samym „w Niemczech, w centrum” nadal pamiętaj Meißen. Nie zamieniaj tego przykładu w stałe domyślne miasto. Jeśli region jest sprzeczny, pytaj o niego z nazwą zachowanego miasta; nie narzucaj innej miejscowości i nie wymagaj znajomości landów. Nie twierdź, że zweryfikowałeś mapę — po ustaleniu miejsca przekaż set location do istniejącego resolvera Google. Nie dopisuj locationContext do notes, title ani location. Po zmianie tematu możesz normalnie odpowiedzieć i zachować pamięć bez zmian.`;
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT+creationRules+locationRules+'\nPRZYCISKI ODPOWIEDZI: przy pytaniu doprecyzowującym możesz zwrócić clarificationChoices: [{label:krótka nazwa odpowiedzi,detail:opcjonalny szczegół,answer:jednoznaczna pełna odpowiedź użytkownika}]. Od 2 do 5 rzeczywiście różnych opcji wynikających z rozmowy, bez wymyślonych adresów ani współrzędnych. Dla propozycji potwierdzenia miejsca pokaż jego nazwę i region, jeśli ustalony, oraz opcję szukania dalej. Dla niejasnej godziny nie generuj przycisków z godzinami: aplikacja pokaże bębenki godzin i minut. Przyciski tylko ułatwiają odpowiedź; nie oznaczają zgody, dopóki użytkownik ich nie wybierze. Krótkie odpowiedzi głosowe nadal działają tak samo. Jeżeli użytkownik potwierdzi zachowaną miejscowość, przekaż set location do resolvera Google bez ponownego pytania o miasto ani wymagania znajomości regionu.'},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,locationContext:locationMemory.value,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:!immediateCreate,immediateEventCreation:immediateCreate,defaultEventMinutes:60,eventGapMinutes:15,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
+    const priorLocationMemory={...locationMemory};
     const response=forcedAnswer?new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(forcedAnswer)}}]})):await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
     const raw=await response.text();if(!response.ok)throw openAiFailure(response.status,raw,'interpretation');
     let answer,candidate,pendingProposal=null,ready=false;
@@ -366,7 +438,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
 
       // Explicit AM/PM or the active selection is authoritative, not a model suggestion.
       if(selectedHour){
-        const field=active?.field||(/^(?:do)\b/.test(dialoguePlain(text))?'endTime':'startTime');
+        const field=manualTimeChoice?.field||active?.field||(/^(?:do)\b/.test(dialoguePlain(text))?'endTime':'startTime');
         if(['set_entry_reminder','open_create_event'].includes(answer.uiAction?.type)){
           answer.uiAction={...answer.uiAction,[field]:selectedHour};
           if(field==='startTime'&&answer.uiAction.durationMinutes!=null){delete answer.uiAction.endTime;delete answer.uiAction.endDate;}
@@ -393,6 +465,9 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
       if(answer.intent==='reject')appliedState={...state,draft:state.pendingProposal.baseDraft,allDay:state.pendingProposal.baseAllDay};
       answer.action='continue';
       candidate=conversationCandidate(original,appliedState,answer);
+      locationMemory.value=conversationLocationMemory(locationMemory.value,answer.locationContext);
+      locationMemory.touched=answer.locationContext!=null;
+      locationMemory.choices=conversationChoiceList(answer.clarificationChoices);
       if(answer.kind==='command'&&!candidate.uiAction)return {engine:3,success:true,status:'continue',reply:answer.reply.trim(),dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1}};
       if(answer.kind==='command'){
         if(['set_event_reminder','remove_event_reminder'].includes(candidate.uiAction.type)){
@@ -429,6 +504,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
         pendingProposal=answer.intent==='continue'?state.pendingProposal||null:{id:crypto.randomUUID(),kind:answer.kind,draft:plannerCleanDraft(candidate.draft),idea:answer.idea||null,baseDraft:plannerCleanDraft(draft),baseAllDay:state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft};
       }
     }catch(error){
+      Object.assign(locationMemory,priorLocationMemory);
       failure=error.conversationCode||'invalid_json_response';
       // Retry from the same immutable draft, never from partially applied operations.
       messages.push({role:'user',content:JSON.stringify({validationFeedback:failure,rejectedResponse:answer||null,previousAttemptApplied:false,instruction:'Return a corrected response to the same user utterance, or discuss the limitation without operations.'})});
@@ -482,7 +558,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="b60c304d80c2618b";
+const BUILD_ID="94a86097c15e9c54";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1052,7 +1128,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.06.33.39-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.06.33.40-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1084,7 +1160,7 @@ export default {
       let currentItem = null;
       let weatherContext = null;
       let dialogueState = null;
-      let conversationEngine=2,lastOperation=null;
+      let conversationEngine=2,lastOperation=null,manualTimeChoice=null;
       let bodyCurrent = null, uploadedAudio=null, uploadedAudioType=null, transcribeOnly=false;
       if ((request.headers.get("Content-Type") || "").includes("application/json")) {
         const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,API_LIMITS.jsonBytes)));
@@ -1113,7 +1189,7 @@ export default {
         weatherContext = body.weatherContext || null;
         dialogueState = body.dialogueState || null;
         conversationEngine=body.conversationEngine===3?3:2;
-        lastOperation=body.lastOperation||null;
+        lastOperation=body.lastOperation||null;manualTimeChoice=body.manualTimeChoice||null;
       }
       if(JSON.stringify({dialogue,bodyCurrent,weatherContext,dialogueState}).length>64000)throw new PlannerApiError('Kontekst rozmowy jest za duży.',413);
       const dialogueHeader = request.headers.get("X-Voice-Dialogue");
@@ -1240,7 +1316,7 @@ export default {
       // deterministic Engine 2 date/time shortcuts so both engines keep their
       // own state protocol and response shape.
       if(conversationEngine===3){
-        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation,inputSource:uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')?'audio':'text'});
+        const turn=await runConversationTurn({text:spokenText,history:dialogue,original:currentItem,state:dialogueState,env,today:quotaPeriod().day,lastOperation,manualTimeChoice,inputSource:uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')?'audio':'text'});
         return json({...turn,usage:apiUsage,transcription:spokenText,utterance:spokenText});
       }
 

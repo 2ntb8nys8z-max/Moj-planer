@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.06.33.233-integration';
-const PREVIEW_VERSION='2026.11.06.33.233-test';
+const APP_VERSION='2026.11.06.33.234-integration';
+const PREVIEW_VERSION='2026.11.06.33.234-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
-const WORKER_VERSION='2026.11.06.33.39-test';
-const WORKER_LABEL='Worker 33.39-test';
+const WORKER_VERSION='2026.11.06.33.40-test';
+const WORKER_LABEL='Worker 33.40-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -31,7 +31,7 @@ for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','promp
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.39-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.40-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
@@ -81,7 +81,7 @@ output('preview33/travel-routes.js',travelRoutes,false);
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
-const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261106-33.39-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
+const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261106-33.40-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
 
 output('worker.js',worker);
 output('worker.txt',worker);

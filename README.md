@@ -1,3 +1,13 @@
+## Duże odpowiedzi i pamięć miejsca — 33.234 / Worker 33.40
+
+Pytania Okti otwierają nieprzezroczyste, duże okno w dotychczasowej palecie niebieskiej i turkusowej. Jedna aktualna odpowiedź, duże przyciski wyboru i przycisk „Wybierz głosowo” zastępują konieczność czytania małego czatu. Transkrypcja użytkownika i starsze odpowiedzi pozostają w wewnętrznej historii, ale nie są powtarzane na ekranie. Odczyt pytania korzysta z syntezy mowy przeglądarki, jeśli jest dostępna; po pytaniu głosowym jest uruchamiany automatycznie, można go też włączyć przyciskiem. Wygląd i animacja istniejącego Octopusa nie są zmienione.
+
+Niejasna lub brakująca godzina ma niezależne bębenki godzin i minut. Zatwierdzona wartość przechodzi przez osobny, walidowany wybór `manualTimeChoice` związany z polem i rewizją bieżącej rozmowy. Nie wymaga kolejnego zgadywania przez model. Stare, zamknięte i zmienione decyzje nie mogą wykonać zapisu. Przycisk głosowy wraca do istniejącego, przypisanego do kontekstu nagrywania.
+
+`locationContext` przechowuje miasto, region, kraj, cel w mieście i niepewną alternatywę oddzielnie od zapisanej lokalizacji wydarzenia. Podanie samego regionu, kraju lub „centrum” zachowuje nazwę miasta, także po skróceniu historii. Niejasna nowa nazwa nie może podmienić miasta ani trafić do zapisu bez wyjaśnienia; jawna zmiana miasta jest dozwolona. Wybór lokalizacji nadal przechodzi przez Google, a zmiana istniejącego wydarzenia przez potwierdzenie. Pamięć nie przenosi się między wydarzeniami.
+
+Regresje `tests/location-memory-33.mjs` i `tests/communication-ui-33.mjs` obejmują rzeczywisty Worker → frontend → kolejną turę → zapis, tekst i normalizowane audio, wybór przyciskami/bębenkami, resolver Google, nieaktualne decyzje, błąd sieci i powrót do mikrofonu. Zewnętrzny model, transkrypcja i Google są kontrolowanymi odpowiedziami testowymi; testy nie potwierdzają jakości żywego modelu ani mikrofonu/Safari. Synteza mowy zależy od urządzenia i przeglądarki. Aplikacja nie trenuje automatycznie modelu na rozmowach.
+
 ## Natychmiastowe tworzenie wydarzeń — 33.233 / Worker 33.39
 
 Nowy frontend negocjuje `dialogueState.eventCreationPolicy: immediate-v1`. Bezpośrednie polecenie tworzenia zapisuje wydarzenie, gdy znane są dzień i jednoznaczny początek (lub jawne całodniowe). Domyślna nazwa to „Wydarzenie”, a przy konwersji nazwa źródłowego wpisu. Brak końca/długości oznacza godzinę; frontend skraca wyłącznie ten domyślny czas, zostawiając 15 minut przed najbliższym kolejnym wydarzeniem, także następnego dnia. Podana długość/koniec mają pierwszeństwo. Brak miejsca, niejasne godziny i konflikty wymagają rozstrzygnięcia; pytania i niepewne propozycje nie zapisują danych.
