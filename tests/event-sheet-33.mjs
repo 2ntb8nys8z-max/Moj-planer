@@ -139,5 +139,24 @@ try{
  assert.equal(get('eventActionsToggle').classList.contains('hidden'),false,'read-only Google tasks retain the history menu');assert.equal(get('eventActionsMenu').contains(get('eventHistory')),true,'read-only history stays reachable through more actions');get('eventActionsToggle').click();assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
  assert.equal(panel.classList.contains('hidden'),true);
  for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(get(id).classList.contains('hidden'),true,`${id} remains hidden for read-only Google tasks`);
- console.log('Event sheet 33.56: separate scrolling regions, fixed communication controls, preserved action IDs and handlers, navigation, idle/recording/send presentation, original dialogue/reply node relocation, close/reopen input and session preservation, new-message reveal, recurrence close without inert leak and read-only Google tasks passed.');
+ // The flight is presentation only. Closing releases the logical event now;
+ // a replacement opening cannot be hidden by an old animation's completion.
+ run("closeEventActions();tasks=[{id:'flight-one',title:'Wymiana opon',date:'2026-10-12',time:'17:00',endTime:'18:00'},{id:'flight-two',title:'Drugie',date:'2026-10-12',time:'19:00',endTime:'20:00'}];selected=new Date('2026-10-12T12:00:00');showView('day')");await settle();
+ const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height,x:left,y:top});
+ sheet.getBoundingClientRect=()=>rect(12,12,366,170);get('taskList').getBoundingClientRect=()=>rect(0,250,390,400);
+ for(const tile of get('taskList').querySelectorAll('[data-event-id]')){tile.getBoundingClientRect=()=>rect(80,400,180,67);for(const n of [...tile.querySelectorAll('.task-title,.task-time'),...(tile.nextElementSibling?.querySelectorAll('.phone-event-title-text,.phone-event-time')||[])])n.getBoundingClientRect=()=>rect(90,410,160,20)}
+ get('actionTitle').getBoundingClientRect=()=>rect(28,27,240,34);get('eventTime').getBoundingClientRect=()=>rect(28,110,130,36);
+ const animations=[];w.HTMLElement.prototype.animate=function(frames,options){let finish;const a={target:this,frames,options,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(a);return a};
+ run('openEventActions(tasks[0])');assert.equal(w.OktiEventMotion.getState().closing,false);assert.ok(animations.some(a=>a.options.duration===820));assert.ok(get('eventModal').querySelector('.okti-event-flight-label'));
+ get('eventModal').querySelector('.okti-event-dim').style.opacity='.4';run('closeEventActions()');assert.equal(animations.filter(a=>a.target.classList.contains('okti-event-dim')).at(-1).frames[0].opacity,.4,'Interrupted opening fades from its current shade');get('eventModal').querySelector('.okti-event-dim').style.opacity='';assert.equal(run('activeTask'),null);assert.equal(get('eventModal').classList.contains('hidden'),true);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),true);assert.equal(get('eventModal').inert,true);assert.equal(w.OktiEventMotion.getState().closing,true);
+ run('openEventActions(tasks[1])');await settle();assert.equal(run('activeTask.id'),'flight-two');assert.equal(get('eventModal').classList.contains('hidden'),false);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(!!get('eventModal').inert,false);
+ w.OktiEventMotion.stop();assert.equal(get('eventModal').querySelector('.okti-event-flight-label'),null);assert.equal(get('actionTitle').style.visibility,'');
+ // One main artwork controller stays visible through event context changes
+ // and follows the existing event recorder; the second renderer stays asleep.
+ const updates=[];w.createOctiListeningArtwork=()=>({update:s=>updates.push(s)});
+ run("artRoot=document.createElement('div');artRoot.dataset.channel='main';artRoot.dataset.mode='idle';document.body.append(artRoot);artRoot.getClientRects=()=>[{}];artUpdate=octiMotionArtwork(artRoot,artRoot,null);artUpdate()");assert.equal(updates.at(-1).visible,true);
+ run("plannerRecordings.event={mode:'recording'};artUpdate();plannerRecordings.event=null");assert.equal(updates.at(-1).isRecording,true);
+ run("artRoot.dataset.channel='event';artUpdate()");assert.equal(updates.at(-1).visible,false);
+ w.matchMedia=()=>({matches:true});run('closeEventActions();openEventActions(tasks[0]);closeEventActions()');assert.equal(w.OktiEventMotion.getState(),null);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(w.document.body.classList.contains('okti-event-transitioning'),false);
+ console.log('Event sheet: preserved controls/dialogue, artwork mutation isolation, notes, navigation, recorder lifecycle, shared-artwork ownership, flight/close/reopen interruption cleanup and reduced motion passed (animation geometry and graphics simulated).');
 }finally{dom.window.close()}
