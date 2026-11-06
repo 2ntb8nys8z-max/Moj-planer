@@ -3,6 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 
+// Legacy installed client review contract; immediate creation has its own full-flow suite.
 // Real Worker -> frontend -> main microphone -> next Worker request.
 // External model/STT responses and microphone hardware are controlled.
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
@@ -15,7 +16,7 @@ const w=dom.window,run=code=>vm.runInContext(code,dom.getInternalVMContext()),ge
 Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>{throw Error('Unexpected native confirmation')},alert(){},fetch:async()=>new Response('{}')});
 w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};
 w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
-w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:options.body}),env);assert.equal(response.status,200);return response.json()};
+w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);if(lastPayload.dialogueState)delete lastPayload.dialogueState.eventCreationPolicy;options={...options,body:JSON.stringify(lastPayload)};const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:options.body}),env);assert.equal(response.status,200);return response.json()};
 run(fs.readFileSync('sync-core.js','utf8'));
 for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
 run("plannerApiRequest=testApi;plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});startPlannerRecording=(channel,makeSession)=>{testSession=makeSession();};tasks=[];ideas=[]");

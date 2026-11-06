@@ -60,7 +60,7 @@ try{
   let lastPayload;
   Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,confirm:()=>true,alert(){},fetch:async(url,options={})=>{
     if(String(url).includes('.workers.dev')){
-      if(options.body)lastPayload=JSON.parse(options.body);
+      if(options.body){lastPayload=JSON.parse(options.body);if(lastPayload.dialogueState)delete lastPayload.dialogueState.eventCreationPolicy;options={...options,body:JSON.stringify(lastPayload)};} // Legacy review client; immediate persistence is tested separately.
       return worker.fetch(new Request(String(url),options),env);
     }
     throw Error('Unexpected browser request: '+url);

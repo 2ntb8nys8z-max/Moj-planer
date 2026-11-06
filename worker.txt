@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.38-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.39-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -54,6 +54,14 @@ function conversationFault(code){const e=new Error(code);e.conversationCode=code
 function conversationDate(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
 function conversationDateShift(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
 function conversationDurationEndTime(startTime,durationMinutes){const start=plannerMinutes(startTime);return start===null||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>=1440?null:plannerClock(start+durationMinutes)}
+function conversationCreateDefaults(draft,allDay){
+  if(!draft.title?.trim())draft.title='Wydarzenie';
+  if(!allDay&&draft.startTime&&!draft.endTime&&draft.durationMinutes==null){
+    draft.endTime=conversationDurationEndTime(draft.startTime,60);draft.defaultDuration=true;
+    if(draft.date)draft.endDate=conversationDateShift(draft.date,plannerMinutes(draft.endTime)<=plannerMinutes(draft.startTime)?1:0);
+  }
+  return draft;
+}
 // Keep the event identity outside the editable draft. Older stored events may
 // omit endDate even though their date and hours fully determine the interval.
 function conversationEventContext(item){
@@ -124,6 +132,9 @@ function conversationEventAnswer(original,state,text,answer){
 // A repeated create command is a patch to the active event, unless a new flow is explicit.
 function conversationCreateAction(state,patch){
   const prior=state.mode==='create'&&patch.newFlow!==true?state.draft||{}:{};
+  if(prior.defaultDuration&&state.eventCreationPolicy==='immediate-v1'){
+    return conversationCreateAction({...state,draft:{...prior,endTime:undefined,endDate:undefined,durationMinutes:undefined,defaultDuration:undefined}},patch);
+  }
   const action={...patch};
   for(const field of ['query','date','startTime','endTime','endDate','durationMinutes','allDay']){
     if(action[field]==null||action[field]===''){
@@ -197,6 +208,13 @@ function conversationCandidate(original,state,answer){
     if(createDraft){
       for(const field of ['date','startTime','endTime','endDate','durationMinutes'])if(action[field]!=null)createDraft[field]=action[field];else delete createDraft[field];
       if(action.query)createDraft.title=action.query;
+      if(state.eventCreationPolicy==='immediate-v1'){
+        delete createDraft.defaultDuration;
+        if(!createDraft.title&&original?.type==='idea')createDraft.title=original.title||original.text;
+        conversationCreateDefaults(createDraft,action.allDay===true);
+        Object.assign(uiAction,{query:createDraft.title,saveImmediately:true});
+        for(const field of ['endTime','endDate','defaultDuration'])if(createDraft[field]!=null)uiAction[field]=createDraft[field];
+      }
     }
     return {draft:{...(state.draft||{})},allDay:state.allDay===true,missing:[],ambiguity:null,uiAction,createDraft};
   }
@@ -248,6 +266,11 @@ function conversationCandidate(original,state,answer){
     else if(base.startTime&&base.endTime)duration=(plannerMinutes(base.endTime)-plannerMinutes(base.startTime)+1440)%1440||1440;
   }
   const timingTouched=original?.type!=='event'||['date','startTime','endTime','durationMinutes','allDay'].some(k=>touched.has(k));
+  if(original?.type!=='event'&&state.eventCreationPolicy==='immediate-v1'&&answer.kind==='event'&&['execute','modify','accept'].includes(answer.intent)){
+    if(touched.has('endTime')||touched.has('durationMinutes')||allDay)delete draft.defaultDuration;
+    else if(base.defaultDuration&&touched.has('startTime')){draft.endTime='';delete draft.endDate;}
+    conversationCreateDefaults(draft,allDay);
+  }
   if(draft.startTime&&draft.endTime&&plannerMinutes(draft.endTime)===plannerMinutes(draft.startTime)&&(timingTouched||original?.type!=='event'))throw conversationFault('end_must_follow_start');
   if(timingTouched&&draft.date){
     if(allDay)draft.endDate=conversationDateShift(draft.date,1);
@@ -328,7 +351,9 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
   }
   if(unresolved&&['reminder','create'].includes(state.mode)&&!/przypom|kalendar|wydarzen|nowe|nowy|anuluj/.test(dialoguePlain(text)))return conversationHourWait(state,{field:unresolved.field,choices:unresolved.choices,mode:state.mode,flowId:active?.flowId||crypto.randomUUID()});
   const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':text;
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:true,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
+  const immediateCreate=state.eventCreationPolicy==='immediate-v1'&&original?.type!=='event';
+  const creationRules=immediateCreate?'\nNOWE WYDARZENIA — TE REGUŁY MAJĄ PIERWSZEŃSTWO: wykonuj bezpośrednie polecenie tworzenia od razu, zwracając open_create_event lub operacje wydarzenia, nigdy samą obietnicę ani odpowiedź continue bez akcji. Wystarczą dzień i jednoznaczny początek (lub jawne całodniowe). Tytuł jest opcjonalny: aplikacja użyje „Wydarzenie”, a przy konwersji nazwy wpisu. Koniec i długość są opcjonalne: aplikacja domyślnie rezerwuje 60 minut i skraca przed kolejnym wydarzeniem o bufor 15 minut. Nie wymyślaj endTime ani durationMinutes, gdy nie podał ich użytkownik. Nie pytaj o nazwę, długość ani potwierdzenie tworzenia. Zachowaj jawnie podany koniec/długość. Niejednoznaczne godziny nadal wymagają wyjaśnienia. Propozycja lub pytanie informacyjne nie jest zgodą na zapis. Nie mów o utworzeniu szkicu ani sukcesie zapisu — zapis i komunikat wykona aplikacja.':'';
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT+creationRules},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:!immediateCreate,immediateEventCreation:immediateCreate,defaultEventMinutes:60,eventGapMinutes:15,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
     const response=forcedAnswer?new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(forcedAnswer)}}]})):await fetchOpenAi('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-6-luna',reasoning_effort:'none',temperature:0,max_completion_tokens:2400,response_format:{type:'json_object'},messages})});
@@ -337,6 +362,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
     try{
       const outer=JSON.parse(raw),content=outer.choices?.[0]?.message?.content;
       answer=conversationEventAnswer(original,state,text,JSON.parse(content));
+      if(immediateCreate&&answer.intent==='continue'&&!answer.uiAction&&!answer.operations?.length&&/\b(?:tworzę|utworzyłem|zapisuję|zapisałem|szkic|creating|created|saving|saved|draft)\b/iu.test(answer.reply||''))throw conversationFault('creation_claim_without_action');
 
       // Explicit AM/PM or the active selection is authoritative, not a model suggestion.
       if(selectedHour){
@@ -418,7 +444,7 @@ async function runConversationTurn({text,history,original,state,env,today,lastOp
       next.reminderDraft={...state.reminderDraft};next.mode='reminder';next.pendingField=state.pendingField||null;
     }
     if(answer.intent==='continue'&&state.eventReminderDraft){next.eventReminderDraft={...state.eventReminderDraft};next.pendingField=state.pendingField||null;next.mode=state.mode;}
-    return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft,...(answer.kind==='idea'&&!original&&['execute','accept'].includes(answer.intent)?{saveEntry:true}:{})}:{})};
+    return {engine:3,success:true,reply,status:ready?'review':'continue',dialogueState:next,...(ready?{item:answer.kind==='idea'?answer.idea:candidate.draft,...(answer.kind==='event'&&immediateCreate?{saveEvent:true}:{}),...(answer.kind==='idea'&&!original&&['execute','accept'].includes(answer.intent)?{saveEntry:true}:{})}:{})};
   }
   const failureReply=failure==='event_scope_only'?'W otwartym oknie mogę zmieniać tylko to wydarzenie.':failure==='invalid_event_reminder_minutes'?'Podaj liczbę minut przed wydarzeniem od 0 do 10080.':failure==='entry_reminder_not_found'?'Ten wpis nie ma ustawionego powiadomienia.':failure==='duration_end_conflict'?'Podałeś sprzeczny czas trwania i godzinę zakończenia. Którą godzinę końca mam przyjąć?':'Nie zrozumiałem polecenia. Powiedz to proszę inaczej.';
   return {engine:3,success:true,status:'continue',reply:failureReply,dialogueState:{...state,engine:3,draft:plannerCleanDraft(draft),lastOperation:{status:'failed',code:failure},revision:(Number(state.revision)||0)+1}};
@@ -456,7 +482,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="4954448724b3623e";
+const BUILD_ID="b60c304d80c2618b";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -748,7 +774,7 @@ function plannerDuration(text){
 }
 function plannerCleanDraft(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return null;
-  const out={};for(const k of ['type','title','date','startTime','endTime','endDate','durationMinutes','notes','location','reminder','recurrence','changedFields','notesAction','notesAddition','recurrenceAction','applyToSeries','timing'])if(value[k]!==undefined)out[k]=value[k];
+  const out={};for(const k of ['type','title','date','startTime','endTime','endDate','durationMinutes','defaultDuration','notes','location','reminder','recurrence','changedFields','notesAction','notesAddition','recurrenceAction','applyToSeries','timing'])if(value[k]!==undefined)out[k]=value[k];
   return JSON.stringify(out).length<=12000?out:null;
 }
 function plannerTitleQuestion(item,current,dialogue,text){
@@ -1026,7 +1052,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.05.33.38-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.06.33.39-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

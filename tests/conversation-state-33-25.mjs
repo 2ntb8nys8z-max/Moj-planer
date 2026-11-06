@@ -10,7 +10,10 @@ const nativeFetch=globalThis.fetch;
 let model,modelCalls=0,audioTranscript='';
 globalThis.fetch=async(url)=>{if(String(url).includes('/audio/transcriptions'))return new Response(JSON.stringify({text:audioTranscript}));modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}))};
 const command=(type,fields={},intent='execute')=>({reply:'Sprawdź ustalenia.',kind:'command',action:'continue',intent,operations:[],focus:'',ambiguity:null,uiAction:{type,...fields}});
+// Preserve coverage for installed clients using the original review-before-save contract.
+// Immediate creation is exercised end to end by immediate-events-33.mjs.
 async function post(payload){
+ if(payload.dialogueState)delete payload.dialogueState.eventCreationPolicy;
  const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify(payload)}),env);
  assert.equal(response.status,200);return response.json();
 }
