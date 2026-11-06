@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.41-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.42-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -603,7 +603,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="15a9adb1d3eb97d5";
+const BUILD_ID="67656f11724475da";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1173,7 +1173,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.06.33.41-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.06.33.42-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1313,7 +1313,7 @@ export default {
       );
 
       formData.append("language", "pl");
-      formData.append("prompt", "Rozmowa po polsku o kalendarzu i zadaniach. Zachowaj polski zapis wypowiedzi. Zagraniczne nazwy miejsc i ulic zapisuj w oryginalnej pisowni, uwzględniając wypowiedziany kraj. Nie tłumacz poleceń na inny język i nie dopisuj niesłyszanych słów.");
+      formData.append("prompt", "Kalendarz, wydarzenia, zadania, notatki, przypomnienia.");
 
 
       apiUsage=await quotaReserve(env);
@@ -1342,6 +1342,7 @@ export default {
       }
       if(spokenText.length>API_LIMITS.textChars)throw new PlannerApiError("Wypowiedź jest za długa.");
       if (!spokenText) {
+        if(conversationEngine===3&&!transcribeOnly&&(uploadedAudio||!(request.headers.get('Content-Type')||'').includes('application/json')))return json({success:true,engine:3,status:'silent',transcription:'',utterance:'',usage:apiUsage});
         throw new PlannerApiError("Nie rozpoznano wypowiedzi",422,"empty_transcription");
       }
 
