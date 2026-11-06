@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.242-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.243-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.242-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.243-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5381,81 +5381,146 @@ window.OktiCommunication=(()=>{
 })();
 </script>
 
-<style id="okti-event-flight-33-240">
+<style id="okti-event-presentation-33-243">
+#eventModal{--event-head:linear-gradient(115deg,#806548,#a18762);--event-paper:linear-gradient(115deg,#fffaf1,#f6ead9);--event-rim:#a98d66;--event-rim-light:#c9b28e;--event-rim-shine:#e3d4bc;--event-rule:#d9c5a6;--event-pill:#fffbf4}
+#eventModal .event-sheet{border:3px solid var(--event-rim);border-top-color:var(--event-rim-shine);border-left-color:var(--event-rim-light);border-radius:25px;background:var(--event-paper)!important;box-shadow:inset 0 1px 1px #fff,0 14px 27px #152e3f50;color:#142e4c}
+#eventModal .event-sheet:before{content:none!important}
+#eventModal #eventHeader{padding:0!important;background:transparent!important;border:0;box-shadow:none}
+#eventModal .event-header-top{min-height:75px;padding:12px 14px;align-items:center;gap:8px;background:var(--event-head)!important}
+#eventModal #actionTitle{margin:0;padding:0;font-family:var(--okti-font);font-size:25px;font-weight:850;line-height:1.25;letter-spacing:-.6px;color:#fffdf7!important}
+#eventModal #eventHeaderActions{margin:0;gap:7px;align-self:center}
+#eventModal #eventHeaderActions button{width:39px;min-width:39px;height:42px;min-height:42px;padding:8px!important;border:1px solid #ffffffc0!important;border-radius:13px;background:linear-gradient(145deg,#fffdfa,#f4f4ee)!important;color:#183b5b!important;box-shadow:0 2px 5px #06273415!important}
+#eventModal #eventHeaderActions svg{width:21px;height:21px}
+#eventModal #eventHeaderMeta{margin:0;padding:12px 15px 13px;font-size:17px;line-height:24px;font-weight:600;color:#142e4c}
+#eventModal .event-time-row{margin-top:11px;gap:8px}
+#eventModal #eventTime{position:relative;isolation:isolate;min-height:35px;padding:6px 11px;border:1px solid transparent;background:transparent;color:#142e4c;font-size:13px;font-weight:750;line-height:18px;gap:7px}
+#eventModal #eventTime:before{content:'';position:absolute;inset:-1px;z-index:-1;border:1px solid var(--event-rule);border-radius:inherit;background:var(--event-pill);box-shadow:inset 0 1px 2px #ffffffde,0 2px 4px #39493908}
+#eventModal #eventTime svg{width:16px;height:16px;flex:none}
+#eventModal #eventTime>span{display:block;line-height:18px}
+#eventModal :is(#eventWeather,.event-location-row,.event-people-card,.event-note-card,.event-media-card){border-color:var(--event-rule)!important;background:var(--event-pill)!important}
 .okti-event-dim{position:absolute;inset:0;background:#18384f35;pointer-events:none;z-index:0}
 #eventModal.hidden.okti-event-exiting{display:flex!important}
-#eventModal.okti-event-building .event-sheet{background:transparent;border-color:transparent;box-shadow:none}
-.okti-event-flight-panel{position:fixed;pointer-events:none;z-index:0;transform-origin:0 0;box-sizing:border-box}
+#eventModal.okti-event-building .event-sheet{background:transparent!important;border-color:transparent;box-shadow:none}
+#eventModal.okti-event-building .event-header-top{background:transparent!important}
+.okti-event-flight-panel{position:fixed;pointer-events:none;z-index:0;box-sizing:border-box;border:3px solid var(--event-rim);background:var(--event-paper);overflow:hidden}
+.okti-event-flight-panel:after{content:'';position:absolute;inset:0;border:1px solid #ffffffc0;border-radius:inherit;pointer-events:none}
+.okti-event-flight-band{position:absolute;inset:0 0 auto;background:var(--event-head)}
 .okti-event-flight-label{position:fixed;pointer-events:none;z-index:30;transform-origin:0 0;box-sizing:border-box}
-@media(prefers-reduced-motion:reduce){.okti-event-flight-label,.okti-event-flight-panel{display:none}}
+.okti-event-flight-time{position:fixed;pointer-events:none;z-index:29;box-sizing:border-box}
+.okti-event-flight-pill{position:absolute;inset:0;border:1px solid var(--event-rule);border-radius:999px;background:var(--event-pill);box-shadow:inset 0 1px 2px #ffffffde,0 2px 4px #39493908;transform-origin:61% 50%}
+.okti-event-flight-clock{position:absolute;width:16px;height:16px;left:12px;top:50%;margin-top:-8px;color:#142e4c;transform-origin:center}
+.okti-event-flight-clock svg{display:block;width:16px;height:16px}
+@media(max-width:359px){#eventModal #actionTitle{font-size:22px}#eventModal .event-header-top{padding:12px;gap:6px}#eventModal #eventHeaderActions{gap:5px}#eventModal #eventHeaderActions button{width:36px;min-width:36px}#eventModal #eventHeaderMeta{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.okti-event-flight-label,.okti-event-flight-panel,.okti-event-flight-time{display:none}}
 </style>
 <script>
-// Presentation lifecycle only: closing still releases the recorder and event
-// session immediately, while the old panel finishes its noninteractive exit.
+// Presentation only: the existing event handlers still own data and recorder cleanup.
 window.OktiEventMotion=(()=>{
  const modal=$('eventModal'),card=modal.querySelector('.event-sheet'),dim=document.createElement('div');
  dim.className='okti-event-dim';dim.setAttribute('aria-hidden','true');modal.prepend(dim);
  const baseOpen=openEventActions,baseClose=closeEventActions;
- let motion=null;
+ const themes={
+  sand:{head:'linear-gradient(115deg,#806548,#a18762)',paper:'linear-gradient(115deg,#fffaf1,#f6ead9)',rim:'#a98d66',light:'#c9b28e',shine:'#e3d4bc',rule:'#d9c5a6',pill:'#fffbf4'},
+  blue:{head:'linear-gradient(115deg,#195981,#3c7c9e)',paper:'linear-gradient(115deg,#f4fbff,#deedf7)',rim:'#578caa',light:'#8eb9ce',shine:'#c0dfec',rule:'#b6d1e0',pill:'#f9fdff'},
+  rose:{head:'linear-gradient(115deg,#805169,#a5768a)',paper:'linear-gradient(115deg,#fff7fa,#f2e0e8)',rim:'#ac8194',light:'#cba5b6',shine:'#edd1dd',rule:'#dec0cf',pill:'#fffafd'},
+  sage:{head:'linear-gradient(115deg,#315f4c,#56826a)',paper:'linear-gradient(115deg,#f5fbf5,#e0ecdf)',rim:'#759a7e',light:'#a2bea3',shine:'#cfe1cd',rule:'#bdd2bd',pill:'#fafff8'}
+ };
+ let motion=null,held=[];
+ function theme(task){const key=plannerEventPalette(task),colors=themes[key]||themes.sand;modal.dataset.eventPalette=key;for(const [name,value] of Object.entries(colors))modal.style.setProperty('--event-'+({head:'head',paper:'paper',rim:'rim',light:'rim-light',shine:'rim-shine',rule:'rule',pill:'pill'}[name]),value)}
  function origin(task){
-  const tile=[...$('taskList').querySelectorAll('[data-event-id]')].find(n=>n.dataset.eventId===String(task?.id));
-  if(!tile)return null;
-  const rect=tile.getBoundingClientRect(),list=$('taskList').getBoundingClientRect();
-  if(!rect.width||rect.bottom<=list.top||rect.top>=list.bottom)return null;
+  const tile=[...$('taskList').querySelectorAll('[data-event-id]')].find(n=>n.dataset.eventId===String(task?.id));if(!tile)return null;
+  const rect=tile.getBoundingClientRect(),list=$('taskList').getBoundingClientRect();if(!rect.width||rect.bottom<=list.top||rect.top>=list.bottom)return null;
   const text=tile.nextElementSibling?.matches('.phone-event-title')?tile.nextElementSibling:tile;
-  return {rect,title:text.querySelector('.phone-event-title-text,.task-title')||tile,time:text.querySelector('.phone-event-time,.task-time')};
+  return{tile,text,rect,title:text.querySelector('.phone-event-title-text,.task-title')||tile,time:text.querySelector('.phone-event-time-range,.phone-event-time,.task-time')};
  }
- function stop(){motion?.finish()}
- function flight(task,source,closing,shadeFrom=null){
-  if(!card.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+ function releaseHeld(){for(const [n,style] of held)Object.assign(n.style,style);held=[]}
+ function hold(source){for(const n of new Set([source?.tile,source?.text].filter(Boolean))){if(!held.some(([node])=>node===n))held.push([n,{visibility:n.style.visibility,opacity:n.style.opacity}]);n.style.visibility='hidden'}}
+ function stop(){motion?.finish();releaseHeld()}
+ function rectFrame(rect){return{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'}}
+ function tileFrame(source,box){
+  if(!source)return{...rectFrame({left:box.left+5,top:box.top+12,width:box.width-10,height:box.height-12}),borderRadius:'25px',opacity:0};
+  const style=getComputedStyle(source.tile);return{...rectFrame(source.rect),borderRadius:style.borderRadius||'10px',borderTopWidth:style.borderTopWidth,borderRightWidth:style.borderRightWidth,borderBottomWidth:style.borderBottomWidth,borderLeftWidth:style.borderLeftWidth,borderTopColor:style.borderTopColor,borderRightColor:style.borderRightColor,borderBottomColor:style.borderBottomColor,borderLeftColor:style.borderLeftColor,boxShadow:style.boxShadow,opacity:1};
+ }
+ function glyphRect(n){try{const range=document.createRange();range.selectNodeContents(n);const rect=range.getBoundingClientRect();if(rect.width&&rect.height)return rect}catch(_){}return n.getBoundingClientRect()}
+ function flight(task,source,closing,shadeFrom=null,resume=null){
+  if(!card.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){if(closing)releaseHeld();return}
   const inertBefore=modal.inert;
   if(closing){modal.classList.add('okti-event-exiting');modal.inert=true;modal.setAttribute('aria-hidden','true');document.body.classList.add('okti-event-transitioning')}
-  const box=card.getBoundingClientRect();if(!box.width||!box.height){modal.classList.remove('okti-event-exiting');modal.inert=inertBefore;modal.removeAttribute('aria-hidden');document.body.classList.remove('okti-event-transitioning');return}
-  const duration=closing?620:820,animations=[],ghosts=[],hidden=[];
-  let timer,done=false;
+  const box=card.getBoundingClientRect();if(!box.width||!box.height){modal.classList.remove('okti-event-exiting');modal.inert=inertBefore;modal.removeAttribute('aria-hidden');document.body.classList.remove('okti-event-transitioning');if(closing)releaseHeld();return}
+  const duration=closing?1150:2240,animations=[],ghosts=[],hidden=[],labels={};
+  let timer,done=false,panel,band,pillGhost,clockGhost;
   const token={closing,finish(){
    if(done)return;done=true;clearTimeout(timer);
    for(const a of animations){a.onfinish=null;a.oncancel=null;a.cancel()}
    for(const n of ghosts)n.remove();for(const [n,value] of hidden)n.style.visibility=value;
    modal.classList.remove('okti-event-building','okti-event-exiting');
-   if(closing){modal.inert=inertBefore;modal.removeAttribute('aria-hidden');document.body.classList.remove('okti-event-transitioning')}
+   if(closing){releaseHeld();modal.inert=inertBefore;modal.removeAttribute('aria-hidden');document.body.classList.remove('okti-event-transitioning')}
    if(motion===token)motion=null;
+  },snapshot(){
+   if(!panel)return null;const rect=panel.getBoundingClientRect();if(!rect.width)return null;
+   const sample=(node,props)=>node?Object.fromEntries(props.map(key=>[key,getComputedStyle(node)[key]])):null;
+   const result={panel:rectFrame(rect),radius:getComputedStyle(panel).borderRadius,bandOpacity:band?Number(getComputedStyle(band).opacity):1,labels:{},pill:sample(pillGhost,['opacity','transform','clipPath']),clock:sample(clockGhost,['opacity','transform']),fade:{}};
+   for(const id of ['eventDate','eventHeaderActions','eventReminderBadge','eventMainRegion','eventConversationPanel','eventFooter'])result.fade[id]=sample($(id),['opacity','transform']);
+   for(const [kind,label] of Object.entries(labels))result.labels[kind]={rect:label.getBoundingClientRect(),color:getComputedStyle(label).color};return result;
   }};motion=token;
-  const animate=(n,frames,options={})=>{const a=n.animate(frames,{duration,easing:'cubic-bezier(.22,.75,.22,1)',fill:'both',...options});animations.push(a);return a};
+  const animate=(n,frames,options={})=>{const a=n.animate(frames,{duration,easing:'cubic-bezier(.25,.6,.25,1)',fill:'both',...options});animations.push(a);return a};
   const hide=n=>{hidden.push([n,n.style.visibility]);n.style.visibility='hidden'};
+  const ghost=(className,parent=modal)=>{const node=document.createElement('div');node.className=className;node.setAttribute('aria-hidden','true');parent.append(node);if(parent===modal)ghosts.push(node);return node};
   try{
    modal.classList.add('okti-event-building');
-   animate(dim,[{opacity:shadeFrom??(closing?1:0)},{opacity:closing?0:1}],{duration:closing?620:700,easing:'ease-in-out'});
-   const panel=document.createElement('div');panel.className='okti-event-flight-panel';panel.setAttribute('aria-hidden','true');
-   Object.assign(panel.style,{left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',background:'#d2e6f8',border:'1px solid #b5d0e5',borderRadius:'26px',boxShadow:'0 12px 40px #244b6630'});modal.append(panel);ghosts.push(panel);
-   const from=source?.rect,small={transform:from?`translate(${from.left-box.left}px,${from.top-box.top}px) scale(${from.width/box.width},${from.height/box.height})`:'translateY(12px) scale(.98)',opacity:from?1:0,borderRadius:'18px'},large={transform:'translate(0,0) scale(1)',opacity:1,borderRadius:'26px'};
-   animate(panel,closing?[large,{...small,opacity:0}]:[small,large]);
-   for(const [a,b] of [[source?.title,$('actionTitle')],[source?.time,$('eventTime')]]){
-    if(!a||!b)continue;const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();if(!ar.width||!ar.height||!br.width||!br.height)continue;
-    const label=document.createElement('span'),style=getComputedStyle(b);label.className='okti-event-flight-label';label.setAttribute('aria-hidden','true');label.textContent=b.textContent;
-    Object.assign(label.style,{left:br.left+'px',top:br.top+'px',width:br.width+'px',height:br.height+'px',font:style.font,lineHeight:style.lineHeight,letterSpacing:style.letterSpacing,color:style.color,whiteSpace:'normal',overflow:'hidden',display:'flex',alignItems:'center'});
-    modal.append(label);ghosts.push(label);hide(b);
-    const start={transform:`translate(${ar.left-br.left}px,${ar.top-br.top}px) scale(${Math.min(1,ar.width/br.width)},${Math.min(1,ar.height/br.height)})`,opacity:1},end={transform:'translate(0,0) scale(1)',opacity:1};
-    animate(label,closing?[end,{...start,opacity:0}]:[start,end],{duration:closing?600:760});
+   const style=getComputedStyle(card),large={...rectFrame(box),borderRadius:style.borderRadius||'25px',borderTopWidth:style.borderTopWidth,borderRightWidth:style.borderRightWidth,borderBottomWidth:style.borderBottomWidth,borderLeftWidth:style.borderLeftWidth,borderTopColor:style.borderTopColor,borderRightColor:style.borderRightColor,borderBottomColor:style.borderBottomColor,borderLeftColor:style.borderLeftColor,boxShadow:'inset 0 1px 1px #fff,0 14px 27px #152e3f50',opacity:1},small=tileFrame(source,box);
+   // Read normal rim colors while the real panel is transparent for the flight.
+   large.borderTopColor=modal.style.getPropertyValue('--event-rim-shine');large.borderRightColor=large.borderBottomColor=modal.style.getPropertyValue('--event-rim');large.borderLeftColor=modal.style.getPropertyValue('--event-rim-light');
+   panel=ghost('okti-event-flight-panel');Object.assign(panel.style,large);
+   band=ghost('okti-event-flight-band',panel);
+   const row=$('actionTitle').closest('.event-header-top'),rowRect=row.getBoundingClientRect(),headerHeight=rowRect.height||75,smallHeight=source?headerHeight*source.rect.height/box.height:headerHeight;
+   animate(panel,closing?[{...large,...resume?.panel,borderRadius:resume?.radius||large.borderRadius},small]:[small,large],{duration:closing?1050:1280,delay:closing?100:0});
+   animate(band,closing?[{height:(headerHeight)+'px'},{height:smallHeight+'px'}]:[{height:smallHeight+'px'},{height:headerHeight+'px'}],{duration:closing?1050:1280,delay:closing?100:0});
+   animate(band,closing?[{opacity:resume?.bandOpacity??1},{opacity:0}]:[{opacity:0},{opacity:.93,offset:.42},{opacity:1}],{duration:closing?300:280,delay:closing?40:0,easing:closing?'ease-in-out':'cubic-bezier(.3,.15,.25,1)'});
+   animate(dim,[{opacity:shadeFrom??(closing?1:0)},{opacity:closing?0:1}],{duration:closing?1050:1200,delay:closing?100:0});
+   function flyLabel(a,b,kind){
+    if(!a||!b)return false;const ar=glyphRect(a),br=glyphRect(b),targetBox=b.getBoundingClientRect();if(!ar.width||!br.width)return false;
+    const label=ghost('okti-event-flight-label'),target=getComputedStyle(b),startStyle=getComputedStyle(a),scale=(parseFloat(startStyle.fontSize)||14)/(parseFloat(target.fontSize)||25),visibleWidth=source?Math.min(a.getBoundingClientRect().width,source.rect.width-12):ar.width;
+    label.dataset.kind=kind;label.textContent=b.textContent;Object.assign(label.style,{...rectFrame(targetBox),font:target.font,fontFamily:target.fontFamily,fontSize:target.fontSize,fontWeight:target.fontWeight,lineHeight:target.lineHeight,letterSpacing:target.letterSpacing,color:target.color,whiteSpace:'normal',overflow:'hidden',overflowWrap:'anywhere'});
+    const lr=glyphRect(label),x=ar.left-targetBox.left-(lr.left-targetBox.left)*scale,y=ar.top-targetBox.top-(lr.top-targetBox.top)*scale;
+    const smallLabel={transform:`translate(${x}px,${y}px) scale(${scale})`,width:Math.max(visibleWidth/scale,targetBox.width)+'px',letterSpacing:'0px'},largeLabel={transform:'none',width:targetBox.width+'px',letterSpacing:target.letterSpacing};
+    let initial=largeLabel;if(closing&&resume?.labels[kind]){const r=resume.labels[kind].rect;initial={transform:`translate(${r.left-targetBox.left}px,${r.top-targetBox.top}px) scale(${r.width/targetBox.width},${r.height/targetBox.height})`,width:targetBox.width+'px',letterSpacing:target.letterSpacing}}
+    animate(label,closing?[initial,smallLabel]:[smallLabel,largeLabel],{duration:closing?1050:kind==='title'?1280:1180,delay:closing?100:0});
+    animate(label,closing?[{color:resume?.labels[kind]?.color||target.color},{color:startStyle.color}]:[{color:startStyle.color},{color:target.color}],{duration:kind==='title'?(closing?260:200):(closing?1050:1180),delay:kind==='title'?(closing?100:80):(closing?100:0),easing:kind==='title'?'ease-in-out':'cubic-bezier(.25,.6,.25,1)'});
+    labels[kind]=label;hide(b);return true;
    }
-   for(const n of [$('eventDate'),$('eventHeaderActions'),$('eventReminderBadge'),$('eventMainRegion'),$('eventConversationPanel'),!source?.title&&$('actionTitle'),!source?.time&&$('eventTime')]){
-    if(!n||n.classList.contains('hidden'))continue;
-    animate(n,closing?[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(5px)'}]:[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:closing?220:360,delay:closing?0:440,easing:'ease-out'});
+   const titleFlies=flyLabel(source?.title,$('actionTitle'),'title'),timeSpan=$('eventTime').querySelector('span'),timeFlies=flyLabel(source?.time,timeSpan,'time');
+   let timeGhost;
+   if(timeFlies){
+    const timeBox=$('eventTime').getBoundingClientRect();timeGhost=ghost('okti-event-flight-time');Object.assign(timeGhost.style,rectFrame(timeBox));
+    const pill=ghost('okti-event-flight-pill',timeGhost),clock=ghost('okti-event-flight-clock',timeGhost),icon=$('eventTime').querySelector('svg');if(icon)clock.append(icon.cloneNode(true));hide($('eventTime'));pillGhost=pill;clockGhost=clock;
+    animate(pill,closing?[resume?.pill||{opacity:1,transform:'none',clipPath:'inset(0% round 20px)'},{opacity:0,transform:'scale(.9,.65)',clipPath:'inset(38% 28% 38% 28% round 20px)'}]:[{opacity:0,transform:'scale(.84,.5)',clipPath:'inset(42% 36% 42% 36% round 20px)'},{opacity:.7,transform:'scale(.96,.9)',clipPath:'inset(9% 10% 9% 10% round 20px)',offset:.5},{opacity:1,transform:'none',clipPath:'inset(0% round 20px)'}],{duration:closing?410:920,delay:closing?0:1320,easing:'cubic-bezier(.32,.1,.24,1)'});
+    animate(clock,closing?[resume?.clock||{opacity:1,transform:'none'},{opacity:0,transform:'translateX(2px) scale(.88)'}]:[{opacity:0,transform:'translateX(3px) scale(.8)'},{opacity:1,transform:'none'}],{duration:closing?310:650,delay:closing?0:1510});
    }
-   animate($('eventFooter'),[{opacity:closing?1:0},{opacity:closing?0:1}],{duration:closing?300:400});
+   const extra=[$('eventDate'),$('eventHeaderActions'),$('eventReminderBadge'),$('eventMainRegion'),$('eventConversationPanel'),!titleFlies&&$('actionTitle'),!timeFlies&&$('eventTime')];
+   for(const node of extra){if(!node||node.classList.contains('hidden'))continue;const date=node===$('eventDate');animate(node,closing?[resume?.fade?.[node.id]||{opacity:1,transform:'none'},{opacity:0,transform:'translateY(3px)'}]:[{opacity:0,transform:date?'translateY(4px)':'none'},{opacity:1,transform:'none'}],{duration:closing?380:date?750:650,delay:closing?0:date?880:900});}
+   animate($('eventFooter'),[closing?(resume?.fade?.eventFooter||{opacity:1}):{opacity:0},{opacity:closing?0:1}],{duration:closing?300:450,delay:closing?0:700});
+   if(closing){
+    for(const [node] of held){if(!node.isConnected)continue;animate(node,[{opacity:0},{opacity:1}],{duration:180,delay:970,easing:'ease-in-out'});node.style.visibility='';}
+    for(const node of [panel,...Object.values(labels)])animate(node,[{opacity:1},{opacity:0}],{duration:180,delay:970,easing:'ease-in-out'});
+   }
    Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(motion===token)token.finish()});
-   timer=setTimeout(()=>token.finish(),duration+160);
+   timer=setTimeout(()=>token.finish(),duration+180);
   }catch(_){token.finish()}
  }
- openEventActions=function(task){const already=activeTask?.id===task.id&&!modal.classList.contains('hidden'),shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();const source=origin(task);baseOpen(task);if(already)return;renderEventContextDetails(task);flight(task,source,false,shadeFrom)};
+ openEventActions=function(task){
+  const already=activeTask?.id===task.id&&!modal.classList.contains('hidden');
+  if(already){theme(task);baseOpen(task);renderEventContextDetails(task);return}
+  const shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();const source=origin(task);theme(task);baseOpen(task);renderEventContextDetails(task);hold(source);flight(task,source,false,shadeFrom);
+ };
  closeEventActions=function(){
   if(modal.classList.contains('hidden')){baseClose();return}
-  const task=activeTask,source=origin(task),shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();
-  baseClose();if(!modal.classList.contains('hidden'))return;
-  flight(task,source,true,shadeFrom);
+  const task=activeTask,source=origin(task),shadeFrom=motion?Number(getComputedStyle(dim).opacity):null,resume=motion?.snapshot();
+  motion?.finish();hold(source);baseClose();if(!modal.classList.contains('hidden'))return;flight(task,source,true,shadeFrom,resume);
  };
  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
- return {getState:()=>motion?{closing:motion.closing}:null,stop};
+ return{getState:()=>motion?{closing:motion.closing}:null,stop};
 })();
 </script>
+
 </body></html>

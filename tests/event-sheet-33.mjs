@@ -147,10 +147,24 @@ try{
  for(const tile of get('taskList').querySelectorAll('[data-event-id]')){tile.getBoundingClientRect=()=>rect(80,400,180,67);for(const n of [...tile.querySelectorAll('.task-title,.task-time'),...(tile.nextElementSibling?.querySelectorAll('.phone-event-title-text,.phone-event-time')||[])])n.getBoundingClientRect=()=>rect(90,410,160,20)}
  get('actionTitle').getBoundingClientRect=()=>rect(28,27,240,34);get('eventTime').getBoundingClientRect=()=>rect(28,110,130,36);
  const animations=[];w.HTMLElement.prototype.animate=function(frames,options){let finish;const a={target:this,frames,options,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(a);return a};
- run('openEventActions(tasks[0])');assert.equal(w.OktiEventMotion.getState().closing,false);assert.ok(animations.some(a=>a.options.duration===820));assert.ok(get('eventModal').querySelector('.okti-event-flight-label'));
+ run('openEventActions(tasks[0])');assert.equal(w.OktiEventMotion.getState().closing,false);assert.ok(animations.some(a=>a.options.duration===1280));assert.ok(get('eventModal').querySelector('.okti-event-flight-label'));
  get('eventModal').querySelector('.okti-event-dim').style.opacity='.4';run('closeEventActions()');assert.equal(animations.filter(a=>a.target.classList.contains('okti-event-dim')).at(-1).frames[0].opacity,.4,'Interrupted opening fades from its current shade');get('eventModal').querySelector('.okti-event-dim').style.opacity='';assert.equal(run('activeTask'),null);assert.equal(get('eventModal').classList.contains('hidden'),true);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),true);assert.equal(get('eventModal').inert,true);assert.equal(w.OktiEventMotion.getState().closing,true);
  run('openEventActions(tasks[1])');await settle();assert.equal(run('activeTask.id'),'flight-two');assert.equal(get('eventModal').classList.contains('hidden'),false);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(!!get('eventModal').inert,false);
  w.OktiEventMotion.stop();assert.equal(get('eventModal').querySelector('.okti-event-flight-label'),null);assert.equal(get('actionTitle').style.visibility,'');
+ // Accepted presentation contract: event identity controls the whole palette,
+ // and the last stage crossfades to the original nodes rather than swapping them.
+ const timing=animations.find(a=>a.target.classList.contains('okti-event-flight-band')&&a.frames.some(frame=>frame.opacity===.93));
+ assert.ok(timing&&timing.options.duration===280,'the dark title backing arrives at the start of the flight');
+ assert.ok(animations.some(a=>a.target.matches('[data-event-id]')&&a.options.delay===970&&a.options.duration===180),'the real tile receives a short handoff before the close completes');
+ const panelFlights=animations.filter(a=>a.target.classList.contains('okti-event-flight-panel')&&a.frames.some(frame=>frame.width));
+ assert.ok(panelFlights.length>0&&panelFlights.every(a=>a.frames.every(frame=>!frame.transform)),'rounded panel geometry must not be flattened by nonuniform scaling');
+ for(const [title,palette] of [['Śniadanie','sand'],['Spacer','blue'],['Telefon','rose'],['Obiad','sage']]){
+  w.colorSample={id:'palette-'+palette,title,date:'2026-10-12',time:'12:00',endTime:'13:00'};
+  run('openEventActions(colorSample)');assert.equal(get('eventModal').dataset.eventPalette,palette,'the event sheet must retain the tile color family');
+  run('closeEventActions()');assert.equal(run('activeTask'),null,'the longer exit never delays logical event cleanup');w.OktiEventMotion.stop();
+ }
+
+ run('openEventActions(tasks[1])');w.OktiEventMotion.stop();
  // One main artwork controller stays visible through event context changes
  // and follows the existing event recorder; the second renderer stays asleep.
  const updates=[];w.createOctiListeningArtwork=()=>({update:s=>updates.push(s)});
