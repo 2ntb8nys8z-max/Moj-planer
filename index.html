@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.238-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.239-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.238-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.239-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3046,6 +3046,9 @@ function initializeEventSheet(){
  $('closeEventConversation').onclick=()=>{showConversation(false);plus.focus()};
  toggle.onclick=()=>{showConversation(panel.classList.contains('hidden'));if(!panel.classList.contains('hidden'))$('eventConversation')?.focus()};
  function sync(records=[]){
+  // Artwork updates its classes every video frame. They do not change event
+  // data, and rebuilding the sheet during a touch can cancel Safari's click.
+  if(records.length&&records.every(record=>{const target=record.target.nodeType===Node.ELEMENT_NODE?record.target:record.target.parentElement;return target?.closest('.octi-dock')&&!target.closest('#eventVoice')}))return;
   observer.disconnect();
   try{
    const open=!modal.classList.contains('hidden'),history=$('eventConversation'),reply=$('eventClarification');
@@ -4179,7 +4182,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-listening.js?v=a603f1142968fe80"></script>
+<script src="octi-listening.js?v=a7fc775f82d73672"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -5208,6 +5211,25 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
 @keyframes okti-decision-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(max-height:700px){.okti-decision-card{gap:11px;padding:16px}.okti-decision-card h2{font-size:25px;margin:0 0 6px}.okti-decision-option{min-height:66px;padding:13px 15px}.okti-decision-wheel{height:132px}.okti-decision-wheel-pad{height:44px}.okti-decision-voice{min-height:64px}.okti-decision-header{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.okti-decision-card{animation:none}}
+</style>
+<style id="okti-compact-event-33-239">
+/* Event details sit above the existing dock, leaving the calendar visible. */
+#eventModal{--phone-bottom-inset:34px;align-items:flex-start;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px 0;background:#18384f35}
+body.event-sheet-open .voice-area{visibility:hidden}
+#eventModal .event-sheet{width:min(100%,560px);height:auto;max-height:min(64dvh,calc(100dvh - 270px - env(safe-area-inset-bottom)));margin:0;border:1px solid #b5d0e5;border-radius:26px;box-shadow:0 12px 40px #244b6630;overflow:hidden;animation:okti-event-panel-in 220ms ease-out both;isolation:auto}
+#eventModal #eventHeader{padding:15px 16px 12px;z-index:25}
+#eventModal #eventMainRegion{display:flex;flex-direction:column;flex:0 1 auto;min-height:0}
+#eventModal #eventContent{height:auto;min-height:0;flex:1 1 auto;padding:4px 16px 16px;scroll-padding-bottom:16px}
+#eventModal #eventFooter{position:fixed;left:12px;right:12px;bottom:calc(94px + max(0px,var(--phone-bottom-inset,0px)) + var(--reply-keyboard-inset,0px));width:auto;padding:0;z-index:130;pointer-events:none}
+#eventModal #eventFooter>.octi-dock>.surface{padding-bottom:0!important}
+#eventModal #eventFooter .octi-dock{pointer-events:none}
+#eventModal #eventFooter .octi-dock .stage,#eventModal #eventFooter .octi-dock button{pointer-events:auto}
+#eventModal #eventConversationPanel{flex:0 1 auto;min-height:0;max-height:30dvh}
+#eventModal #closeEvent{position:relative;z-index:1;touch-action:manipulation}
+@keyframes okti-event-panel-in{from{opacity:0}to{opacity:1}}
+@media(max-width:600px){#eventModal{--phone-bottom-inset:env(safe-area-inset-bottom,0px)}}
+@media(max-height:500px){#eventModal{--phone-bottom-inset:0px;padding-top:8px}#eventModal .event-sheet{max-height:calc(100dvh - 190px)}#eventModal #eventHeader{padding:10px 12px}#eventModal #eventFooter{bottom:calc(76px + var(--reply-keyboard-inset,0px))}}
+@media(prefers-reduced-motion:reduce){#eventModal .event-sheet{animation:none}}
 </style>
 <style id="okti-created-event-motion-33-238">
 /* A saved event stays in place; one light sweep identifies the new card. */

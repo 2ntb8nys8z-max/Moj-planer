@@ -20,6 +20,14 @@ try{
  run(`tasks=[{id:'event-sheet',title:'Spotkanie projektowe',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Szczegóły wydarzenia'}];showPlannerWeather=async()=>{};openEventActions(tasks[0]);`);
  await settle();
  const sheet=get('eventModal').querySelector('.event-sheet'),header=get('eventHeader'),main=get('eventMainRegion'),content=get('eventContent'),panel=get('eventConversationPanel'),footer=get('eventFooter');
+ // A rendered video frame and animated menu hints must not rebuild controls
+ // while a finger is down. Header identity is necessary for Safari click delivery.
+ const timeIcon=get('eventTime').firstChild,dateText=get('eventDate').firstChild,locationText=get('eventLocationText').firstChild;
+ const stage=footer.querySelector('.octi-dock .stage');
+ for(let frame=0;frame<12;frame++){stage.classList.add('artwork-frame');await settle()}
+ assert.equal(get('eventTime').firstChild,timeIcon,'Artwork frames do not replace the time control');
+ assert.equal(get('eventDate').firstChild,dateText,'Artwork frames do not replace the date text');
+ assert.equal(get('eventLocationText').firstChild,locationText,'Artwork frames do not replace location text');
  assert.ok(sheet,'the event opens as a dedicated event sheet');
  assert.equal(get('eventModal').getAttribute('role'),'dialog');
  for(const node of [header,main,panel,footer])assert.equal(node.parentElement,sheet,'header, main, conversation and communication footer are separate sheet regions');
