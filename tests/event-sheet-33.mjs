@@ -14,6 +14,7 @@ w.HTMLMediaElement.prototype.pause=function(){};
 w.HTMLMediaElement.prototype.load=function(){};
 run(fs.readFileSync('sync-core.js','utf8'));
 for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
+const realShowPlannerWeather=run('showPlannerWeather');
 
 try{
  w.document.querySelector('.app').inert=false;
@@ -171,6 +172,46 @@ try{
  run("artRoot=document.createElement('div');artRoot.dataset.channel='main';artRoot.dataset.mode='idle';document.body.append(artRoot);artRoot.getClientRects=()=>[{}];artUpdate=octiMotionArtwork(artRoot,artRoot,null);artUpdate()");assert.equal(updates.at(-1).visible,true);
  run("plannerRecordings.event={mode:'recording'};artUpdate();plannerRecordings.event=null");assert.equal(updates.at(-1).isRecording,true);
  run("artRoot.dataset.channel='event';artUpdate()");assert.equal(updates.at(-1).visible,false);
+ // Pin and reminder icons occupy the start of the row. The flying digits
+ // must land at the number span, including that reserved horizontal space.
+ run("closeEventActions();OktiEventMotion.stop();tasks=[{id:'located-flight',title:'Telefon',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',reminder:{minutesBefore:5}}];selected=new Date('2026-10-12T12:00:00');showView('day')");
+ const locatedTile=get('taskList').querySelector('[data-event-id="located-flight"]');
+ const locatedText=w.document.createElement('span');locatedText.className='phone-event-title';
+ locatedText.innerHTML='<span class="phone-event-title-text">Telefon</span><small class="phone-event-time"><span class="phone-event-reminder-icon">Bell</span><span class="phone-event-location-icon">Pin</span><span class="phone-event-time-range">12:00–13:00</span></small>';locatedTile.after(locatedText);
+ locatedTile.getBoundingClientRect=()=>rect(80,400,180,67);
+ locatedText.querySelector('.phone-event-title-text').getBoundingClientRect=()=>rect(90,410,150,18);
+ locatedText.querySelector('.phone-event-time').getBoundingClientRect=()=>rect(90,430,120,12);
+ locatedText.querySelector('.phone-event-time-range').getBoundingClientRect=()=>rect(116,430,94,12);
+ const nativeRect=w.HTMLElement.prototype.getBoundingClientRect;
+ w.HTMLElement.prototype.getBoundingClientRect=function(){
+  if(this.parentElement?.id==='eventTime'&&this.tagName==='SPAN')return rect(60,119,90,18);
+  if(this.classList.contains('okti-event-flight-label'))return rect(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,parseFloat(this.style.width)||90,parseFloat(this.style.height)||18);
+  return nativeRect.call(this);
+ };
+ run('openEventActions(tasks[0])');
+ assert.equal(get('eventLocationRow').classList.contains('hidden'),false,'the address is laid out before measuring the opening panel');
+ run('closeEventActions()');
+ const returningTime=animations.filter(a=>a.target.dataset.kind==='time'&&a.frames.some(frame=>frame.transform)).at(-1);
+ assert.ok(returningTime,'a located event retains its time flight');
+ assert.match(returningTime.frames.at(-1).transform,/^translate\(56px,311px\)/,'digits land after the icons rather than at the beginning of the row');
+ w.OktiEventMotion.stop();w.HTMLElement.prototype.getBoundingClientRect=nativeRect;
+
+ // A delayed forecast changes its contents, not the already measured frame.
+ w.realWeather=realShowPlannerWeather;let resolveForecast;
+ w.pendingForecast=new Promise(resolve=>{resolveForecast=resolve});
+ run("tasks=[{id:'rich-flight',title:'Spotkanie',date:iso(today()),time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Notatka',weatherPlace:{location:'Rynek 1, Dresden',name:'Dresden',latitude:51,longitude:13,timezone:'Europe/Berlin'}}];showPlannerWeather=realWeather;plannerWeatherJson=()=>pendingForecast");
+ sheet.getBoundingClientRect=()=>rect(12,12,366,get('eventWeather').dataset.layout==='forecast'?500:170);
+ run('openEventActions(tasks[0])');
+ assert.equal(get('eventWeather').dataset.layout,'forecast','the loading forecast reserves its space synchronously');
+ assert.equal(get('eventLocationRow').classList.contains('hidden'),false);
+ const richFrame=animations.filter(a=>a.target.classList.contains('okti-event-flight-panel')&&a.frames.some(frame=>frame.height)).at(-1);
+ assert.equal(richFrame.frames.at(-1).height,'500px','the flight targets the rich layout from its first frame');
+ const forecastDate=run('tasks[0].date');
+ resolveForecast({timezone:'Europe/Berlin',hourly:{time:['11:00','12:00','13:00'].map(time=>forecastDate+'T'+time),temperature_2m:[12,13,14],precipitation_probability:[0,10,20],wind_speed_10m:[5,6,7],weather_code:[0,1,3]}});
+ await settle();await settle();
+ assert.equal(get('eventWeather').querySelectorAll('.weather-period').length,3,'the real deferred forecast fills the reserved card');
+ assert.equal(sheet.getBoundingClientRect().height,500);assert.equal(richFrame.frames.at(-1).height,'500px');
+ run('closeEventActions();OktiEventMotion.stop();showPlannerWeather=async()=>{}');
  w.matchMedia=()=>({matches:true});run('closeEventActions();openEventActions(tasks[0]);closeEventActions()');assert.equal(w.OktiEventMotion.getState(),null);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(w.document.body.classList.contains('okti-event-transitioning'),false);
  console.log('Event sheet: preserved controls/dialogue, artwork mutation isolation, notes, navigation, recorder lifecycle, shared-artwork ownership, flight/close/reopen interruption cleanup and reduced motion passed (animation geometry and graphics simulated).');
 }finally{dom.window.close()}
