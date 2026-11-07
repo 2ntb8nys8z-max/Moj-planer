@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "name": "Okti — biblioteka teł wydarzeń",
+  "purpose": "Decorative event-header backgrounds; titles, date, time, weather and controls remain separate UI layers.",
+  "backgrounds": [
+    {
+      "id": "light-shadow",
+      "name": "Światło i cień",
+      "category": "abstract",
+      "file": "01-light-shadow.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 42462,
+      "sha256": "1f0abb80ae46d719bc42c2e2f59c36fbdef253fb413e42eacdb92913ee076a83",
+      "approved": true
+    },
+    {
+      "id": "city-dusk",
+      "name": "Miasto o zmierzchu",
+      "category": "city",
+      "file": "02-city-dusk.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 60122,
+      "sha256": "cb9e5f14366cc0cefc1ff76da0a53726da82257800fe8d222108948291cb1dea",
+      "approved": true
+    },
+    {
+      "id": "coffee-conversation",
+      "name": "Kawa i rozmowa",
+      "category": "cafe",
+      "file": "03-coffee-conversation.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 50616,
+      "sha256": "383756371e98c0dc0de8bfe4ebed145b299961c76d49f003584cd4c886ca148e",
+      "approved": true
+    },
+    {
+      "id": "forest-breath",
+      "name": "Las i oddech",
+      "category": "nature",
+      "file": "04-forest-breath.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 82558,
+      "sha256": "aa219147eeb8acc0cd694e80ea9b073edd3475f11b580102c475a758b2a30f3e",
+      "approved": true
+    },
+    {
+      "id": "journey",
+      "name": "Podróż",
+      "category": "travel",
+      "file": "05-journey.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 46490,
+      "sha256": "ccc6c521d6423b29cc4b93df7644798b5c91d8f1db8b716da2107b4093ddfb7e",
+      "approved": true
+    },
+    {
+      "id": "work-focus",
+      "name": "Praca i skupienie",
+      "category": "work",
+      "file": "06-work-focus.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 57438,
+      "sha256": "d11a5bf7a3d799f32607fa8d0904891c36162430b694d99e972da6eb5d6f8a92",
+      "approved": true
+    },
+    {
+      "id": "culture-evening",
+      "name": "Kultura i wieczór",
+      "category": "culture",
+      "file": "07-culture-evening.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 42776,
+      "sha256": "061b75834b8d648218a6f60bcf788bf95b9db9911ad16763fae54e5dc1c9f7ae",
+      "approved": true
+    },
+    {
+      "id": "calm-balance",
+      "name": "Spokój i równowaga",
+      "category": "wellness",
+      "file": "08-calm-balance.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 59614,
+      "sha256": "386d0c957df8ca280c31157400ecdcff60e9cc16135382e5758b266320ac58a2",
+      "approved": true
+    },
+    {
+      "id": "celebration",
+      "name": "Świętowanie",
+      "category": "celebration",
+      "file": "09-celebration.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 32094,
+      "sha256": "ec7a857d1e9155391b519cba837885beda7d2da3f2105feb1cbee8d01c5f5bc7",
+      "approved": true
+    },
+    {
+      "id": "night-moon",
+      "name": "Noc i księżyc",
+      "category": "night",
+      "file": "10-night-moon.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 28080,
+      "sha256": "da4903668635d59c24fe6cdaeb640f9372f5260fd83bd0c1f11e5a379cc3ce85",
+      "approved": true
+    }
+  ]
+}

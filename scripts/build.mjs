@@ -92,6 +92,15 @@ output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
+// Approved background collection: keep the integration preview byte-identical.
+const eventBackgroundDir='assets/event-backgrounds';
+const eventBackgroundCatalog=JSON.parse(fs.readFileSync(eventBackgroundDir+'/catalog.json','utf8'));
+for(const item of eventBackgroundCatalog.backgrounds){
+  const content=fs.readFileSync(eventBackgroundDir+'/'+item.file);
+  if(createHash('sha256').update(content).digest('hex')!==item.sha256)throw Error('Event background and catalog differ: '+item.file);
+  output('preview33/'+eventBackgroundDir+'/'+item.file,content,false);
+}
+for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgroundDir+'/'+file,fs.readFileSync(eventBackgroundDir+'/'+file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);
 
