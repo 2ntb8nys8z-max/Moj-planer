@@ -36,6 +36,9 @@ async function geometry(page){return page.evaluate(()=>{
    await page.evaluate(records=>{showPlannerWeather=async()=>{};selected=new Date('2026-11-07T12:00:00');tasks=records;ideas=[];renderAll();document.querySelector('.app').inert=false;},fixture);
    await page.locator('.phone-event[data-event-id="workshop"]').waitFor();
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   // WebKit can still be finishing the existing day-entry translation. Compare
+   // the two surfaces at rest, rather than sampling different animation frames.
+   await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
    // Compare actual rendered geometry with the decorative rules switched off.
    // The same cards, text, Octopus, navigation and header must not move.
    const decorated=await geometry(page);
