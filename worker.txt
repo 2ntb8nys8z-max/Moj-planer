@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.42-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.43-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -603,7 +603,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="67656f11724475da";
+const BUILD_ID="d3dd04fac574d5c8";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -791,7 +791,7 @@ function plannerRouteSeconds(value){
 }
 async function computeGoogleRoute(body,env){
  const origin=typeof body?.origin==='string'?body.origin.trim():'',destination=typeof body?.destination==='string'?body.destination.trim():'',mode=String(body?.mode||'DRIVE').toUpperCase();
- if(!origin||!destination||origin.length>500||destination.length>500||!['DRIVE','WALK','TRANSIT'].includes(mode))throw new PlannerApiError('Podaj dwie lokalizacje i prawidłowy środek transportu.',400,'invalid_route','routes');
+ if(!origin||!destination||origin.length>500||destination.length>500||!['DRIVE','WALK','BICYCLE','TRANSIT'].includes(mode))throw new PlannerApiError('Podaj dwie lokalizacje i prawidłowy środek transportu.',400,'invalid_route','routes');
  if(typeof env.GOOGLE_MAPS_API_KEY!=='string'||!env.GOOGLE_MAPS_API_KEY.trim())throw new PlannerApiError('Brakuje klucza Google Maps w Cloudflare.',503,'maps_not_configured','configuration');
  const period=quotaPeriod(),schema=QUOTA_SCHEMA.replaceAll('planner_api_quota','planner_routes_quota'),reserve=QUOTA_RESERVE.replaceAll('planner_api_quota','planner_routes_quota');
  await env.API_LIMITS_DB.prepare(schema).run();
@@ -1173,7 +1173,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.06.33.42-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.07.33.43-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

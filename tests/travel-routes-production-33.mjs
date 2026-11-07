@@ -8,7 +8,7 @@ const preview=fs.readFileSync('preview33/index.html','utf8');
 assert.match(html,/travel-routes\.js\?v=[a-f0-9]{16}/,'Production loads the versioned route connector');
 assert.match(preview,/travel-routes\.js\?v=[a-f0-9]{16}/,'Preview loads the same route connector');
 assert.match(source,/\/routes\/compute/,'Connector uses the protected Google Routes endpoint');
-for(const mode of ['drive','walk','transit'])assert.match(source,new RegExp(mode+':'),'All three travel modes remain available');
+for(const mode of ['drive','walk','bicycle','transit'])assert.match(source,new RegExp(mode+':'),'All four travel modes remain available');
 assert.match(source,/state\?\.minutes>gap\?'late'/,'Late journeys are marked red');
 assert.match(source,/state\?\.minutes\+10>gap\?'tight'/,'Small buffers are marked orange');
 assert.match(source,/\?'safe'/,'Safe journeys are marked green');
@@ -18,4 +18,4 @@ assert.match(source,/okti-route-spinner/,'Recalculation has a visible working st
 assert.match(source,/\{hidden:true\}/,'An empty Google route hides the connector instead of showing a false no-route badge');
 assert.match(source,/if\(state\?\.hidden\)continue/,'Same-place empty routes draw neither a line nor a badge');
 
-console.log('Production travel connector: real routes, three modes, risk colors, spinner and no test toolbar passed.');
+console.log('Production travel connector: real routes, four modes, risk colors, spinner and no test toolbar passed.');
