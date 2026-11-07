@@ -25,7 +25,7 @@ async function geometry(page){return page.evaluate(()=>{
   for(const width of [320,390,430]){
    const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,timezoneId:'Europe/Berlin'}),page=await context.newPage();
    page.on('pageerror',e=>errors.push(e.message));let images=0;
-   page.on('request',r=>{if(r.url().includes('/assets/event-backgrounds/')&&r.resourceType()==='image')images++;});
+   page.on('request',r=>{if(/\/assets\/(?:event-backgrounds|calendar-art)\//.test(r.url())&&r.resourceType()==='image')images++;});
    await page.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin===origin){if(live)return route.continue();const file=path.resolve(url.pathname.slice(1)||'index.html');if(file.startsWith(process.cwd()+path.sep)&&fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/octet-stream'});}
@@ -53,7 +53,7 @@ async function geometry(page){return page.evaluate(()=>{
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
    await page.screenshot({path:path.join(output,width+'-calendar.png')});
    const tilePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundImage);
-   assert.match(tilePaint,/01-light-shadow\.webp/);const beforeOpenImages=images;
+   assert.match(tilePaint,/calendar-art\/light-shadow\.webp/);const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
    await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal((await frame(page,280)).opacity,0);
    await page.screenshot({path:path.join(output,width+'-opening.png')});
@@ -69,8 +69,8 @@ async function geometry(page){return page.evaluate(()=>{
    const overlaps=await page.locator('.phone-event[data-lanes]:not([data-lanes="1"])').count();assert.ok(overlaps>0);
    await page.screenshot({path:path.join(output,width+'-overlap.png')});
    // A missing/offline image retains a light surface and fully functional event.
-   await page.route('**/assets/event-backgrounds/**',r=>r.abort());
-   await page.locator('[data-event-id="coffee"]').evaluate(n=>n.style.setProperty('--calendar-art','url("assets/event-backgrounds/unavailable.webp")'));
+   await page.route('**/assets/calendar-art/**',r=>r.abort());
+   await page.locator('[data-event-id="coffee"]').evaluate(n=>n.style.setProperty('--calendar-art','url("assets/calendar-art/unavailable.webp")'));
    await page.locator('[data-event-id="coffee"]').tap();await clean(page);assert.equal(await page.locator('#actionTitle').textContent(),'Kawa i rozmowa');
    await page.locator('#closeEvent').tap();await clean(page);
    assert.ok(await page.locator('.phone-event[data-event-id="coffee"]').evaluate(n=>getComputedStyle(n).backgroundColor.match(/\d+/g).slice(0,3).every(v=>Number(v)>=240)),width+': offline fallback stays light');

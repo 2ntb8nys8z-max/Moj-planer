@@ -1439,11 +1439,11 @@ function plannerEventPalette(task){let hash=0;for(const char of String(task.titl
 // Calendar artwork is presentation only: existing and new events use the same
 // local collection without changing their stored data or the sheet's theme.
 const plannerCalendarArtFiles={
- 'light-shadow':'01-light-shadow.webp','city-dusk':'02-city-dusk.webp',
- 'coffee-conversation':'03-coffee-conversation.webp','forest-breath':'04-forest-breath.webp',
- journey:'05-journey.webp','work-focus':'06-work-focus.webp',
- 'culture-evening':'07-culture-evening.webp','calm-balance':'08-calm-balance.webp',
- celebration:'09-celebration.webp','night-moon':'10-night-moon.webp'
+ 'light-shadow':'assets/calendar-art/light-shadow.webp?v=2754b26f6df8c4af','city-dusk':'assets/event-backgrounds/02-city-dusk.webp',
+ 'coffee-conversation':'assets/event-backgrounds/03-coffee-conversation.webp','forest-breath':'assets/calendar-art/forest-breath.webp?v=61989c7bcdfaafff',
+ journey:'assets/event-backgrounds/05-journey.webp','work-focus':'assets/calendar-art/work-focus.webp?v=da7b25d5a942a566',
+ 'culture-evening':'assets/event-backgrounds/07-culture-evening.webp','calm-balance':'assets/calendar-art/calm-balance.webp?v=907e68651db11f88',
+ celebration:'assets/event-backgrounds/09-celebration.webp','night-moon':'assets/event-backgrounds/10-night-moon.webp'
 };
 function plannerEventArtwork(task){
  const text=String(task.title||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[łŁ]/g,'l').toLowerCase();
@@ -1462,8 +1462,8 @@ function plannerEventArtwork(task){
 }
 function plannerDecorateCalendarEvent(node,task){
  const artwork=plannerEventArtwork(task);
- node.classList.add('okti-calendar-card');node.dataset.eventArtwork=artwork;
- node.style.setProperty('--calendar-art','url("assets/event-backgrounds/'+plannerCalendarArtFiles[artwork]+'")');
+ node.classList.add('okti-calendar-card');node.dataset.eventArtwork=artwork;node.dataset.artTone=plannerCalendarArtFiles[artwork].includes('/calendar-art/')?'light':'dark';
+ node.style.setProperty('--calendar-art','url("'+plannerCalendarArtFiles[artwork]+'")');
 }
 function paintCreatedEventCue(){
   const cue=plannerCreatedEventCue;if(!cue||cue.at==null||cue.date!==iso(selected)||Date.now()>=cue.until)return;
@@ -5271,6 +5271,12 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout #
 }
 #dayView .okti-calendar-card[data-lanes]:not([data-lanes="1"]){
  background-image:linear-gradient(110deg,#fffffff5,#ffffffd9),var(--calendar-art)!important
+}
+#dayView .okti-calendar-card[data-art-tone="light"]{
+ background-image:linear-gradient(110deg,var(--event-light) 0%,#ffffff33 46%,#ffffff00 100%),linear-gradient(180deg,#ffffffbf 0%,#ffffff52 var(--calendar-copy-end,54px),#ffffff00 calc(var(--calendar-copy-end,54px) + 28px)),var(--calendar-art)!important
+}
+#dayView .okti-calendar-card[data-art-tone="light"][data-lanes]:not([data-lanes="1"]){
+ background-image:linear-gradient(110deg,#ffffffe0,#ffffff99),var(--calendar-art)!important
 }
 #dayView .okti-calendar-card.done{filter:saturate(.55)}
 #dayView .okti-calendar-card:focus-visible{outline:2px solid #286b94;outline-offset:2px}

@@ -46,6 +46,15 @@ const skyBuildId=createHash('sha256').update(fs.readFileSync('header-sky.webp'))
 canonical=canonical.replace(/header-sky\.webp(?:\?v=[a-z0-9]+)?/g,'header-sky.webp?v='+skyBuildId);
 const sailboatBuildId=createHash('sha256').update(fs.readFileSync('header-sailboat.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sailboat\.webp(?:\?v=[a-z0-9]+)?/g,'header-sailboat.webp?v='+sailboatBuildId);
+const calendarArtDir='assets/calendar-art';
+const calendarArtCatalog=JSON.parse(fs.readFileSync(calendarArtDir+'/catalog.json','utf8'));
+for(const item of calendarArtCatalog.backgrounds){
+  const file=calendarArtDir+'/'+item.file,content=fs.readFileSync(file),hash=createHash('sha256').update(content).digest('hex');
+  if(hash!==item.sha256)throw Error('Calendar artwork and catalog differ: '+file);
+  canonical=canonical.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash.slice(0,16));
+  output('preview33/'+file,content,false);
+}
+output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
 const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
 let listening=fs.readFileSync('octi-listening.js','utf8');
 for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
