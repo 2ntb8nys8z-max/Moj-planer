@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.244</title>
+<title>Mój Planer — test integracji 33.245</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.244</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.244</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.06.33.244-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.245</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.245</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.07.33.245-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -269,7 +269,7 @@ body.okti-weather-open{overflow:hidden}
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
 <div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia<img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div></div>
 <div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
-<header id="eventHeader"><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
+<header id="eventHeader"><div class="okti-event-header-art" aria-hidden="true"></div><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
 <div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div id="eventLocationText"></div><button id="navigateBtn" class="secondary hidden" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m20 3-7 18-3-7-7-3 17-8Z"/></svg><span>Nawiguj</span></button></div><section id="eventPeopleCard" class="event-people-card hidden" aria-labelledby="eventPeopleHeading"><div class="event-people-heading"><h3 id="eventPeopleHeading">Osoby</h3><button id="editEventPeople" type="button" aria-label="Zmień osoby w wydarzeniu">Zmień</button></div><div id="eventPeopleList" class="event-people-list"></div></section><div id="actionMeta" class="action-meta"></div><div id="eventNotesCards"></div><section id="eventChangePreview" class="preview hidden"><h3>Potwierdź zmianę wydarzenia</h3><div id="eventChangeInfo"></div><div class="preview-actions"><button id="eventChangeConfirm" class="primary" type="button">Potwierdź</button><button id="eventChangeCancel" class="secondary" type="button">Anuluj</button></div></section><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionPeople" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/></svg><span>Dodaj osoby</span></button><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
 <section id="eventConversationPanel" class="octi-chat-frame hidden" aria-labelledby="eventConversationTitle"><header id="eventConversationTools" class="event-conversation-header octi-chat-tools"><h3 id="eventConversationTitle" class="hidden">Rozmowa z Okti</h3><button id="eventConversationKeyboard" type="button" class="reply-keyboard" aria-label="Odpowiedz tekstowo" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg></button><button id="closeEventConversation" class="octi-conversation-close" type="button" aria-label="Ukryj rozmowę">×</button></header><div id="eventConversationBody"></div></section>
 <footer id="eventFooter" class="event-voice"><form id="eventTextForm" class="event-text-form hidden"><input id="eventTextInput" maxlength="4000" autocomplete="off" placeholder="Napisz, co zmienić w wydarzeniu" aria-label="Polecenie dotyczące tego wydarzenia"><button id="eventTextSend" type="submit" aria-label="Wyślij polecenie">↑</button></form><div id="eventReplyDock"></div><div id="eventVoiceCountdown" class="voice-countdown"></div><div class="event-communication-row octi-legacy"><button id="eventVoice" class="event-mic" type="button">🎤</button><button id="eventRecordCancel" type="button" class="secondary hidden" aria-label="Skasuj nagranie">Skasuj</button><button id="eventConversationToggle" class="hidden" type="button" aria-label="Pokaż rozmowę" aria-controls="eventConversationPanel" aria-expanded="false">☵</button></div><div id="eventVoiceHint" class="event-voice-hint octi-legacy" aria-hidden="true">Powiedz, co chcesz zmienić</div></footer></section></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.06.33.244-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.07.33.245-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5197,7 +5197,7 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
  box.textContent='Diagnostyka 33.228 · Otwórz wydarzenie i dotknij Okti oraz plusa.';
 })();
 </script>
-<script src="travel-routes.js?v=9eb0bbb6c210095f"></script>
+<script src="travel-routes.js?v=41cdda0065eb7f74"></script>
 <style id="okti-communication-33-234">
 /* Large, opaque decisions in the existing blue/teal palette. Artwork is unchanged. */
 .okti-decision-shade{position:fixed;inset:0;z-index:19000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:#18384f70;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overscroll-behavior:contain}
@@ -5388,20 +5388,21 @@ window.OktiCommunication=(()=>{
 </script>
 
 <style id="okti-event-presentation-33-244">
-#eventModal{--event-head:linear-gradient(115deg,#806548,#a18762);--event-paper:linear-gradient(115deg,#fffaf1,#f6ead9);--event-rim:#a98d66;--event-rim-light:#c9b28e;--event-rim-shine:#e3d4bc;--event-rule:#d9c5a6;--event-pill:#fffbf4}
+#eventModal{--event-head:linear-gradient(115deg,#806548,#a18762);--event-art:linear-gradient(180deg,#091c2a1a 0%,#102b4240 35%,#071b2cc9 100%),radial-gradient(ellipse at 70% 30%,#c9a47a 0%,#6a7b83 25%,#1c4c68 60%,#142b44 100%);--event-paper:linear-gradient(115deg,#fffaf1,#f6ead9);--event-rim:#a98d66;--event-rim-light:#c9b28e;--event-rim-shine:#e3d4bc;--event-rule:#d9c5a6;--event-pill:#fffbf4}
 #eventModal .event-sheet{border:3px solid var(--event-rim);border-top-color:var(--event-rim-shine);border-left-color:var(--event-rim-light);border-radius:25px;background:var(--event-paper)!important;box-shadow:inset 0 1px 1px #fff,0 14px 27px #152e3f50;color:#142e4c}
 #eventModal .event-sheet:before{content:none!important}
 /* A forecast fills a stable viewport from the first animation frame. */
 #eventModal:has(#eventWeather[data-layout="forecast"]:not(.hidden)) .event-sheet{height:min(64dvh,calc(100dvh - 270px - env(safe-area-inset-bottom)))}
 @media(max-height:500px){#eventModal:has(#eventWeather[data-layout="forecast"]:not(.hidden)) .event-sheet{height:calc(100dvh - 190px)}}
-#eventModal #eventHeader{padding:0!important;background:transparent!important;border:0;box-shadow:none}
-#eventModal .event-header-top{min-height:75px;padding:12px 14px;align-items:center;gap:8px;background:var(--event-head)!important}
-#eventModal #actionTitle{margin:0;padding:0;font-family:var(--okti-font);font-size:25px;font-weight:850;line-height:1.25;letter-spacing:-.6px;color:#fffdf7!important}
-#eventModal #eventHeaderActions{margin:0;gap:7px;align-self:center}
+#eventModal #eventHeader{display:grid;grid-template-columns:minmax(0,1fr) 82px;grid-template-rows:1fr auto;gap:10px 12px;min-height:230px;padding:14px 16px 16px!important;background:transparent!important;border:0;box-shadow:none;isolation:isolate}
+.okti-event-header-art{position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--event-art)}
+#eventModal .event-header-top{display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:42px 1fr;min-height:0;padding:0;gap:14px;background:transparent!important}
+#eventModal #actionTitle{grid-row:2;align-self:end;display:block;overflow:visible;-webkit-line-clamp:unset;margin:0;padding:0;font-family:var(--okti-font);font-size:25px;font-weight:850;line-height:1.2;letter-spacing:-.6px;color:#fffdf7!important;text-shadow:0 2px 8px #061b2b80}
+#eventModal #eventHeaderActions{grid-row:1;justify-self:end;margin:0;gap:7px;align-self:start}
 #eventModal #eventHeaderActions button{width:39px;min-width:39px;height:42px;min-height:42px;padding:8px!important;border:1px solid #ffffffc0!important;border-radius:13px;background:linear-gradient(145deg,#fffdfa,#f4f4ee)!important;color:#183b5b!important;box-shadow:0 2px 5px #06273415!important}
 #eventModal #eventHeaderActions svg{width:21px;height:21px}
-#eventModal #eventHeaderMeta{margin:0;padding:12px 15px 13px;font-size:17px;line-height:24px;font-weight:600;color:#142e4c}
-#eventModal .event-time-row{margin-top:11px;gap:8px}
+#eventModal #eventHeaderMeta{grid-column:1;align-self:end;margin:0;padding:0;font-size:14px;line-height:20px;font-weight:650;color:#fffdf7;text-shadow:0 1px 4px #071b2c80}
+#eventModal .event-time-row{margin-top:7px;gap:6px}
 #eventModal #eventTime{position:relative;isolation:isolate;min-height:35px;padding:6px 11px;border:1px solid transparent;background:transparent;color:#142e4c;font-size:13px;font-weight:750;line-height:18px;gap:7px}
 #eventModal #eventTime:before{content:'';position:absolute;inset:-1px;z-index:-1;border:1px solid var(--event-rule);border-radius:inherit;background:var(--event-pill);box-shadow:inset 0 1px 2px #ffffffde,0 2px 4px #39493908}
 #eventModal #eventTime svg{width:16px;height:16px;flex:none}
@@ -5411,15 +5412,19 @@ window.OktiCommunication=(()=>{
 #eventModal.hidden.okti-event-exiting{display:flex!important}
 #eventModal.okti-event-building .event-sheet{background:transparent!important;border-color:transparent;box-shadow:none}
 #eventModal.okti-event-building .event-header-top{background:transparent!important}
+#eventModal.okti-event-building .okti-event-header-art{visibility:hidden}
 .okti-event-flight-panel{position:fixed;pointer-events:none;z-index:0;box-sizing:border-box;border:3px solid var(--event-rim);background:var(--event-paper);overflow:hidden}
 .okti-event-flight-panel:after{content:'';position:absolute;inset:0;border:1px solid #ffffffc0;border-radius:inherit;pointer-events:none}
-.okti-event-flight-band{position:absolute;inset:0 0 auto;background:var(--event-head)}
+.okti-event-flight-band{position:absolute;inset:0 0 auto;background:var(--event-art)}
 .okti-event-flight-label{position:fixed;pointer-events:none;z-index:30;transform-origin:0 0;box-sizing:border-box}
 .okti-event-flight-time{position:fixed;pointer-events:none;z-index:29;box-sizing:border-box}
 .okti-event-flight-pill{position:absolute;inset:0;border:1px solid var(--event-rule);border-radius:999px;background:var(--event-pill);box-shadow:inset 0 1px 2px #ffffffde,0 2px 4px #39493908;transform-origin:61% 50%}
 .okti-event-flight-clock{position:absolute;width:16px;height:16px;left:12px;top:50%;margin-top:-8px;color:#142e4c;transform-origin:center}
 .okti-event-flight-clock svg{display:block;width:16px;height:16px}
-@media(max-width:359px){#eventModal #actionTitle{font-size:22px}#eventModal .event-header-top{padding:12px;gap:6px}#eventModal #eventHeaderActions{gap:5px}#eventModal #eventHeaderActions button{width:36px;min-width:36px}#eventModal #eventHeaderMeta{font-size:16px}}
+@media(max-width:359px){#eventModal #eventHeader{grid-template-columns:minmax(0,1fr) 70px;gap:10px;padding:12px!important}#eventModal #actionTitle{font-size:22px}#eventModal #eventHeaderActions{gap:5px}#eventModal #eventHeaderActions button{width:36px;min-width:36px}#eventModal #eventHeaderMeta{font-size:13px}}
+/* Short screens scroll the complete header and details together above the dock. */
+@media(max-height:650px){#eventModal .event-sheet{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}#eventModal #eventMainRegion{flex-shrink:0}#eventModal #eventContent{overflow:visible}}
+@media(max-height:500px){#eventModal #eventHeader{min-height:180px;padding:10px 14px!important}#eventModal .event-header-top{gap:8px}#eventModal #actionTitle{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.okti-event-flight-label,.okti-event-flight-panel,.okti-event-flight-time{display:none}}
 </style>
 <script>
@@ -5469,7 +5474,7 @@ window.OktiEventMotion=(()=>{
    if(!panel)return null;const rect=panel.getBoundingClientRect();if(!rect.width)return null;
    const sample=(node,props)=>node?Object.fromEntries(props.map(key=>[key,getComputedStyle(node)[key]])):null;
    const result={panel:rectFrame(rect),radius:getComputedStyle(panel).borderRadius,bandOpacity:band?Number(getComputedStyle(band).opacity):1,labels:{},pill:sample(pillGhost,['opacity','transform','clipPath']),clock:sample(clockGhost,['opacity','transform']),fade:{}};
-   for(const id of ['eventDate','eventHeaderActions','eventReminderBadge','eventMainRegion','eventConversationPanel','eventFooter'])result.fade[id]=sample($(id),['opacity','transform']);
+   for(const id of ['eventDate','eventHeaderActions','eventHeaderWeather','eventReminderBadge','eventMainRegion','eventConversationPanel','eventFooter'])result.fade[id]=sample($(id),['opacity','transform']);
    for(const [kind,label] of Object.entries(labels))result.labels[kind]={rect:label.getBoundingClientRect(),color:getComputedStyle(label).color};return result;
   }};motion=token;
   const animate=(n,frames,options={})=>{const a=n.animate(frames,{duration,easing:'cubic-bezier(.25,.6,.25,1)',fill:'both',...options});animations.push(a);return a};
@@ -5482,7 +5487,9 @@ window.OktiEventMotion=(()=>{
    large.borderTopColor=modal.style.getPropertyValue('--event-rim-shine');large.borderRightColor=large.borderBottomColor=modal.style.getPropertyValue('--event-rim');large.borderLeftColor=modal.style.getPropertyValue('--event-rim-light');
    panel=ghost('okti-event-flight-panel');Object.assign(panel.style,large);
    band=ghost('okti-event-flight-band',panel);
-   const row=$('actionTitle').closest('.event-header-top'),rowRect=row.getBoundingClientRect(),headerHeight=rowRect.height||75,smallHeight=source?headerHeight*source.rect.height/box.height:headerHeight;
+   // Decoration covers the complete, naturally sized header, including date/weather.
+   // Keep this measurement identical for the real sheet and its flight surface.
+   const headerHeight=$('eventHeader').getBoundingClientRect().height||230,smallHeight=source?headerHeight*source.rect.height/box.height:headerHeight;
    animate(panel,closing?[{...large,...resume?.panel,borderRadius:resume?.radius||large.borderRadius},small]:[small,large],{duration:closing?1050:1280,delay:closing?100:0});
    animate(band,closing?[{height:(headerHeight)+'px'},{height:smallHeight+'px'}]:[{height:smallHeight+'px'},{height:headerHeight+'px'}],{duration:closing?1050:1280,delay:closing?100:0});
    animate(band,closing?[{opacity:resume?.bandOpacity??1},{opacity:0}]:[{opacity:0},{opacity:.93,offset:.42},{opacity:1}],{duration:closing?300:280,delay:closing?40:0,easing:closing?'ease-in-out':'cubic-bezier(.3,.15,.25,1)'});
@@ -5506,7 +5513,7 @@ window.OktiEventMotion=(()=>{
     animate(pill,closing?[resume?.pill||{opacity:1,transform:'none',clipPath:'inset(0% round 20px)'},{opacity:0,transform:'scale(.9,.65)',clipPath:'inset(38% 28% 38% 28% round 20px)'}]:[{opacity:0,transform:'scale(.84,.5)',clipPath:'inset(42% 36% 42% 36% round 20px)'},{opacity:.7,transform:'scale(.96,.9)',clipPath:'inset(9% 10% 9% 10% round 20px)',offset:.5},{opacity:1,transform:'none',clipPath:'inset(0% round 20px)'}],{duration:closing?410:920,delay:closing?0:1320,easing:'cubic-bezier(.32,.1,.24,1)'});
     animate(clock,closing?[resume?.clock||{opacity:1,transform:'none'},{opacity:0,transform:'translateX(2px) scale(.88)'}]:[{opacity:0,transform:'translateX(3px) scale(.8)'},{opacity:1,transform:'none'}],{duration:closing?310:650,delay:closing?0:1510});
    }
-   const extra=[$('eventDate'),$('eventHeaderActions'),$('eventReminderBadge'),$('eventMainRegion'),$('eventConversationPanel'),!titleFlies&&$('actionTitle'),!timeFlies&&$('eventTime')];
+   const extra=[$('eventDate'),$('eventHeaderActions'),$('eventHeaderWeather'),$('eventReminderBadge'),$('eventMainRegion'),$('eventConversationPanel'),!titleFlies&&$('actionTitle'),!timeFlies&&$('eventTime')];
    for(const node of extra){if(!node||node.classList.contains('hidden'))continue;const date=node===$('eventDate');animate(node,closing?[resume?.fade?.[node.id]||{opacity:1,transform:'none'},{opacity:0,transform:'translateY(3px)'}]:[{opacity:0,transform:date?'translateY(4px)':'none'},{opacity:1,transform:'none'}],{duration:closing?380:date?750:650,delay:closing?0:date?880:900});}
    animate($('eventFooter'),[closing?(resume?.fade?.eventFooter||{opacity:1}):{opacity:0},{opacity:closing?0:1}],{duration:closing?300:450,delay:closing?0:700});
    if(closing){
@@ -5520,7 +5527,7 @@ window.OktiEventMotion=(()=>{
  openEventActions=function(task){
   const already=activeTask?.id===task.id&&!modal.classList.contains('hidden');
   if(already){theme(task);baseOpen(task);renderEventContextDetails(task);return}
-  const shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();const source=origin(task);theme(task);baseOpen(task);renderEventContextDetails(task);window.flushEventSheetLayout?.();hold(source);flight(task,source,false,shadeFrom);
+  const shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();const source=origin(task);theme(task);baseOpen(task);renderEventContextDetails(task);window.flushEventSheetLayout?.();window.flushEventHeaderWeather?.();hold(source);flight(task,source,false,shadeFrom);
  };
  closeEventActions=function(){
   if(modal.classList.contains('hidden')){baseClose();return}
@@ -5532,4 +5539,46 @@ window.OktiEventMotion=(()=>{
 })();
 </script>
 
+
+
+<style id="okti-compact-weather-2026">
+/* Forecast retrieval stays in its original panel; this view never changes geometry. */
+#eventModal #eventWeather{display:none!important}
+#eventModal .okti-header-weather{grid-column:2;grid-row:2;align-self:end;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:79px;font:800 24px/1.1 var(--okti-font,sans-serif);color:#fffdf7;white-space:nowrap;text-shadow:0 1px 4px #071b2c80}
+#eventModal .okti-header-weather:empty{visibility:hidden}
+.okti-header-weather-icon{display:block;width:52px;height:52px}
+.okti-header-weather-icon svg{display:block;width:100%;height:100%}
+</style>
+<script id="okti-compact-weather-script">
+(()=>{
+ const panel=document.getElementById('eventWeather'),header=document.getElementById('eventHeader'),modal=document.getElementById('eventModal');
+ if(!panel||!header||!modal)return;
+ const compact=document.createElement('div');compact.id='eventHeaderWeather';compact.className='okti-header-weather';compact.setAttribute('role','img');header.append(compact);
+ let signature='';
+ const clear=()=>{if(signature){compact.replaceChildren();signature=''}compact.removeAttribute('aria-label')};
+ const update=()=>{
+  if(modal.classList.contains('hidden')){if(!modal.classList.contains('okti-event-exiting'))clear();return}
+  const cells=[...panel.querySelectorAll('.weather-period')];
+  const eventTime=document.getElementById('eventTime')?.textContent||'';
+  const hour=eventTime.match(/(?:^|\D)([01]?\d|2[0-3]):[0-5]\d/);
+  const target=hour?Number(hour[1]):12;
+  const selected=cells.find(cell=>{const label=cell.querySelector('.weather-period-label')?.textContent||'';const match=label.match(/(\d{1,2}):\d{2}/);return match&&Number(match[1])===target})||cells[0];
+  const temperature=selected?.querySelector('.weather-temperature')?.textContent?.trim();
+  const icon=selected?.querySelector('.weather-icon');
+  if(!temperature||temperature==='—'||!icon){clear();return}
+  const next=temperature+'|'+icon.innerHTML;if(next===signature)return;signature=next;
+  const artwork=document.createElement('span');artwork.className='okti-header-weather-icon';artwork.setAttribute('aria-hidden','true');
+  // Keep the approved artwork, with independent SVG clip IDs in the header copy.
+  artwork.innerHTML=icon.innerHTML.replace(/okti-weather-art-(\d+)/g,'okti-weather-art-$1-hero');
+  const value=document.createElement('span');value.textContent=temperature;compact.replaceChildren(artwork,value);
+  compact.setAttribute('aria-label','Prognoza dla wydarzenia: '+(icon.getAttribute('aria-label')||'')+', '+temperature);
+ };
+ let pending=false;const observer=new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;update()})});
+ observer.observe(panel,{subtree:true,childList:true,characterData:true});
+ observer.observe(modal,{attributes:true,attributeFilter:['class']});
+ observer.observe(document.getElementById('eventTime'),{subtree:true,childList:true,characterData:true});
+ window.flushEventHeaderWeather=update;
+ update();
+})();
+</script>
 </body></html>
