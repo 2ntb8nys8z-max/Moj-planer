@@ -5560,7 +5560,7 @@ window.OktiEventMotion=(()=>{
  const updateTravel=()=>{
   if(!travel||modal.classList.contains('hidden'))return;
   const source=[...document.querySelectorAll('#taskList .okti-route-badge')].find(button=>button.dataset.destinationEventId===String(activeTask?.id));
-  const next=source?.textContent.trim()||'';if(next===travelSignature)return;travelSignature=next;
+  const next=source?.textContent.trim()||'',key=source?[source.dataset.destinationEventId,source.dataset.risk,source.getAttribute('aria-label'),next].join('|'):'';if(key===travelSignature)return;travelSignature=key;
   travel.replaceChildren();if(!source)return;
   const icon=source.querySelector('svg');if(icon)travel.append(icon.cloneNode(true));travel.append('Dojazd: '+next);
   travel.style.color=getComputedStyle(source).color;travel.setAttribute('aria-label',(source.getAttribute('aria-label')||next).split('. Dotknij')[0]);
