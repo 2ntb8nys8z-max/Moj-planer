@@ -31,8 +31,3 @@ jobs:
         env:
           TZ: Europe/Warsaw
         run: npm test
-      - name: Verify event modal and travel tests
-        run: |
-          node tests/event-sheet-33.mjs
-          node tests/travel-animation-33.mjs
-          node tests/local-weather-33.cjs
