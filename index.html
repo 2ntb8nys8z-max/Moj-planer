@@ -5530,4 +5530,35 @@ window.OktiEventMotion=(()=>{
 })();
 </script>
 
+
+<style id="okti-compact-weather-2026">
+/* Compact weather presentation only; original weather retrieval remains intact. */
+#eventModal #eventWeather{display:none!important}
+#eventModal .event-header-top .okti-header-weather{font:750 13px/1.2 var(--okti-font,sans-serif);color:#fff;white-space:nowrap;text-shadow:0 1px 3px #15314e99;align-self:center}
+#eventModal .event-header-top .okti-header-weather:empty{display:none}
+</style>
+<script id="okti-compact-weather-script">
+(()=>{
+ const panel=document.getElementById('eventWeather'),actions=document.getElementById('eventHeaderActions'),modal=document.getElementById('eventModal');
+ if(!panel||!actions||!modal)return;
+ const compact=document.createElement('span');compact.className='okti-header-weather';compact.setAttribute('aria-label','Prognoza dla wydarzenia');actions.prepend(compact);
+ const update=()=>{
+  if(modal.classList.contains('hidden')){compact.textContent='';return}
+  const cells=[...panel.querySelectorAll('.weather-period')];
+  const eventTime=document.getElementById('eventTime')?.textContent||'';
+  const hour=eventTime.match(/(?:^|\D)([01]?\d|2[0-3]):[0-5]\d/);
+  const target=hour?Number(hour[1]):12;
+  const selected=cells.find(cell=>{const label=cell.querySelector('.weather-period-label')?.textContent||'';const match=label.match(/(\d{1,2}):\d{2}/);return match&&Number(match[1])===target})||cells[0];
+  const temperature=selected?.querySelector('.weather-temperature')?.textContent?.trim();
+  const icon=selected?.querySelector('.weather-icon')?.getAttribute('aria-label')||'';
+  const symbol=/śnieg/i.test(icon)?'❄️':/deszcz|opad/i.test(icon)?'🌧️':/burz/i.test(icon)?'⛈️':/chmur/i.test(icon)?'☁️':target>=19||target<6?'🌙':'☀️';
+  compact.textContent=temperature&&temperature!=='—'?symbol+' '+temperature:'';
+ };
+ let pending=false;const observer=new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;update()})});
+ observer.observe(panel,{subtree:true,childList:true,characterData:true});
+ observer.observe(modal,{attributes:true,attributeFilter:['class']});
+ observer.observe(document.getElementById('eventTime'),{subtree:true,childList:true,characterData:true});
+ update();
+})();
+</script>
 </body></html>
