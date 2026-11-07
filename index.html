@@ -5530,4 +5530,57 @@ window.OktiEventMotion=(()=>{
 })();
 </script>
 
+
+<style id="okti-smart-header-test">
+/* Test-only compact event information. Existing event opening/closing motion is untouched. */
+#eventModal #eventWeather{display:none!important}
+#eventModal .event-header-top{position:relative;isolation:isolate;overflow:hidden}
+#eventModal .event-header-top::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(135deg,#173d70,#0d244c 70%,#456a91);background-size:cover;background-position:center;transition:background-color .3s}
+#eventModal .event-header-top[data-okti-sky="day"]::before{background:linear-gradient(125deg,#3c88b9,#8bc1dc)}
+#eventModal .event-header-top[data-okti-sky="evening"]::before{background:linear-gradient(125deg,#2b457c,#bf826d)}
+#eventModal .event-header-top[data-okti-sky="night"]::before{background:linear-gradient(125deg,#0b1c43,#254b75)}
+#eventModal .event-header-top[data-okti-sky="rain"]::before{background:linear-gradient(125deg,#1a334e,#486b82)}
+#eventModal .event-header-top .okti-weather-inline{color:#fff;white-space:nowrap;font-size:13px;font-weight:700;text-shadow:0 1px 3px #071b38a0;align-self:center}
+#eventModal .event-header-top .okti-tiles{position:absolute;inset:0;z-index:-1;pointer-events:none;display:grid;grid-template-columns:repeat(14,1fr);grid-template-rows:repeat(4,1fr);opacity:0}
+#eventModal .event-header-top.okti-tiles-loading .okti-tiles{opacity:1}
+#eventModal .okti-tiles i{background:#83b5cf;opacity:0;animation:okti-tiles-out .7s ease-out both}
+@keyframes okti-tiles-out{0%{opacity:.75}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){#eventModal .okti-tiles i{animation:none}}
+#eventModal .event-route-card,#eventModal .travel-card,#eventModal [class*="travel-summary"]{padding:8px 11px!important}
+#eventModal .event-route-card hr,#eventModal .travel-card hr{opacity:.3}
+</style>
+<script id="okti-smart-header-test-script">
+/* Test-only enhancement; no image generation, network access or new paid API calls. */
+(()=>{
+ const modal=document.getElementById('eventModal');if(!modal)return;
+ const top=modal.querySelector('.event-header-top'),actions=document.getElementById('eventHeaderActions'),weather=document.getElementById('eventWeather');
+ if(!top||!actions||!weather)return;
+ const inline=document.createElement('span');inline.className='okti-weather-inline';inline.setAttribute('aria-label','Pogoda wydarzenia');actions.prepend(inline);
+ const tiles=document.createElement('div');tiles.className='okti-tiles';tiles.setAttribute('aria-hidden','true');top.prepend(tiles);
+ let lastKey='',lastWeather='',busy=false;
+ const render=()=>{
+  if(busy)return;busy=true;
+  try{
+   if(modal.classList.contains('hidden'))return;
+   const text=weather.textContent||'';
+   const temp=text.match(/-?\d{1,2}\s*°\s*C?/);
+   const icon=text.match(/[☀🌤⛅☁🌧🌦🌩❄🌙]/u);
+   const current=(temp?temp[0].replace(/\s/g,''):'');
+   const weatherText=(icon?icon[0]+' ':'')+current;
+   if(weatherText!==lastWeather){inline.textContent=weatherText;lastWeather=weatherText}
+   const time=(document.getElementById('eventTime')?.textContent||'').match(/\b([01]?\d|2[0-3]):[0-5]\d/);
+   const hour=time?Number(time[1]):12;
+   const kind=/deszcz|opad|rain/i.test(text)?'rain':hour<6||hour>=19?'night':hour>=17?'evening':'day';
+   top.dataset.oktiSky=kind;
+   const key=(document.getElementById('actionTitle')?.textContent||'')+'|'+(document.getElementById('eventDate')?.textContent||'')+'|'+kind;
+   if(key!==lastKey){lastKey=key;tiles.replaceChildren();for(let i=0;i<56;i++){const tile=document.createElement('i');tile.style.animationDelay=((i*17)%320)+'ms';tiles.append(tile)}top.classList.remove('okti-tiles-loading');void top.offsetWidth;top.classList.add('okti-tiles-loading');}
+  }finally{busy=false}
+ };
+ const observer=new MutationObserver(()=>{if(!busy)requestAnimationFrame(render)});
+ observer.observe(weather,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
+ observer.observe(modal,{attributes:true,attributeFilter:['class']});
+ observer.observe(document.getElementById('eventTime'),{subtree:true,childList:true,characterData:true});
+ render();
+})();
+</script>
 </body></html>
