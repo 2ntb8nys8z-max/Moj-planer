@@ -12,7 +12,7 @@ const fixture=[
 ];
 const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.json':'application/json','.png':'image/png'};
 async function clean(page){await page.waitForFunction(()=>!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
-async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity)}:null;},time);}
+async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow}:null;},time);}
 async function open(page){await page.evaluate(()=>{const timer=window.setTimeout;window.setTimeout=(fn,ms,...args)=>String(fn).includes('token.finish()')?0:timer(fn,ms,...args);openEventActions(tasks.find(t=>t.id==='workshop'));window.setTimeout=timer;});}
 async function geometry(page){return page.evaluate(()=>{
  const rect=n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height]};
@@ -57,7 +57,7 @@ async function geometry(page){return page.evaluate(()=>{
    assert.match(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/09-celebration\.webp/);
    assert.match(tilePaint,/calendar-art\/light-shadow\.webp/);const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
-   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal((await frame(page,280)).opacity,0);
+   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
    // Close during opening: keep the interrupted decoration, then settle cleanly.
    await page.evaluate(()=>closeEventActions());await clean(page);
