@@ -1,0 +1,38 @@
+name: Production regression tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okti-production-regression
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Build and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Rebuild generated frontend artifacts
+        run: npm run build
+      - name: Run full regression suite
+        env:
+          TZ: Europe/Warsaw
+        run: npm test
+      - name: Verify event modal and travel tests
+        run: |
+          node tests/event-sheet-33.mjs
+          node tests/travel-animation-33.mjs
+          node tests/local-weather-33.cjs
