@@ -15,7 +15,7 @@ The decorative element and flight band share `--event-art`. The real decoration 
 
 The flight measures the complete header instead of its former top row. Interrupted closes retain the sampled band height as well as the existing sampled panel, opacity and labels. No duration or trajectory was replaced.
 
-The weather view copies the approved forecast artwork with independent SVG IDs. Its reserved grid space prevents asynchronous forecast data from resizing the header. The hidden original forecast no longer reserves an empty content card. The journey line below the address reads an already calculated calendar route via its destination ID; it does not request or calculate another route.
+The weather view copies the approved forecast artwork with independent SVG IDs. Its reserved grid space prevents asynchronous forecast data from resizing the header. The hidden original forecast no longer reserves an empty content card. The journey line below the address reads an already calculated calendar route via its destination ID; it does not request or calculate another route. The route presentation is flushed synchronously before the flight measures the sheet, so a late result replaces a same-sized loading line instead of adding a new row during motion.
 
 ## Verification
 

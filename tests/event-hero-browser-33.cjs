@@ -27,6 +27,7 @@ try{
    if(u.hostname==='geocoding-api.open-meteo.com')return route.fulfill({json:{results:[{id:1,name:'Dresden',country:'Deutschland',country_code:'DE',admin1:'Sachsen',latitude:51.05,longitude:13.74,timezone:'Europe/Berlin'}]}});
    if(u.hostname==='api.open-meteo.com'){await new Promise(resolve=>setTimeout(resolve,600));return route.fulfill({json:{timezone:'Europe/Berlin',hourly:{time:Array.from({length:24},(_,h)=>'2026-11-07T'+String(h).padStart(2,'0')+':00'),temperature_2m:Array(24).fill(14),precipitation_probability:Array(24).fill(10),wind_speed_10m:Array(24).fill(8),weather_code:Array(24).fill(2)}}});}
    if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
+   if(u.pathname.endsWith('/routes/compute'))await new Promise(resolve=>setTimeout(resolve,900));
    return route.fulfill({json:{success:true,requiresAccess:false,route:{available:true,durationMinutes:135,distanceMeters:140000}}});
   });
   await page.goto(live||'https://planner.test/');await page.evaluate(()=>document.fonts.ready);
@@ -43,7 +44,7 @@ try{
   const header=await box(page,'#eventHeader'),title=await box(page,'#actionTitle'),actions=await box(page,'#eventHeaderActions'),weather=await box(page,'#eventHeaderWeather'),meta=await box(page,'#eventHeaderMeta');
   assert.ok(header.height>=230||height<500,`${label}: approved header height`);assert.ok(title.top>=actions.bottom-1,`${label}: title is below controls`);assert.ok(meta.top>=title.bottom-1,`${label}: metadata follows title in normal flow`);assert.ok(weather.left>=meta.right-1,`${label}: weather and metadata do not overlap`);
   const contentHeight=await page.locator('#eventContent').evaluate(n=>n.scrollHeight);assert.ok((await box(page,'.event-sheet')).height<=header.height+contentHeight+8,`${label}: no empty space is reserved for the hidden forecast`);assert.equal(await page.locator('#eventWeather').isVisible(),false);assert.equal(await page.locator('#eventHeaderActions button').count(),2);assert.ok((await box(page,'#eventLocationRow')).top>=header.bottom-1);assert.match(await page.locator('#eventNotesCards').textContent(),/Przynieść aparat/);
-  console.log(label+': visual frames and geometry passed');const nav=page.waitForEvent('popup',{timeout:10000});await page.locator('#navigateBtn').tap();const popup=await nav;await popup.waitForURL(/google.com\/maps/);assert.match(popup.url(),/google.com\/maps/);await popup.close();console.log(label+': navigation passed');
+  console.log(label+': visual frames and geometry passed');const micHit=await page.locator('#eventVoice').evaluate(n=>{const r=n.getBoundingClientRect();return n.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))});assert.equal(micHit,true,`${label}: notes do not cover the microphone`);const nav=page.waitForEvent('popup',{timeout:10000});await page.locator('#navigateBtn').tap();const popup=await nav;await popup.waitForURL(/google.com\/maps/);assert.match(popup.url(),/google.com\/maps/);await popup.close();console.log(label+': navigation passed');
   // Real touch closes the sheet; automatic completion must clean every ghost.
   await page.locator('#closeEvent').tap();await clean(page);assert.equal(await page.locator('#eventModal').isVisible(),false);
   // Natural, unpaused open and close, including the final handoff to the real header.

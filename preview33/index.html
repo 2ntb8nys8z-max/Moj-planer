@@ -5197,7 +5197,7 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
  box.textContent='Diagnostyka 33.228 · Otwórz wydarzenie i dotknij Okti oraz plusa.';
 })();
 </script>
-<script src="travel-routes.js?v=dcda7c0a348aabae"></script>
+<script src="travel-routes.js?v=261c12fa2c0f1fa0"></script>
 <style id="okti-communication-33-234">
 /* Large, opaque decisions in the existing blue/teal palette. Artwork is unchanged. */
 .okti-decision-shade{position:fixed;inset:0;z-index:19000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:#18384f70;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overscroll-behavior:contain}
@@ -5525,7 +5525,7 @@ window.OktiEventMotion=(()=>{
  openEventActions=function(task){
   const already=activeTask?.id===task.id&&!modal.classList.contains('hidden');
   if(already){theme(task);baseOpen(task);renderEventContextDetails(task);return}
-  const shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();const source=origin(task);theme(task);baseOpen(task);renderEventContextDetails(task);window.flushEventSheetLayout?.();window.flushEventHeaderWeather?.();hold(source);flight(task,source,false,shadeFrom);
+  const shadeFrom=motion?Number(getComputedStyle(dim).opacity):null;stop();window.flushPlannerRouteLayout?.();const source=origin(task);theme(task);baseOpen(task);renderEventContextDetails(task);window.flushEventSheetLayout?.();window.flushEventHeaderWeather?.();hold(source);flight(task,source,false,shadeFrom);
  };
  closeEventActions=function(){
   if(modal.classList.contains('hidden')){baseClose();return}
@@ -5542,12 +5542,12 @@ window.OktiEventMotion=(()=>{
 <style id="okti-compact-weather-2026">
 /* Forecast retrieval stays in its original panel; this view never changes geometry. */
 #eventModal #eventWeather{display:none!important}
-#eventModal .okti-header-weather{grid-column:2;grid-row:2;align-self:end;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:79px;font:800 24px/1.1 var(--okti-font,sans-serif);color:#fffdf7;white-space:nowrap;text-shadow:0 1px 4px #071b2c80}
+#eventModal .okti-header-weather{grid-column:2;grid-row:2;align-self:end;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:81px;font:800 24px/1.1 var(--okti-font,sans-serif);color:#fffdf7;white-space:nowrap;text-shadow:0 1px 4px #071b2c80}
 #eventModal .okti-header-weather:empty{visibility:hidden}
 .okti-event-location-copy{flex:1;min-width:0}
 #eventTravelSummary{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:12px;font-weight:650;line-height:18px}
 #eventTravelSummary:empty{display:none}
-#eventTravelSummary svg{width:17px;height:17px;flex:none}
+#eventTravelSummary :is(svg,.okti-route-spinner){width:17px;height:17px;flex:none}
 .okti-header-weather-icon{display:block;width:52px;height:52px}
 .okti-header-weather-icon svg{display:block;width:100%;height:100%}
 </style>
@@ -5562,7 +5562,7 @@ window.OktiEventMotion=(()=>{
   const source=[...document.querySelectorAll('#taskList .okti-route-badge')].find(button=>button.dataset.destinationEventId===String(activeTask?.id));
   const next=source?.textContent.trim()||'',key=source?[source.dataset.destinationEventId,source.dataset.risk,source.getAttribute('aria-label'),next].join('|'):'';if(key===travelSignature)return;travelSignature=key;
   travel.replaceChildren();if(!source)return;
-  const icon=source.querySelector('svg');if(icon)travel.append(icon.cloneNode(true));travel.append('Dojazd: '+next);
+  const icon=source.querySelector('svg,.okti-route-spinner');if(icon)travel.append(icon.cloneNode(true));travel.append(next);travel.title='Dojazd: '+next;
   travel.style.color=getComputedStyle(source).color;travel.setAttribute('aria-label',(source.getAttribute('aria-label')||next).split('. Dotknij')[0]);
  };
  const routesObserver=new MutationObserver(records=>{if(records.some(record=>[...record.addedNodes,...record.removedNodes].some(node=>node.classList?.contains('okti-route-badge'))))updateTravel()});
