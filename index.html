@@ -5433,7 +5433,7 @@ window.OktiEventMotion=(()=>{
   sage:{head:'linear-gradient(115deg,#315f4c,#56826a)',paper:'linear-gradient(115deg,#f5fbf5,#e0ecdf)',rim:'#759a7e',light:'#a2bea3',shine:'#cfe1cd',rule:'#bdd2bd',pill:'#fafff8'}
  };
  let motion=null,held=[];
- function theme(task){const key=plannerEventPalette(task),base=themes[key]||themes.sand;const colors={...base};if(/światł.{0,12}cieni|light.{0,12}shadow/i.test(String(task?.title||'')))colors.head='linear-gradient(180deg,#091c2a1a 0%,#102b4240 35%,#071b2cc9 100%),radial-gradient(ellipse at 70% 30%,#c9a47a 0%,#6a7b83 25%,#1c4c68 60%,#142b44 100%)';modal.dataset.eventPalette=key;for(const [name,value] of Object.entries(colors))modal.style.setProperty('--event-'+({head:'head',paper:'paper',rim:'rim',light:'rim-light',shine:'rim-shine',rule:'rule',pill:'pill'}[name]),value)}
+ function theme(task){const key=plannerEventPalette(task),colors=themes[key]||themes.sand;modal.dataset.eventPalette=key;for(const [name,value] of Object.entries(colors))modal.style.setProperty('--event-'+({head:'head',paper:'paper',rim:'rim',light:'rim-light',shine:'rim-shine',rule:'rule',pill:'pill'}[name]),value)}
  function origin(task){
   const tile=[...$('taskList').querySelectorAll('[data-event-id]')].find(n=>n.dataset.eventId===String(task?.id));if(!tile)return null;
   const rect=tile.getBoundingClientRect(),list=$('taskList').getBoundingClientRect();if(!rect.width||rect.bottom<=list.top||rect.top>=list.bottom)return null;
