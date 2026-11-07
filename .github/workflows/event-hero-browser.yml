@@ -26,6 +26,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify decorated calendar events and unchanged layout
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/calendar-art-browser-33.cjs
       - name: Verify animated event header
         env:
           TZ: Europe/Warsaw
@@ -36,11 +41,6 @@ jobs:
           TZ: Europe/Warsaw
           PLANNER_BROWSER: ${{ matrix.browser }}
         run: node tests/route-menu-browser-33.cjs
-      - name: Verify decorated calendar events and unchanged layout
-        env:
-          TZ: Europe/Warsaw
-          PLANNER_BROWSER: ${{ matrix.browser }}
-        run: node tests/calendar-art-browser-33.cjs
       - name: Wait for the tested production HTML
         if: github.ref == 'refs/heads/main'
         run: node scripts/verify-event-hero-deployment.mjs
