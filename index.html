@@ -5389,9 +5389,7 @@ window.OktiCommunication=(()=>{
 #eventModal{--event-head:linear-gradient(115deg,#806548,#a18762);--event-time-ink:#fffdf7;--event-time-fill:#ffffff24;--event-time-rule:#ffffff65;--event-art:linear-gradient(180deg,#091c2a1a 0%,#102b4240 35%,#071b2cc9 100%),radial-gradient(ellipse at 70% 30%,#c9a47a 0%,#6a7b83 25%,#1c4c68 60%,#142b44 100%);--event-paper:linear-gradient(115deg,#fffaf1,#f6ead9);--event-rim:#a98d66;--event-rim-light:#c9b28e;--event-rim-shine:#e3d4bc;--event-rule:#d9c5a6;--event-pill:#fffbf4}
 #eventModal .event-sheet{border:3px solid var(--event-rim);border-top-color:var(--event-rim-shine);border-left-color:var(--event-rim-light);border-radius:25px;background:var(--event-paper)!important;box-shadow:inset 0 1px 1px #fff,0 14px 27px #152e3f50;color:#142e4c}
 #eventModal .event-sheet:before{content:none!important}
-/* A forecast fills a stable viewport from the first animation frame. */
-#eventModal:has(#eventWeather[data-layout="forecast"]:not(.hidden)) .event-sheet{height:min(64dvh,calc(100dvh - 270px - env(safe-area-inset-bottom)))}
-@media(max-height:500px){#eventModal:has(#eventWeather[data-layout="forecast"]:not(.hidden)) .event-sheet{height:calc(100dvh - 190px)}}
+/* The hidden forecast does not reserve a second, empty content card. */
 #eventModal #eventHeader{display:grid;grid-template-columns:minmax(0,1fr) 82px;grid-template-rows:1fr auto;gap:10px 12px;min-height:230px;padding:14px 16px 16px!important;background:transparent!important;border:0;box-shadow:none;isolation:isolate}
 .okti-event-header-art{position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--event-art)}
 #eventModal .event-header-top{display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:42px 1fr;min-height:0;padding:0;gap:14px;background:transparent!important}
