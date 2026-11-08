@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.08.33.254-integration';
-const PREVIEW_VERSION='2026.11.08.33.254-test';
+const APP_VERSION='2026.11.08.33.255-integration';
+const PREVIEW_VERSION='2026.11.08.33.255-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.07.33.43-test';
 const WORKER_LABEL='Worker 33.43-test';
@@ -92,6 +92,11 @@ const eventKeysBuildId=createHash('sha256').update(eventKeys).digest('hex').slic
 canonical=canonical.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
 preview=preview.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
 output('preview33/event-keys.js',eventKeys,false);
+const eventWeather=fs.readFileSync('event-weather.js','utf8');
+const eventWeatherBuildId=createHash('sha256').update(eventWeather).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
+preview=preview.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
+output('preview33/event-weather.js',eventWeather,false);
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';

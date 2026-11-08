@@ -96,7 +96,7 @@ try{
   near(byId.d.card.left,byId.anchor.card.left+16,`${label}: D uses the first inset position`);
   assert.ok(byId.d.card.width>byId.a.card.width+20,`${label}: D uses the wider available area`);
   near(byId.solo.card.left,byId.anchor.card.left,`${label}: unconflicted short event starts normally left`);
-  near(byId.solo.card.width,byId.anchor.card.width,`${label}: unconflicted short event retains standard width`);
+  near(byId.solo.card.width,(width-126)*.98-4,`${label}: unconflicted short event gains room for weather`);
   for(const id of ['a','b','c','d'])assert.ok(byId[id].card.left>=byId.anchor.card.left+16-epsilon,`${label}: ${id} remains16px from the purple left edge`);
   assert.ok(byId.a.pin,'A includes its location icon');
 

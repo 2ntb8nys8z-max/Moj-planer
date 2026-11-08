@@ -12,7 +12,7 @@ const fixture=[
 ];
 const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.json':'application/json','.png':'image/png'};
 async function clean(page){await page.waitForFunction(()=>!window.OktiEventKey?.getState()&&!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
-async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art'),stripe=n?.querySelector('.okti-event-flight-stripe');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow,stripes:n.querySelectorAll('.okti-event-flight-stripe').length,stripe:stripe?{background:getComputedStyle(stripe).backgroundImage,left:getComputedStyle(stripe).left,width:getComputedStyle(stripe).width}:null}:null;},time);}
+async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art'),stripe=n?.querySelector('.okti-event-flight-stripe');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow,weather:n.querySelectorAll('.okti-event-card-weather').length,stripes:n.querySelectorAll('.okti-event-flight-stripe').length,stripe:stripe?{background:getComputedStyle(stripe).backgroundImage,left:getComputedStyle(stripe).left,width:getComputedStyle(stripe).width}:null}:null;},time);}
 async function open(page){await page.evaluate(()=>{const timer=window.setTimeout;window.setTimeout=(fn,ms,...args)=>String(fn).includes('token.finish()')?0:timer(fn,ms,...args);openEventActions(tasks.find(t=>t.id==='workshop'));window.setTimeout=timer;});}
 async function geometry(page){return page.evaluate(()=>{
  const rect=n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height]};
@@ -33,7 +33,7 @@ async function geometry(page){return page.evaluate(()=>{
     return route.fulfill({json:{requiresAccess:false}});
    });
    await page.goto(live||origin);await page.evaluate(()=>document.fonts.ready);
-   await page.evaluate(records=>{showPlannerWeather=async()=>{};selected=new Date('2026-11-07T12:00:00');tasks=records;ideas=[];renderAll();document.querySelector('.app').inert=false;},fixture);
+   await page.evaluate(records=>{showPlannerWeather=async()=>{};selected=new Date('2026-11-07T12:00:00');tasks=records;const task=tasks.find(t=>t.id==='workshop');task.location='Warszawa';task.weatherPlace={location:task.location,latitude:52.23,longitude:21.01};task.weatherForecast={key:plannerWeatherForecastKey(task,task.weatherPlace),fetchedAt:new Date().toISOString(),rows:[{key:task.date+'T12:00',index:0,temperature:7,code:2,isDay:true}]};ideas=[];renderAll();document.querySelector('.app').inert=false;},fixture);
    await page.locator('.phone-event[data-event-id="workshop"]').waitFor();
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    // WebKit can still be finishing the existing day-entry translation. Compare
@@ -45,6 +45,11 @@ async function geometry(page){return page.evaluate(()=>{
    await page.evaluate(()=>document.getElementById('okti-calendar-art-33-247').sheet.disabled=true);
    const plain=await geometry(page);assert.deepEqual(decorated,plain,width+': decoration does not change layout');
    await page.evaluate(()=>document.getElementById('okti-calendar-art-33-247').sheet.disabled=false);
+   await page.evaluate(()=>OktiEventWeather.refresh());
+   const weather=page.locator('[data-event-id="workshop"] .okti-event-card-weather');
+   assert.equal(await weather.textContent(),'7°','The card shows weather for the event hour');
+   const weatherClear=await weather.evaluate(n=>{const clock=n.parentElement.nextElementSibling.querySelector('.phone-event-time').getBoundingClientRect(),r=n.getBoundingClientRect(),tile=n.parentElement.getBoundingClientRect();return clock.right<=r.left&&r.right<=tile.right-10&&r.top>=tile.top});
+   assert.equal(weatherClear,true,width+': weather clears both the time row and the travel connector markers');
    const dataBefore=await page.evaluate(()=>JSON.stringify(tasks));
    assert.equal(new Set(await page.locator('.okti-calendar-card').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventArtwork))).size,fixture.length,'Every event has a different motif in this group');
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
@@ -83,7 +88,7 @@ async function geometry(page){return page.evaluate(()=>{
    const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
    const stripePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n,'::before').backgroundImage);
-   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal(first.stripes,1);assert.equal(first.stripe.background,stripePaint,'The same single inset bar follows the flight surface');assert.equal(first.stripe.left,'6px');assert.equal(first.stripe.width,'4px');const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
+   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal(first.weather,1,'Weather follows the existing flight and fades with its glass surface');assert.equal(first.stripes,1);assert.equal(first.stripe.background,stripePaint,'The same single inset bar follows the flight surface');assert.equal(first.stripe.left,'6px');assert.equal(first.stripe.width,'4px');const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
    // Close during opening: keep the interrupted decoration, then settle cleanly.
    await page.evaluate(()=>closeEventActions());await clean(page);
