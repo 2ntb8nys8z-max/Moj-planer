@@ -30,10 +30,14 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    assert.equal(fit.overflow,false);assert.equal(fit.date,true,width+': full day/month fits');assert(fit.top<250,width+': compact header recovers calendar height');assert.equal(fit.art,'none');assert.equal(fit.white,'rgb(255, 255, 255)');
    await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-calendar.png'});
    async function pressOpen(target,opposite,label){
-    const rest=await target.boundingBox(),still=await opposite.boundingBox();
+    const rest=await target.boundingBox(),still=await opposite.boundingBox(),face=page.locator('.phone-day-glass-'+label),otherFace=page.locator('.phone-day-glass-'+(label==='date'?'weather':'date')),faceRest=await face.boundingBox(),otherFaceRest=await otherFace.boundingBox();
     await page.mouse.move(rest.x+rest.width/2,rest.y+rest.height/2);await page.mouse.down();
     await target.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
-    const held=await target.boundingBox();
+    await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
+    const held=await target.boundingBox(),glassHeld=await face.boundingBox();
+    assert(glassHeld.height<faceRest.height-2,width+': the optical rim itself compresses');
+    for(const key of ['x','y','width','height'])assert(Math.abs(glassHeld[key]-held[key])<.2,width+': glass and label bend as one surface ('+key+')');
+    assert.deepEqual(await otherFace.boundingBox(),otherFaceRest,width+': the other glass surface stays still');
     assert(held.height<rest.height-2,width+': '+label+' visibly compresses under a held pointer');
     assert(held.y+held.height/2>rest.y+rest.height/2+1,width+': '+label+' sinks into the frame');
     assert.deepEqual(await opposite.boundingBox(),still,width+': the other half stays still');
@@ -65,9 +69,29 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'A cancelled press never opens a dialog');
     assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);
     assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    if(name==='chromium'){
+     const cdp=await context.newCDPSession(page),face=page.locator('.phone-day-glass-date'),faceRest=await face.boundingBox(),r=await date.boundingBox();
+     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:r.x+r.width/2,y:r.y+r.height/2}]});
+     assert.equal(await date.evaluate(n=>n.matches(':active')),true,'A real touch press activates the native key');
+     await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
+     assert((await face.boundingBox()).height<faceRest.height-2,'A held touch bends the glass rim');
+     await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-touch-pressed.png'});
+     await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+     await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
+     assert.equal(await date.evaluate(n=>n.matches(':active')),false,'Touch cancellation releases the key');
+     assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'Touch cancellation cannot open a dialog');
+     assert(Math.abs((await face.boundingBox()).height-faceRest.height)<.2,'Touch cancellation restores the glass');
+     await cdp.detach();
+    }
+    for(const [target,id] of [[date,'#phoneDateModal'],[weather,'#dayWeatherModal']]){
+     const r=await target.boundingBox();await page.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);
+     await page.locator(id).waitFor({state:'visible'});await page.keyboard.press('Escape');await page.locator(id).waitFor({state:'hidden'});
+     await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
+    }
    }
    await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('Shared header: independent held presses, release and cancellation, reduced motion, separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
+  assert.deepEqual(errors,[]);console.log('Shared header: optical surfaces and labels bend together, real touch taps and cancellation, independent held presses, release and cancellation, reduced motion, separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
