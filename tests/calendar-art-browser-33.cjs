@@ -95,7 +95,12 @@ async function geometry(page){return page.evaluate(()=>{
    if(width===390){
     const key=page.locator('.phone-event[data-event-id="workshop"]');await key.scrollIntoViewIfNeeded();
     const restingShadow=await key.evaluate(n=>getComputedStyle(n).boxShadow),box=await key.boundingBox();
-    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+    // The wider key's centre can sit behind the existing floating Okti dock.
+    // Press its exposed upper-left face and verify the real hit target first.
+    const point={x:box.x+Math.min(24,box.width/2),y:box.y+Math.min(14,box.height/2)};
+    const hit=await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.closest('.phone-event')?.dataset.eventId,point);
+    assert.equal(hit,'workshop','The physical pointer hits the exposed event key');
+    await page.mouse.move(point.x,point.y);await page.mouse.down();
     // WebKit may defer the first style update after the interrupted flight.
     // Flush that update and await the actual CSS press transitions, then check
     // both depth and shadow rather than sampling an arbitrary 190ms timer.
