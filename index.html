@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mój Planer</title>
-<meta name="theme-color" content="#0b4b86">
+<meta name="theme-color" content="#f4f1ed">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mój Planer">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="app-icon-180.png?v=octi-1">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.258-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.259-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.258-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.259-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2163,8 +2163,9 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
  // Shared elements travel in the dialog top layer; the forecast itself never scales.
  let pendingWeatherRender=false;
  function motion(){
-  const source=document.querySelector('#dayTitle'),from=source.getBoundingClientRect(),to=card.getBoundingClientRect();
+  const source=document.querySelector('#phoneWeatherButton')||document.querySelector('#dayTitle'),from=source.getBoundingClientRect(),to=card.getBoundingClientRect();
   if(!from.width||!to.width||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||!card.animate)return null;
+  source.classList.add('is-weather-opening');
   const animations=[],ghosts=[],hidden=[],token={cancel:()=>settle()},duration=760;
   let settled=false;
   function settle(){
@@ -2172,7 +2173,7 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
    for(const animation of animations){animation.onfinish=null;animation.oncancel=null;animation.cancel()}
    for(const ghost of ghosts)ghost.remove();
    for(const [node,visibility] of hidden)node.style.visibility=visibility;
-   card.classList.remove('okti-weather-building');
+   card.classList.remove('okti-weather-building');source.classList.remove('is-weather-opening');
    if(opening===token)opening=null;
    if(pendingWeatherRender&&!closing){pendingWeatherRender=false;render()}
   }
@@ -2188,7 +2189,7 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
     if(textOnly){const range=document.createRange();range.selectNodeContents(node);const rect=range.getBoundingClientRect?.();if(rect?.width&&rect?.height)return rect;}
     return node.getBoundingClientRect();
    }
-   const pairs=[['.phone-day-weekday','h2'],['.phone-day-weather .weather-icon','.okti-weather-hero .okti-weather-icon'],['.phone-day-temperature','.okti-weather-hero strong']];
+   const pairs=[['.weather-icon','.okti-weather-hero .okti-weather-icon'],['.phone-day-temperature','.okti-weather-hero strong']];
    for(const [sourceSelector,targetSelector] of pairs){
     const a=source.querySelector(sourceSelector),b=page.querySelector(targetSelector);if(!a||!b)continue;
     const textOnly=targetSelector==='h2',ar=sharedRect(a,textOnly),br=sharedRect(b,textOnly);if(!ar.width||!ar.height||!br.width||!br.height)continue;
@@ -2201,7 +2202,7 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
     dialog.append(ghost);ghosts.push(ghost);hide(a);hide(b);
     animate(ghost,[{transform:`translate(${ar.left-br.left}px,${ar.top-br.top}px) scale(${ar.width/br.width},${ar.height/br.height})`},{transform:'translate(0,0) scale(1)'}],options);
    }
-   for(const node of [dialog.querySelector('.okti-weather-x'),page.querySelector('.okti-weather-date'),page.querySelector('.okti-weather-limits'),...body.children]){
+   for(const node of [dialog.querySelector('.okti-weather-x'),page.querySelector('header'),page.querySelector('.okti-weather-limits'),...body.children]){
     if(!node||node.classList.contains('okti-weather-summary'))continue;
     animate(node,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:330,delay:480,easing:'ease-out',fill:'both'});
    }
@@ -2210,9 +2211,9 @@ function oktiCreateDayWeather({app,getDate,moveDate,weather,symbol,formatDate}){
   }catch(_){settle();return null}
  }
 
- function finishClose(){dialog.close?.();dialog.removeAttribute('open');app.inert=false;document.body.classList.remove('okti-weather-open');dialog.classList.remove('okti-weather-dismiss');if(dismissal){const animation=dismissal;dismissal=null;animation.onfinish=null;animation.oncancel=null;animation.cancel()}closing=false;focus?.focus()}
+ function finishClose(){dialog.close?.();dialog.removeAttribute('open');app.inert=false;document.getElementById('phoneWeatherButton')?.setAttribute('aria-expanded','false');document.body.classList.remove('okti-weather-open');dialog.classList.remove('okti-weather-dismiss');if(dismissal){const animation=dismissal;dismissal=null;animation.onfinish=null;animation.oncancel=null;animation.cancel()}closing=false;focus?.focus()}
  function close(){if(!dialog.open||closing)return;closing=true;gesture=null;dayMotion?.cancel();opening?.cancel();dialog.classList.add('okti-weather-dismiss');if(!card.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){finishClose();return}dismissal=card.animate([{opacity:1},{opacity:0}],{duration:180,easing:'ease-out',fill:'forwards'});dismissal.onfinish=finishClose;dismissal.oncancel=finishClose}
- function open(){if(dialog.open||closing)return;focus=document.activeElement;date=new Date(getDate());pendingWeatherRender=false;render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;document.body.classList.add('okti-weather-open');card.scrollTop=0;opening=motion();dialog.querySelector('.okti-weather-x').focus();weather.refresh()}
+ function open(){if(dialog.open||closing)return;focus=document.activeElement;document.getElementById('phoneWeatherButton')?.setAttribute('aria-expanded','true');date=new Date(getDate());pendingWeatherRender=false;render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;document.body.classList.add('okti-weather-open');card.scrollTop=0;opening=motion();dialog.querySelector('.okti-weather-x').focus();weather.refresh()}
  function moveDay(direction){
   if(!dialog.open||closing)return;opening?.cancel();if(dayMotion){pendingDay+=direction;return}
   if(!track.animate||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){date=new Date(moveDate(direction));render();return}
@@ -2786,6 +2787,38 @@ function phoneFitEventTitle(title){
  text.style.maxHeight=(Math.max(1,Math.min(limit,Math.floor(available/line)))*line)+'px';
 }
 function phonePrepareTitleMarquee(title){const text=title.querySelector('.phone-event-title-text');if(!text||!title.classList.contains('single-line'))return;const overflow=Math.max(0,text.scrollWidth-Math.max(0,title.clientWidth-15));title.classList.toggle('is-overflowing',overflow>2);if(overflow>2){title.style.setProperty('--phone-title-shift',-(overflow+8)+'px');title.style.setProperty('--phone-title-duration',Math.min(14,Math.max(7,overflow/22+5)).toFixed(1)+'s')}}
+function oktiCreateDatePicker({app,getDate,pick}){
+ const dialog=document.createElement('dialog');dialog.id='phoneDateModal';dialog.className='phone-date-dialog';dialog.setAttribute('aria-labelledby','phoneDateTitle');
+ dialog.innerHTML='<section class="phone-date-card"><header><h2 id="phoneDateTitle">Wybierz dzień</h2><button type="button" class="phone-date-close" aria-label="Zamknij wybór dnia">×</button></header><nav aria-label="Wybierz miesiąc"><button type="button" class="phone-date-prev" aria-label="Poprzedni miesiąc">‹</button><strong class="phone-date-month" aria-live="polite"></strong><button type="button" class="phone-date-next" aria-label="Następny miesiąc">›</button></nav><div class="phone-date-weekdays" aria-hidden="true"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span><span>Nd</span></div><div class="phone-date-grid" role="group" aria-label="Dni miesiąca"></div><button type="button" class="phone-date-today">Dzisiaj</button></section>';
+ document.body.append(dialog);const card=dialog.firstElementChild,grid=dialog.querySelector('.phone-date-grid');let month=null,focus=null,motion=null;
+ const key=date=>date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+ function close(){if(!dialog.open)return;motion?.cancel();motion=null;dialog.close?.();dialog.removeAttribute('open');app.inert=false;document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','false');(document.getElementById('phoneDateButton')||focus)?.focus({preventScroll:true})}
+ function choose(date){close();pick(new Date(date.getFullYear(),date.getMonth(),date.getDate(),12));document.getElementById('phoneDateButton')?.focus({preventScroll:true})}
+ function render(focusDate){
+  dialog.querySelector('.phone-date-month').textContent=month.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});grid.replaceChildren();
+  const first=new Date(month.getFullYear(),month.getMonth(),1,12),offset=(first.getDay()+6)%7,count=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+  for(let n=0;n<offset;n++){const blank=document.createElement('span');blank.setAttribute('aria-hidden','true');grid.append(blank)}
+  for(let day=1;day<=count;day++){
+   const date=new Date(month.getFullYear(),month.getMonth(),day,12),button=document.createElement('button');button.type='button';button.textContent=day;button.dataset.date=key(date);button.setAttribute('aria-label',date.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));button.setAttribute('aria-pressed',String(key(date)===key(getDate())));if(key(date)===key(new Date()))button.setAttribute('aria-current','date');button.onclick=()=>choose(date);grid.append(button);
+  }
+  if(focusDate)grid.querySelector('[data-date="'+key(focusDate)+'"]')?.focus({preventScroll:true});
+ }
+ function moveMonth(direction){month=new Date(month.getFullYear(),month.getMonth()+direction,1,12);render()}
+ dialog.querySelector('.phone-date-prev').onclick=()=>moveMonth(-1);dialog.querySelector('.phone-date-next').onclick=()=>moveMonth(1);dialog.querySelector('.phone-date-close').onclick=close;dialog.querySelector('.phone-date-today').onclick=()=>choose(new Date());
+ dialog.addEventListener('cancel',event=>{event.preventDefault();close()});dialog.addEventListener('click',event=>{if(event.target===dialog)close()});
+ grid.addEventListener('keydown',event=>{
+  const button=event.target.closest('button[data-date]'),steps={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7};if(!button||!(event.key in steps))return;
+  event.preventDefault();const date=new Date(button.dataset.date+'T12:00:00');date.setDate(date.getDate()+steps[event.key]);if(date.getMonth()!==month.getMonth()||date.getFullYear()!==month.getFullYear()){month=new Date(date.getFullYear(),date.getMonth(),1,12);render(date)}else grid.querySelector('[data-date="'+key(date)+'"]')?.focus({preventScroll:true});
+ });
+ function open(){
+  if(dialog.open)return;focus=document.activeElement;month=new Date(getDate().getFullYear(),getDate().getMonth(),1,12);render();if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');app.inert=true;
+  const anchor=document.getElementById('phoneDateButton');anchor?.setAttribute('aria-expanded','true');
+  const from=anchor?.getBoundingClientRect(),to=card.getBoundingClientRect();
+  if(from?.width&&to.width&&card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){motion=card.animate([{opacity:.35,transform:'translate('+(from.left-to.left)+'px,'+(from.top-to.top)+'px) scale('+from.width/to.width+','+from.height/to.height+')'},{opacity:1,transform:'none'}],{duration:360,easing:'cubic-bezier(.22,.75,.22,1)'});const activeMotion=motion;activeMotion.finished.catch(()=>{}).then(()=>{if(motion===activeMotion)motion=null})}
+  (grid.querySelector('[aria-pressed="true"]')||grid.querySelector('button')||dialog.querySelector('.phone-date-close')).focus({preventScroll:true});
+ }
+ return {open,close};
+}
 function initializePhoneSkin(){
  if(typeof window.matchMedia!=='function')return;
  document.body.classList.add('phone-layout');const app=document.querySelector('.app'),header=document.createElement('header');header.className='phone-header';app.prepend(header);header.append(app.querySelector('h1'));header.querySelector('h1').textContent='Mój Planer';
@@ -2805,7 +2838,7 @@ function initializePhoneSkin(){
   const data=OktiLocalWeather.snapshot(),place=data.place,time=stamp=>new Date(stamp).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),coordinates=place?place.latitude.toFixed(3)+', '+place.longitude.toFixed(3):'';
   $('enableLocalWeather').disabled=data.busy;$('enableLocalWeather').textContent=data.busy?'Ustalam lokalizację…':data.enabled?'Odśwież lokalizację':'Użyj lokalizacji telefonu';$('disableLocalWeather').classList.toggle('hidden',!data.enabled);
   $('localWeatherStatus').textContent=(place&&data.enabled?(place.label||'Lokalizacja telefonu')+' · '+coordinates+' · lokalizacja sprawdzona '+time(place.checkedAt)+(data.at?' · prognoza pobrana '+time(data.at):''):data.enabled?'Oczekuję na lokalizację telefonu.':'Lokalizacja jest wyłączona.')+(data.error?' '+data.error:'');
-  const weather=phoneCalendarWeather(selected);if(!$('dayView').classList.contains('hidden'))renderPhoneDateNavigation(selected,date=>{selected=date;$('date').value=iso(selected);renderDay()});
+  const weather=phoneCalendarWeather(selected);if(!$('dayView').classList.contains('hidden'))renderPhoneHeaderWeather(selected);
   const node=$('dayTitle').querySelector('.phone-day-weather');if(node&&weather?.stale){node.classList.add('weather-stale');node.title='Zapisana prognoza — dane starsze niż 2 godziny'}
  }
  $('enableLocalWeather').onclick=()=>OktiLocalWeather.enable();$('disableLocalWeather').onclick=()=>OktiLocalWeather.disable();
@@ -2818,7 +2851,7 @@ function initializePhoneSkin(){
  const memoControls=document.createElement('div');memoControls.className='row';for(const id of ['stopMemo','cancelMemo','memoHint','photoNoteStatus'])memoControls.append($(id));voiceArea.before(memoControls);settings.append($('photoNoteLocation').closest('label'));settings.append($('toolsArea'));
  const manual=$('manualCard');manual.classList.add('hidden');const closeManual=entryButton('Zamknij formularz',()=>manual.classList.add('hidden'),'secondary');manual.prepend(closeManual);
  const controls=$('voice').parentElement,copy=document.createElement('span');copy.className='phone-command-copy';copy.innerHTML='<small>POWIEDZ, CO CHCESZ ZROBIĆ</small><strong>Utwórz wydarzenie</strong>';controls.append(copy);const mic=document.createElement('span');mic.className='phone-command-icon';mic.innerHTML=entryIcon('mic');controls.append(mic);for(const [id,icon,label] of [['createPhotoNote','camera','Zrób zdjęcie'],['recordMemo','recorder','Nagraj notatkę']]){const button=$(id);button.innerHTML=entryIcon(icon);button.title=label;button.setAttribute('aria-label',label);controls.append(button)}controls.append($('recordCancel'));actions.remove();const phoneHint=$('voiceHint');controls.before(phoneHint);function updatePhoneHint(){phoneHint.classList.toggle('phone-idle-hint',phoneHint.textContent==='Naciśnij mikrofon i powiedz, co dodać do Planera')}new MutationObserver(updatePhoneHint).observe(phoneHint,{childList:true,characterData:true,subtree:true});updatePhoneHint();const hints=['Utwórz wydarzenie','Zrób notatkę','Ustaw minutnik','Co mam do kupienia?','Wyszukaj listy zakupów','Ustaw przypomnienie'];let hintIndex=0;setInterval(()=>{copy.querySelector('strong').textContent=hints[++hintIndex%hints.length]},4000);$('voice').setAttribute('aria-label','Powiedz polecenie głosowe');
- let calendarView='day',phoneSection='plan';const originalShowView=showView;function syncPhoneBottomBar(){const labels={day:'Dzień',week:'Tydzień',month:'Miesiąc'},plan=$('phoneCalendar');plan.querySelector('.phone-calendar-label').textContent=labels[calendarView];plan.setAttribute('aria-label','Widok '+labels[calendarView].toLowerCase());for(const [id,section] of [['phoneCalendar','plan'],['phoneTasks','tasks'],['phoneEntries','entries']])$(id).classList.toggle('active',phoneSection===section)}showView=function(view){if(!settingsModal.classList.contains('hidden'))closeSettings();const entries=view==='ideas'||view==='tasks';if(!entries){calendarView=view;phoneSection='plan'}else if(phoneSection==='plan')phoneSection='entries';originalShowView(view);tabs.classList.add('hidden');$('journalCalendarNavigation').hidden=!entries;manual.classList.add('hidden');if(entries){$('ideasHeading').textContent=phoneSection==='tasks'?'Zadania':'Wpisy';$('ideasDescription').textContent=phoneSection==='tasks'?'Rzeczy do zrobienia w jednym miejscu.':'Wszystkie wpisy w jednym miejscu.'}syncPhoneBottomBar();requestAnimationFrame(journal.fitBottom);};$('phoneCalendar').onclick=()=>{if(phoneSection!=='plan'){phoneSection='plan';showView(calendarView);return}showView(calendarView==='day'?'week':calendarView==='week'?'month':'day')};$('phoneTasks').onclick=()=>{phoneSection='tasks';ideasMode='todo';showView('ideas')};$('phoneEntries').onclick=()=>{phoneSection='entries';journal.kind='all';showView('ideas')};
+ let calendarView='day',phoneSection='plan';const originalShowView=showView;function syncPhoneBottomBar(){app.dataset.phoneView=calendarView;app.dataset.phoneSection=phoneSection;const labels={day:'Dzień',week:'Tydzień',month:'Miesiąc'},plan=$('phoneCalendar');plan.querySelector('.phone-calendar-label').textContent=labels[calendarView];plan.setAttribute('aria-label','Widok '+labels[calendarView].toLowerCase());for(const [id,section] of [['phoneCalendar','plan'],['phoneTasks','tasks'],['phoneEntries','entries']])$(id).classList.toggle('active',phoneSection===section)}showView=function(view){if(!settingsModal.classList.contains('hidden'))closeSettings();const entries=view==='ideas'||view==='tasks';if(!entries){calendarView=view;phoneSection='plan'}else if(phoneSection==='plan')phoneSection='entries';originalShowView(view);tabs.classList.add('hidden');$('journalCalendarNavigation').hidden=!entries;manual.classList.add('hidden');if(entries){$('ideasHeading').textContent=phoneSection==='tasks'?'Zadania':'Wpisy';$('ideasDescription').textContent=phoneSection==='tasks'?'Rzeczy do zrobienia w jednym miejscu.':'Wszystkie wpisy w jednym miejscu.'}syncPhoneBottomBar();requestAnimationFrame(journal.fitBottom);};$('phoneCalendar').onclick=()=>{if(phoneSection!=='plan'){phoneSection='plan';showView(calendarView);return}showView(calendarView==='day'?'week':calendarView==='week'?'month':'day')};$('phoneTasks').onclick=()=>{phoneSection='tasks';ideasMode='todo';showView('ideas')};$('phoneEntries').onclick=()=>{phoneSection='entries';journal.kind='all';showView('ideas')};
  for(const [id,view] of [['tabDay','day'],['tabWeek','week'],['tabMonth','month']])$(id).onclick=()=>showView(view);
  const oldStartTimer=startTimer;startTimer=function(...args){const result=oldStartTimer(...args);if(!args[2]){openSettings();$('toolsArea').scrollIntoView({behavior:'smooth',block:'start'})}return result};
  const strip=document.createElement('div');strip.className='phone-week-strip';$('dayTitle').closest('.daybar').after(strip);const heading=document.createElement('div');heading.className='phone-plan-heading';heading.innerHTML='<h3>Plan dnia</h3>';const todayContainer=$('todayBtn').parentElement;heading.append($('todayBtn'));todayContainer.remove();$('taskList').before(heading);calendarMeta.append($('todayBtn'));
@@ -2934,7 +2967,18 @@ function initializePhoneSkin(){
  function updatePhoneCalendarMeta(value){const month=value.toLocaleDateString('pl-PL',{month:'long'});calendarMonth.textContent=month;const week=phoneIsoWeek(value),direction=phoneCalendarMetaDate?(value.getTime()>phoneCalendarMetaDate.getTime()?1:value.getTime()<phoneCalendarMetaDate.getTime()?-1:0):0;renderPhoneWeekNumber(week,direction);phoneCalendarMetaDate=new Date(value);calendarWeek.setAttribute('aria-label','Tydzień '+week)}
  function announcePhoneDayWeather(){const data=phoneCalendarWeather(selected);toast(data?data.label+' · '+data.temperature+'°':'Brak prognozy dla tego dnia')}
  const dayWeatherController=oktiCreateDayWeather({app,getDate:()=>selected,moveDate:direction=>{closeReminder();selected.setDate(selected.getDate()+direction);$('date').value=iso(selected);renderDay();return selected},weather:OktiLocalWeather,symbol:plannerWeatherSymbol,formatDate});
- $('dayTitle').setAttribute('role','button');$('dayTitle').setAttribute('tabindex','0');$('dayTitle').setAttribute('title','Pokaż pogodę dla wybranego dnia');$('dayTitle').onclick=dayWeatherController.open;$('dayTitle').onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();dayWeatherController.open()}};
+ const datePicker=oktiCreateDatePicker({app,getDate:()=>selected,pick:date=>{closeReminder();selected=date;monthCursor=new Date(date.getFullYear(),date.getMonth(),1);$('date').value=iso(selected);renderDay()}});
+ $('dayTitle').setAttribute('role','group');$('dayTitle').removeAttribute('tabindex');$('dayTitle').removeAttribute('title');
+ const dateButton=document.createElement('button');dateButton.type='button';dateButton.id='phoneDateButton';dateButton.className='phone-day-date';dateButton.setAttribute('aria-haspopup','dialog');dateButton.setAttribute('aria-controls','phoneDateModal');dateButton.setAttribute('aria-expanded','false');dateButton.onclick=datePicker.open;
+ const weatherButton=document.createElement('button');weatherButton.type='button';weatherButton.id='phoneWeatherButton';weatherButton.className='phone-day-weather';weatherButton.setAttribute('aria-haspopup','dialog');weatherButton.setAttribute('aria-controls','dayWeatherModal');weatherButton.setAttribute('aria-expanded','false');weatherButton.onclick=dayWeatherController.open;
+ function renderPhoneHeaderWeather(value){
+  const data=phoneCalendarWeather(value),status=OktiLocalWeather.snapshot();weatherButton.replaceChildren();weatherButton.classList.toggle('unavailable',!data);weatherButton.classList.toggle('is-loading',status.busy);weatherButton.setAttribute('aria-busy',String(status.busy));
+  if(data){const symbol=plannerWeatherSymbol(data.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind,data.isDay!==false);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=data.temperature+'°';weatherButton.append(icon,temperature)}
+  else{const label=document.createElement('span');label.className='phone-weather-placeholder';label.textContent=status.busy?'Pobieram…':'Pogoda';weatherButton.append(label)}
+  weatherButton.setAttribute('aria-label','Pogoda · '+formatDate(value)+(data?' · '+data.label+', '+data.temperature+' stopni':'')+' · Pokaż szczegóły');
+  $('dayTitle').setAttribute('aria-label',formatDate(value)+(data?' · '+data.label+', '+data.temperature+' stopni':''));
+ }
+
  function updatePhoneWeekCursor(){
   const active=strip.querySelector('button.active');if(!active)return;
   strip.classList.add('okti-week-cursor');strip.style.setProperty('--okti-week-x',active.offsetLeft+'px');strip.style.setProperty('--okti-week-y',active.offsetTop+'px');strip.style.setProperty('--okti-week-width',active.offsetWidth+'px');strip.style.setProperty('--okti-week-height',active.offsetHeight+'px');
@@ -2943,7 +2987,14 @@ function initializePhoneSkin(){
  }
  window.addEventListener('resize',updatePhoneWeekCursor);
  function renderPhoneDateNavigation(value,pick){
-  updatePhoneCalendarMeta(value);const fixedSpeaker=$('dayTitle').querySelector('.phone-day-speaker');$('dayTitle').replaceChildren();const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});const weatherData=phoneCalendarWeather(value),weather=document.createElement('span');weather.className='phone-day-weather'+(weatherData?'':' unavailable');if(weatherData){const symbol=plannerWeatherSymbol(weatherData.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind,weatherData.isDay!==false);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=weatherData.temperature+'°';weather.append(icon,temperature)}const speaker=fixedSpeaker||document.createElement('span');speaker.className='phone-day-speaker';speaker.setAttribute('aria-hidden','true');speaker.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16 9c1.3 1.3 1.3 4.7 0 6M19 6c3.2 3.2 3.2 8.8 0 12"/></svg>';const dayContent=document.createElement('span');dayContent.className='phone-day-content';dayContent.append(weekday,weather);const viewport=document.createElement('span');viewport.className='phone-day-viewport';viewport.append(dayContent);$('dayTitle').append(viewport,speaker);$('dayTitle').setAttribute('aria-label',formatDate(value)+(weatherData?' · '+weatherData.label+', '+weatherData.temperature+' stopni':'')+' · Dotknij, aby zobaczyć szczegóły pogody');strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}updatePhoneWeekCursor();
+  updatePhoneCalendarMeta(value);$('dayTitle').replaceChildren();
+  const weekday=document.createElement('span');weekday.className='phone-day-weekday';weekday.textContent=value.toLocaleDateString('pl-PL',{weekday:'long'});
+  const dayNumber=document.createElement('span');dayNumber.className='phone-day-number';dayNumber.textContent=value.toLocaleDateString('pl-PL',{day:'numeric',month:'long'});
+  const labels=document.createElement('span');labels.className='phone-day-date-labels';labels.append(weekday,dayNumber);
+  const chevron=document.createElement('span');chevron.className='phone-day-chevron';chevron.setAttribute('aria-hidden','true');chevron.innerHTML='<svg viewBox="0 0 20 20"><path d="m5 8 5 5 5-5"/></svg>';
+  dateButton.replaceChildren(labels,chevron);dateButton.setAttribute('aria-label',formatDate(value)+' · Wybierz dzień');renderPhoneHeaderWeather(value);
+  const dayContent=document.createElement('span');dayContent.className='phone-day-content';dayContent.append(dateButton,weatherButton);const viewport=document.createElement('span');viewport.className='phone-day-viewport';viewport.append(dayContent);$('dayTitle').append(viewport);
+  strip.replaceChildren();const monday=new Date(value);monday.setDate(monday.getDate()-(monday.getDay()||7)+1);for(let n=0;n<7;n++){const date=new Date(monday);date.setDate(date.getDate()+n);const b=entryButton('',()=>pick(date),iso(date)===iso(value)?'active':'');b.dataset.journalDate=iso(date);b.innerHTML='<small>'+['Pn','Wt','Śr','Cz','Pt','So','Nd'][n]+'</small>'+date.getDate();b.setAttribute('aria-label',formatDate(date));strip.append(b)}updatePhoneWeekCursor();
  }
  function phoneTravelDemoEnabled(){return document.title.includes('test integracji')&&new URLSearchParams(location.search).get('travelDemo')==='1'}
  function phoneTravelDemoTasks(source,date){
@@ -5692,4 +5743,61 @@ window.OktiEventMotion=(()=>{
  update();
 })();
 </script>
+<style id="okti-shared-day-header-33-259">
+/* One glass frame; date selection and forecast keep separate controls and loading. */
+.phone-layout .phone-sky-header{padding-bottom:4px;background:radial-gradient(ellipse at 55% -15%,#f0debf70,transparent 72%),linear-gradient(135deg,#f4f1ed,#fffdf9);border-radius:0;box-shadow:none}
+.phone-layout .phone-sky-header:before{display:none;background:none}
+.phone-layout .phone-system-bar{color:#273344}
+.phone-layout .phone-sky-header .phone-header{display:none;min-height:0;margin:0}
+.phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta{min-height:32px;height:32px;margin:0;padding:0}
+.phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta :is(.phone-calendar-week-number,.phone-calendar-month){display:none}
+.phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta #todayBtn{top:-4px;width:36px;height:36px;min-width:36px;min-height:36px;font-size:8px;line-height:9px}
+.phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta #todayBtn svg{width:20px;height:18px}
+.phone-layout #dayView{background:#fff}
+.phone-layout #dayView .daybar{isolation:isolate}
+.phone-layout #dayView .daybar:before{content:'';position:absolute;inset:0 -14px auto;height:165px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 72% 0%,#ead2ad55,transparent 66%),linear-gradient(155deg,#f3efea8a,#fffdf644 48%,#fff 96%)}
+.phone-layout #dayTitle .phone-day-weather.is-weather-opening>*{visibility:hidden!important}
+.phone-layout #dayView .daybar{min-height:88px;padding:0 2px 8px}
+.phone-layout #dayView #dayTitle{height:80px;min-height:80px;padding:0;border:1px solid #fffef4;border-radius:24px;background:linear-gradient(145deg,#ffffffbd,#fffdf36b 50%,#ffffffa3);box-shadow:0 7px 15px #51463920,0 1px 3px #51463915,inset 0 2px 2px #fff,inset 0 -2px 3px #82736330;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:default;transition:none}
+.phone-layout #dayTitle .phone-day-viewport{width:100%;height:100%;border-radius:inherit}
+.phone-layout #dayTitle .phone-day-content{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:0;height:100%}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){position:relative;display:flex;align-items:center;width:100%;height:100%;min-height:0;min-width:0;margin:0;padding:10px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#17366b;font-family:var(--okti-font);text-shadow:none;cursor:pointer;transition:background .18s ease}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active{background:#ffffff7d}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):focus-visible{outline:2px solid #4d7098;outline-offset:-5px;border-radius:20px}
+.phone-layout #dayTitle .phone-day-date{justify-content:space-between;gap:7px;text-align:left}
+.phone-day-date-labels{display:flex;flex-direction:column;gap:2px;min-width:0}
+.phone-layout #dayTitle .phone-day-weekday{flex:none;overflow:hidden;white-space:nowrap;font-size:clamp(21px,6.1vw,27px);font-weight:820;letter-spacing:-.035em;line-height:1.1}
+.phone-day-number{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,16px);font-weight:650;letter-spacing:-.02em;line-height:1.25}
+.phone-day-chevron{display:block;flex:none;width:16px;height:16px;opacity:.8}
+.phone-day-chevron svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.phone-layout #dayTitle .phone-day-weather{justify-content:center;gap:4px;padding-left:8px;padding-right:10px}
+.phone-layout #dayTitle .phone-day-weather:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;background:linear-gradient(180deg,transparent,#b6aa985c 22%,#b6aa9870 70%,transparent);box-shadow:1px 0 0 #ffffffa3;pointer-events:none}
+.phone-layout #dayTitle .phone-day-weather.unavailable{display:flex}
+.phone-layout #dayTitle .phone-day-weather .weather-icon{width:52px;height:52px;flex:none}
+.phone-layout #dayTitle .phone-day-temperature{min-width:0;font-size:clamp(27px,8vw,35px);font-weight:800;letter-spacing:-.045em;white-space:nowrap}
+.phone-weather-placeholder{font-size:17px;font-weight:700}
+.phone-layout #dayTitle .phone-day-weather.is-loading:after{content:"";position:absolute;bottom:8px;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#9b8564;animation:phone-weather-pending 1.2s ease-in-out infinite}
+.phone-layout .phone-week-strip{margin-top:0;margin-bottom:8px}
+@keyframes phone-weather-pending{50%{opacity:.25}}
+.phone-date-dialog{box-sizing:border-box;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:16px;border:0;background:transparent;color:#17366b;overflow:auto}
+.phone-date-dialog[open]{display:flex;align-items:center;justify-content:center}
+.phone-date-dialog::backdrop{background:#1a202c42;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.phone-date-card{box-sizing:border-box;width:min(100%,370px);max-height:calc(100dvh - 32px);overflow:auto;padding:18px;border:1px solid #ffffffed;border-radius:26px;background:linear-gradient(145deg,#fffefb,#f6f3ee);box-shadow:0 20px 60px #27221d33,inset 0 1px 1px #fff;transform-origin:0 0;font-family:var(--okti-font,sans-serif)}
+.phone-date-card header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.phone-date-card h2{margin:0;font-size:21px;line-height:1.2;color:#17366b}
+.phone-date-card button{display:grid;place-items:center;min-width:0;min-height:44px;margin:0;padding:6px;border:0;border-radius:13px;background:transparent;box-shadow:none;color:#17366b;font:700 16px/1.1 var(--okti-font,sans-serif)}
+.phone-date-card button:focus-visible{outline:2px solid #4d7098;outline-offset:1px}
+.phone-date-card button:active{background:#e9e3d8}
+.phone-date-card .phone-date-close{width:40px;height:40px;min-height:40px;font-size:27px}
+.phone-date-card nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:4px;margin-bottom:10px}
+.phone-date-month{text-align:center;text-transform:capitalize;font-size:17px}
+.phone-date-card :is(.phone-date-prev,.phone-date-next){font-size:27px}
+.phone-date-weekdays,.phone-date-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.phone-date-weekdays{margin-bottom:5px;text-align:center;color:#6c7482;font-size:12px;font-weight:700}
+.phone-date-grid button[aria-current=date]{box-shadow:inset 0 0 0 1px #b6a17e}
+.phone-date-grid button[aria-pressed=true]{background:#e6ded0;color:#17366b;box-shadow:inset 0 0 0 1px #c8b99e}
+.phone-date-card .phone-date-today{width:100%;margin-top:14px;background:#eae4da;font-size:15px}
+@media(max-width:359px){.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
+@media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}}
+</style>
 </body></html>

@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.08\.33\.258-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.08\.33\.258-test/);
+assert.match(root,/Aplikacja: 2026\.11\.08\.33\.259-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.08\.33\.259-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -36,7 +36,9 @@ for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.daybar h2:before\{[^}]*padding:3px[^}]*backdrop-filter:blur\(7px\)/,'the weather button must concentrate refraction in its glass rim');
   assert.match(page,/calendarMonth=document\.createElement\('span'\)/,'the month label must be plain text rather than a button');
   assert.match(page,/\.phone-layout \.phone-calendar-month\{[^}]*top:59px[^}]*border:0[^}]*background:none[^}]*font:750 21px/,'the larger plain month label must sit under the week bubble');
-  assert.match(page,/className='phone-day-speaker'/,'the day summary keeps a visible speaker control');
+  assert.match(page,/dateButton.id='phoneDateButton'/,'the left header half independently selects a date');
+  assert.match(page,/weatherButton.id='phoneWeatherButton'/,'the right header half independently opens weather');
+  assert.doesNotMatch(page,/className='phone-day-speaker'/,'the redundant speaker is removed from the header');
   assert.match(page,/\.phone-day-weather \.weather-icon\{width:52px;height:52px\}/,'the selected-day weather symbol must remain large and legible');
   assert.match(page,/#dayTitle \.phone-day-weekday\{[^}]*font-size:clamp\(20px,6vw,27px\)/,'the sliding weekday must keep its original large type');
   assert.match(page,/#dayTitle \.phone-day-weather \.weather-icon\{width:52px;height:52px/,'the sliding weather artwork must keep its original 52px size');
@@ -79,7 +81,7 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.43-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.11\.07\.33\.43-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.11.08.33.258-test');
+assert.equal(release.version,'2026.11.08.33.259-test');
 assert.equal(release.workerVersion,'2026.11.07.33.43-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
@@ -90,7 +92,7 @@ assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
 assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-glass-33-184.png').equals(fs.readFileSync('octi-glass-33-184.png')),'The approved pale-blue glass sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-caustic-33-196.svg').equals(fs.readFileSync('octi-caustic-33-196.svg')),'The bright lens caustic must be published with the UI');
-console.log('Preview 33.258: location choice fix and current preview contract verified.');
+console.log('Preview 33.259: location choice fix and current preview contract verified.');
 
 
 assert.equal(fs.readFileSync('preview33/event-weather.js','utf8'),fs.readFileSync('event-weather.js','utf8'),'Event weather is published with its matching frontend');

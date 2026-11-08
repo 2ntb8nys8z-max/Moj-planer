@@ -1,0 +1,35 @@
+name: Shared day header
+on:
+  push:
+    branches: ['work/shared-header-*', main]
+    paths: ['index.html', 'tests/shared-day-header-browser-33.cjs', '.github/workflows/shared-day-header.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-header:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify independent header controls on mobile
+        env:
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          TZ: Europe/Berlin
+        run: node tests/shared-day-header-browser-33.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-header-${{ matrix.browser }}
+          path: test-results/shared-header-*/
+          retention-days: 7
