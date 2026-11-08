@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.259</title>
-<meta name="theme-color" content="#f4f1ed">
+<title>Mój Planer — test integracji 33.260</title>
+<meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mój Planer">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="app-icon-180.png?v=octi-1">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.259</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.259</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.259-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.260</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.260</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.260-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.259-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.260-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5748,19 +5748,23 @@ window.OktiEventMotion=(()=>{
 <style id="okti-shared-day-header-33-259">
 /* One glass frame; date selection and forecast keep separate controls and loading. */
 .phone-layout .phone-sky-header{padding-bottom:4px;background:radial-gradient(ellipse at 55% -15%,#f0debf70,transparent 72%),linear-gradient(135deg,#f4f1ed,#fffdf9);border-radius:0;box-shadow:none}
+/* Use the same artwork coordinates above and behind the panel, including the safe area.
+   The artwork ends at the weekday strip; the calendar canvas stays pure white. */
+.phone-layout .app{--phone-day-art-lead:calc(max(5px,var(--phone-top-inset)) + 36px);--phone-day-art-height:calc(var(--phone-day-art-lead) + 155px);--phone-day-art:url("header-autumn.webp?v=19ed5f351436405a")}
+.phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-sky-header{background:var(--phone-day-art) center top/100% var(--phone-day-art-height) no-repeat}
 .phone-layout .phone-sky-header:before{display:none;background:none}
-.phone-layout .phone-system-bar{color:#273344}
+.phone-layout .phone-system-bar{color:#fff}
 .phone-layout .phone-sky-header .phone-header{display:none;min-height:0;margin:0}
 .phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta{min-height:32px;height:32px;margin:0;padding:0}
 .phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta :is(.phone-calendar-week-number,.phone-calendar-month){display:none}
 .phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta #todayBtn{top:-4px;width:36px;height:36px;min-width:36px;min-height:36px;font-size:8px;line-height:9px}
 .phone-layout .app[data-phone-view=day][data-phone-section=plan] .phone-calendar-meta #todayBtn svg{width:20px;height:18px}
-.phone-layout #dayView{background:#fff}
+.phone-layout #dayView{background:#fff;margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
 .phone-layout #dayView .daybar{isolation:isolate}
-.phone-layout #dayView .daybar:before{content:'';position:absolute;inset:0 -14px auto;height:165px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 72% 0%,#ead2ad55,transparent 66%),linear-gradient(155deg,#f3efea8a,#fffdf644 48%,#fff 96%)}
+.phone-layout #dayView .daybar:before{content:'';position:absolute;inset:0 -12px auto;height:155px;z-index:-1;pointer-events:none;background:var(--phone-day-art) center calc(0px - var(--phone-day-art-lead))/100% var(--phone-day-art-height) no-repeat}
 .phone-layout #dayTitle .phone-day-weather.is-weather-opening>*{visibility:hidden!important}
 .phone-layout #dayView .daybar{min-height:88px;padding:0 2px 8px}
-.phone-layout #dayView #dayTitle{height:80px;min-height:80px;padding:0;border:1px solid #fffef4;border-radius:24px;background:linear-gradient(145deg,#ffffffbd,#fffdf36b 50%,#ffffffa3);box-shadow:0 7px 15px #51463920,0 1px 3px #51463915,inset 0 2px 2px #fff,inset 0 -2px 3px #82736330;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:default;transition:none}
+.phone-layout #dayView #dayTitle{height:80px;min-height:80px;padding:0;border:1px solid #fff1d9e6;border-radius:24px;background:linear-gradient(145deg,#ffffffb8,#fff9eb8f 50%,#ffffffbd);box-shadow:0 7px 15px #4a0c292e,0 1px 3px #71173830,inset 0 2px 2px #fff9e7,inset 0 -2px 3px #ad75465e;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:default;transition:none}
 .phone-layout #dayTitle .phone-day-viewport{width:100%;height:100%;border-radius:inherit}
 .phone-layout #dayTitle .phone-day-content{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);column-gap:0;height:100%}
 .phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){position:relative;display:flex;align-items:center;width:100%;height:100%;min-height:0;min-width:0;margin:0;padding:10px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#17366b;font-family:var(--okti-font);text-shadow:none;cursor:pointer;transition:background .18s ease}
