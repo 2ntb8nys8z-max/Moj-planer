@@ -96,7 +96,7 @@ window.OktiEventWeather=(()=>{
  }
  const style=document.createElement('style');style.textContent=`
  .okti-event-card-weather{position:absolute;top:24px;right:17px;display:flex;align-items:center;gap:2px;max-width:53px;height:20px;pointer-events:none;color:#315271;font:800 12px/1 var(--okti-font,sans-serif);white-space:nowrap}
- .okti-event-card-weather-icon{width:20px;height:20px;display:block;flex:none}.okti-event-card-weather-icon svg{display:block;width:100%;height:100%}
+ .okti-event-card-weather-icon{width:20px;height:20px;display:block;flex:none;transform:scale(1.1);transform-origin:right center}.okti-event-card-weather-icon svg{display:block;width:100%;height:100%}
  .okti-event-card-weather[data-layout=compact]{right:15px;gap:1px;height:18px;font-size:10px}.okti-event-card-weather[data-layout=compact] .okti-event-card-weather-icon{width:17px;height:17px}
  .phone-layout .phone-event-title.has-card-weather .phone-event-time{max-width:calc(100% - var(--event-weather-space,60px))}
  `;document.head.append(style);
