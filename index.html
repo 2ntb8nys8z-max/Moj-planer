@@ -2971,6 +2971,18 @@ function initializePhoneSkin(){
  $('dayTitle').setAttribute('role','group');$('dayTitle').removeAttribute('tabindex');$('dayTitle').removeAttribute('title');
  const dateButton=document.createElement('button');dateButton.type='button';dateButton.id='phoneDateButton';dateButton.className='phone-day-date';dateButton.setAttribute('aria-haspopup','dialog');dateButton.setAttribute('aria-controls','phoneDateModal');dateButton.setAttribute('aria-expanded','false');dateButton.onclick=datePicker.open;
  const weatherButton=document.createElement('button');weatherButton.type='button';weatherButton.id='phoneWeatherButton';weatherButton.className='phone-day-weather';weatherButton.setAttribute('aria-haspopup','dialog');weatherButton.setAttribute('aria-controls','dayWeatherModal');weatherButton.setAttribute('aria-expanded','false');weatherButton.onclick=dayWeatherController.open;
+ // Pointer state gives immediate touch feedback, including browsers that defer :active.
+ let pressedHeaderKey=null,headerPressPointer=null;
+ function clearHeaderKeyPress(){pressedHeaderKey?.classList.remove('is-header-pressed');pressedHeaderKey=null;headerPressPointer=null}
+ for(const button of [dateButton,weatherButton]){
+  button.addEventListener('pointerdown',event=>{if(event.button!==0||!event.isPrimary)return;clearHeaderKeyPress();pressedHeaderKey=button;headerPressPointer={id:event.pointerId,x:event.clientX,y:event.clientY};button.classList.add('is-header-pressed')});
+  button.addEventListener('keydown',event=>{if(!event.repeat&&(event.key===' '||event.key==='Enter')){clearHeaderKeyPress();pressedHeaderKey=button;button.classList.add('is-header-pressed')}});
+  button.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')clearHeaderKeyPress()});
+  button.addEventListener('blur',()=>{if(pressedHeaderKey===button)clearHeaderKeyPress()});
+ }
+ window.addEventListener('pointermove',event=>{if(headerPressPointer?.id===event.pointerId&&Math.hypot(event.clientX-headerPressPointer.x,event.clientY-headerPressPointer.y)>12)clearHeaderKeyPress()},{passive:true});
+ for(const type of ['pointerup','pointercancel'])window.addEventListener(type,event=>{if(headerPressPointer?.id===event.pointerId)clearHeaderKeyPress()},true);
+ window.addEventListener('blur',clearHeaderKeyPress);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')clearHeaderKeyPress()});
  function renderPhoneHeaderWeather(value){
   const data=phoneCalendarWeather(value),status=OktiLocalWeather.snapshot();weatherButton.replaceChildren();weatherButton.classList.toggle('unavailable',!data);weatherButton.classList.toggle('is-loading',status.busy);weatherButton.setAttribute('aria-busy',String(status.busy));
   if(data){const symbol=plannerWeatherSymbol(data.code),icon=document.createElement('span');icon.className='weather-icon';icon.setAttribute('role','img');icon.setAttribute('aria-label',symbol.label);icon.innerHTML=plannerWeatherArtwork(symbol.kind,data.isDay!==false);const temperature=document.createElement('span');temperature.className='phone-day-temperature';temperature.textContent=data.temperature+'°';weatherButton.append(icon,temperature)}
@@ -5771,14 +5783,14 @@ window.OktiEventMotion=(()=>{
 .phone-day-glass-date{--phone-key-tilt:-3deg;--phone-glass-width:176.9230769%;--phone-glass-position:left;border-radius:39px 0 0 39px;transform-origin:100% 50%}
 .phone-day-glass-weather{--phone-key-tilt:3deg;--phone-glass-width:230%;--phone-glass-position:right;border-radius:0 39px 39px 0;transform-origin:0% 50%}
 .phone-day-glass>span{transform:none;transition:transform .32s cubic-bezier(.18,1.45,.3,1),background-color .18s ease,box-shadow .18s ease,filter .18s ease}
-.phone-layout #dayTitle:has(.phone-day-date:active) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather:active) .phone-day-glass-weather{background-color:#4d10231a;transform:perspective(500px) translateY(3px) rotateX(8deg) rotateY(var(--phone-key-tilt)) scale(.98,.94);box-shadow:inset 0 5px 8px #3c0c2c30,inset 0 -1px 1px #fffa;filter:brightness(1.07);transition-duration:65ms,65ms,65ms,65ms}
+.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{background-color:#4d10231a;transform:perspective(500px) translateY(3px) rotateX(8deg) rotateY(var(--phone-key-tilt)) scale(.98,.94);box-shadow:inset 0 5px 8px #3c0c2c30,inset 0 -1px 1px #fffa;filter:brightness(1.07);transition-duration:65ms,65ms,65ms,65ms}
 .phone-layout #dayTitle .phone-day-viewport{z-index:1;width:100%;height:100%;border-radius:inherit}
 .phone-layout #dayTitle .phone-day-content{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);column-gap:0;height:100%}
 .phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){position:relative;display:flex;align-items:center;width:100%;height:100%;min-height:0;min-width:0;margin:0;padding:10px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#17366b;font-family:var(--okti-font);text-shadow:0 1px 0 #ffffff38;cursor:pointer;-webkit-tap-highlight-color:transparent;transform:none;transform-origin:50% 50%;transition:transform .32s cubic-bezier(.18,1.45,.3,1),background .18s ease,box-shadow .18s ease}
-/* Native :active follows the finger and keyboard; release/cancel clears it without timers. */
+/* Pointer and keyboard feedback follows the native controls; release/cancel clears it without timers. */
 .phone-layout #dayTitle .phone-day-date{--phone-key-tilt:-3deg;border-radius:39px 0 0 39px;transform-origin:100% 50%}
 .phone-layout #dayTitle .phone-day-weather{--phone-key-tilt:3deg;border-radius:0 39px 39px 0;transform-origin:0% 50%}
-.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active{background:#ffffff0a;transform:perspective(500px) translateY(3px) rotateX(8deg) rotateY(var(--phone-key-tilt)) scale(.98,.94);box-shadow:inset 0 4px 8px #3c0c2c12;transition-duration:65ms,65ms,65ms}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed{background:#ffffff0a;transform:perspective(500px) translateY(3px) rotateX(8deg) rotateY(var(--phone-key-tilt)) scale(.98,.94);box-shadow:inset 0 4px 8px #3c0c2c12;transition-duration:65ms,65ms,65ms}
 .phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather)>*{position:relative;z-index:1}
 .phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):focus-visible{outline:2px solid #4d7098;outline-offset:-6px;border-radius:30px}
 .phone-layout #dayTitle .phone-day-date{justify-content:space-between;gap:7px;text-align:left}
@@ -5815,6 +5827,6 @@ window.OktiEventMotion=(()=>{
 .phone-date-grid button[aria-pressed=true]{background:#e6ded0;color:#17366b;box-shadow:inset 0 0 0 1px #c8b99e}
 .phone-date-card .phone-date-today{width:100%;margin-top:14px;background:#eae4da;font-size:15px}
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
-@media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active,.phone-layout #dayTitle:has(.phone-day-date:active) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather:active) .phone-day-glass-weather{transform:none}}
+@media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
 </style>
 </body></html>

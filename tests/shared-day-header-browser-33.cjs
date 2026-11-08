@@ -65,7 +65,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     assert.deepEqual(await date.boundingBox(),rest,'Reduced motion keeps the key still');
     assert.notEqual(await date.evaluate(n=>getComputedStyle(n).boxShadow),shadow,'Reduced motion retains visible pressure feedback');
     await page.mouse.move(2,800);await page.mouse.up();
-    assert.equal(await date.evaluate(n=>n.matches(':active')),false,'Releasing outside cancels the pressed appearance');
+    assert.equal(await date.evaluate(n=>n.classList.contains('is-header-pressed')),false,'Releasing outside cancels the pressed appearance');
     assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'A cancelled press never opens a dialog');
     assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);
     assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved);
@@ -73,13 +73,13 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     if(name==='chromium'){
      const cdp=await context.newCDPSession(page),face=page.locator('.phone-day-glass-date'),faceRest=await face.boundingBox(),r=await date.boundingBox();
      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:r.x+r.width/2,y:r.y+r.height/2}]});
-     assert.equal(await date.evaluate(n=>n.matches(':active')),true,'A real touch press activates the native key');
+     assert.equal(await date.evaluate(n=>n.classList.contains('is-header-pressed')),true,'A real touch press immediately activates the key');
      await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
      assert((await face.boundingBox()).height<faceRest.height-2,'A held touch bends the glass rim');
      await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-touch-pressed.png'});
      await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
      await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
-     assert.equal(await date.evaluate(n=>n.matches(':active')),false,'Touch cancellation releases the key');
+     assert.equal(await date.evaluate(n=>n.classList.contains('is-header-pressed')),false,'Touch cancellation releases the key');
      assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'Touch cancellation cannot open a dialog');
      assert(Math.abs((await face.boundingBox()).height-faceRest.height)<.2,'Touch cancellation restores the glass');
      await cdp.detach();
