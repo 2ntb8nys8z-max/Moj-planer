@@ -15,15 +15,23 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   if(u.pathname.endsWith('/routes/compute')){const body=route.request().postDataJSON();requests.push(body.mode);await new Promise(resolve=>setTimeout(resolve,300));return route.fulfill({json:{success:true,route:{available:true,mode:body.mode,durationMinutes:minutes[body.mode],distanceMeters:120000}}});}
   return route.fulfill({json:{success:true,requiresAccess:false}});
  });
- await page.goto(live||'https://planner.test');await page.evaluate(()=>document.fonts.ready);await seed(page);assert.equal(await page.locator('.okti-route-badge').textContent(),expected.DRIVE);
+ await page.goto(live||'https://planner.test');await page.evaluate(()=>document.fonts.ready);await seed(page);assert.equal(await page.locator('.okti-route-badge').getAttribute('data-route-duration'),expected.DRIVE);
+ assert.equal((await page.locator('.okti-route-badge').textContent()).trim(),'','The collapsed route displays only icons');
+ assert.equal(await page.locator('.okti-route-clock').count(),1);
+ assert.equal(await page.locator('.okti-route-badge').evaluate(n=>n.offsetWidth),44,'Small icon retains a full touch target');
+ const clear=await page.locator('.okti-route-badge').evaluate(n=>{const r=n.getBoundingClientRect();return [...n.parentElement.querySelectorAll('.phone-event')].every(card=>card.getBoundingClientRect().right<=r.left)});assert.equal(clear,true,label+': route icon stays outside event cards');
  if(width===390)await page.screenshot({path:path.join(out,label+'-drive.png')});
  for(const [mode,name] of [['BICYCLE','Rower'],['WALK','Pieszo'],['TRANSIT','Komunikacja miejska']]){
   await openMenu(page);const menu=page.locator('.okti-route-menu[data-state=open]');await menu.waitFor();assert.equal(await menu.getByRole('radio').count(),4);assert.equal(await page.locator('.okti-route-badge').getAttribute('aria-expanded'),'true');
+  assert.equal(await menu.evaluate(n=>n.parentElement===document.body),true,'Popup escapes the scrolling timeline');
   const bounds=await menu.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width&&bounds.y>=0&&bounds.y+bounds.height<=height,JSON.stringify({label,bounds}));
-  await menu.getByRole('radio',{name,exact:true}).tap();assert.equal(await page.locator('.okti-route-menu[data-state=open]').count(),0);await page.locator('.okti-route-menu').waitFor({state:'detached'});await page.locator('.okti-route-badge').filter({hasText:expected[mode]}).waitFor();
-  assert.equal(await page.locator('.okti-route-badge').evaluate(n=>n.scrollWidth<=n.clientWidth),true,`${label}: complete duration fits`);
+  await menu.getByRole('radio',{name,exact:true}).tap();assert.equal(await page.locator('.okti-route-menu[data-state=open]').count(),1,'The panel stays open while comparing modes');await menu.locator('.okti-route-detail-duration').filter({hasText:expected[mode]}).waitFor();
+  assert.equal(await page.locator('.okti-route-badge').getAttribute('data-route-duration'),expected[mode]);
+  assert.equal(await menu.locator('.okti-route-detail-mode').textContent(),name);
+  assert.equal(await menu.locator('.okti-route-detail-duration').evaluate(n=>n.scrollWidth<=n.clientWidth),true,`${label}: complete duration fits inside details`);
   const badge=await page.locator('.okti-route-badge').boundingBox();assert.ok(badge.x>=0&&badge.x+badge.width<=width,`${label}: long duration stays within the screen`);
   if(width===390)await page.screenshot({path:path.join(out,label+'-'+mode.toLowerCase()+'.png')});
+  await page.touchscreen.tap(5,5);await page.locator('.okti-route-menu').waitFor({state:'detached'});
  }
  assert.deepEqual(requests,['DRIVE','BICYCLE','WALK','TRANSIT']);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('okti-route-modes-v1'))['route-from→route-to']),'transit');
  // Sample the actual open and close animations; the browser still runs their real WAAPI effects.
@@ -54,6 +62,10 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   assert.deepEqual(await page.locator('.okti-route-badge').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
   assert.deepEqual(await page.locator('.okti-route-lines').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
   await page.screenshot({path:path.join(out,'risk-palette.png')});
+  await page.evaluate(()=>{tasks=Array.from({length:9},(_,i)=>({id:'dense-'+i,title:'Wydarzenie',date:'2026-11-07',time:'12:'+String(i*5).padStart(2,'0'),endTime:'12:'+String(i*5+5).padStart(2,'0'),location:['Berlin','Dresden','Leipzig'][i%3]}));renderAll();});
+  await page.waitForFunction(()=>document.querySelectorAll('.okti-route-badge:not(:disabled)').length===8);
+  assert.equal(await page.locator('.okti-route-badge').evaluateAll(nodes=>nodes.every((n,i)=>{const r=n.getBoundingClientRect(),cards=[...n.parentElement.querySelectorAll('.phone-event')];return r.width===44&&cards.every(card=>card.getBoundingClientRect().right<=r.left)&&(!i||r.top>=nodes[i-1].getBoundingClientRect().bottom+1)})),true,'Dense overlapping events keep route controls separate and off every tile');
+  await page.screenshot({path:path.join(out,'dense-icons.png')});
  }
  await context.close();console.log(kind+' '+label+': four transport modes, compact durations, menu bounds, real open/close motion, outside/Escape/rapid close and persistence passed.');
  }
