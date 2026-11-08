@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.247</title>
+<title>Mój Planer — test integracji 33.248</title>
 <meta name="theme-color" content="#0b4b86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.247</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.247</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.247-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.248</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.248</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.248-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.247-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.248-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -945,7 +945,7 @@ function renderIdeas(){
  }journalPhotos();journalQueueRings();
 }
 function syncLabel(task){const queued=window.googleDeleteQueue?window.googleDeleteQueue().find(item=>item.seriesRange&&item.googleEventId===task.googleSeriesParentId):null;if(queued)return queued.state==='conflict'?"Sync ⚠️":"Sync ⏳";if(task.googleConflict)return "Sync ⚠️";if(task.googleSeriesStopPending)return "Sync ⏳";if(task.googleDirty||task.googleSynced===false)return "Sync ⏳";if(task.googleEventId&&task.googleSynced===true)return "Sync ✓";if(task.googleSeriesParentId)return "Sync ⏳";return "Sync —"}
-function renderDayBase(){$("dayTitle").textContent=formatDate(selected);$("todayBtn").classList.toggle("hidden",iso(selected)===iso(today()));$("todayBtn").textContent="Przejdź do dzisiaj";const list=tasks.filter(t=>t.date===iso(selected)).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));$("taskList").innerHTML="";if(!list.length){$("taskList").innerHTML='<div class="empty">Brak wydarzeń na ten dzień</div>';return}list.forEach(task=>{const div=document.createElement("div");div.className="task"+(task.done?" done":"");div.dataset.eventId=task.id;div.dataset.eventPalette=plannerEventPalette(task);plannerDecorateCalendarEvent(div,task);let timeText=task.time||"Całodniowe";if(task.time&&task.endTime)timeText=`${task.time}–${task.endTime}`;div.innerHTML=`<input type="checkbox" ${task.done?"checked":""} style="width:auto"><div class="task-time">${timeText}</div><div class="task-title">${task.seriesId?'<span title="Wydarzenie cykliczne">🔁</span> ':""}${escapeHtml(task.title)}${task.reminder?(task.seriesReminder?' <span title="Przypomnienie cykliczne">🔁🔔</span>':' <span title="Przypomnienie">🔔</span>'):""} <span style="font-size:12px;color:#667085;white-space:nowrap">${syncLabel(task)}</span></div><button class="delete">⋯</button>`;div.querySelector("input").onclick=e=>e.stopPropagation();div.querySelector("input").onchange=e=>{task.done=e.target.checked;saveTasks();renderAll()};div.querySelector(".delete").onclick=e=>{e.stopPropagation();openEventActions(task)};div.onclick=()=>openEventActions(task);$("taskList").appendChild(div)})}
+function renderDayBase(){$("dayTitle").textContent=formatDate(selected);$("todayBtn").classList.toggle("hidden",iso(selected)===iso(today()));$("todayBtn").textContent="Przejdź do dzisiaj";const list=tasks.filter(t=>t.date===iso(selected)).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));$("taskList").innerHTML="";plannerPrepareCalendarArtwork(list);if(!list.length){$("taskList").innerHTML='<div class="empty">Brak wydarzeń na ten dzień</div>';return}list.forEach(task=>{const div=document.createElement("div");div.className="task"+(task.done?" done":"");div.dataset.eventId=task.id;div.dataset.eventPalette=plannerEventPalette(task);plannerDecorateCalendarEvent(div,task);let timeText=task.time||"Całodniowe";if(task.time&&task.endTime)timeText=`${task.time}–${task.endTime}`;div.innerHTML=`<input type="checkbox" ${task.done?"checked":""} style="width:auto"><div class="task-time">${timeText}</div><div class="task-title">${task.seriesId?'<span title="Wydarzenie cykliczne">🔁</span> ':""}${escapeHtml(task.title)}${task.reminder?(task.seriesReminder?' <span title="Przypomnienie cykliczne">🔁🔔</span>':' <span title="Przypomnienie">🔔</span>'):""} <span style="font-size:12px;color:#667085;white-space:nowrap">${syncLabel(task)}</span></div><button class="delete">⋯</button>`;div.querySelector("input").onclick=e=>e.stopPropagation();div.querySelector("input").onchange=e=>{task.done=e.target.checked;saveTasks();renderAll()};div.querySelector(".delete").onclick=e=>{e.stopPropagation();openEventActions(task)};div.onclick=()=>openEventActions(task);$("taskList").appendChild(div)})}
 function renderWeekBase(){$("weekGrid").innerHTML="";const start=new Date(selected),weekday=start.getDay()||7;start.setDate(start.getDate()-weekday+1);for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const date=iso(d),dayTasks=tasks.filter(t=>t.date===date).sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99")),dayIdeas=ideas.filter(idea=>iso(new Date(idea.createdAt))===date),div=document.createElement("div");div.className="week-day";const heading=document.createElement("strong");heading.textContent=d.toLocaleDateString("pl-PL",{weekday:"short",day:"numeric"});div.appendChild(heading);div.appendChild(document.createElement("br"));div.appendChild(document.createElement("br"));dayTasks.forEach(task=>{const item=document.createElement("div");item.className="week-event"+(task.done?" done":"");const tm=task.time?(task.endTime?`${task.time}–${task.endTime}`:task.time):"Całodniowe";item.textContent=`${tm}${tm?" ":""}${task.seriesId?"🔁 ":""}${task.title}${task.reminder?(task.seriesReminder?" 🔁🔔":" 🔔"):""} · ${syncLabel(task)}`;item.onclick=e=>{e.stopPropagation();openEventActions(task)};div.appendChild(item)});dayIdeas.forEach(idea=>{const item=document.createElement("div");item.className="week-idea";item.textContent=`${idea.title||idea.text}`;item.onclick=e=>{e.stopPropagation();showView("ideas")};div.appendChild(item)});$("weekGrid").appendChild(div)}}
 function renderMonthBase(){$("monthGrid").innerHTML="";$("monthTitle").textContent=monthCursor.toLocaleDateString("pl-PL",{month:"long",year:"numeric"});const first=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),1);let offset=first.getDay();if(offset===0)offset=7;for(let i=1;i<offset;i++)$("monthGrid").appendChild(document.createElement("div"));const days=new Date(monthCursor.getFullYear(),monthCursor.getMonth()+1,0).getDate();for(let day=1;day<=days;day++){const d=new Date(monthCursor.getFullYear(),monthCursor.getMonth(),day),date=iso(d),dayTasks=tasks.filter(t=>t.date===date),count=dayTasks.length,ideaCount=ideas.filter(i=>i.createdAt&&iso(new Date(i.createdAt))===date).length,div=document.createElement("div");div.className="month-day"+(date===iso(today())?" today":"");div.innerHTML=`<strong>${day}</strong>${count||ideaCount?`<div style="margin-top:8px">${count?`📅 ${count}`:""}${count&&ideaCount?" &nbsp; ":""}${ideaCount?`📋 ${ideaCount}`:""}</div>`:""}`;div.onclick=()=>{selected=d;$("date").value=date;showView("day")};$("monthGrid").appendChild(div)}}
 function renderDay(){renderDayBase();renderEntryDeadlines('day');paintCreatedEventCue()}
@@ -1445,21 +1445,23 @@ const plannerCalendarArtFiles={
  'culture-evening':'assets/event-backgrounds/07-culture-evening.webp','calm-balance':'assets/calendar-art/calm-balance.webp?v=907e68651db11f88',
  celebration:'assets/event-backgrounds/09-celebration.webp','night-moon':'assets/event-backgrounds/10-night-moon.webp'
 };
-function plannerEventArtwork(task){
- const text=String(task.title||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[łŁ]/g,'l').toLowerCase();
- const has=words=>new RegExp('(^|[^a-z])('+words+')').test(text);
- if(has('swiatl|cien|fotograf|warsztat'))return 'light-shadow';
- if(has('kaw|coffee|cafe|herbat|sniadan|obiad|kolac|restaur'))return 'coffee-conversation';
- if(has('urodzin|imienin|wese|slub|rocznic|swietowan|imprez'))return 'celebration';
- if(has('teatr|kino|koncert|muze|wystaw|oper|kultur'))return 'culture-evening';
- if(has('podroz|wyjazd|przejazd|pociag|lotn|lot |wakac|urlop|drezn|dresden'))return 'journey';
- if(has('spacer|las|lesn|park|gory|gorach|rower|bieg|sport|trening'))return 'forest-breath';
- if(has('lekar|dent|wizyta|fizjo|zdrow|jog|yog|medyt|odpocz|relaks'))return 'calm-balance';
- if(has('noc|ksiezyc|gwiazd'))return 'night-moon';
- if(has('miast|zwiedzan|warszaw|wroclaw|berlin'))return 'city-dusk';
- if(has('prac|spotkan|rozmow|konsult|projekt|biur|nauk|lekcj'))return 'work-focus';
- return {blue:'light-shadow',sage:'forest-breath',sand:'coffee-conversation',rose:'calm-balance'}[plannerEventPalette(task)];
+const plannerCalendarArtworkAssignments=new Map();
+function plannerCalendarArtworkKey(task){return String(task.id??[task.date,task.time,task.title,task.createdAt].join('|'))}
+function plannerCalendarArtworkHash(value){let hash=2166136261;for(const char of value)hash=Math.imul(hash^char.codePointAt(0),16777619)>>>0;return hash}
+function plannerPrepareCalendarArtwork(records){
+ // A seeded shuffle uses every motif before refilling the bag. Identical titles
+ // are independent events, while rerenders/open/close keep the same assignment.
+ // Work only on a sorted copy and presentation metadata, never on stored tasks.
+ const ordered=records.slice().sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00')||plannerCalendarArtworkKey(a).localeCompare(plannerCalendarArtworkKey(b)));
+ const motifs=Object.keys(plannerCalendarArtFiles);let bag=[],previous=null;
+ for(const task of ordered){
+  if(!bag.length)bag=motifs.slice();
+  const key=plannerCalendarArtworkKey(task),choices=bag.filter(motif=>motif!==previous),available=choices.length?choices:bag;
+  const artwork=available[plannerCalendarArtworkHash(key)%available.length];
+  plannerCalendarArtworkAssignments.set(key,artwork);bag.splice(bag.indexOf(artwork),1);previous=artwork;
+ }
 }
+function plannerEventArtwork(task){return plannerCalendarArtworkAssignments.get(plannerCalendarArtworkKey(task))||Object.keys(plannerCalendarArtFiles)[plannerCalendarArtworkHash(plannerCalendarArtworkKey(task))%Object.keys(plannerCalendarArtFiles).length]}
 function plannerDecorateCalendarEvent(node,task){
  const artwork=plannerEventArtwork(task);
  node.classList.add('okti-calendar-card');node.dataset.eventArtwork=artwork;node.dataset.artTone=plannerCalendarArtFiles[artwork].includes('/calendar-art/')?'light':'dark';
@@ -2979,7 +2981,7 @@ function initializePhoneSkin(){
  }
  renderDay=function(){
  if($('ideasView').classList.contains('hidden'))renderPhoneDateNavigation(selected,date=>{selected=date;$('date').value=iso(selected);renderDay()});updatePhoneToday('day');
- const list=$('taskList');list.replaceChildren();const date=iso(selected);for(const task of tasks.filter(t=>t.date===date&&!t.time)){const b=entryButton('Całodniowe · '+task.title,()=>openEventActions(task),'entry-deadline-row');b.dataset.eventId=task.id;b.dataset.eventPalette=plannerEventPalette(task);plannerDecorateCalendarEvent(b,task);list.append(b)}
+ const list=$('taskList');list.replaceChildren();const date=iso(selected);plannerPrepareCalendarArtwork(tasks.filter(task=>task.date===date));for(const task of tasks.filter(t=>t.date===date&&!t.time)){const b=entryButton('Całodniowe · '+task.title,()=>openEventActions(task),'entry-deadline-row');b.dataset.eventId=task.id;b.dataset.eventPalette=plannerEventPalette(task);plannerDecorateCalendarEvent(b,task);list.append(b)}
  const events=phoneEventLayout(phoneTravelDemoTasks(tasks,date),date),alarms=phoneReminderRefs(date),deadlines=ideas.filter(i=>i.deadline&&i.deadline.date===date&&isValidPlannerTime(i.deadline.time,false));
  const points=[...alarms.map(i=>phoneMinutes(i.alarm.time||i.alarm.startTime)),...deadlines.map(i=>phoneMinutes(i.deadline.time))],values=[...events.flatMap(e=>[e.start,e.end]),...points];const from=Math.min(480,values.length?Math.floor(Math.min(...values)/60)*60:480),to=Math.min(1440,Math.max(1320,values.length?Math.ceil(Math.max(...values)/60)*60:1320));const axis=phoneTimeAxis(events,points,from,to),position=phoneReminderEditor?(minute=>minute*1.15):axis.y;
  const scroll=document.createElement('div');scroll.className='phone-timeline-scroll';const timeline=document.createElement('div');timeline.className='phone-timeline';timeline.style.height=position(phoneReminderEditor?1440:to)+'px';scroll.append(timeline);list.append(scroll);
@@ -5263,13 +5265,13 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout #
    independent layer; duration, stacking, hit areas and route geometry stay put. */
 #dayView .okti-calendar-card[data-event-palette]{
  background-color:var(--event-light)!important;
- background-image:linear-gradient(110deg,var(--event-light) 0%,#ffffffa8 46%,#ffffff00 100%),linear-gradient(180deg,#fffffff5 0%,#ffffffd6 var(--calendar-copy-end,54px),#ffffff38 calc(var(--calendar-copy-end,54px) + 55px),#ffffff0d 100%),var(--calendar-art)!important;
+ background-image:linear-gradient(100deg,var(--event-light) 0%,#ffffffee 48%,#ffffffb3 72%,#ffffff66 100%),linear-gradient(180deg,#ffffff66 0%,#ffffff33 var(--calendar-copy-end,54px),#ffffff00 calc(var(--calendar-copy-end,54px) + 40px)),var(--calendar-art)!important;
  /* The old background shorthand is important, including its default size.
     Override these paint properties too, so an image fills the actual tile. */
  background-position:center,center,70% 48%!important;background-size:cover!important;background-repeat:no-repeat!important;
- border-color:var(--event-line);border-top-color:#fffffff0;border-left-color:var(--event-edge);
+ border-color:#b8cbd5;border-top-color:#fffffff0;border-left-color:var(--event-edge);
  border-radius:10px;
- box-shadow:inset 0 1px 0 #ffffffd9,0 9px 18px -8px #16374c4d,0 2px 5px #203b5017;
+ box-shadow:inset 0 1px 0 #fffffff2,0 10px 22px -6px #16374c61,0 3px 8px #173e592e,0 0 0 1px #66859e26;
 }
 #dayView .okti-calendar-card[data-lanes]:not([data-lanes="1"]){
  background-image:linear-gradient(110deg,#fffffff5,#ffffffd9),var(--calendar-art)!important

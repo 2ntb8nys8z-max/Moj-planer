@@ -46,16 +46,13 @@ async function geometry(page){return page.evaluate(()=>{
    const plain=await geometry(page);assert.deepEqual(decorated,plain,width+': decoration does not change layout');
    await page.evaluate(()=>document.getElementById('okti-calendar-art-33-247').sheet.disabled=false);
    const dataBefore=await page.evaluate(()=>JSON.stringify(tasks));
-   assert.equal(await page.locator('[data-event-id="workshop"]').getAttribute('data-event-artwork'),'light-shadow');
-   assert.equal(await page.locator('[data-event-id="coffee"]').getAttribute('data-event-artwork'),'coffee-conversation');
-   assert.equal(await page.locator('[data-event-id="health"]').getAttribute('data-event-artwork'),'calm-balance');
-   assert.equal(await page.locator('[data-event-id="all-day"]').getAttribute('data-event-artwork'),'celebration');
+   assert.equal(new Set(await page.locator('.okti-calendar-card').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventArtwork))).size,fixture.length,'Every event has a different motif in this group');
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
    await page.screenshot({path:path.join(output,width+'-calendar.png')});
    const tilePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundImage);
    assert.ok(await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundSize.split(',').every(size=>size.trim()==='cover')),width+': artwork scales to the tile instead of painting a blank native-size corner');
-   assert.match(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/09-celebration\.webp/);
-   assert.match(tilePaint,/calendar-art\/light-shadow\.webp/);const beforeOpenImages=images;
+   assert.match(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/assets\/(calendar-art|event-backgrounds)\//);
+   assert.match(tilePaint,/assets\/(calendar-art|event-backgrounds)\//);const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
    await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
@@ -76,7 +73,18 @@ async function geometry(page){return page.evaluate(()=>{
    await page.locator('[data-event-id="coffee"]').tap();await clean(page);assert.equal(await page.locator('#actionTitle').textContent(),'Kawa i rozmowa');
    await page.locator('#closeEvent').tap();await clean(page);
    assert.ok(await page.locator('.phone-event[data-event-id="coffee"]').evaluate(n=>getComputedStyle(n).backgroundColor.match(/\d+/g).slice(0,3).every(v=>Number(v)>=240)),width+': offline fallback stays light');
-   await context.close();console.log(name+' '+width+': artwork, unchanged geometry/Octopus, open/close/interruption, cache reuse, overlap and image failure passed.');
+   // Reproduce the reported iPhone case: many independent events all named
+   // Wydarzenie. Their identity, rather than their repeated title, chooses art.
+   await page.unroute('**/assets/calendar-art/**');
+   await page.evaluate(()=>{tasks=Array.from({length:12},(_,i)=>{const start=18*60+i*30,clock=minute=>String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');return{id:'same-title-'+i,title:'Wydarzenie',date:'2026-11-06',time:clock(start),endTime:clock(start+15)}});selected=new Date('2026-11-06T12:00:00');renderAll();});
+   await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
+   const repeated=()=>page.locator('.phone-event').evaluateAll(nodes=>nodes.map(n=>({id:n.dataset.eventId,art:n.dataset.eventArtwork})));
+   const assignment=await repeated();assert.equal(new Set(assignment.slice(0,10).map(n=>n.art)).size,10);
+   for(let i=1;i<assignment.length;i++)assert.notEqual(assignment[i].art,assignment[i-1].art);
+   await page.evaluate(()=>renderAll());assert.deepEqual(await repeated(),assignment,'Rerendering leaves every visible motif stable');
+   await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.phone-event')].map(n=>new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=reject;image.src=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)[1];})));const card=document.querySelector('.phone-event'),scroll=card.closest('.phone-timeline-scroll');scroll.scrollTop=Math.max(0,card.offsetTop-12);});
+   await page.screenshot({path:path.join(output,width+'-repeated-titles.png')});
+   await context.close();console.log(name+' '+width+': artwork variety, stable repeated titles, unchanged geometry/Octopus, open/close/interruption, cache reuse, overlap and image failure passed.');
   }
   assert.deepEqual(errors,[]);
  }finally{await browser.close();}
