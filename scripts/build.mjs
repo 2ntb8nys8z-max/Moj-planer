@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.08.33.250-integration';
-const PREVIEW_VERSION='2026.11.08.33.250-test';
+const APP_VERSION='2026.11.08.33.251-integration';
+const PREVIEW_VERSION='2026.11.08.33.251-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.07.33.43-test';
 const WORKER_LABEL='Worker 33.43-test';
@@ -87,6 +87,11 @@ const travelRoutesBuildId=createHash('sha256').update(travelRoutes).digest('hex'
 canonical=canonical.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
 preview=preview.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
 output('preview33/travel-routes.js',travelRoutes,false);
+const eventKeys=fs.readFileSync('event-keys.js','utf8');
+const eventKeysBuildId=createHash('sha256').update(eventKeys).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
+preview=preview.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
+output('preview33/event-keys.js',eventKeys,false);
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';

@@ -11,7 +11,7 @@ const fixture=[
  {id:'all-day',title:'Urodziny',date:'2026-11-07',time:''}
 ];
 const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.json':'application/json','.png':'image/png'};
-async function clean(page){await page.waitForFunction(()=>!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
+async function clean(page){await page.waitForFunction(()=>!window.OktiEventKey?.getState()&&!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
 async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow}:null;},time);}
 async function open(page){await page.evaluate(()=>{const timer=window.setTimeout;window.setTimeout=(fn,ms,...args)=>String(fn).includes('token.finish()')?0:timer(fn,ms,...args);openEventActions(tasks.find(t=>t.id==='workshop'));window.setTimeout=timer;});}
 async function geometry(page){return page.evaluate(()=>{
@@ -50,14 +50,31 @@ async function geometry(page){return page.evaluate(()=>{
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
    await page.screenshot({path:path.join(output,width+'-calendar.png')});
    const tilePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundImage);
-   assert.ok(await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundSize.split(',').every(size=>size.trim()==='cover')),width+': artwork scales to the tile instead of painting a blank native-size corner');
-   assert.match(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/assets\/(calendar-art|event-backgrounds)\//);
-   assert.match(tilePaint,/assets\/(calendar-art|event-backgrounds)\//);const beforeOpenImages=images;
+   assert.match(tilePaint,/linear-gradient/);assert.doesNotMatch(tilePaint,/url\(/,width+': accepted keys have white faces, not calendar illustrations');
+   assert.doesNotMatch(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/url\(/);
+   assert.ok(await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundColor==='rgb(255, 255, 255)'),width+': key face stays white');
+   const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
    await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
    // Close during opening: keep the interrupted decoration, then settle cleanly.
    await page.evaluate(()=>closeEventActions());await clean(page);
+   if(width===390){
+    const key=page.locator('.phone-event[data-event-id="workshop"]');await key.scrollIntoViewIfNeeded();
+    const restingShadow=await key.evaluate(n=>getComputedStyle(n).boxShadow),box=await key.boundingBox();
+    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.waitForTimeout(190);
+    assert.equal(await key.evaluate(n=>n.classList.contains('okti-key-pressed')),true);
+    assert.equal(await key.evaluate(n=>n.nextElementSibling.classList.contains('okti-key-pressed')),true,'Independent title follows the button');
+    assert.notEqual(await key.evaluate(n=>getComputedStyle(n).boxShadow),restingShadow);
+    assert.equal(await page.locator('#eventModal').isVisible(),false,'Holding only depresses the key');
+    await page.screenshot({path:path.join(output,'390-pressed.png')});
+    await page.mouse.up();await page.waitForTimeout(110);
+    assert.equal(await page.locator('#eventModal').isVisible(),false,'Release rebound is visible before the event opens');
+    assert.equal(await page.evaluate(()=>OktiEventKey.getState()?.phase),'releasing');
+    await page.screenshot({path:path.join(output,'390-releasing.png')});
+    await clean(page);assert.equal(await page.locator('.okti-key-pressed,.okti-key-moving').count(),0);
+    await page.locator('#closeEvent').tap();await clean(page);
+   }
    await page.locator('[data-event-id="workshop"]').tap();await clean(page);
    assert.match(await page.locator('#eventNotesCards').textContent(),/Przynieść aparat/);
    await page.locator('#closeEvent').tap();await clean(page);
