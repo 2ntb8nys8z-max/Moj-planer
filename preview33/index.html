@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.260</title>
+<title>Mój Planer — test integracji 33.261</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.260</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.260</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.260-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.261</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.261</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.261-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.260-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.261-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5764,11 +5764,19 @@ window.OktiEventMotion=(()=>{
 .phone-layout #dayView .daybar:before{content:'';position:absolute;inset:0 -12px auto;height:155px;z-index:-1;pointer-events:none;background:var(--phone-day-art) center calc(0px - var(--phone-day-art-lead))/100% var(--phone-day-art-height) no-repeat}
 .phone-layout #dayTitle .phone-day-weather.is-weather-opening>*{visibility:hidden!important}
 .phone-layout #dayView .daybar{min-height:88px;padding:0 2px 8px}
-.phone-layout #dayView #dayTitle{height:80px;min-height:80px;padding:0;border:1px solid #fff1d9e6;border-radius:24px;background:linear-gradient(145deg,#ffffffb8,#fff9eb8f 50%,#ffffffbd);box-shadow:0 7px 15px #4a0c292e,0 1px 3px #71173830,inset 0 2px 2px #fff9e7,inset 0 -2px 3px #ad75465e;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:default;transition:none}
-.phone-layout #dayTitle .phone-day-viewport{width:100%;height:100%;border-radius:inherit}
+/* Clear curved face, a four-pixel polished bevel and small hard specular highlights.
+   These layers sit outside the moving date/weather content, so they stay crisp. */
+.phone-layout #dayView #dayTitle{position:relative;isolation:isolate;height:80px;min-height:80px;padding:0;border:1px solid #fff4e6c9;border-radius:24px;background:radial-gradient(ellipse at 8% -15%,#ffffffa6,transparent 48%),linear-gradient(150deg,#fffdf477,#ffffff40 38%,#ffe9d15c 68%,#fff8ef9c);box-shadow:0 1px 0 #fff5,0 3px 2px -1px #5b1627a3,0 10px 15px -6px #360b24a6,0 16px 25px -13px #4d112d80,inset 0 1px 1px #fff,inset 1px 0 1px #fffd,inset -1px 0 1px #8a4b5559,inset 0 -4px 4px #712b414d;backdrop-filter:blur(2px) saturate(1.18);-webkit-backdrop-filter:blur(2px) saturate(1.18);cursor:default;transition:none}
+.phone-layout #dayView #dayTitle:before{content:"";display:block;position:absolute;inset:1px;z-index:3;padding:4px;border-radius:22px;pointer-events:none;background:linear-gradient(145deg,#fff 2%,#fff8 20%,#86495180 38%,#fff9 50%,#be865f7d 63%,#fff 84%,#e9c7b699);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude}
+.phone-layout #dayView #dayTitle:after{content:"";display:block;position:absolute;inset:5px;z-index:2;border:1px solid #fff7;border-top-color:#8e52644d;border-bottom-color:#fffdf2e6;border-radius:18px;pointer-events:none;background:radial-gradient(ellipse 58px 2px at 15% 0%,#fff 30%,#fffc 48%,#fff0 100%),radial-gradient(ellipse 45px 2px at 77% 100%,#fff 35%,#fff0 100%),radial-gradient(ellipse 2px 14px at 0% 28%,#fff 30%,#fff0 100%),radial-gradient(ellipse 2px 10px at 100% 75%,#fff 20%,#fff0 100%);box-shadow:0 1px 0 #8b3d4e80,inset 0 1px 2px #fff5}
+.phone-layout #dayTitle .phone-day-viewport{z-index:1;width:100%;height:100%;border-radius:inherit}
 .phone-layout #dayTitle .phone-day-content{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);column-gap:0;height:100%}
-.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){position:relative;display:flex;align-items:center;width:100%;height:100%;min-height:0;min-width:0;margin:0;padding:10px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#17366b;font-family:var(--okti-font);text-shadow:none;cursor:pointer;transition:background .18s ease}
-.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active{background:#ffffff7d}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){position:relative;display:flex;align-items:center;width:100%;height:100%;min-height:0;min-width:0;margin:0;padding:10px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;color:#17366b;font-family:var(--okti-font);text-shadow:0 1px 0 #ffffff38;cursor:pointer;-webkit-tap-highlight-color:transparent;transform:none;transform-origin:50% 50%;transition:transform .32s cubic-bezier(.18,1.45,.3,1),background .18s ease,box-shadow .18s ease}
+/* Native :active follows the finger and keyboard; release/cancel clears it without timers. */
+.phone-layout #dayTitle .phone-day-date{--phone-key-tilt:-3deg;border-radius:23px 5px 5px 23px;transform-origin:100% 50%}
+.phone-layout #dayTitle .phone-day-weather{--phone-key-tilt:3deg;border-radius:5px 23px 23px 5px;transform-origin:0% 50%}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active{background:#5c17301c;transform:perspective(500px) translateY(3px) rotateX(8deg) rotateY(var(--phone-key-tilt)) scale(.98,.94);box-shadow:inset 0 5px 8px #3c0c2c40,inset 0 -1px 1px #fff9;transition-duration:65ms,65ms,65ms}
+.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather)>*{position:relative;z-index:1}
 .phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):focus-visible{outline:2px solid #4d7098;outline-offset:-5px;border-radius:20px}
 .phone-layout #dayTitle .phone-day-date{justify-content:space-between;gap:7px;text-align:left}
 .phone-day-date-labels{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -5777,7 +5785,7 @@ window.OktiEventMotion=(()=>{
 .phone-day-chevron{display:block;flex:none;width:16px;height:16px;opacity:.8}
 .phone-day-chevron svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .phone-layout #dayTitle .phone-day-weather{justify-content:center;gap:4px;padding-left:8px;padding-right:10px}
-.phone-layout #dayTitle .phone-day-weather:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;background:linear-gradient(180deg,transparent,#b6aa985c 22%,#b6aa9870 70%,transparent);box-shadow:1px 0 0 #ffffffa3;pointer-events:none}
+.phone-layout #dayTitle .phone-day-weather:before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:1px;background:linear-gradient(180deg,transparent,#74364766 22%,#74364780 70%,transparent);box-shadow:1px 0 0 #ffffffe6;pointer-events:none}
 .phone-layout #dayTitle .phone-day-weather.unavailable{display:flex}
 .phone-layout #dayTitle .phone-day-weather .weather-icon{width:52px;height:52px;flex:none}
 .phone-layout #dayTitle .phone-day-temperature{min-width:0;font-size:clamp(27px,8vw,35px);font-weight:800;letter-spacing:-.045em;white-space:nowrap}
@@ -5804,6 +5812,6 @@ window.OktiEventMotion=(()=>{
 .phone-date-grid button[aria-pressed=true]{background:#e6ded0;color:#17366b;box-shadow:inset 0 0 0 1px #c8b99e}
 .phone-date-card .phone-date-today{width:100%;margin-top:14px;background:#eae4da;font-size:15px}
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
-@media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}}
+@media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather):active{transform:none}}
 </style>
 </body></html>

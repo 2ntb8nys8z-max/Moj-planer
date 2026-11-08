@@ -29,19 +29,44 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    const fit=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,date:document.querySelector('.phone-day-number').scrollWidth<=document.querySelector('.phone-day-number').clientWidth,top:document.querySelector('#taskList').getBoundingClientRect().top,art:getComputedStyle(document.querySelector('.phone-sky-header'),'::before').display,white:getComputedStyle(document.querySelector('#taskList')).backgroundColor}));
    assert.equal(fit.overflow,false);assert.equal(fit.date,true,width+': full day/month fits');assert(fit.top<250,width+': compact header recovers calendar height');assert.equal(fit.art,'none');assert.equal(fit.white,'rgb(255, 255, 255)');
    await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-calendar.png'});
-   const saved=await page.evaluate(()=>JSON.stringify(tasks));await date.click();await page.locator('#phoneDateModal').waitFor({state:'visible'});assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);assert.equal(await date.getAttribute('aria-expanded'),'true');
+   async function pressOpen(target,opposite,label){
+    const rest=await target.boundingBox(),still=await opposite.boundingBox();
+    await page.mouse.move(rest.x+rest.width/2,rest.y+rest.height/2);await page.mouse.down();
+    await target.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
+    const held=await target.boundingBox();
+    assert(held.height<rest.height-2,width+': '+label+' visibly compresses under a held pointer');
+    assert(held.y+held.height/2>rest.y+rest.height/2+1,width+': '+label+' sinks into the frame');
+    assert.deepEqual(await opposite.boundingBox(),still,width+': the other half stays still');
+    assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'Holding never opens the date selector');
+    assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false,'Holding never opens the forecast');
+    if(width===390)await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-'+label+'-pressed.png'});
+    await page.mouse.up();
+   }
+   const saved=await page.evaluate(()=>JSON.stringify(tasks));await pressOpen(date,weather,'date');await page.locator('#phoneDateModal').waitFor({state:'visible'});assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);assert.equal(await date.getAttribute('aria-expanded'),'true');
    await page.locator('.phone-date-prev').click();await page.locator('.phone-date-grid [data-date="2026-10-10"]').click();
    await page.locator('#phoneDateModal').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>iso(selected)),'2026-10-10');assert.equal(await page.locator('#date').inputValue(),'2026-10-10');assert.equal(await page.evaluate(()=>document.activeElement.id),'phoneDateButton');assert.equal(await page.evaluate(()=>document.querySelector('.app').inert),false);
    await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
-   await weather.click();await page.locator('#dayWeatherModal').waitFor({state:'visible'});assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false);assert.equal(await weather.getAttribute('aria-expanded'),'true');assert.equal(await date.getAttribute('aria-expanded'),'false');
+   await pressOpen(weather,date,'weather');await page.locator('#dayWeatherModal').waitFor({state:'visible'});assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false);assert.equal(await weather.getAttribute('aria-expanded'),'true');assert.equal(await date.getAttribute('aria-expanded'),'false');
    assert.equal(await date.locator('.phone-day-weekday').evaluate(n=>getComputedStyle(n).visibility),'visible','The date stays outside the weather flight');
    await page.keyboard.press('Escape');await page.locator('#dayWeatherModal').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>document.activeElement.id),'phoneWeatherButton');
-   await date.focus();await page.keyboard.press('Space');await page.locator('#phoneDateModal').waitFor({state:'visible'});await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-date-picker.png'});await page.keyboard.press('Escape');await page.locator('#phoneDateModal').waitFor({state:'hidden'});
+   await date.focus();await page.keyboard.press('Space');await page.locator('#phoneDateModal').waitFor({state:'visible'});await page.locator('.phone-date-card').evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-date-picker.png'});await page.keyboard.press('Escape');await page.locator('#phoneDateModal').waitFor({state:'hidden'});
    const actualToday=await page.evaluate(()=>iso(new Date()));await date.click();await page.locator('.phone-date-today').click();assert.equal(await page.evaluate(()=>iso(selected)),actualToday,'Today follows the real local date rather than the fixture date');assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved,'Header controls never mutate event data');
    await page.evaluate(()=>{selected=new Date('2026-11-30T12:00:00');renderDay()});
    const weekdayFits=await page.locator('#phoneDateButton .phone-day-weekday').evaluate(n=>({text:n.textContent,fits:n.scrollWidth<=n.clientWidth}));assert.equal(weekdayFits.fits,true,width+': '+weekdayFits.text+' fits the left half');
+   if(width===390){
+    await page.emulateMedia({reducedMotion:'reduce'});
+    const rest=await date.boundingBox(),shadow=await date.evaluate(n=>getComputedStyle(n).boxShadow);
+    await page.mouse.move(rest.x+rest.width/2,rest.y+rest.height/2);await page.mouse.down();
+    assert.deepEqual(await date.boundingBox(),rest,'Reduced motion keeps the key still');
+    assert.notEqual(await date.evaluate(n=>getComputedStyle(n).boxShadow),shadow,'Reduced motion retains visible pressure feedback');
+    await page.mouse.move(2,800);await page.mouse.up();
+    assert.equal(await date.evaluate(n=>n.matches(':active')),false,'Releasing outside cancels the pressed appearance');
+    assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'A cancelled press never opens a dialog');
+    assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);
+    assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved);
+   }
    await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('Shared header: separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
+  assert.deepEqual(errors,[]);console.log('Shared header: independent held presses, release and cancellation, reduced motion, separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
