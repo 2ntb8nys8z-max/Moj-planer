@@ -54,6 +54,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    await page.evaluate(()=>{selected=new Date('2026-11-30T12:00:00');renderDay()});
    const weekdayFits=await page.locator('#phoneDateButton .phone-day-weekday').evaluate(n=>({text:n.textContent,fits:n.scrollWidth<=n.clientWidth}));assert.equal(weekdayFits.fits,true,width+': '+weekdayFits.text+' fits the left half');
    if(width===390){
+    await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
     await page.emulateMedia({reducedMotion:'reduce'});
     const rest=await date.boundingBox(),shadow=await date.evaluate(n=>getComputedStyle(n).boxShadow);
     await page.mouse.move(rest.x+rest.width/2,rest.y+rest.height/2);await page.mouse.down();
