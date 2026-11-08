@@ -5,7 +5,7 @@ const digest=value=>createHash('sha256').update(value).digest('hex');
 const expected=digest(fs.readFileSync('index.html'));
 for(let attempt=1;attempt<=30;attempt++){
  try{
-  const response=await fetch(url+'?release=33.248&check='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(20000)});
+  const response=await fetch(url+'?release=33.249&check='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(20000)});
   const actual=digest(Buffer.from(await response.arrayBuffer()));
   if(response.ok&&actual===expected){console.log('Verified deployed HTML matches the tested source: '+expected);process.exit(0);}
   console.log('Waiting for GitHub Pages to serve the tested HTML ('+attempt+'/30, HTTP '+response.status+').');

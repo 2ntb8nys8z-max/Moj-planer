@@ -16,6 +16,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   return route.fulfill({json:{success:true,requiresAccess:false}});
  });
  await page.goto(live||'https://planner.test');await page.evaluate(()=>document.fonts.ready);await seed(page);assert.equal(await page.locator('.okti-route-badge').textContent(),expected.DRIVE);
+ if(width===390)await page.screenshot({path:path.join(out,label+'-drive.png')});
  for(const [mode,name] of [['BICYCLE','Rower'],['WALK','Pieszo'],['TRANSIT','Komunikacja miejska']]){
   await openMenu(page);const menu=page.locator('.okti-route-menu[data-state=open]');await menu.waitFor();assert.equal(await menu.getByRole('radio').count(),4);assert.equal(await page.locator('.okti-route-badge').getAttribute('aria-expanded'),'true');
   const bounds=await menu.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width&&bounds.y>=0&&bounds.y+bounds.height<=height,JSON.stringify({label,bounds}));
@@ -40,6 +41,20 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
  for(let i=0;i<6;i++)await openMenu(page);await page.waitForFunction(()=>!document.querySelector('.okti-route-menu'));assert.equal(await page.locator('.okti-route-badge').getAttribute('aria-expanded'),'false');
  // Changing only the presentation preserves all event data.
  assert.deepEqual(await page.evaluate(()=>tasks.map(t=>[t.id,t.time,t.location])),[['route-from','10:00','Berlin'],['route-to','13:00','Dresden']]);
+ if(width===390){
+  // Review the softened indicators together while preserving their real risk
+  // calculation: the same 26-minute drive has ample, tight and insufficient gaps.
+  await page.evaluate(()=>{tasks=[
+   {id:'risk-first',title:'Spotkanie poranne',date:'2026-11-07',time:'08:00',endTime:'09:00',location:'Berlin'},
+   {id:'risk-second',title:'Warsztaty',date:'2026-11-07',time:'10:00',endTime:'11:00',location:'Dresden'},
+   {id:'risk-third',title:'Kawa i rozmowa',date:'2026-11-07',time:'11:35',endTime:'12:00',location:'Leipzig'},
+   {id:'risk-fourth',title:'Spotkanie popołudniowe',date:'2026-11-07',time:'12:15',endTime:'12:45',location:'Chemnitz'}
+  ];renderAll();});
+  await page.waitForFunction(()=>document.querySelectorAll('.okti-route-badge:not(:disabled)').length===3);
+  assert.deepEqual(await page.locator('.okti-route-badge').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
+  assert.deepEqual(await page.locator('.okti-route-lines').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
+  await page.screenshot({path:path.join(out,'risk-palette.png')});
+ }
  await context.close();console.log(kind+' '+label+': four transport modes, compact durations, menu bounds, real open/close motion, outside/Escape/rapid close and persistence passed.');
  }
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),page=await context.newPage();await page.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin===origin){if(live)return r.continue();const f=path.resolve(u.pathname.slice(1)||'index.html');if(fs.existsSync(f)&&fs.statSync(f).isFile())return r.fulfill({body:fs.readFileSync(f),contentType:mime[path.extname(f)]||'application/octet-stream'});}if(r.request().resourceType()==='script')return r.fulfill({body:'',contentType:'application/javascript'});return r.fulfill({json:{success:true,requiresAccess:false,route:{available:true,durationMinutes:26}}})});await page.goto(live||'https://planner.test');await seed(page);await openMenu(page);assert.equal(await page.locator('.okti-route-menu').evaluate(n=>n.getAnimations().length),0);await page.locator('.okti-route-menu').getByRole('radio',{name:'Rower',exact:true}).press('Escape');assert.equal(await page.locator('.okti-route-menu').count(),0);await context.close();assert.deepEqual(errors,[]);
