@@ -4,9 +4,9 @@
  .phone-travel-animation{display:none!important}
  .okti-route-lines{position:absolute;inset:0;overflow:visible;pointer-events:none;z-index:24}
  /* Keep timing, paths and hit areas unchanged; soften paint around readable ink. */
- .okti-route-lines,.okti-route-badge{--route-ink:#886847;--route-line:#b29a7c;--route-edge:#c8b49a9c;--route-surface:#f4eee5e6;--route-dot:#ad9271}
+ .okti-route-lines,.okti-route-badge{--route-ink:#a5632c;--route-line:#c98846;--route-edge:#cf9a68bf;--route-surface:#faecdbe8;--route-dot:#c7833e}
  .okti-route-lines[data-risk=safe],.okti-route-badge[data-risk=safe]{--route-ink:#4c705d;--route-line:#92ae9e;--route-edge:#b3c6baad;--route-surface:#eaf2ece6;--route-dot:#7e9f8c}
- .okti-route-lines[data-risk=late],.okti-route-badge[data-risk=late]{--route-ink:#975953;--route-line:#bf918a;--route-edge:#d2b2acb3;--route-surface:#f5e8e4e6;--route-dot:#b17f78}
+ .okti-route-lines[data-risk=late],.okti-route-badge[data-risk=late]{--route-ink:#af4b43;--route-line:#c46359;--route-edge:#ca8279c7;--route-surface:#f8e6e1eb;--route-dot:#bd5b52}
  .okti-route-lines[data-risk=error],.okti-route-badge[data-risk=error]{--route-ink:#74695f;--route-line:#b5aaa0;--route-edge:#c8c0b7b3;--route-surface:#f2efeae6;--route-dot:#a09589}
  .okti-route-lines path{stroke:var(--route-line);stroke-width:1.5;stroke-opacity:.72}
  .okti-route-lines circle[stroke]{fill:#fffdf9;fill-opacity:.9;stroke:var(--route-line);stroke-width:1.4;stroke-opacity:.85;filter:drop-shadow(0 1px 2px #173e5912)}
