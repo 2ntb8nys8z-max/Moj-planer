@@ -37,7 +37,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    assert.equal(await date.locator('.phone-day-weekday').evaluate(n=>getComputedStyle(n).visibility),'visible','The date stays outside the weather flight');
    await page.keyboard.press('Escape');await page.locator('#dayWeatherModal').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>document.activeElement.id),'phoneWeatherButton');
    await date.focus();await page.keyboard.press('Space');await page.locator('#phoneDateModal').waitFor({state:'visible'});await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-date-picker.png'});await page.keyboard.press('Escape');await page.locator('#phoneDateModal').waitFor({state:'hidden'});
-   await date.click();await page.locator('.phone-date-today').click();assert.equal(await page.evaluate(()=>iso(selected)),'2026-11-06');assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved,'Header controls never mutate event data');
+   const actualToday=await page.evaluate(()=>iso(new Date()));await date.click();await page.locator('.phone-date-today').click();assert.equal(await page.evaluate(()=>iso(selected)),actualToday,'Today follows the real local date rather than the fixture date');assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved,'Header controls never mutate event data');
    await page.evaluate(()=>{selected=new Date('2026-11-30T12:00:00');renderDay()});
    const weekdayFits=await page.locator('#phoneDateButton .phone-day-weekday').evaluate(n=>({text:n.textContent,fits:n.scrollWidth<=n.clientWidth}));assert.equal(weekdayFits.fits,true,width+': '+weekdayFits.text+' fits the left half');
    await context.close();
