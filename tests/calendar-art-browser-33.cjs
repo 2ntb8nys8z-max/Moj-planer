@@ -90,10 +90,18 @@ async function geometry(page){return page.evaluate(()=>{
    if(width===390){
     const key=page.locator('.phone-event[data-event-id="workshop"]');await key.scrollIntoViewIfNeeded();
     const restingShadow=await key.evaluate(n=>getComputedStyle(n).boxShadow),box=await key.boundingBox();
-    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.waitForTimeout(190);
+    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+    // WebKit may defer the first style update after the interrupted flight.
+    // Flush that update and await the actual CSS press transitions, then check
+    // both depth and shadow rather than sampling an arbitrary 190ms timer.
+    await key.evaluate(async n=>{
+     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+     await Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{})));
+    });
     assert.equal(await key.evaluate(n=>n.classList.contains('okti-key-pressed')),true);
     assert.equal(await key.evaluate(n=>n.nextElementSibling.classList.contains('okti-key-pressed')),true,'Independent title follows the button');
     assert.notEqual(await key.evaluate(n=>getComputedStyle(n).boxShadow),restingShadow);
+    assert.ok(await key.evaluate(n=>Math.abs(new DOMMatrix(getComputedStyle(n).transform).m42-4)<.05),'The pressed glass key moves down by 4px');
     assert.equal(await page.locator('#eventModal').isVisible(),false,'Holding only depresses the key');
     await page.screenshot({path:path.join(output,'390-pressed.png')});
     await page.mouse.up();await page.waitForTimeout(110);
