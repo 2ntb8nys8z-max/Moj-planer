@@ -49,6 +49,27 @@ async function geometry(page){return page.evaluate(()=>{
    assert.equal(new Set(await page.locator('.okti-calendar-card').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventArtwork))).size,fixture.length,'Every event has a different motif in this group');
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
    await page.screenshot({path:path.join(output,width+'-calendar.png')});
+   // A single coloured rim owns the accent; its light is painted on the face,
+   // so an inset pseudo-element cannot create the reported duplicate stripe.
+   const palettePaints=await page.locator('[data-event-id="workshop"]').evaluate(n=>{
+    const original=n.dataset.eventPalette,paints=[];
+    for(const palette of ['blue','sage','sand','rose']){
+     n.dataset.eventPalette=palette;const s=getComputedStyle(n);
+     paints.push({palette,edge:s.borderLeftColor,width:s.borderLeftWidth,top:s.borderTopWidth,
+      rim:s.borderRightColor,face:s.backgroundImage,before:getComputedStyle(n,'::before').content,
+      reflection:getComputedStyle(n,'::after').content});
+    }
+    n.dataset.eventPalette=original;return paints;
+   });
+   const edges=['rgb(84, 133, 139)','rgb(111, 146, 124)','rgb(177, 138, 89)','rgb(171, 126, 133)'];
+   for(const [i,paint] of palettePaints.entries()){
+    assert.equal(paint.edge,edges[i],paint.palette+': stripe uses the event palette');
+    assert.equal(paint.width,'4px');assert.equal(paint.top,'1px');
+    assert.ok(['none','normal'].includes(paint.before),paint.palette+': no second inset stripe');
+    assert.notEqual(paint.rim,paint.edge,paint.palette+': the glass rim stays quiet');
+    assert.match(paint.face,/linear-gradient/);assert.equal(paint.reflection,'""','The existing lower glass reflection is preserved');
+   }
+   assert.equal(new Set(palettePaints.map(p=>p.face)).size,4,'Every stripe casts its own palette glow');
    const tilePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundImage);
    assert.match(tilePaint,/linear-gradient/);assert.doesNotMatch(tilePaint,/url\(/,width+': accepted keys have white faces, not calendar illustrations');
    assert.doesNotMatch(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/url\(/);

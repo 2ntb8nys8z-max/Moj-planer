@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.252-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.08.33.253-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.252-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.08.33.253-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5292,17 +5292,13 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout #
 .phone-layout .phone-event-time{color:#315271}
 .okti-event-flight-tile-art{position:absolute;inset:0;pointer-events:none}
 @media(prefers-reduced-motion:reduce){#dayView .okti-calendar-card,#dayView .okti-calendar-card::after,.phone-layout .phone-event-title.okti-key-copy{transition-duration:1ms!important}}
-/* Subtle palette glow: retain the existing glass-key geometry, shadows and press animation. */
+/* One palette edge lights the milky glass face; no second inset stripe. */
 #dayView .okti-calendar-card[data-event-palette]{
- background-image:linear-gradient(90deg,color-mix(in srgb,var(--key-rim-light) 27%,transparent) 0%,color-mix(in srgb,var(--key-rim-light) 10%,transparent) 19%,transparent 47%),linear-gradient(165deg,#fff 8%,#fff 62%,#f4f8f8 100%)!important;
+ background-image:linear-gradient(90deg,color-mix(in srgb,var(--key-rim) 16%,transparent) 0%,color-mix(in srgb,var(--key-rim) 8%,transparent) 32%,color-mix(in srgb,var(--key-rim) 3%,transparent) 72%,transparent 100%),linear-gradient(165deg,#fff 8%,#fff 62%,#f4f8f8 100%)!important;
+ border-color:color-mix(in srgb,var(--key-rim) 20%,#dfe5e6);
+ border-top-color:#f8fcfc;
  border-left-width:4px;
  border-left-color:var(--key-rim);
-}
-#dayView .okti-calendar-card[data-event-palette]::before{
- content:"";position:absolute;left:0;top:7px;bottom:7px;width:4px;border-radius:0 4px 4px 0;
- background:linear-gradient(180deg,var(--key-rim-light),var(--key-rim),var(--key-rim-light));
- box-shadow:2px 0 10px color-mix(in srgb,var(--key-rim) 22%,transparent);
- pointer-events:none;
 }
 </style>
 <style id="okti-compact-event-33-239">
