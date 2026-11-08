@@ -39,6 +39,11 @@ async function geometry(page){return page.evaluate(()=>{
    // WebKit can still be finishing the existing day-entry translation. Compare
    // the two surfaces at rest, rather than sampling different animation frames.
    await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
+   // Check the actual painted canvas: no inherited cream/blue gradient may
+   // survive on a surface beneath the calendar, including Safari on iPhone.
+   const canvas=await page.locator('html,body,.app,#dayView,#taskList,.phone-timeline-scroll,.phone-timeline').evaluateAll(nodes=>nodes.map(n=>({surface:n.id||n.className||n.tagName,colour:getComputedStyle(n).backgroundColor,image:getComputedStyle(n).backgroundImage})));
+   assert.ok(canvas.length>=7,width+': all calendar canvas layers are present');
+   for(const surface of canvas){assert.equal(surface.colour,'rgb(255, 255, 255)',width+': '+surface.surface+' is pure white');assert.equal(surface.image,'none',width+': '+surface.surface+' has no blue or cream background gradient');}
    // Compare actual rendered geometry with the decorative rules switched off.
    // The same cards, text, Octopus, navigation and header must not move.
    const decorated=await geometry(page);

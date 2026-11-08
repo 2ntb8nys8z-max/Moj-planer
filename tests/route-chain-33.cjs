@@ -37,7 +37,7 @@ function verifyNoDuplicateStrokes(){
    const r=badges[i].getBoundingClientRect();assert.ok(r.left>=width-65&&r.right<=width,'Touch targets remain outside event cards');
    const center=r.top+r.height/2;assert.ok(center>100+i*spacing+24&&center<100+(i+1)*spacing+24,'The icon remains between its two meetings');
    if(i)assert.ok(r.top>=badges[i-1].getBoundingClientRect().bottom,'Adjacent events keep separate touch targets');
-   assert.equal(badges[i].textContent.replace(/!/g,''),'','Minutes and hours are hidden on the collapsed button');assert.equal(badges[i].querySelectorAll('.okti-route-clock').length,1);
+   assert.equal(badges[i].textContent.replace(/!/g,''),'','Minutes and hours are hidden on the collapsed button');assert.equal(badges[i].querySelectorAll('.okti-route-clock').length,0);
   }
   for(let i=0;i<3;i++)w.flushPlannerRouteLayout();assert.equal(d.querySelectorAll('.okti-route-spoke').length,5);assert.equal(d.querySelectorAll('.okti-route-rail').length,1);assert.equal(JSON.stringify(w.tasks),before,'Event times and duration are preserved');
  }

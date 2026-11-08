@@ -8,13 +8,11 @@
  .okti-route-badge[data-risk=safe],.okti-route-menu[data-risk=safe]{--route-ink:#4c705d;--route-edge:#b3c6baad}
  .okti-route-badge[data-risk=late],.okti-route-menu[data-risk=late]{--route-ink:#af4b43;--route-edge:#ca8279c7}
  .okti-route-badge[data-risk=error],.okti-route-menu[data-risk=error]{--route-ink:#74695f;--route-edge:#c8c0b7b3}
- /* A 38px glass key inside a 44px touch target; the clock stays off the glyph. */
+ /* A 38px glass key inside a 44px touch target. */
  .okti-route-badge{position:absolute;z-index:26;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:12px;background:transparent;color:#8d572f!important;display:grid;place-items:center;touch-action:manipulation;box-shadow:none;-webkit-tap-highlight-color:transparent}
  .okti-route-badge::before{display:block;content:"";position:absolute;inset:3px;border:1px solid #c7c5bf;border-radius:11px;background:linear-gradient(140deg,#ffffff,#f8f6f2);box-shadow:inset 0 1px 1px #fff,0 3px 4px #33465126,0 1px 1px #3346511a}
  .okti-route-badge:active::before{transform:translateY(1px);box-shadow:inset 0 1px 2px #30486614,0 1px 2px #30486618}
  .okti-route-badge>svg{position:relative;width:23px;height:23px;padding:0;opacity:1}
- .okti-route-clock{position:absolute;left:-3px;top:4px;z-index:1;width:13px;height:13px;display:grid;place-items:center;background:#fffdf9;color:#8d572f;border:1px solid #bba88e;border-radius:50%;box-shadow:0 1px 2px #5f4d2426}
- .okti-route-clock svg{width:12px;height:12px}
  .okti-side-warning{position:absolute;right:0;top:0;display:grid;place-items:center;width:14px;height:14px;border:1px solid #d1a132;border-radius:50%;background:#f7d15d;color:#503d14;font:900 11px/1 system-ui;box-shadow:0 1px 2px #5f4d2426}
  .okti-route-badge>.okti-route-spinner{position:relative}
  .okti-route-badge:focus-visible{outline:2px solid var(--route-ink);outline-offset:0}
@@ -32,7 +30,6 @@
   bicycle:'<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="4"/><path d="m5 17 5-9 5 9H5m5-9h7l2 9M8 5h4m4-2h3l1 4"/>',
   transit:'<rect x="5" y="2" width="14" height="18" rx="3"/><path d="M5 12h14M8 5h8M8 20l-2 2m10-2 2 2M9 16h.01M15 16h.01"/>'};
  const names={drive:'Samochód',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja miejska'},svg=mode=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[mode]+'</svg>';
- const clock='<span class="okti-route-clock" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 3.8V7l2.2 1.3"/></svg></span>';
  const modeKey='okti-route-modes-v1',saved=JSON.parse(localStorage.getItem(modeKey)||'{}'),routes=new Map();let frame=0,activeMenu=null,menuSerial=0;
  const pairKey=(from,to)=>String(from.id)+'→'+String(to.id),cacheKey=(key,mode,from,to)=>JSON.stringify([key,mode,...[from,to].map(task=>[plannerLocationKey(plannerLocation(task)),task.googlePlace?.placeId||''])]);
  function geometry(first,second,width){const x=Math.max(22,width-26),start=first.top+first.height/2,end=second.top+second.height/2,y=(first.top+first.height+second.top)/2;return{x,start,end,y,firstEdge:first.right+1,secondEdge:second.right+1}}
@@ -124,7 +121,7 @@
    railSegments.push({axis:'V',fixed:g.x,from:g.start,to:g.end,ids:[]});
    markers.set(String(a.task.id),{edge:g.firstEdge,x:g.x,y:g.start});markers.set(String(b.task.id),{edge:g.secondEdge,x:g.x,y:g.end});
    const button=document.createElement('button');button.type='button';button.className='okti-route-badge';button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.style.left=Math.max(4,width-48)+'px';const top=Math.max(0,g.y-22,lastBadgeTop+46);button.style.top=top+'px';lastBadgeTop=top;
-   const busy=!state||state.pending,label=state?.minutes?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…';button.dataset.routeDuration=label;button.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode)+clock+((risk==='late'||risk==='tight')&&!busy?'<span class="okti-side-warning" aria-hidden="true">!</span>':'');button.setAttribute('aria-label',busy?'Przeliczanie czasu trasy':names[mode]+', '+label+'. Dotknij, aby zobaczyć dojazd i zmienić środek transportu');button.title=state?.error?state.error:risk==='late'?'Nie zdążysz na czas':risk==='tight'?'Mały zapas czasu':'Bezpieczny zapas czasu';button.disabled=busy;button.onclick=()=>showModes(key,a.task,b.task,button);timeline.append(button);
+   const busy=!state||state.pending,label=state?.minutes?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…';button.dataset.routeDuration=label;button.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode)+((risk==='late'||risk==='tight')&&!busy?'<span class="okti-side-warning" aria-hidden="true">!</span>':'');button.setAttribute('aria-label',busy?'Przeliczanie czasu trasy':names[mode]+', '+label+'. Dotknij, aby zobaczyć dojazd i zmienić środek transportu');button.title=state?.error?state.error:risk==='late'?'Nie zdążysz na czas':risk==='tight'?'Mały zapas czasu':'Bezpieczny zapas czasu';button.disabled=busy;button.onclick=()=>showModes(key,a.task,b.task,button);timeline.append(button);
    if(activeMenu?.dataset.routeKey===key){menuTrigger=button;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
   }
   if(markers.size){

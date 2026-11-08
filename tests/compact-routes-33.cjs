@@ -19,7 +19,7 @@ w.eval(fs.readFileSync('travel-routes.js','utf8'));
 const badge=()=>document.querySelector('.okti-route-badge:not(:disabled)'),menu=()=>document.querySelector('.okti-route-menu[data-state=open]');
 (async()=>{try{
  const data=JSON.stringify(w.tasks);await until(()=>badge()?.dataset.routeDuration==='26 min');
- assert.equal(badge().textContent,'');assert.equal(badge().querySelectorAll('svg').length,2);assert.equal(badge().offsetWidth,44);
+ assert.equal(badge().textContent,'');assert.equal(badge().querySelectorAll('svg').length,1);assert.equal(badge().offsetWidth,44);assert.equal(badge().querySelector('.okti-route-clock'),null);
  assert(badge().getBoundingClientRect().left>=294,'Collapsed touch target is outside the event');assert.match(badge().getAttribute('aria-label'),/Samochód, 26 min/);
  badge().click();const panel=menu();assert(panel);assert.equal(panel.parentElement,document.body);assert.equal(panel.querySelectorAll('[role=radio]').length,4);
  assert.equal(panel.querySelector('.okti-route-detail-duration').textContent,'26 min');

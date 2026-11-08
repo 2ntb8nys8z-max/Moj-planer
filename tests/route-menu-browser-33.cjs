@@ -17,7 +17,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
  });
  await page.goto(live||'https://planner.test');await page.evaluate(()=>document.fonts.ready);await seed(page);assert.equal(await page.locator('.okti-route-badge').getAttribute('data-route-duration'),expected.DRIVE);
  assert.equal((await page.locator('.okti-route-badge').textContent()).trim(),'','The collapsed route displays only icons');
- assert.equal(await page.locator('.okti-route-clock').count(),1);
+ assert.equal(await page.locator('.okti-route-clock').count(),0);
  assert.equal(await page.locator('.okti-route-badge').evaluate(n=>n.offsetWidth),44,'Small icon retains a full touch target');
  const clear=await page.locator('.okti-route-badge').evaluate(n=>{const r=n.getBoundingClientRect();return [...n.parentElement.querySelectorAll('.phone-event')].every(card=>card.getBoundingClientRect().right<=r.left)});assert.equal(clear,true,label+': route icon stays outside event cards');
  if(width===390)await page.screenshot({path:path.join(out,label+'-drive.png')});
@@ -29,7 +29,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   assert.equal(await page.locator('.okti-route-badge').getAttribute('data-route-duration'),expected[mode]);
   assert.equal(await menu.locator('.okti-route-detail-mode').textContent(),name);
   assert.equal(await menu.locator('.okti-route-detail-duration').evaluate(n=>n.scrollWidth<=n.clientWidth),true,`${label}: complete duration fits inside details`);
-  assert.equal(await page.locator('.okti-route-badge').evaluate(n=>{const clock=n.querySelector('.okti-route-clock').getBoundingClientRect(),glyph=n.querySelector(':scope > svg').getBoundingClientRect(),key=n.getBoundingClientRect();return clock.left<key.left&&clock.right<=glyph.left+.1}),true,`${label}: the external clock never covers the transport glyph`);
+  assert.equal(await page.locator('.okti-route-badge').evaluate(n=>{const glyph=n.querySelector(':scope > svg').getBoundingClientRect(),key=n.getBoundingClientRect();return !n.querySelector('.okti-route-clock')&&glyph.width===23&&glyph.height===23&&glyph.left>=key.left+3&&glyph.right<=key.right-3&&glyph.top>=key.top+3&&glyph.bottom<=key.bottom-3}),true,`${label}: the transport glyph is unobstructed inside its touch target`);
   assert.equal((await page.locator('.okti-route-badge').textContent()).replace(/!/g,'').trim(),'','Long durations remain inside the popup');
   if(mode==='WALK')assert.equal(await page.locator('.okti-route-badge > svg circle').count(),10,'Both footprints have five visible toes');
   const badge=await page.locator('.okti-route-badge').boundingBox();assert.ok(badge.x>=0&&badge.x+badge.width<=width,`${label}: long duration stays within the screen`);
