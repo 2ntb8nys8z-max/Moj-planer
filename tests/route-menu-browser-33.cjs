@@ -29,6 +29,9 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   assert.equal(await page.locator('.okti-route-badge').getAttribute('data-route-duration'),expected[mode]);
   assert.equal(await menu.locator('.okti-route-detail-mode').textContent(),name);
   assert.equal(await menu.locator('.okti-route-detail-duration').evaluate(n=>n.scrollWidth<=n.clientWidth),true,`${label}: complete duration fits inside details`);
+  assert.equal(await page.locator('.okti-route-badge').evaluate(n=>{const clock=n.querySelector('.okti-route-clock').getBoundingClientRect(),glyph=n.querySelector(':scope > svg').getBoundingClientRect(),key=n.getBoundingClientRect();return clock.left<key.left&&clock.right<=glyph.left+.1}),true,`${label}: the external clock never covers the transport glyph`);
+  assert.equal((await page.locator('.okti-route-badge').textContent()).replace(/!/g,'').trim(),'','Long durations remain inside the popup');
+  if(mode==='WALK')assert.equal(await page.locator('.okti-route-badge > svg circle').count(),10,'Both footprints have five visible toes');
   const badge=await page.locator('.okti-route-badge').boundingBox();assert.ok(badge.x>=0&&badge.x+badge.width<=width,`${label}: long duration stays within the screen`);
   if(width===390)await page.screenshot({path:path.join(out,label+'-'+mode.toLowerCase()+'.png')});
   await page.touchscreen.tap(5,5);await page.locator('.okti-route-menu').waitFor({state:'detached'});
@@ -60,7 +63,11 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   ];renderAll();});
   await page.waitForFunction(()=>document.querySelectorAll('.okti-route-badge:not(:disabled)').length===3);
   assert.deepEqual(await page.locator('.okti-route-badge').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
-  assert.deepEqual(await page.locator('.okti-route-lines').evaluateAll(nodes=>nodes.map(n=>n.dataset.risk)),['safe','tight','late']);
+  assert.equal(await page.locator('.okti-route-lines').count(),1,'Risk states share a single connector layer');
+  assert.equal(await page.locator('.okti-route-spoke').count(),4,'Every event has one common connection');
+  assert.equal(await page.locator('.okti-route-rail').count(),1,'Overlapping route legs are drawn once');
+  assert.equal(await page.locator('.okti-side-warning').count(),2,'Tight and late trips get a warning instead of a fully coloured route');
+  assert.equal(await page.locator('.okti-route-lines path').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).strokeDasharray==='3px, 4px')),true,'Shared connectors preserve their dash gaps');
   await page.screenshot({path:path.join(out,'risk-palette.png')});
   await page.evaluate(()=>{tasks=Array.from({length:9},(_,i)=>({id:'dense-'+i,title:'Wydarzenie',date:'2026-11-07',time:'12:'+String(i*5).padStart(2,'0'),endTime:'12:'+String(i*5+5).padStart(2,'0'),location:['Berlin','Dresden','Leipzig'][i%3]}));renderAll();});
   await page.waitForFunction(()=>document.querySelectorAll('.okti-route-badge:not(:disabled)').length===8);

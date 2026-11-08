@@ -3,19 +3,20 @@
  const style=document.createElement('style');style.textContent=`
  .phone-travel-animation{display:none!important}
  .okti-route-lines{position:absolute;inset:0;overflow:visible;pointer-events:none;z-index:24}
- /* The 32px face lives in the existing right gutter; its touch target is 44px. */
- .okti-route-lines,.okti-route-badge,.okti-route-menu{--route-ink:#a5632c;--route-line:#c98846;--route-edge:#cf9a68bf;--route-surface:#faecdbe8;--route-dot:#c7833e}
- .okti-route-lines[data-risk=safe],.okti-route-badge[data-risk=safe],.okti-route-menu[data-risk=safe]{--route-ink:#4c705d;--route-line:#92ae9e;--route-edge:#b3c6baad;--route-surface:#eaf2ece6;--route-dot:#7e9f8c}
- .okti-route-lines[data-risk=late],.okti-route-badge[data-risk=late],.okti-route-menu[data-risk=late]{--route-ink:#af4b43;--route-line:#c46359;--route-edge:#ca8279c7;--route-surface:#f8e6e1eb;--route-dot:#bd5b52}
- .okti-route-lines[data-risk=error],.okti-route-badge[data-risk=error],.okti-route-menu[data-risk=error]{--route-ink:#74695f;--route-line:#b5aaa0;--route-edge:#c8c0b7b3;--route-surface:#f2efeae6;--route-dot:#a09589}
- .okti-route-lines path{stroke:var(--route-line);stroke-width:1.5;stroke-opacity:.72}
- .okti-route-lines circle[stroke]{fill:#fffdf9;fill-opacity:.9;stroke:var(--route-line);stroke-width:1.4;stroke-opacity:.85;filter:drop-shadow(0 1px 2px #173e5912)}
- .okti-route-lines circle:not([stroke]){fill:var(--route-dot);fill-opacity:.88}
- .okti-route-badge{position:absolute;z-index:26;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:12px;background:transparent;color:var(--route-ink);display:grid;place-items:center;touch-action:manipulation;box-shadow:none;-webkit-tap-highlight-color:transparent}
- .okti-route-badge::before{content:'';position:absolute;inset:6px;border:1px solid var(--route-edge);border-radius:10px;background:linear-gradient(135deg,#fffffff5,var(--route-surface));box-shadow:inset 0 1px 0 #ffffffed,0 2px 3px #25465b1a}
- .okti-route-badge>svg{position:relative;width:22px;height:22px;transform:translate(-1px,-1px);opacity:.94}
- .okti-route-clock{position:absolute;right:5px;bottom:5px;width:13px;height:13px;display:grid;place-items:center;background:#fff;border-radius:50%}
- .okti-route-clock svg{width:12px;height:12px}.okti-route-badge>.okti-route-spinner{position:relative}
+ .okti-route-lines path{stroke:#ac7b48;stroke-width:1.3;stroke-opacity:.88;stroke-dasharray:3 4;stroke-linejoin:round}
+ .okti-route-badge,.okti-route-menu{--route-ink:#a5632c;--route-edge:#cf9a68bf}
+ .okti-route-badge[data-risk=safe],.okti-route-menu[data-risk=safe]{--route-ink:#4c705d;--route-edge:#b3c6baad}
+ .okti-route-badge[data-risk=late],.okti-route-menu[data-risk=late]{--route-ink:#af4b43;--route-edge:#ca8279c7}
+ .okti-route-badge[data-risk=error],.okti-route-menu[data-risk=error]{--route-ink:#74695f;--route-edge:#c8c0b7b3}
+ /* A 38px glass key inside a 44px touch target; the clock stays off the glyph. */
+ .okti-route-badge{position:absolute;z-index:26;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:12px;background:transparent;color:#8d572f!important;display:grid;place-items:center;touch-action:manipulation;box-shadow:none;-webkit-tap-highlight-color:transparent}
+ .okti-route-badge::before{display:block;content:"";position:absolute;inset:3px;border:1px solid #c7c5bf;border-radius:11px;background:linear-gradient(140deg,#ffffff,#f8f6f2);box-shadow:inset 0 1px 1px #fff,0 3px 4px #33465126,0 1px 1px #3346511a}
+ .okti-route-badge:active::before{transform:translateY(1px);box-shadow:inset 0 1px 2px #30486614,0 1px 2px #30486618}
+ .okti-route-badge>svg{position:relative;width:23px;height:23px;padding:0;opacity:1}
+ .okti-route-clock{position:absolute;left:-3px;top:4px;z-index:1;width:13px;height:13px;display:grid;place-items:center;background:#fffdf9;color:#8d572f;border:1px solid #bba88e;border-radius:50%;box-shadow:0 1px 2px #5f4d2426}
+ .okti-route-clock svg{width:12px;height:12px}
+ .okti-side-warning{position:absolute;right:0;top:0;display:grid;place-items:center;width:14px;height:14px;border:1px solid #d1a132;border-radius:50%;background:#f7d15d;color:#503d14;font:900 11px/1 system-ui;box-shadow:0 1px 2px #5f4d2426}
+ .okti-route-badge>.okti-route-spinner{position:relative}
  .okti-route-badge:focus-visible{outline:2px solid var(--route-ink);outline-offset:0}
  .okti-route-menu{position:fixed;z-index:25000;box-sizing:border-box;width:244px;max-width:calc(100vw - 16px);height:auto;padding:10px;display:flex;flex-direction:column;gap:9px;align-items:stretch;border:1px solid var(--route-edge);border-radius:14px;background:linear-gradient(135deg,#fffffff9,#f5f8f7f5);color:#234253;font-family:var(--okti-font,sans-serif);box-shadow:inset 0 1px 0 #fff,0 8px 24px -10px #193c4e38,0 2px 6px #1f40571a;backdrop-filter:blur(10px) saturate(.95);-webkit-backdrop-filter:blur(10px) saturate(.95)}
  .okti-route-detail{min-height:43px;display:flex;align-items:center;gap:10px;padding:0 4px}
@@ -26,15 +27,27 @@
  .okti-route-spinner{width:15px;height:15px;border:2px solid var(--route-edge,#c8b69b);border-top-color:var(--route-ink,#886847);border-radius:50%;animation:okti-route-spin .7s linear infinite}@keyframes okti-route-spin{to{transform:rotate(360deg)}}
  `;document.head.append(style);
  const icons={
-  drive:'<path d="m7 10 2-5h10l2 5M5 11h18v9H5z"/><path d="M5 15H3m20 0h2M7 20v3m14-3v3"/><circle cx="8" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="20" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M12 17h4"/>',
-  walk:'<circle cx="16" cy="4" r="2"/><path d="m12 10 4-3 3 5 4 1M15 8l-3 8-5 7m5-7 5 2 2 6M12 10l-4 5-4-1"/>',
-  bicycle:'<circle cx="6" cy="20" r="5"/><circle cx="22" cy="20" r="5"/><path d="m6 20 6-11 6 11H6m6-11h7l3 11M10 6h5m3-2h3l2 5"/>',
-  transit:'<rect x="6" y="3" width="16" height="20" rx="4"/><path d="M6 13h16M10 23l-2 3m10-3 2 3M11 6h6"/><circle cx="10" cy="18" r="1"/><circle cx="18" cy="18" r="1"/>'};
- const names={drive:'Samochód',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja miejska'},svg=mode=>'<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[mode]+'</svg>';
+  drive:'<path d="m5 8 1.5-4h11L19 8"/><rect x="3" y="8" width="18" height="11" rx="3"/><path d="M6 19v2m12-2v2M7 15h.01M17 15h.01M10 16h4"/>',
+  walk:'<g fill="currentColor" stroke="none"><g transform="rotate(-10 6 15)"><g transform="translate(1.5 6)"><circle cx="6.7" cy="1.8" r="1.4"/><circle cx="4.1" cy="1.5" r="1"/><circle cx="2.1" cy="2.3" r=".9"/><circle cx=".9" cy="3.8" r=".75"/><circle cx=".6" cy="5.6" r=".6"/><path d="M4.7 4.3C2.6 4.4 1.2 6.1 1.5 8.2c.2 1.8 1.4 2.6 1.7 4.4.2 1.3-.3 2.4.2 3.6.4 1 1.1 1.4 2.1 1.3 1.3-.1 1.9-.9 1.7-2.1-.1-1.6-1-2.4-.7-4 .3-1.6 1.6-2.6 1.5-4.4-.1-1.8-1.4-2.9-3.3-2.7Z"/></g></g><g transform="rotate(10 18 8)"><g transform="translate(22 0) scale(-1 1)"><circle cx="6.7" cy="1.8" r="1.4"/><circle cx="4.1" cy="1.5" r="1"/><circle cx="2.1" cy="2.3" r=".9"/><circle cx=".9" cy="3.8" r=".75"/><circle cx=".6" cy="5.6" r=".6"/><path d="M4.7 4.3C2.6 4.4 1.2 6.1 1.5 8.2c.2 1.8 1.4 2.6 1.7 4.4.2 1.3-.3 2.4.2 3.6.4 1 1.1 1.4 2.1 1.3 1.3-.1 1.9-.9 1.7-2.1-.1-1.6-1-2.4-.7-4 .3-1.6 1.6-2.6 1.5-4.4-.1-1.8-1.4-2.9-3.3-2.7Z"/></g></g></g>',
+  bicycle:'<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="4"/><path d="m5 17 5-9 5 9H5m5-9h7l2 9M8 5h4m4-2h3l1 4"/>',
+  transit:'<rect x="5" y="2" width="14" height="18" rx="3"/><path d="M5 12h14M8 5h8M8 20l-2 2m10-2 2 2M9 16h.01M15 16h.01"/>'};
+ const names={drive:'Samochód',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja miejska'},svg=mode=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[mode]+'</svg>';
  const clock='<span class="okti-route-clock" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 3.8V7l2.2 1.3"/></svg></span>';
  const modeKey='okti-route-modes-v1',saved=JSON.parse(localStorage.getItem(modeKey)||'{}'),routes=new Map();let frame=0,activeMenu=null,menuSerial=0;
  const pairKey=(from,to)=>String(from.id)+'→'+String(to.id),cacheKey=(key,mode,from,to)=>JSON.stringify([key,mode,...[from,to].map(task=>[plannerLocationKey(plannerLocation(task)),task.googlePlace?.placeId||''])]);
- function geometry(first,second,width){const x=Math.max(22,width-26),start=first.top+first.height/2,end=second.top+second.height/2,sign=end>=start?1:-1,r=Math.min(6,Math.abs(end-start)/3),sx=Math.min(x-8,first.right-10),ex=Math.min(x-8,second.right-10);return{x,start,end,sx,ex,y:(start+end)/2,path:`M ${sx} ${start} H ${x-r} Q ${x} ${start} ${x} ${start+sign*r} V ${end-sign*r} Q ${x} ${end} ${x-r} ${end} H ${ex}`}}
+ function geometry(first,second,width){const x=Math.max(22,width-26),start=first.top+first.height/2,end=second.top+second.height/2,y=(first.top+first.height+second.top)/2;return{x,start,end,y,firstEdge:first.right+1,secondEdge:second.right+1}}
+ // Paint shared geometry once. Collinear overlapping pieces cannot fill each
+ // other's dash gaps, including when multiple event anchors share a row.
+ function mergeSegments(input){
+  const groups=new Map();
+  for(const segment of input){const fixed=Math.round(segment.fixed*100)/100,key=segment.axis+':'+fixed,item={...segment,fixed,from:Math.min(segment.from,segment.to),to:Math.max(segment.from,segment.to),ids:new Set(segment.ids||[])};if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)}
+  const result=[];
+  for(const pieces of groups.values()){
+   pieces.sort((a,b)=>a.from-b.from);let current=null;
+   for(const piece of pieces){if(current&&piece.from<=current.to+.01){current.to=Math.max(current.to,piece.to);for(const id of piece.ids)current.ids.add(id)}else{current=piece;result.push(current)}}
+  }
+  return result;
+ }
  function motionEnabled(){return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches}
  function closeMenu(restoreFocus=false){
   const menu=activeMenu;if(!menu)return;activeMenu=null;if(!menu.isConnected)return;
@@ -102,16 +115,28 @@
 
  function draw(){
   const timeline=document.querySelector('.phone-timeline');if(!timeline||!timeline.clientWidth)return;
-  timeline.querySelectorAll('.okti-route-lines,.okti-route-badge').forEach(node=>node.remove());
+  timeline.querySelectorAll('.okti-route-lines,.okti-route-nodes,.okti-route-badge').forEach(node=>node.remove());
   const cards=[...timeline.querySelectorAll('.phone-event')].map(node=>({node,task:tasks.find(task=>String(task.id)===node.dataset.eventId)})).filter(item=>item.task).sort((a,b)=>phoneMinutes(a.task.time)-phoneMinutes(b.task.time)),bounds=timeline.getBoundingClientRect(),width=timeline.clientWidth;
-  const located=cards.filter(card=>plannerLocation(card.task));let menuTrigger=null,lastBadgeTop=-Infinity;
+  const located=cards.filter(card=>plannerLocation(card.task)),markers=new Map(),railSegments=[];let menuTrigger=null,lastBadgeTop=-Infinity;
   for(let index=0;index<located.length-1;index++){
    const a=located[index],b=located[index+1],origin=plannerLocation(a.task),destination=plannerLocation(b.task);if(!origin||!destination||plannerLocationKey(origin)===plannerLocationKey(destination))continue;
    const box=node=>{const r=node.getBoundingClientRect();return{top:r.top-bounds.top,right:r.right-bounds.left,height:r.height}},g=geometry(box(a.node),box(b.node),width),key=pairKey(a.task,b.task),mode=saved[key]||'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;const gap=availableGap(a.task,b.task,cards.map(card=>card.task)),risk=state?.minutes>gap?'late':state?.minutes+10>gap?'tight':state?.minutes?'safe':state?.error?'error':'tight',color={safe:'#2a9d66',tight:'#ed8b30',late:'#dc4a43',error:'#8b8178'}[risk];
-   const lines=document.createElementNS('http://www.w3.org/2000/svg','svg');lines.classList.add('okti-route-lines');lines.dataset.risk=risk;lines.setAttribute('width',String(width));lines.setAttribute('height',String(timeline.scrollHeight));lines.setAttribute('aria-hidden','true');const path=document.createElementNS(lines.namespaceURI,'path');for(const [name,value] of Object.entries({d:g.path,fill:'none',stroke:color,'stroke-width':'1.7','stroke-dasharray':'4 5','stroke-linecap':'round'}))path.setAttribute(name,value);lines.append(path);for(const [cx,cy] of [[g.sx,g.start],[g.ex,g.end]])for(const [r,fill] of [[6,'#fffaf5'],[3,color]]){const dot=document.createElementNS(lines.namespaceURI,'circle');dot.setAttribute('cx',cx);dot.setAttribute('cy',cy);dot.setAttribute('r',r);dot.setAttribute('fill',fill);if(r===6){dot.setAttribute('stroke',color);dot.setAttribute('stroke-width','1.7')}lines.append(dot)}timeline.append(lines);
+   railSegments.push({axis:'V',fixed:g.x,from:g.start,to:g.end,ids:[]});
+   markers.set(String(a.task.id),{edge:g.firstEdge,x:g.x,y:g.start});markers.set(String(b.task.id),{edge:g.secondEdge,x:g.x,y:g.end});
    const button=document.createElement('button');button.type='button';button.className='okti-route-badge';button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.style.left=Math.max(4,width-48)+'px';const top=Math.max(0,g.y-22,lastBadgeTop+46);button.style.top=top+'px';lastBadgeTop=top;
-   const busy=!state||state.pending,label=state?.minutes?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…';button.dataset.routeDuration=label;button.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode)+clock;button.setAttribute('aria-label',busy?'Przeliczanie czasu trasy':names[mode]+', '+label+'. Dotknij, aby zobaczyć dojazd i zmienić środek transportu');button.title=state?.error?state.error:risk==='late'?'Nie zdążysz na czas':risk==='tight'?'Mały zapas czasu':'Bezpieczny zapas czasu';button.disabled=busy;button.onclick=()=>showModes(key,a.task,b.task,button);timeline.append(button);
+   const busy=!state||state.pending,label=state?.minutes?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…';button.dataset.routeDuration=label;button.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode)+clock+((risk==='late'||risk==='tight')&&!busy?'<span class="okti-side-warning" aria-hidden="true">!</span>':'');button.setAttribute('aria-label',busy?'Przeliczanie czasu trasy':names[mode]+', '+label+'. Dotknij, aby zobaczyć dojazd i zmienić środek transportu');button.title=state?.error?state.error:risk==='late'?'Nie zdążysz na czas':risk==='tight'?'Mały zapas czasu':'Bezpieczny zapas czasu';button.disabled=busy;button.onclick=()=>showModes(key,a.task,b.task,button);timeline.append(button);
    if(activeMenu?.dataset.routeKey===key){menuTrigger=button;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
+  }
+  if(markers.size){
+   const lines=document.createElementNS('http://www.w3.org/2000/svg','svg');lines.classList.add('okti-route-lines');lines.dataset.anchorCount=String(markers.size);lines.dataset.sharedConnectors='true';lines.setAttribute('width',String(width));lines.setAttribute('height',String(timeline.scrollHeight));lines.setAttribute('aria-hidden','true');
+   const segments=[...railSegments,...[...markers].map(([id,p])=>({axis:'H',fixed:p.y,from:p.edge,to:p.x,ids:[id]}))];
+   for(const segment of mergeSegments(segments)){
+    const path=document.createElementNS(lines.namespaceURI,'path'),vertical=segment.axis==='V',d=vertical?`M ${segment.fixed} ${segment.from} V ${segment.to}`:`M ${segment.from} ${segment.fixed} H ${segment.to}`;
+    path.classList.add(vertical?'okti-route-rail':'okti-route-spoke');if(!vertical)path.dataset.eventIds=[...segment.ids].join(',');
+    for(const [name,value] of Object.entries({d,fill:'none',stroke:'#ac7b48','stroke-width':'1.3','stroke-dasharray':'3 4','stroke-dashoffset':String(segment.from%7),'stroke-linecap':'butt'}))path.setAttribute(name,value);
+    lines.append(path);
+   }
+   timeline.append(lines);
   }
   if(activeMenu){if(menuTrigger){updateMenu(activeMenu,menuTrigger);positionMenu(activeMenu,menuTrigger)}else closeMenu()}
  }
