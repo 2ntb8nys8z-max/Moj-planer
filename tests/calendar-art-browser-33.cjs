@@ -12,7 +12,7 @@ const fixture=[
 ];
 const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.json':'application/json','.png':'image/png'};
 async function clean(page){await page.waitForFunction(()=>!window.OktiEventKey?.getState()&&!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
-async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow}:null;},time);}
+async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art'),stripe=n?.querySelector('.okti-event-flight-stripe');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow,stripes:n.querySelectorAll('.okti-event-flight-stripe').length,stripe:stripe?{background:getComputedStyle(stripe).backgroundImage,left:getComputedStyle(stripe).left,width:getComputedStyle(stripe).width}:null}:null;},time);}
 async function open(page){await page.evaluate(()=>{const timer=window.setTimeout;window.setTimeout=(fn,ms,...args)=>String(fn).includes('token.finish()')?0:timer(fn,ms,...args);openEventActions(tasks.find(t=>t.id==='workshop'));window.setTimeout=timer;});}
 async function geometry(page){return page.evaluate(()=>{
  const rect=n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height]};
@@ -49,34 +49,41 @@ async function geometry(page){return page.evaluate(()=>{
    assert.equal(new Set(await page.locator('.okti-calendar-card').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventArtwork))).size,fixture.length,'Every event has a different motif in this group');
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
    await page.screenshot({path:path.join(output,width+'-calendar.png')});
-   // A single coloured rim owns the accent; its light is painted on the face,
-   // so an inset pseudo-element cannot create the reported duplicate stripe.
+   // The reference uses one rounded bar INSIDE a neutral glass rim. Its light
+   // and the independent title must not produce a second stripe or overlap.
    const palettePaints=await page.locator('[data-event-id="workshop"]').evaluate(n=>{
     const original=n.dataset.eventPalette,paints=[];
     for(const palette of ['blue','sage','sand','rose']){
-     n.dataset.eventPalette=palette;const s=getComputedStyle(n);
+     n.dataset.eventPalette=palette;const s=getComputedStyle(n),bar=getComputedStyle(n,'::before');
      paints.push({palette,edge:s.borderLeftColor,width:s.borderLeftWidth,top:s.borderTopWidth,
-      rim:s.borderRightColor,face:s.backgroundImage,before:getComputedStyle(n,'::before').content,
+      rim:s.borderRightColor,face:s.backgroundImage,before:bar.content,bar:bar.backgroundImage,
+      barLeft:bar.left,barTop:bar.top,barBottom:bar.bottom,barWidth:bar.width,barRadius:bar.borderRadius,
+      rimColour:s.getPropertyValue('--key-rim').trim(),titlePadding:getComputedStyle(n.nextElementSibling).paddingLeft,
       reflection:getComputedStyle(n,'::after').content});
     }
     n.dataset.eventPalette=original;return paints;
    });
-   const edges=['rgb(84, 133, 139)','rgb(111, 146, 124)','rgb(177, 138, 89)','rgb(171, 126, 133)'];
+   const colours=['#54858b','#6f927c','#b18a59','#ab7e85'];
    for(const [i,paint] of palettePaints.entries()){
-    assert.equal(paint.edge,edges[i],paint.palette+': stripe uses the event palette');
-    assert.equal(paint.width,'4px');assert.equal(paint.top,'1px');
-    assert.ok(['none','normal'].includes(paint.before),paint.palette+': no second inset stripe');
-    assert.notEqual(paint.rim,paint.edge,paint.palette+': the glass rim stays quiet');
+    assert.equal(paint.rimColour,colours[i],paint.palette+': stripe uses the event palette');
+    assert.equal(paint.width,'1px');assert.equal(paint.top,'1px');
+    assert.equal(paint.before,'""');assert.equal(paint.barLeft,'6px');assert.equal(paint.barTop,'8px');assert.equal(paint.barBottom,'8px');
+    assert.equal(paint.barWidth,'4px');assert.equal(paint.barRadius,'999px');
+    assert.equal(paint.rim,paint.edge,paint.palette+': no coloured outer left border');
+    assert.ok(parseFloat(paint.titlePadding)>parseFloat(paint.barLeft)+parseFloat(paint.barWidth)+1,'Text clears the inset bar');
     assert.match(paint.face,/linear-gradient/);assert.equal(paint.reflection,'""','The existing lower glass reflection is preserved');
    }
    assert.equal(new Set(palettePaints.map(p=>p.face)).size,4,'Every stripe casts its own palette glow');
+   assert.equal(new Set(palettePaints.map(p=>p.edge)).size,1,'The glass rim is neutral across all palettes');
+   assert.equal(new Set(palettePaints.map(p=>p.bar)).size,4,'Only the inset bar changes colour');
    const tilePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundImage);
    assert.match(tilePaint,/linear-gradient/);assert.doesNotMatch(tilePaint,/url\(/,width+': accepted keys have white faces, not calendar illustrations');
    assert.doesNotMatch(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/url\(/);
    assert.ok(await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundColor==='rgb(255, 255, 255)'),width+': key face stays white');
    const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
-   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
+   const stripePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n,'::before').backgroundImage);
+   await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal(first.stripes,1);assert.equal(first.stripe.background,stripePaint,'The same single inset bar follows the flight surface');assert.equal(first.stripe.left,'6px');assert.equal(first.stripe.width,'4px');const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
    // Close during opening: keep the interrupted decoration, then settle cleanly.
    await page.evaluate(()=>closeEventActions());await clean(page);
