@@ -9,7 +9,7 @@ w.plannerLocation=task=>task.location||'';w.plannerLocationKey=value=>value.trim
 w.plannerApiRequest=async(path,options)=>{const body=JSON.parse(options.body);calls.push(body);await wait(35);return{route:{available:true,durationMinutes:{DRIVE:26,WALK:6327,BICYCLE:618,TRANSIT:60}[body.mode]}}};
 Object.defineProperty(w.HTMLElement.prototype,'clientWidth',{get(){return this.classList.contains('phone-timeline')?350:244}});
 Object.defineProperty(w.HTMLElement.prototype,'scrollHeight',{get(){return 900}});
-Object.defineProperty(w.HTMLElement.prototype,'offsetWidth',{get(){return this.classList.contains('okti-route-badge')?44:this.classList.contains('okti-route-menu')?244:350}});
+Object.defineProperty(w.HTMLElement.prototype,'offsetWidth',{get(){return this.classList.contains('okti-route-badge')?48:this.classList.contains('okti-route-menu')?244:350}});
 Object.defineProperty(w.HTMLElement.prototype,'offsetHeight',{get(){return this.classList.contains('okti-route-menu')?123:44}});
 w.HTMLElement.prototype.getBoundingClientRect=function(){
  const index=[...document.querySelectorAll('.phone-event')].indexOf(this),x=this.classList.contains('okti-route-badge')?Number.parseFloat(this.style.left):0,y=index>=0?100+index*150:Number.parseFloat(this.style.top)||0,width=this.classList.contains('phone-event')?294:this.offsetWidth,height=index>=0?60:this.offsetHeight;
@@ -21,7 +21,7 @@ const badge=()=>document.querySelector('.okti-route-badge:not(:disabled)'),menu=
  const data=JSON.stringify(w.tasks);await until(()=>badge()?.dataset.routeDuration==='26 min');
  assert.equal(document.querySelector('.okti-route-duration').textContent,'26 min');assert.equal(document.querySelector('.okti-route-focus-lines'),null);
  const controls=badge().closest('.okti-route-controls');assert.equal(controls.dataset.destinationEventId,'b');assert.equal(controls.dataset.layout,'wide');assert(Number.parseFloat(controls.style.left)>=0&&Number.parseFloat(controls.style.left)+Number.parseFloat(controls.style.width)<=294,'Controls fit inside destination card');
- assert.equal(badge().textContent,'');assert.equal(badge().querySelectorAll('svg').length,1);assert.equal(badge().offsetWidth,44);assert.equal(badge().querySelector('.okti-route-clock'),null);
+ assert.equal(badge().textContent,'');assert.equal(badge().querySelectorAll('svg').length,1);assert.equal(badge().offsetWidth,48);assert.equal(badge().querySelector('.okti-route-clock'),null);
  assert.match(badge().getAttribute('aria-label'),/Samochód, 26 min/);
  badge().click();const panel=menu();assert(panel);assert.equal(document.getElementById('taskList').inert,true);assert.equal(document.querySelectorAll('.okti-route-focus-copy.phone-event').length,2);assert.equal(document.querySelectorAll('.okti-route-focus-lines circle').length,2);assert.equal(panel.parentElement,document.body);assert.equal(panel.querySelectorAll('[role=radio]').length,4);
  assert.equal(panel.querySelector('.okti-route-detail-duration').textContent,'26 min');

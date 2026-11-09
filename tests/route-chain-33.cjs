@@ -4,10 +4,10 @@ let spacing=140,width=350,columns=1,minutes=18;
 const clock=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
 const records=step=>Array.from({length:5},(_,i)=>({id:'chain-'+i,title:'Spotkanie '+i,location:'Miejsce '+i,date:'2026-11-07',time:clock(9*60+i*step),endTime:clock(9*60+i*step+30)}));
 w.tasks=records(60);w.$=id=>d.getElementById(id);w.matchMedia=()=>({matches:true});w.plannerLocation=t=>t.location||'';w.plannerLocationKey=s=>s.trim().toLowerCase();w.phoneMinutes=s=>Number(s.slice(0,2))*60+Number(s.slice(3));w.plannerApiRequest=async()=>({route:{available:true,durationMinutes:minutes}});
-Object.defineProperties(w.HTMLElement.prototype,{clientWidth:{get(){return width}},scrollHeight:{get(){return 1400}},offsetWidth:{get(){return this.classList.contains('okti-route-badge')?44:244}},offsetHeight:{get(){return this.classList.contains('okti-route-menu')?126:44}}});
+Object.defineProperties(w.HTMLElement.prototype,{clientWidth:{get(){return width}},scrollHeight:{get(){return 1400}},offsetWidth:{get(){return this.classList.contains('okti-route-badge')?48:244}},offsetHeight:{get(){return this.classList.contains('okti-route-menu')?126:44}}});
 w.HTMLElement.prototype.getBoundingClientRect=function(){
- const i=w.tasks.findIndex(t=>String(t.id)===this.dataset.eventId),cardWidth=(width-78)/columns-4;
- const left=i>=0?70+(i%columns)*(width-78)/columns:parseFloat(this.style.left)||0,top=i>=0?100+Math.floor(i/columns)*spacing:parseFloat(this.style.top)||0,height=i>=0?(columns===1?82:columns===2?128:152):this.offsetHeight,rectWidth=i>=0?cardWidth:parseFloat(this.style.width)||this.offsetWidth;
+ const i=w.tasks.findIndex(t=>String(t.id)===this.dataset.eventId),cardWidth=(width-66)/columns-4;
+ const left=i>=0?70+(i%columns)*(width-66)/columns:parseFloat(this.style.left)||0,top=i>=0?100+Math.floor(i/columns)*spacing:parseFloat(this.style.top)||0,height=i>=0?(columns===1?182:columns===2?192:224):this.offsetHeight,rectWidth=i>=0?cardWidth:parseFloat(this.style.width)||this.offsetWidth;
  return {x:left,y:top,left,top,right:left+rectWidth,bottom:top+height,width:rectWidth,height};
 };
 const timeline=d.querySelector('.phone-timeline');
@@ -22,7 +22,7 @@ const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r
   const controls=[...d.querySelectorAll('#taskList .okti-route-controls')];assert.equal(controls.length,4);
   for(let i=0;i<controls.length;i++){
    const control=controls[i],destination=w.tasks[i+1],card=d.querySelector(`[data-event-id="${destination.id}"]`).getBoundingClientRect(),box=control.getBoundingClientRect(),badge=control.querySelector('.okti-route-badge'),time=control.querySelector('.okti-route-duration');
-   assert.equal(control.dataset.destinationEventId,destination.id);assert.equal(badge.textContent,'');assert.equal(time.textContent,'18 min');assert.equal(badge.offsetWidth,44);
+   assert.equal(control.dataset.destinationEventId,destination.id);assert.equal(badge.textContent,'');assert.equal(time.textContent,'18 min');assert.equal(badge.offsetWidth,48);
    assert.ok(box.left>=card.left-.01&&box.right<=card.right+.01&&box.top>=card.top-.01&&box.bottom<=card.bottom+.01,'Icon and separate time remain within their destination card');
    assert.match(badge.getAttribute('aria-label'),new RegExp('Dojazd z Spotkanie '+i+' do Spotkanie '+(i+1)));
   }
