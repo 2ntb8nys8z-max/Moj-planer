@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.266-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.267-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.266-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.267-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1364,11 +1364,12 @@ async function applyEventScopedVoiceAction(session,action,reply=''){
 }
 let eventChangeProposal=null;
 function cancelEventChangePreview(){window.OktiCommunication?.finishLegacy($('eventChangePreview'),false);if(eventChangeProposal){const pending=eventChangeProposal;eventChangeProposal=null;pending.resolve(false)}$('eventChangePreview')?.classList.add('hidden')}
-function showEventChangePreview(task,description){
+function showEventChangePreview(task,description,{noteText}={}){
  cancelEventChangePreview();if(openEventCommandTask({channel:'event',id:task.id})!==task)return Promise.resolve(false);
- $('eventChangeInfo').textContent=description;$('eventChangePreview').classList.remove('hidden');
+ const noteOnly=typeof noteText==='string'&&!!noteText.trim(),question=noteOnly?'Notatka brzmi:\n'+noteText+'\n\nCzy zapisać tę notatkę?':description.endsWith('?')?description:'Zapisać zmiany?\n'+description;
+ $('eventChangeInfo').textContent=noteOnly?question:description;$('eventChangePreview').classList.remove('hidden');
  requestAnimationFrame(()=>$('eventChangePreview').scrollIntoView({block:'nearest'}));
- return new Promise(resolve=>{eventChangeProposal={taskId:task.id,resolve};window.OktiCommunication?.showLegacy('event',description.endsWith('?')?description:'Zapisać zmiany?\n'+description,[{label:'Nie — wróć',original:$('eventChangeCancel'),cancel:true},{label:!plannerLocation(task)&&description.startsWith('Dodać lokalizację: ')?'Tak — dodaj':'Tak — zmień',original:$('eventChangeConfirm'),primary:true}],$('eventChangePreview'),()=>activeTask===task&&!$('eventChangePreview').classList.contains('hidden'))});
+ return new Promise(resolve=>{eventChangeProposal={taskId:task.id,resolve};window.OktiCommunication?.showLegacy('event',question,[{label:noteOnly?'Nie':'Nie — wróć',original:$('eventChangeCancel'),cancel:true},{label:noteOnly?'Tak':!plannerLocation(task)&&description.startsWith('Dodać lokalizację: ')?'Tak — dodaj':'Tak — zmień',original:$('eventChangeConfirm'),primary:true}],$('eventChangePreview'),()=>activeTask===task&&!$('eventChangePreview').classList.contains('hidden'))});
 }
 function updateEventNoteCards(task,previous,edit,fields,source){
  if(!fields.includes('notes'))return;
@@ -2050,7 +2051,7 @@ if(fields.length===1&&fields[0]==='reminder'){const session=voiceDialogues.event
 const preview=voiceEventChangePreview(before,after,fields,result.transcription);
 let scope="1";
 const locationAlreadyConfirmed=fields.length===1&&fields[0]==='location'&&result.confirmedLocation?.location===nextLocation&&(result.confirmedLocation.placeId||null)===(plannerGooglePlace(x)?.placeId||null);
-if(!locationAlreadyConfirmed&&!await showEventChangePreview(targetTask,preview)){ $('eventVoiceHint').textContent='Anulowano zmianę';return }
+if(!locationAlreadyConfirmed&&!await showEventChangePreview(targetTask,preview,{noteText:fields.length===1&&fields[0]==='notes'?after.notes:undefined})){ $('eventVoiceHint').textContent='Anulowano zmianę';return }
 if(activeTask?.id!==targetTask.id||!tasks.includes(targetTask)||JSON.stringify(voiceEventSnapshot(targetTask))!==JSON.stringify(before))return;
 if(fields.some(f=>['date','startTime','endTime','endDate','location'].includes(f))){const candidates=plannerEditedCandidates(targetTask,{title:nextTitle,date:nextDate,startTime:nextStart,time:nextStart,endTime:nextEnd,endDate:nextEndDate,location:nextLocation},scope);if(!await approvePlannerSchedule(candidates,candidates.map(t=>t.id)))return;if(!tasks.includes(targetTask)||JSON.stringify(voiceEventSnapshot(targetTask))!==JSON.stringify(before))return}
 const noteBefore=structuredClone(targetTask);const originalDate=targetTask.date,originalOrder=seriesOccurrenceOrder(targetTask);
@@ -5481,6 +5482,8 @@ body:is(.event-sheet-open,.okti-event-transitioning) .voice-area :is(.octi-copy,
 .okti-decision-card .okti-decision-option strong{font-weight:750}.okti-decision-card .okti-decision-option small{font-size:16px;color:#5b6a79}
 .okti-decision-card .okti-decision-option.is-primary{background-image:linear-gradient(90deg,#54858b10,transparent 65%),linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%);color:#193b5c;border-color:#d5dedd;border-top-color:#fff}
 .okti-decision-card .okti-decision-option.is-primary:before{content:'';position:absolute;left:6px;top:9px;bottom:9px;width:4px;border-radius:9px;background:linear-gradient(#adc9c8,#54858b);box-shadow:inset 1px 0 1px #ffffff85,0 0 7px #54858b25}
+.okti-decision-card .okti-decision-option.is-negative{background-image:linear-gradient(90deg,#b15c580d,transparent 65%),linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%);border-color:#e3d7d7;border-top-color:#fff}
+.okti-decision-card .okti-decision-option.is-negative:before{content:'';position:absolute;left:6px;top:9px;bottom:9px;width:4px;border-radius:9px;background:linear-gradient(#dab2ae,#b15c58);box-shadow:inset 1px 0 1px #ffffff85,0 0 7px #b15c5825}
 .okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send).is-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
 .okti-decision-options.is-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.okti-decision-options.is-pair .okti-decision-option{text-align:center;align-items:center;padding-left:15px;padding-right:15px}
 .okti-decision-options.is-pair .is-primary strong:before{content:"✓";display:inline-block;margin-right:9px;font-weight:650}
@@ -5587,7 +5590,7 @@ window.OktiCommunication=(()=>{
   },0);
  }
  function choiceButton(state,label,detail,run,primary=false){
-  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
+  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';if(/^Nie(?:\s|$|—)/.test(label))b.classList.add('is-negative');b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
   b.onclick=async()=>{if(!valid(state)||state.busy||state.session?.busy)return;if(!state.session){state.busy=true;b.disabled=true}try{await run()}catch(error){fail(state,error)}finally{if(current===state){state.busy=false;b.disabled=false}}};return b;
  }
  function wheels(state,target){
