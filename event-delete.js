@@ -17,7 +17,7 @@
  #eventModal #eventHeaderActions #closeEvent{display:grid;place-items:center;flex:none;width:42px;height:42px;min-width:42px;padding:11px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.24);color:#fff;opacity:.86}
  #eventModal #eventHeaderActions #closeEvent svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;fill:none}
  @media(prefers-reduced-motion:reduce){.okti-event-delete[data-state=idle] .okti-event-delete-thumb{transition:none}}
- `document.head.append(style);
+ `;document.head.append(style);
  const root=document.createElement('div');root.id='eventDeleteControl';root.className='okti-event-delete';root.dataset.state='idle';root.setAttribute('role','group');root.setAttribute('aria-label','Usuwanie wydarzenia');
  const label=document.createElement('span');label.className='okti-event-delete-label';label.setAttribute('aria-live','polite');label.textContent='';
  const thumb=document.createElement('button');thumb.type='button';thumb.className='okti-event-delete-thumb';thumb.setAttribute('aria-label','Usuń wydarzenie — przesuń kosz w lewo i przytrzymaj');thumb.title='Przesuń kosz w lewo i przytrzymaj. Klawiatura: przytrzymaj lewą strzałkę lub Enter.';thumb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg>';
