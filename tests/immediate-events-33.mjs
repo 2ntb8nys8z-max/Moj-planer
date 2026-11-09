@@ -56,7 +56,43 @@ try{
  begin([{id:'busy',title:'Zajęte',date:day,time:'15:45',endTime:'17:00'}]);
  let saving=turn('Wizyta 4 stycznia od 15:00 do 16:00',command({query:'Wizyta',date:day,startTime:'15:00',endTime:'16:00'}));
  for(let i=0;i<40&&!get('scheduleConfirm');i++)await new Promise(resolve=>w.setTimeout(resolve,5));
- assert.ok(get('scheduleConfirm'));assert.equal(stored().length,1);assert.equal(run('pendingVoiceItem.endTime'),'16:00');get('scheduleConfirm').click();await saving;assert.equal(stored().length,2);
+ assert.ok(get('scheduleConfirm'));assert.equal(stored().length,1);assert.equal(run('pendingVoiceItem.endTime'),'16:00');
+ assert.match(get('oktiDecisionQuestion').textContent,/17:00\n\nZapisać mimo to\?/,'The warning separates its date/time from the final question');
+ const override=get('scheduleConfirm');override.click();override.click();await saving;assert.equal(stored().length,2,'An override writes exactly one event');
+ assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?','There is no second save confirmation after an override');
+ // Back opens the existing microphone directly, preserving the full draft.
+ // Both typed and normalized-audio creation are followed by a real Worker correction.
+ run("savedRecorder=startPlannerRecording;savedLegacy=OktiCommunication.showLegacy;collisionDecisions=[];correctionStarts=0;OktiCommunication.showLegacy=(...args)=>{collisionDecisions.push(args[1]);return savedLegacy(...args)};startPlannerRecording=(channel,makeSession)=>{correctionStarts++;correctionSession=makeSession()}");
+ for(const audio of [false,true]){
+  begin([{id:'busy',title:'Zajęte',date:day,time:'22:00',endTime:'23:00'}]);
+  run('collisionDecisions=[];correctionStarts=0');
+  const pending=turn('Spotkanie z Anitką 4 stycznia od 22:00 do 23:00. Notatka: zabrać dokumenty.',event({title:'Spotkanie z Anitką',date:day,startTime:'22:00',endTime:'23:00',notes:'Zabrać dokumenty'}),audio);
+  for(let i=0;i<100&&!get('scheduleBack');i++)await new Promise(resolve=>w.setTimeout(resolve,5));
+  assert.ok(get('scheduleBack'));const oldSave=get('scheduleConfirm'),back=get('scheduleBack'),decisions=run('collisionDecisions.length');
+  back.click();back.click();await pending;await new Promise(resolve=>w.setTimeout(resolve,20));
+  assert.equal(stored().length,1,'Choosing correction never saves the overlapping event');assert.equal(run('correctionStarts'),1,'One correction choice starts the microphone once');
+  assert.equal(run('collisionDecisions.length'),decisions,'Back must not reopen the earlier save question');assert.equal(get('oktiDecision').hidden,true);
+  assert.equal(run('correctionSession.currentItem'),null,'An unsaved event is kept as a creation draft');assert.equal(run('correctionSession.dialogueState.draft.title'),'Spotkanie z Anitką');assert.equal(run('correctionSession.dialogueState.draft.date'),day);assert.equal(run('correctionSession.dialogueState.draft.notes'),'Zabrać dokumenty');assert.equal(run('plannerSchedulePending'),null);
+  oldSave.click();assert.equal(stored().length,1,'The discarded collision approval stays inert');
+  run('testSession=correctionSession');
+  if(audio){
+   await turn('Przenieś na 7:00 do 8:00',event({startTime:'07:00',endTime:'08:00'},'modify'),true);
+   assert.ok(lastPayload.audio);assert.equal(stored().length,1,'A normalized ambiguous hour still needs clarification');assert.match(get('oktiDecisionQuestion').textContent,/07:00 czy 19:00/);
+  }
+  await turn('Przenieś na 19:00 do 20:00',event({startTime:'19:00',endTime:'20:00'},'modify'),!audio);
+  if(!audio)assert.ok(lastPayload.audio);assert.equal(lastPayload.dialogueState.draft.title,'Spotkanie z Anitką');assert.equal(lastPayload.currentItem,null);assert.equal(stored().length,2,'The corrected draft is saved without a second save question');
+  assert.equal(stored()[1].time,'19:00');assert.equal(stored()[1].endTime,'20:00');assert.equal(stored()[1].notes,'Zabrać dokumenty');assert.equal(stored()[0].time,'22:00');assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');
+ }
+ for(const control of ['voice','close']){
+  begin([{id:'busy',title:'Zajęte',date:day,time:'22:00',endTime:'23:00'}]);run('correctionStarts=0');
+  const pending=turn('Spotkanie 4 stycznia od 22:00 do 23:00',event({title:'Spotkanie',date:day,startTime:'22:00',endTime:'23:00'}));
+  for(let i=0;i<100&&!get('scheduleBack');i++)await new Promise(resolve=>w.setTimeout(resolve,5));
+  const button=control==='voice'?get('oktiDecision').querySelector('.okti-decision-voice'):get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]');button.click();await pending;await new Promise(resolve=>w.setTimeout(resolve,20));
+  assert.equal(stored().length,1);assert.equal(run('plannerSchedulePending'),null);
+  assert.equal(run('correctionStarts'),control==='voice'?1:0,'Only an explicit correction starts the microphone');
+  if(control==='voice'){assert.equal(get('oktiDecision').hidden,true);assert.equal(run('correctionSession.dialogueState.mode'),'create');}
+ }
+ run('startPlannerRecording=savedRecorder;OktiCommunication.showLegacy=savedLegacy');
  // Source name/body remain attached, saved with the source in one atomic record.
  begin();run("ideas=[{id:'source',title:'Zadzwonić do Ani',text:'Zadzwonić do Ani',content:'Omówić wyjazd',history:[]}];saveIdeas();openIdeaActions(ideas[0]);testSession=beginVoiceDialogue('idea','source',voiceDialogueCurrent('idea','source'))");
  await turn('Wrzuć do kalendarza 4 stycznia o 15:00',command({date:day,startTime:'15:00'},'modify'));

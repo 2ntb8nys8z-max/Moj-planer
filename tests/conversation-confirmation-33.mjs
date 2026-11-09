@@ -75,9 +75,9 @@ try{
  assert.equal(w.document.querySelectorAll('.modal-backdrop:not(.hidden)').length,0,'No separate warning modal');
  assert.match(reviewed.textContent,/Ten termin pokrywa się z wydarzeniem „Zajęty termin”/);assert.equal(run('tasks.length'),1,'Overlap cannot save before explicit approval');
  assert.equal(get('conversationConfirm').parentElement.classList.contains('hidden'),true);
- get('scheduleBack').click();await firstApproval;assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Nowe spotkanie');assert.equal(get('conversationConfirm').disabled,false);
- // Correction by the main microphone retains the project after returning.
- get('voice').click();await turn('Zmień godziny: od 23:30 do 23:45',eventAnswer({startTime:'23:30',endTime:'23:45'},'modify'),true);
+ get('scheduleBack').click();await firstApproval;await new Promise(resolve=>w.setTimeout(resolve,20));assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Nowe spotkanie');assert.equal(get('conversationConfirm'),null);assert.equal(get('oktiDecision').hidden,true,'Back starts correction without another approval');
+ // The automatically started main microphone retains the project after returning.
+ await turn('Zmień godziny: od 23:30 do 23:45',eventAnswer({startTime:'23:30',endTime:'23:45'},'modify'),true);
  assert.equal(lastPayload.currentItem.title,'Nowe spotkanie');assert.equal(run('pendingVoiceItem.date'),'2027-01-04');assert.equal(run('pendingVoiceItem.startTime'),'23:30');
  await get('conversationConfirm').onclick();assert.equal(run('tasks.length'),2);assert.equal(run('tasks[1].time'),'23:30');
  // Explicit override still writes once, and closed/stale decisions never write.

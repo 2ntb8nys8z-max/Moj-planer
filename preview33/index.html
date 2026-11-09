@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.267</title>
+<title>Mój Planer — test integracji 33.268</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.267</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.267</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.267-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.268</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.268</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.268-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.267-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.268-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1579,6 +1579,17 @@ function offerCreatedEventLocation(task,inputSource=null){
     {label:'Nie — zakończ',run:()=>revealCreatedEvent(task)}
   ],current,{speak:inputSource==='audio',eventId:task.id,motion:'created-event',onDismiss:()=>revealCreatedEvent(task)});
 }
+function correctPendingVoiceEvent(item){
+  if(pendingVoiceItem!==item)return;
+  if(item.immediateCreation){
+    // This is still an unsaved creation, not an edit of a calendar event.
+    clearVoiceDialogue('main');
+    const session=beginVoiceDialogue('main',null,null);
+    session.history=pendingVoiceConversation.map(message=>({...message}));
+    session.dialogueState={engine:3,mode:'create',draft:structuredClone(item),allDay:!item.startTime,pendingField:'startTime',lastOperation:{status:'not_saved'}};
+  }
+  window.OktiCommunication?.startVoice('main');
+}
 async function saveCreatedVoiceEvent(item,sourceEntryId=null,history=[],inputSource=null){
   sourceEntryId=sourceEntryId??pendingIdeaConversion?.ideaId??null;
   pendingIdeaConversion=sourceEntryId?{ideaId:sourceEntryId}:null;
@@ -1599,7 +1610,7 @@ async function saveCreatedVoiceEvent(item,sourceEntryId=null,history=[],inputSou
   }
   if(plannerScheduleWarnings(candidates).length){
     showVoicePreview(fitted,history);
-    if(!await approvePlannerSchedule(candidates)||pendingVoiceItem!==fitted)return;
+    if(!await approvePlannerSchedule(candidates,[],{onCorrect:()=>correctPendingVoiceEvent(fitted)})||pendingVoiceItem!==fitted)return;
   }
   // No asynchronous work between reading the current calendar and the atomic commit.
   if(pendingVoiceItem!==fitted)return;
@@ -2110,7 +2121,7 @@ function plannerEditedCandidates(target,next,scope){
   return group.map(t=>{const d=new Date(t.date+'T12:00:00');d.setDate(d.getDate()+shift);return {...t,...next,date:iso(d)}});
 }
 let plannerSchedulePending=null;
-async function approvePlannerSchedule(proposed,excluded=[]){
+async function approvePlannerSchedule(proposed,excluded=[],{onCorrect}={}){
   const issues=plannerScheduleWarnings(proposed,excluded);if(!issues.length)return true;
   if(plannerSchedulePending){toast('Najpierw zakończ poprzednie potwierdzenie.');return false}
   const snapshot=JSON.stringify(tasks);const approved=await new Promise(resolve=>{
@@ -2133,12 +2144,12 @@ async function approvePlannerSchedule(proposed,excluded=[]){
     const question=document.createElement('p');question.textContent='Zapisać mimo to?';message.append(question);
     const row=document.createElement('div');row.className='voice-confirmation schedule-confirmation';row.setAttribute('aria-label','Decyzja o kolizji terminów');
     let finished=false;
-    const finish=ok=>{if(finished)return;finished=true;window.OktiCommunication?.finishLegacy(row,ok);message.remove();row.remove();priorActions?.classList.remove('hidden');document.removeEventListener('keydown',keys);plannerSchedulePending=null;for(const node of suspended)node.classList.remove('hidden');if(created){box.remove();if(channel==='main')$('mainConversationTools')?.remove()}resolve(ok)};
+    const finish=(ok,correct=false)=>{if(finished)return;finished=true;window.OktiCommunication?.finishLegacy(row,ok,!(correct&&onCorrect));message.remove();row.remove();priorActions?.classList.remove('hidden');document.removeEventListener('keydown',keys);plannerSchedulePending=null;for(const node of suspended)node.classList.remove('hidden');if(created){box.remove();if(channel==='main')$('mainConversationTools')?.remove()}resolve(ok);if(correct&&onCorrect)onCorrect()};
     const keys=event=>{if(event.key==='Escape'){event.preventDefault();finish(false)}};document.addEventListener('keydown',keys);
     const yes=document.createElement('button');yes.type='button';yes.id='scheduleConfirm';yes.textContent='Zapisz mimo to';yes.onclick=()=>finish(true);
-    const no=document.createElement('button');no.type='button';no.id='scheduleBack';no.textContent='Wróć';no.onclick=()=>finish(false);
+    const no=document.createElement('button');no.type='button';no.id='scheduleBack';no.textContent='Wróć';no.onclick=()=>finish(false,true);
     row.append(no,yes);box.append(message,row);box.scrollTop=box.scrollHeight;
-    window.OktiCommunication?.showLegacy(channel,message.textContent,[{label:'Wróć — popraw termin',original:no,cancel:true},{label:'Zapisz mimo to',original:yes,primary:true}],row);
+    window.OktiCommunication?.showLegacy(channel,[...message.querySelectorAll('p,a')].map(node=>node.textContent).join('\n\n'),[{label:'Wróć — popraw termin',original:no,cancel:true},{label:'Zapisz mimo to',original:yes,primary:true}],row,null,{onClose:()=>finish(false),onVoice:onCorrect?()=>finish(false,true):undefined});
     plannerSchedulePending={channel,cancel:()=>finish(false)};
     requestAnimationFrame(()=>{if(yes.isConnected)yes.focus({preventScroll:true})});
   });
@@ -2584,7 +2595,7 @@ function showVoicePreview(item,history=[],dialogueState=null){
   actions.append(no,yes);box.append(actions);box.scrollTop=box.scrollHeight;
   window.OktiCommunication?.showLegacy('main',summary,[{label:'Nie — odrzuć',original:no,cancel:true},{label:'Tak — zapisz',original:yes,primary:true}],actions,current);
 }
-$("confirmVoice").onclick=async()=>{let createdForLocation=null;if(voiceDialogues.main||!pendingVoiceItem)return;if(pendingVoiceItem.immediateCreation)return saveCreatedVoiceEvent(pendingVoiceItem,pendingIdeaConversion?.ideaId,pendingVoiceConversation);if(pendingVoiceItem.type==="idea"){saveNewEntry(pendingVoiceItem);return}else if(pendingVoiceItem.type==='reminder'){const item=pendingVoiceItem;saveNewEntry({type:'idea',title:item.message,text:item.message,alarm:{date:item.date,time:item.time,startTime:item.time,message:item.message,deliveredAt:null}});return}else{if(!pendingVoiceItem.date){toast("Brak daty wydarzenia");return}const candidate=pendingVoiceItem;if(!await approvePlannerSchedule(plannerSeriesCandidates(candidate)))return;if(pendingVoiceItem!==candidate)return;const priorTaskIds=new Set(tasks.map(t=>t.id));const made=pendingVoiceItem.recurrence?addRecurringTasks(pendingVoiceItem):(addTask(pendingVoiceItem.title,pendingVoiceItem.date,pendingVoiceItem.startTime||"",pendingVoiceItem.endTime||"","Osobiste",pendingVoiceItem.notes||"",pendingVoiceItem.reminder||null,null,pendingVoiceItem.location||""),1);for(const t of tasks)if(!priorTaskIds.has(t.id)){applyVoicePlaceMetadata(t,pendingVoiceItem);if(pendingIdeaConversion)t.sourceEntryId=pendingIdeaConversion.ideaId;}saveTasks();createdForLocation=tasks.find(task=>!priorTaskIds.has(task.id));if(pendingIdeaConversion){const idea=ideas.find(i=>i.id===pendingIdeaConversion.ideaId);if(idea){idea.done=false;idea.status="calendar";idea.calendarEventTitle=pendingVoiceItem.title;idea.calendarEventDate=pendingVoiceItem.date;saveIdeas();renderAll()}pendingIdeaConversion=null}showView("day");toast(pendingVoiceItem.recurrence?`🔁 Zapisano serię: ${made} wydarzeń`:"📅 Wydarzenie zapisane")}clearVoicePreview();if(createdForLocation)offerCreatedEventLocation(createdForLocation)};$("cancelVoice").onclick=()=>{pendingIdeaConversion=null;clearVoicePreview();toast("Usunięto")};function clearVoicePreview(){cancelPlannerRecording("main");clearVoiceDialogue("main");pendingVoiceItem=null;pendingVoiceConversation=[];pendingVoiceDialogueState=null;$("aiPreview").classList.add("hidden");$("previewTitle").textContent="";$("previewInfo").textContent="";$("voiceHint").textContent="Naciśnij mikrofon i powiedz, co dodać do Planera"}
+$("confirmVoice").onclick=async()=>{let createdForLocation=null;if(voiceDialogues.main||!pendingVoiceItem)return;if(pendingVoiceItem.immediateCreation)return saveCreatedVoiceEvent(pendingVoiceItem,pendingIdeaConversion?.ideaId,pendingVoiceConversation);if(pendingVoiceItem.type==="idea"){saveNewEntry(pendingVoiceItem);return}else if(pendingVoiceItem.type==='reminder'){const item=pendingVoiceItem;saveNewEntry({type:'idea',title:item.message,text:item.message,alarm:{date:item.date,time:item.time,startTime:item.time,message:item.message,deliveredAt:null}});return}else{if(!pendingVoiceItem.date){toast("Brak daty wydarzenia");return}const candidate=pendingVoiceItem;if(!await approvePlannerSchedule(plannerSeriesCandidates(candidate),[],{onCorrect:()=>correctPendingVoiceEvent(candidate)}))return;if(pendingVoiceItem!==candidate)return;const priorTaskIds=new Set(tasks.map(t=>t.id));const made=pendingVoiceItem.recurrence?addRecurringTasks(pendingVoiceItem):(addTask(pendingVoiceItem.title,pendingVoiceItem.date,pendingVoiceItem.startTime||"",pendingVoiceItem.endTime||"","Osobiste",pendingVoiceItem.notes||"",pendingVoiceItem.reminder||null,null,pendingVoiceItem.location||""),1);for(const t of tasks)if(!priorTaskIds.has(t.id)){applyVoicePlaceMetadata(t,pendingVoiceItem);if(pendingIdeaConversion)t.sourceEntryId=pendingIdeaConversion.ideaId;}saveTasks();createdForLocation=tasks.find(task=>!priorTaskIds.has(task.id));if(pendingIdeaConversion){const idea=ideas.find(i=>i.id===pendingIdeaConversion.ideaId);if(idea){idea.done=false;idea.status="calendar";idea.calendarEventTitle=pendingVoiceItem.title;idea.calendarEventDate=pendingVoiceItem.date;saveIdeas();renderAll()}pendingIdeaConversion=null}showView("day");toast(pendingVoiceItem.recurrence?`🔁 Zapisano serię: ${made} wydarzeń`:"📅 Wydarzenie zapisane")}clearVoicePreview();if(createdForLocation)offerCreatedEventLocation(createdForLocation)};$("cancelVoice").onclick=()=>{pendingIdeaConversion=null;clearVoicePreview();toast("Usunięto")};function clearVoicePreview(){cancelPlannerRecording("main");clearVoiceDialogue("main");pendingVoiceItem=null;pendingVoiceConversation=[];pendingVoiceDialogueState=null;$("aiPreview").classList.add("hidden");$("previewTitle").textContent="";$("previewInfo").textContent="";$("voiceHint").textContent="Naciśnij mikrofon i powiedz, co dodać do Planera"}
 function minutesBetween(start,end){if(!start||!end)return 0;const [sh,sm]=start.split(":").map(Number),[eh,em]=end.split(":").map(Number);let n=(eh*60+em)-(sh*60+sm);if(n<0)n+=1440;return n}
 function seriesOccurrenceOrder(task){
   const start=task.googleOriginalStart||task.googleData?.originalStartTime;
@@ -5655,7 +5666,7 @@ window.OktiCommunication=(()=>{
   const edits=node('div','okti-decision-edits');
   function openTyping(){if(!valid(state)||!canType||state.busy||state.session?.busy)return;card.classList.add('is-typing');h.classList.remove('okti-decision-sr');h.textContent=state.onText?'Wpisz lokalizację':'Wpisz odpowiedź';options.hidden=true;if(locationCopy)locationCopy.hidden=true;edits.hidden=true;typing.hidden=false;typing.style.display='flex';input.focus({preventScroll:true});input.setSelectionRange(0,input.value.length)};
   key.onclick=openTyping;key.hidden=true;
-  if(!state.actions||state.onText){const voice=node('button',(state.actions?'okti-decision-edit':'okti-decision-option')+' okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','','Zmień'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy)startVoice(state.channel)};edits.append(voice);}
+  if(!state.actions||state.onText){const voice=node('button',(state.actions?'okti-decision-edit':'okti-decision-option')+' okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','','Zmień'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy){if(state.onVoice)state.onVoice();else startVoice(state.channel)}};edits.append(voice);}
   if(canType){const write=node('button','okti-decision-edit');write.type='button';write.dataset.decisionTyping='';write.innerHTML=keyboard;write.append(node('strong','','Wpisz'));write.onclick=openTyping;edits.append(write);}
   if(edits.children.length)card.append(edits);
   requestAnimationFrame(()=>{if(valid(state))h.focus({preventScroll:true})});
@@ -5664,8 +5675,8 @@ window.OktiCommunication=(()=>{
  }
  function showActions(channel,question,actions,isCurrent,options={}){show({channel,question,actions,isCurrent,...options})}
  function showClarification(session,question){if(!voiceDialogueValid(session))return;show({session,channel:session.channel,question})}
- function showLegacy(channel,question,buttons,owner,isCurrent){const previous=current?.owner?.isConnected?current:null;buttons=[...buttons].sort((a,b)=>Number(b.primary===true)-Number(a.primary===true));show({channel,question,buttons,owner,isCurrent,previous,onClose:()=>{if(owner?.classList.contains('voice-confirmation')&&!owner.classList.contains('schedule-confirmation')){close(true);return}const cancel=buttons.find(b=>b.cancel);if(cancel?.original.isConnected)cancel.original.click();else close()}})}
- function finishLegacy(owner,approved){if(current?.owner!==owner)return;const previous=current.previous;close();if(!approved&&previous?.owner?.isConnected)show(previous)}
+ function showLegacy(channel,question,buttons,owner,isCurrent,options={}){const previous=current?.owner?.isConnected?current:null;buttons=[...buttons].sort((a,b)=>Number(b.primary===true)-Number(a.primary===true));show({channel,question,buttons,owner,isCurrent,previous,onClose:()=>{if(owner?.classList.contains('voice-confirmation')&&!owner.classList.contains('schedule-confirmation')){close(true);return}const cancel=buttons.find(b=>b.cancel);if(cancel?.original.isConnected)cancel.original.click();else close()},...options})}
+ function finishLegacy(owner,approved,restorePrevious=true){if(current?.owner!==owner)return;const previous=current.previous;close();if(!approved&&restorePrevious&&previous?.owner?.isConnected)show(previous)}
  function clear(channel){if(current?.channel===channel)close()}
  // Same 160ms press and 280ms rebound as the main calendar's glass keys.
  // Only the final synthetic click invokes the existing handler; drag/cancel
