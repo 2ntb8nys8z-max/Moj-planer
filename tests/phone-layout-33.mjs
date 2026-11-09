@@ -80,5 +80,12 @@ for(let i=0;i<dynamic.length;i++)for(let j=i+1;j<dynamic.length;j++){
 }
 assert.notEqual(dynamicButtons[2].style.left,dynamicButtons[3].style.left,'Concurrent events use separate columns');
 assert.equal(run('phoneTrackPosition(1)'), 'calc(100% - 8px)', 'Use the recovered right-hand track');
+// Width changes must rebuild the time axis as the travel controls move to a lower row.
+w.responsiveWidth=365;Object.defineProperty(w.document.getElementById('taskList'),'clientWidth',{configurable:true,get(){return w.responsiveWidth}});
+run("tasks=[{id:'responsive-a',title:'Pierwsze',date:iso(selected),time:'10:00',endTime:'11:00'},{id:'responsive-b',title:'Drugie',date:iso(selected),time:'11:00',endTime:'12:00'}];ideas=[];showView('day');renderAll()");
+const responsiveData=run('JSON.stringify(tasks)');
+w.responsiveWidth=295;w.dispatchEvent(new w.Event('resize'));await new Promise(resolve=>w.setTimeout(resolve,60));
+let resized=[...w.document.querySelectorAll('#taskList .phone-event')];assert.ok(parseFloat(resized[0].style.height)>=128,'Narrow cards gain a separate lower travel row after resize');assert.ok(parseFloat(resized[1].style.top)>=parseFloat(resized[0].style.top)+parseFloat(resized[0].style.height),'Expanded cards do not cover the next event');
+w.responsiveWidth=365;w.dispatchEvent(new w.Event('resize'));await new Promise(resolve=>w.setTimeout(resolve,60));resized=[...w.document.querySelectorAll('#taskList .phone-event')];assert.ok(parseFloat(resized[0].style.height)>=82&&parseFloat(resized[0].style.height)<128,'Widening restores the compact inline layout');assert.equal(run('JSON.stringify(tasks)'),responsiveData,'Responsive layout never changes event times or data');
 console.log('Phone skin: safe event overlays, visible time ranges, identical-span columns, compressed time, green free time, reminder axis, existing controls and no data mutation passed.');
 }finally{dom.window.close()}
