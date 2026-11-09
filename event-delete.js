@@ -3,28 +3,30 @@
  if(window.OktiEventDelete)return;
  const header=document.getElementById('eventHeaderActions'),modal=document.getElementById('eventModal');if(!header||!modal)return;
  const holdMs=800,style=document.createElement('style');style.textContent=`
- #eventModal #eventHeaderActions{width:100%;justify-self:stretch;align-items:flex-start}
- #eventModal .okti-event-delete{position:relative;flex:none;width:min(156px,calc(100% - 92px));height:42px;margin-right:auto;overflow:hidden;isolation:isolate;border:1px solid #ffffffad;border-radius:11px;background:linear-gradient(145deg,#fffdfa,#f4f1ed);box-shadow:inset 0 1px 1px #fff,0 3px 7px #112b3c24;color:#8e3d43;--delete-progress:0}
- .okti-event-delete:after{content:'';position:absolute;inset:auto 0 0;height:3px;transform:scaleX(0);transform-origin:left;background:#b45154;pointer-events:none}
+ #eventModal #eventHeaderActions{width:100%;justify-self:stretch;align-items:flex-start;position:relative;z-index:5;pointer-events:auto}
+ #eventModal .okti-event-delete{position:relative;flex:none;width:min(156px,calc(100% - 92px));height:44px;margin-right:auto;overflow:hidden;isolation:isolate;border:1px solid rgba(255,255,255,.28);border-radius:24px;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.24),0 2px 9px rgba(20,22,36,.10);color:rgba(255,255,255,.9);touch-action:none;--delete-progress:0}
+ .okti-event-delete:after{content:'';position:absolute;inset:auto 12px 5px;height:2px;transform:scaleX(0);transform-origin:right;background:rgba(255,255,255,.65);pointer-events:none}
  .okti-event-delete[data-state=holding]:after{transform:scaleX(1);transition:transform 800ms linear}
- .okti-event-delete-label{position:absolute;left:9px;right:45px;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font:750 13px/15px var(--okti-font,sans-serif);pointer-events:none;white-space:normal;text-align:center}
- .okti-event-delete[data-state=holding] .okti-event-delete-label{left:46px;right:5px;font-size:12px}
- #eventModal #eventHeaderActions .okti-event-delete-thumb{position:absolute;right:3px;top:2px;display:grid;place-items:center;width:36px;min-width:36px;height:36px;min-height:36px;margin:0!important;padding:8px!important;border:1px solid #d4b4b7!important;border-top-color:#fff!important;border-radius:8px;background:linear-gradient(145deg,#fff,#fcf3f3)!important;box-shadow:inset 0 1px 1px #fff,0 2px 3px #68434b28!important;color:#9f414a!important;touch-action:none;user-select:none;-webkit-tap-highlight-color:transparent}
- #eventModal #eventHeaderActions .okti-event-delete-thumb svg{width:20px;height:20px;pointer-events:none}
+ .okti-event-delete-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:rgba(255,255,255,.85);font:600 12px/1.2 var(--okti-font,sans-serif)}
+ #eventModal #eventHeaderActions .okti-event-delete-thumb{position:absolute;right:3px;top:3px;display:grid;place-items:center;width:38px;min-width:38px;height:38px;min-height:38px;margin:0!important;padding:8px!important;border:1px solid rgba(255,255,255,.3)!important;border-radius:21px;background:rgba(255,255,255,.14)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px rgba(255,255,255,.3),0 2px 5px rgba(15,20,30,.12)!important;color:#fff!important;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;z-index:2}
+ #eventModal #eventHeaderActions .okti-event-delete-thumb:active{cursor:grabbing}
+ #eventModal #eventHeaderActions .okti-event-delete-thumb svg{width:19px;height:19px;pointer-events:none;opacity:.88}
  .okti-event-delete[data-state=idle] .okti-event-delete-thumb{transition:transform 180ms ease}
- .okti-event-delete-thumb:focus-visible{outline:2px solid #a23e48;outline-offset:-2px}
+ .okti-event-delete-thumb:focus-visible{outline:2px solid #fff;outline-offset:2px}
  .okti-event-delete[aria-busy=true]{opacity:.7}
+ #eventModal #eventHeaderActions #closeEvent{display:grid;place-items:center;flex:none;width:42px;height:42px;min-width:42px;padding:11px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.24);color:#fff;opacity:.86}
+ #eventModal #eventHeaderActions #closeEvent svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;fill:none}
  @media(prefers-reduced-motion:reduce){.okti-event-delete[data-state=idle] .okti-event-delete-thumb{transition:none}}
- `;document.head.append(style);
+ `document.head.append(style);
  const root=document.createElement('div');root.id='eventDeleteControl';root.className='okti-event-delete';root.dataset.state='idle';root.setAttribute('role','group');root.setAttribute('aria-label','Usuwanie wydarzenia');
- const label=document.createElement('span');label.className='okti-event-delete-label';label.setAttribute('aria-live','polite');label.textContent='← Usuń';
+ const label=document.createElement('span');label.className='okti-event-delete-label';label.setAttribute('aria-live','polite');label.textContent='';
  const thumb=document.createElement('button');thumb.type='button';thumb.className='okti-event-delete-thumb';thumb.setAttribute('aria-label','Usuń wydarzenie — przesuń kosz w lewo i przytrzymaj');thumb.title='Przesuń kosz w lewo i przytrzymaj. Klawiatura: przytrzymaj lewą strzałkę lub Enter.';thumb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg>';
  root.append(label,thumb);header.prepend(root);
  let gesture=null,committing=false,suppressClickUntil=0;
  const current=task=>!!task&&activeTask===task&&tasks.includes(task)&&!modal.classList.contains('hidden')&&!document.hidden;
- function reset(){if(gesture?.timer)clearTimeout(gesture.timer);const old=gesture;gesture=null;if(old?.pointerId!=null){try{thumb.releasePointerCapture?.(old.pointerId)}catch(_){}}root.dataset.state='idle';root.removeAttribute('aria-busy');label.textContent='← Usuń';thumb.style.transform='translateX(0px)';thumb.disabled=committing}
+ function reset(){if(gesture?.timer)clearTimeout(gesture.timer);const old=gesture;gesture=null;if(old?.pointerId!=null){try{thumb.releasePointerCapture?.(old.pointerId)}catch(_){}}root.dataset.state='idle';root.removeAttribute('aria-busy');label.textContent='';thumb.style.transform='translateX(0px)';thumb.disabled=committing}
  async function finish(state){
-  if(gesture!==state||!current(state.task)){reset();return}clearTimeout(state.timer);gesture=null;committing=true;suppressClickUntil=performance.now()+1000;thumb.disabled=true;root.dataset.state='deleting';root.setAttribute('aria-busy','true');label.textContent='Usuwam…';
+  if(gesture!==state||!current(state.task)){reset();return}clearTimeout(state.timer);gesture=null;committing=true;suppressClickUntil=performance.now()+1000;thumb.disabled=true;root.dataset.state='deleting';root.setAttribute('aria-busy','true');label.textContent='';
   try{
    if(state.task.seriesId){await document.getElementById('actionDelete').onclick();return}
    const snapshot=PlannerData.snapshot(),remaining=tasks.filter(task=>task!==state.task),queue=[...snapshot.deleteQueue],task=state.task;
@@ -35,13 +37,20 @@
   }catch(error){toast('Nie udało się usunąć wydarzenia. '+(error.message||''))}
   finally{committing=false;reset()}
  }
- function arm(state){if(state.timer||gesture!==state)return;root.dataset.state='holding';label.textContent='Przytrzymaj';state.timer=setTimeout(()=>finish(state),holdMs)}
+ function arm(state){if(state.timer||gesture!==state)return;root.dataset.state='holding';label.textContent='';state.timer=setTimeout(()=>finish(state),holdMs)}
  thumb.onpointerdown=event=>{if(committing||event.button!==0||event.isPrimary===false||!current(activeTask))return;reset();event.preventDefault();gesture={task:activeTask,pointerId:event.pointerId,x:event.clientX,y:event.clientY,travel:Math.max(1,root.getBoundingClientRect().width-thumb.getBoundingClientRect().width-6)};root.dataset.state='sliding';try{thumb.setPointerCapture?.(event.pointerId)}catch(_){}};
  thumb.onpointermove=event=>{const state=gesture;if(!state||state.pointerId!==event.pointerId)return;const dx=state.x-event.clientX,dy=Math.abs(state.y-event.clientY);if(dy>20&&dy>Math.abs(dx)){reset();return}event.preventDefault();const progress=Math.max(0,Math.min(1,dx/state.travel));thumb.style.transform='translateX('+(-progress*state.travel)+'px)';if(progress>=.94)arm(state);else{clearTimeout(state.timer);state.timer=null;root.dataset.state='sliding';label.textContent='← Usuń'}};
  for(const name of ['pointerup','pointercancel','lostpointercapture'])thumb.addEventListener(name,event=>{if(gesture?.pointerId===event.pointerId)reset()});
  thumb.onkeydown=event=>{if(['Escape','ArrowRight'].includes(event.key)){event.preventDefault();reset();return}if(!['Enter',' ','ArrowLeft'].includes(event.key)||event.repeat||committing||!current(activeTask))return;event.preventDefault();reset();gesture={task:activeTask,key:event.key};thumb.style.transform='translateX('+(-Math.max(1,root.getBoundingClientRect().width-thumb.getBoundingClientRect().width-6))+'px)';arm(gesture)};
  thumb.onkeyup=event=>{if(gesture?.key===event.key){event.preventDefault();reset()}};thumb.onblur=()=>{if(gesture)reset()};
- thumb.onclick=event=>{event.preventDefault();event.stopPropagation();if(!committing&&performance.now()>=suppressClickUntil)toast('Przesuń kosz w lewo i przytrzymaj, aby usunąć wydarzenie.')};
+ thumb.onclick=event=>{event.preventDefault();event.stopPropagation()};
+ // Touch fallback for browsers where Pointer Events are not dispatched to the slider.
+ if(!window.PointerEvent){
+  const touchPoint=e=>{const t=e.changedTouches?.[0];return t?{pointerId:1,button:0,isPrimary:true,clientX:t.clientX,clientY:t.clientY,preventDefault:()=>e.preventDefault()}:null};
+  thumb.addEventListener('touchstart',e=>{const p=touchPoint(e);if(p)thumb.onpointerdown(p)},{passive:false});
+  thumb.addEventListener('touchmove',e=>{const p=touchPoint(e);if(p)thumb.onpointermove(p)},{passive:false});
+  for(const type of ['touchend','touchcancel'])thumb.addEventListener(type,()=>reset(),{passive:true});
+ }
  const originalOpen=openEventActions,originalClose=closeEventActions;openEventActions=function(...args){reset();return originalOpen.apply(this,args)};closeEventActions=function(...args){reset();return originalClose.apply(this,args)};
  document.addEventListener('scroll',()=>{if(gesture)reset()},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});window.addEventListener('blur',reset);
  new MutationObserver(()=>{if(modal.classList.contains('hidden')&&gesture)reset()}).observe(modal,{attributes:true,attributeFilter:['class']});
