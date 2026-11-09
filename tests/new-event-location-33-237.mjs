@@ -49,6 +49,32 @@ try{
  begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());const old=choices()[0];run("tasks[0].location='Adres dodany w międzyczasie';saveTasks()");await old.onclick();assert.equal(microphones,1);get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]').click();
  // Failed storage cannot produce the post-save offer; the existing retry remains available.
  begin();run("originalCommit=PlannerData.commit;PlannerData.commit=()=>{throw Error('Storage unavailable')}");await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create());assert.equal(run('tasks.length'),0);assert.notEqual(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');run('PlannerData.commit=originalCommit');
+ // An approved overlap must not be asked again after the optional address step.
+ for(const audio of [false,true]){
+  begin();run("tasks=[{id:'busy',title:'Zajęte',date:'2027-01-04',time:'22:00',endTime:'23:00'}];saveTasks()");
+  const creating=turn('Wymiana opon 4 stycznia od 22:00 do 23:00.',create({startTime:'22:00',endTime:'23:00'}),audio);
+  await waitFor(()=>get('scheduleConfirm'));get('scheduleConfirm').click();await creating;
+  assert.equal(run('tasks.length'),2);assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');const id=run('tasks[1].id'),starts=microphones;
+  await choices()[0].onclick();await waitFor(()=>run("plannerRecordings.event?.mode==='recording'"));assert.equal(microphones,starts+1);
+  transcript='Radeburg, Niemcy.';model={kind:'event',intent:'modify',action:'continue',reply:'Sprawdź.',operations:[{op:'set',field:'location',value:'Radeburg, Niemcy'}],focus:'',ambiguity:null,uiAction:null,locationContext:{city:'Radeburg',country:'Niemcy',clarification:null}};
+  await get('eventVoice').onclick();await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));await choices().find(button=>button.textContent==='Tak').onclick();
+  await waitFor(()=>run('plannerRecordings.event===null')||get('scheduleConfirm'));
+  assert.equal(get('scheduleConfirm'),null,'Adding an address must not repeat the already accepted overlap');assert.equal(get('oktiDecision').hidden,true);
+  assert.equal(run('tasks.length'),2);assert.equal(run('tasks[1].id'),id);assert.equal(run('tasks[1].location'),'Radeburg, Niemcy');assert.equal(run('tasks[1].googlePlace.placeId'),'place-Radeburg');assert.equal(run('tasks[1].time'),'22:00');assert.equal(run('tasks[1].endTime'),'23:00');assert.equal(run('tasks[1].notes'),'Zabrać dokumenty');assert.equal(run('tasks[0].time'),'22:00');
+ }
+ // A changed interval still needs approval, even against the same other event.
+ run("testSession=beginVoiceDialogue('event',tasks[1].id,voiceEventSnapshot(tasks[1]))");
+ const retiming=turn('Zmień termin na 22:15 do 23:15.',{kind:'event',intent:'modify',action:'continue',reply:'Sprawdź.',operations:[{op:'set',field:'startTime',value:'22:15'},{op:'set',field:'endTime',value:'23:15'}],focus:'',ambiguity:null,uiAction:null});
+ await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));get('eventChangeConfirm').click();await waitFor(()=>get('scheduleConfirm'));
+ assert.match(get('oktiDecisionQuestion').textContent,/pokrywa się/);get('scheduleBack').click();await retiming;assert.equal(run('tasks[1].time'),'22:00','Declining a newly changed overlap leaves the saved time intact');
+ // The manual editor uses the same baseline; a note edit cannot re-ask an old overlap.
+ get('editNotes').value='Notatka z formularza';await get('saveEdit').onclick();assert.equal(get('scheduleConfirm'),null);assert.equal(run('tasks[1].notes'),'Notatka z formularza');assert.equal(run('tasks[1].location'),'Radeburg, Niemcy');
+ // Adding the address can introduce a new travel problem, which must still be shown.
+ begin();run("tasks=[{id:'target',title:'Wymiana opon',date:'2027-01-04',time:'22:00',endTime:'23:00',notes:'Zabrać dokumenty'},{id:'busy',title:'Zajęte',date:'2027-01-04',time:'22:00',endTime:'23:00'},{id:'next',title:'Dalej',date:'2027-01-04',time:'23:00',endTime:'23:30',location:'Dresden, Niemcy'}];saveTasks();openEventActions(tasks[0]);testSession=beginVoiceDialogue('event','target',voiceEventSnapshot(tasks[0]))");
+ const locating=turn('Dodaj lokalizację Radeburg, Niemcy.',{kind:'event',intent:'modify',action:'continue',reply:'Sprawdź.',operations:[{op:'set',field:'location',value:'Radeburg, Niemcy'}],focus:'',ambiguity:null,uiAction:null,locationContext:{city:'Radeburg',country:'Niemcy',clarification:null}},true);
+ await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));await choices().find(button=>button.textContent==='Tak').onclick();await waitFor(()=>get('scheduleConfirm'));
+ assert.match(get('oktiDecisionQuestion').textContent,/Nie ma przerwy na dojazd/);assert.doesNotMatch(get('oktiDecisionQuestion').textContent,/pokrywa się/,'Only the newly introduced travel problem is reported');assert.equal(run('tasks[0].location'),undefined);
+ get('scheduleConfirm').click();await locating;assert.equal(run('tasks.length'),3);assert.equal(run('tasks[0].location'),'Radeburg, Niemcy');assert.equal(run('tasks[0].time'),'22:00');assert.equal(get('scheduleConfirm'),null);
  // Motion changes presentation only: durable save first, close animation, then reveal the exact event.
  w.matchMedia=query=>({matches:!query.includes('prefers-reduced-motion')});
  begin();await turn('Utwórz wydarzenie 4 stycznia o 17:00.',create(),true);
