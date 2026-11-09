@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.270-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.271-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.270-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.271-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2838,7 +2838,7 @@ function phoneEventLayout(records,date){
   for(const event of records){if(event.start>=until){flush();until=-1}group.push(event);until=Math.max(until,event.end)}flush();
  }
  columns(out.filter(event=>!anchors.has(event)),(event,slot,count,span)=>{
-  const track=count===1?([...anchors.values()].includes(event)?.8:.98):1;event.lane=slot;event.lanes=count;event.stack=0;event.geometryStart=track*slot/count;event.geometryEnd=track*(slot+span)/count;event.startInset=0;event.endInset=0;
+  const track=count===1?([...anchors.values()].includes(event)?.8:1):1;event.lane=slot;event.lanes=count;event.stack=0;event.geometryStart=track*slot/count;event.geometryEnd=track*(slot+span)/count;event.startInset=0;event.endInset=0;
  });
  const overlays=new Map();for(const [event,anchor] of anchors){if(!overlays.has(anchor))overlays.set(anchor,[]);overlays.get(anchor).push(event)}
  for(const [anchor,records] of overlays){const start=anchor.geometryStart,end=anchor.lanes===1?1:anchor.geometryEnd;
@@ -2859,15 +2859,15 @@ function phoneTimeAxis(events,points,from,to){
  const gaps=[];let cursor=from;for(const range of merged){if(range.start-cursor>=90)gaps.push({start:cursor,end:range.start});cursor=Math.max(cursor,range.end)}if(to-cursor>=90)gaps.push({start:cursor,end:to});
  const compressed=[...gaps.map(gap=>({...gap,target:64,kind:'free'}))];
  for(const range of merged){const duration=range.end-range.start;if(duration<180)continue;const boundaries=[range.start,range.end];for(const event of events){if(event.end<=range.start||event.start>=range.end)continue;boundaries.push(Math.max(range.start,event.start),Math.min(range.end,event.end))}boundaries.sort((a,b)=>a-b);let smallest=duration;for(let index=1;index<boundaries.length;index++){const step=boundaries[index]-boundaries[index-1];if(step>0)smallest=Math.min(smallest,step)}const scale=Math.max(.55,Math.min(1.15,26/smallest));if(scale<1.15)compressed.push({...range,target:duration*scale,kind:'busy'})}
- compressed.sort((a,b)=>a.start-b.start);const baseY=minute=>{let result=(minute-from)*1.15;for(const span of compressed){const elapsed=Math.max(0,Math.min(minute,span.end)-span.start);result-=elapsed*(1.15-span.target/(span.end-span.start))}return result},reminderExpansions=[],uniquePoints=[...new Set(points)].filter(Number.isFinite).sort((a,b)=>a-b),expandedY=minute=>baseY(minute)+reminderExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(let index=1;index<uniquePoints.length;index++){const start=uniquePoints[index-1],end=uniquePoints[index],distance=expandedY(end)-expandedY(start);if(end>start&&distance<48)reminderExpansions.push({start,end,value:48-distance})}const eventExpansions=[],eventY=minute=>expandedY(minute)+eventExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(const event of [...events].sort((a,b)=>a.start-b.start||a.end-b.end)){if(event.end-event.start>30||event.end<=event.start)continue;const distance=eventY(event.end)-eventY(event.start);const minimum=phoneEventMinimumHeight(event)+2;if(distance<minimum)eventExpansions.push({start:event.start,end:event.end,value:minimum-distance})}return {gaps,compressed,reminderExpansions,eventExpansions,y:eventY};
+ compressed.sort((a,b)=>a.start-b.start);const baseY=minute=>{let result=(minute-from)*1.15;for(const span of compressed){const elapsed=Math.max(0,Math.min(minute,span.end)-span.start);result-=elapsed*(1.15-span.target/(span.end-span.start))}return result},reminderExpansions=[],uniquePoints=[...new Set(points)].filter(Number.isFinite).sort((a,b)=>a-b),expandedY=minute=>baseY(minute)+reminderExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(let index=1;index<uniquePoints.length;index++){const start=uniquePoints[index-1],end=uniquePoints[index],distance=expandedY(end)-expandedY(start);if(end>start&&distance<48)reminderExpansions.push({start,end,value:48-distance})}const eventExpansions=[],eventY=minute=>expandedY(minute)+eventExpansions.reduce((sum,span)=>sum+span.value*Math.max(0,Math.min(1,(minute-span.start)/(span.end-span.start))),0);for(const event of [...events].sort((a,b)=>a.start-b.start||a.end-b.end)){if(event.end<=event.start)continue;const distance=eventY(event.end)-eventY(event.start);const minimum=phoneEventMinimumHeight(event)+2;if(distance<minimum)eventExpansions.push({start:event.start,end:event.end,value:minimum-distance})}return {gaps,compressed,reminderExpansions,eventExpansions,y:eventY};
 }
 let phoneReminderEditor=null;
 function phoneShowFreeTime(){return PlannerData.storage.getItem('okti-show-free-time')==='true'}
 function phoneClock(minute){return String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0')}
-function phoneEventGeometry(event){if(Number.isFinite(event.geometryStart)&&Number.isFinite(event.geometryEnd))return {start:event.geometryStart,end:event.geometryEnd,startInset:event.startInset||0,endInset:event.endInset||0};const lanes=Math.max(1,event.lanes||1);return lanes===1?{start:0,end:.8}:{start:event.lane/lanes,end:(event.lane+1)/lanes}}
-function phoneTrackPosition(fraction,inset=0){if(inset)return 'calc('+ (fraction*100).toFixed(4)+'% + '+(70-126*fraction+inset).toFixed(3)+'px)';if(fraction<=0)return '70px';if(fraction>=1)return 'calc(100% - 56px)';return 'calc('+(fraction*100).toFixed(4)+'% + '+(70-126*fraction).toFixed(3)+'px)'}
-function phoneTrackWidth(start,end,gap=4,startInset=0,endInset=0){const span=end-start;return 'calc('+(span*100).toFixed(4)+'% - '+(126*span+gap+startInset-endInset).toFixed(3)+'px)'}
-function phoneEventMinimumHeight(event){return event.lanes>=4?(eventReminderMinutes(event.task?.reminder)!==null&&event.task&&plannerLocation(event.task)?70:60):48}
+function phoneEventGeometry(event){if(Number.isFinite(event.geometryStart)&&Number.isFinite(event.geometryEnd))return {start:event.geometryStart,end:event.geometryEnd,startInset:event.startInset||0,endInset:event.endInset||0};const lanes=Math.max(1,event.lanes||1);return lanes===1?{start:0,end:1}:{start:event.lane/lanes,end:(event.lane+1)/lanes}}
+function phoneTrackPosition(fraction,inset=0){if(inset)return 'calc('+ (fraction*100).toFixed(4)+'% + '+(70-78*fraction+inset).toFixed(3)+'px)';if(fraction<=0)return '70px';if(fraction>=1)return 'calc(100% - 8px)';return 'calc('+(fraction*100).toFixed(4)+'% + '+(70-78*fraction).toFixed(3)+'px)'}
+function phoneTrackWidth(start,end,gap=4,startInset=0,endInset=0){const span=end-start;return 'calc('+(span*100).toFixed(4)+'% - '+(78*span+gap+startInset-endInset).toFixed(3)+'px)'}
+function phoneEventMinimumHeight(event){const span=Number.isFinite(event.geometryEnd)?event.geometryEnd-event.geometryStart:1/Math.max(1,event.lanes||1),width=(($('taskList')?.clientWidth||window.innerWidth-24)-78)*span-4;return event.lanes>=3||width<105?152:event.lanes===2||width<250?128:82}
 function phoneEventTextMode(event,height){return event.end-event.start<=30||height<42?'single-line':height>=74?'lines-3':'lines-2'}
 function phoneFitEventTitle(title){
  const text=title.querySelector('.phone-event-title-text'),time=title.querySelector('.phone-event-time'),style=getComputedStyle(title),clock=getComputedStyle(time),line=parseFloat(style.lineHeight)||18;
@@ -5380,7 +5380,7 @@ html:has(body.phone-layout),body.phone-layout{background:#f1f3f4}
  box.textContent='Diagnostyka 33.228 · Otwórz wydarzenie i dotknij Okti oraz plusa.';
 })();
 </script>
-<script src="travel-routes.js?v=1944f565653c3297"></script>
+<script src="travel-routes.js?v=25113467245e1244"></script>
 <style id="okti-communication-33-234">
 /* Large, opaque decisions in the existing blue/teal palette. Artwork is unchanged. */
 .okti-decision-shade{position:fixed;inset:0;z-index:19000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:#18384f70;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overscroll-behavior:contain}
@@ -5415,7 +5415,7 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout:h
 <style id="okti-calendar-art-33-247">
 /* Approved light glass keys. Geometry, event data and the existing sheet flight
    stay unchanged; titles follow their key only while pressing and releasing. */
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]{
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette]{
  --key-rim:#54858b;--key-rim-light:#a9c7c7;--key-rim-deep:#365f67;
  background-color:#fff!important;
  background-image:linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%)!important;
@@ -5427,42 +5427,42 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout:h
  transition:transform 260ms cubic-bezier(.2,.7,.25,1),box-shadow 260ms ease-out;
  -webkit-tap-highlight-color:transparent;touch-action:pan-y;
 }
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="sage"]{--key-rim:#6f927c;--key-rim-light:#b0c7b6;--key-rim-deep:#466751}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="sand"]{--key-rim:#b18a59;--key-rim-light:#d7c4a8;--key-rim-deep:#87623b}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="rose"]{--key-rim:#ab7e85;--key-rim-light:#d5b8bd;--key-rim-deep:#80575e}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card::after{
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette="sage"]{--key-rim:#6f927c;--key-rim-light:#b0c7b6;--key-rim-deep:#466751}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette="sand"]{--key-rim:#b18a59;--key-rim-light:#d7c4a8;--key-rim-deep:#87623b}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette="rose"]{--key-rim:#ab7e85;--key-rim-light:#d5b8bd;--key-rim-deep:#80575e}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card::after{
  content:'';position:absolute;left:44%;right:3px;bottom:-6px;height:2px;pointer-events:none;border-radius:100%;
  background:linear-gradient(90deg,transparent,#edf7f5 28%,#fff 60%,color-mix(in srgb,var(--key-rim-light) 65%,#fff) 80%,transparent);
  transform:rotate(-.6deg);transition:opacity 260ms ease-out
 }
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed::after{opacity:0;transition-duration:160ms}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card.okti-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card.okti-key-pressed::after{opacity:0;transition-duration:160ms}
 .phone-layout .phone-event-title.okti-key-copy{transition:transform 260ms cubic-bezier(.2,.7,.25,1)}
 .phone-layout .phone-event-title.okti-key-pressed{transform:translateY(4px);transition-duration:160ms}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-moving{pointer-events:none}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.done{filter:saturate(.55)}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card:focus-visible{outline:2px solid #286b94;outline-offset:2px}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card.okti-key-moving{pointer-events:none}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card.done{filter:saturate(.55)}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card:focus-visible{outline:2px solid #286b94;outline-offset:2px}
 .phone-layout .phone-event-title{color:#173b5b;text-shadow:0 1px 0 #ffffff50}
 .phone-layout .phone-event-time{color:#315271}
 .okti-event-flight-tile-art{position:absolute;inset:0;pointer-events:none}
-@media(prefers-reduced-motion:reduce){:is(#dayView,.okti-schedule-cutout) .okti-calendar-card,:is(#dayView,.okti-schedule-cutout) .okti-calendar-card::after,.phone-layout .phone-event-title.okti-key-copy{transition-duration:1ms!important}}
+@media(prefers-reduced-motion:reduce){:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card,:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card::after,.phone-layout .phone-event-title.okti-key-copy{transition-duration:1ms!important}}
 /* One inset colour bar lights a milky glass face inside a neutral glass rim. */
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]{
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette]{
  background-image:linear-gradient(90deg,color-mix(in srgb,var(--key-rim) 14%,transparent) 0%,color-mix(in srgb,var(--key-rim) 6%,transparent) 42%,transparent 85%),linear-gradient(165deg,#fff 6%,#fff 56%,#fafafa 100%)!important;
  border-width:1px;border-color:#e0e0e0;border-top-color:#fff;
  box-shadow:inset 0 1px 2px #fff,inset 0 -2px 2px #e1e1e1b8,1px 5px 3px -2px #47474726,2px 8px 9px -3px #4b4b4b24;
 }
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]::before{
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette]::before{
  content:'';position:absolute;left:6px;top:8px;bottom:8px;width:4px;border-radius:999px;
  background:linear-gradient(180deg,var(--key-rim-light),var(--key-rim) 42%,var(--key-rim));
  box-shadow:inset 1px 0 1px #ffffff85,0 0 7px color-mix(in srgb,var(--key-rim) 30%,transparent);
  pointer-events:none;
 }
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]:not(.phone-event){padding-left:18px}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-event-palette]:not(.phone-event){padding-left:18px}
 .phone-layout .okti-calendar-card[data-event-palette]+.phone-event-title{padding-left:17px}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-lanes]:not([data-lanes="1"])::before{left:1px;width:2px}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card[data-lanes]:not([data-lanes="1"])::before{left:1px;width:2px}
 .phone-layout .okti-calendar-card[data-event-palette]+.phone-event-title.narrow{padding-left:6px}
-:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed{box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114}
+:is(#dayView,.okti-schedule-cutout,.okti-route-focus) .okti-calendar-card.okti-key-pressed{box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114}
 </style>
 <style id="okti-compact-event-33-239">
 /* Event details sit above the existing dock, leaving the calendar visible. */
@@ -5918,7 +5918,7 @@ window.OktiEventMotion=(()=>{
 
 
 <script src="event-keys.js?v=50bd1125225c13b7"></script>
-<script src="event-weather.js?v=0dd9f95f2121eb37"></script>
+<script src="event-weather.js?v=67dc66cc48b76d76"></script>
 <style id="okti-compact-weather-2026">
 /* Forecast retrieval stays in its original panel; this view never changes geometry. */
 #eventModal #eventWeather{display:none!important}

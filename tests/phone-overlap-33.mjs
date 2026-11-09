@@ -59,7 +59,7 @@ function measure(records,width){
 }
 function assertReadable(events,width,label){
  for(const event of events){
-  assert.ok(event.card.width>0&&event.card.right<=width-56+epsilon,`${label}: ${event.id} retains the reminder gutter`);
+  assert.ok(event.card.width>0&&event.card.right<=width-8+epsilon,`${label}: ${event.id} fits the widened calendar track`);
   inside(event.title,event.card,`${label}: ${event.id} title wrapper fits its card`);
   inside(event.heading,event.title,`${label}: ${event.id} reserved title area fits its wrapper`);
   inside(event.time,event.title,`${label}: ${event.id} reserved hours area fits its wrapper`);
@@ -96,7 +96,7 @@ try{
   near(byId.d.card.left,byId.anchor.card.left+16,`${label}: D uses the first inset position`);
   assert.ok(byId.d.card.width>byId.a.card.width+20,`${label}: D uses the wider available area`);
   near(byId.solo.card.left,byId.anchor.card.left,`${label}: unconflicted short event starts normally left`);
-  near(byId.solo.card.width,(width-126)*.98-4,`${label}: unconflicted short event gains room for weather`);
+  near(byId.solo.card.width,width-78-4,`${label}: unconflicted short event gains room for weather`);
   for(const id of ['a','b','c','d'])assert.ok(byId[id].card.left>=byId.anchor.card.left+16-epsilon,`${label}: ${id} remains16px from the purple left edge`);
   assert.ok(byId.a.pin,'A includes its location icon');
 

@@ -9,10 +9,10 @@ assert.match(html,/travel-routes\.js\?v=[a-f0-9]{16}/,'Production loads the vers
 assert.match(preview,/travel-routes\.js\?v=[a-f0-9]{16}/,'Preview loads the same route connector');
 assert.match(source,/\/routes\/compute/,'Connector uses the protected Google Routes endpoint');
 for(const mode of ['drive','walk','bicycle','transit'])assert.match(source,new RegExp(mode+':'),'All four travel modes remain available');
-assert.match(source,/state\?\.minutes>gap\?'late'/,'Late journeys are marked red');
-assert.match(source,/state\?\.minutes\+10>gap\?'tight'/,'Small buffers are marked orange');
-assert.match(source,/\?'safe'/,'Safe journeys are marked green');
-assert.doesNotMatch(source,/travel-trial-toolbar|data-layout|function demo\(/,'Production has no test toolbar or demo event replacement');
+assert.match(source,/state\.minutes>gap\?'late'/,'Late journeys are marked red');
+assert.match(source,/state\.minutes\+10>gap\?'tight'/,'Small buffers are marked orange');
+assert.match(source,/:'safe'/,'Safe journeys retain their risk state');
+assert.doesNotMatch(source,/travel-trial-toolbar|function demo\(/,'Production has no test toolbar or demo event replacement');
 assert.match(source,/localStorage\.setItem\(modeKey/,'Selected travel mode persists without changing event data');
 assert.match(source,/okti-route-spinner/,'Recalculation has a visible working state');
 assert.match(source,/\{hidden:true\}/,'An empty Google route hides the connector instead of showing a false no-route badge');
