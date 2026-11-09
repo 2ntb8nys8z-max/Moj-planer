@@ -58,6 +58,8 @@ try{
  for(let i=0;i<40&&!get('scheduleConfirm');i++)await new Promise(resolve=>w.setTimeout(resolve,5));
  assert.ok(get('scheduleConfirm'));assert.equal(stored().length,1);assert.equal(run('pendingVoiceItem.endTime'),'16:00');
  assert.match(get('oktiDecisionQuestion').textContent,/17:00\n\nZapisać mimo to\?/,'The warning separates its date/time from the final question');
+ const cutout=get('oktiDecision').querySelector('.okti-schedule-cutout');assert.equal(cutout.dataset.previewEventId,'busy');assert.equal(cutout.querySelector('.phone-event-title-text').textContent,'Zajęte');assert.deepEqual([...cutout.querySelectorAll('.okti-schedule-hour span')].map(node=>node.textContent),['15:45','17:00']);assert.equal(cutout.querySelector('.okti-calendar-card').dataset.eventPalette,run('plannerEventPalette(tasks[0])'));
+ assert.equal(cutout.querySelector('button,input'),null,'The calendar excerpt is a static preview');assert.equal(get('oktiDecision').querySelector('.okti-decision-edits'),null,'The conflict decision only offers save or correct');assert.equal(get('oktiDecision').querySelector('[aria-label="Wróć — popraw termin"]').classList.contains('is-negative'),true);
  const override=get('scheduleConfirm');override.click();override.click();await saving;assert.equal(stored().length,2,'An override writes exactly one event');
  assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?','There is no second save confirmation after an override');
  // Back opens the existing microphone directly, preserving the full draft.
@@ -83,14 +85,13 @@ try{
   if(!audio)assert.ok(lastPayload.audio);assert.equal(lastPayload.dialogueState.draft.title,'Spotkanie z Anitką');assert.equal(lastPayload.currentItem,null);assert.equal(stored().length,2,'The corrected draft is saved without a second save question');
   assert.equal(stored()[1].time,'19:00');assert.equal(stored()[1].endTime,'20:00');assert.equal(stored()[1].notes,'Zabrać dokumenty');assert.equal(stored()[0].time,'22:00');assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');
  }
- for(const control of ['voice','close']){
+ for(const control of ['close']){
   begin([{id:'busy',title:'Zajęte',date:day,time:'22:00',endTime:'23:00'}]);run('correctionStarts=0');
   const pending=turn('Spotkanie 4 stycznia od 22:00 do 23:00',event({title:'Spotkanie',date:day,startTime:'22:00',endTime:'23:00'}));
   for(let i=0;i<100&&!get('scheduleBack');i++)await new Promise(resolve=>w.setTimeout(resolve,5));
-  const button=control==='voice'?get('oktiDecision').querySelector('.okti-decision-voice'):get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]');button.click();await pending;await new Promise(resolve=>w.setTimeout(resolve,20));
+  assert.equal(get('oktiDecision').querySelector('.okti-decision-voice'),null,'The redundant change microphone is removed from conflicts');const button=get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]');button.click();await pending;await new Promise(resolve=>w.setTimeout(resolve,20));
   assert.equal(stored().length,1);assert.equal(run('plannerSchedulePending'),null);
-  assert.equal(run('correctionStarts'),control==='voice'?1:0,'Only an explicit correction starts the microphone');
-  if(control==='voice'){assert.equal(get('oktiDecision').hidden,true);assert.equal(run('correctionSession.dialogueState.mode'),'create');}
+  assert.equal(run('correctionStarts'),0,'Closing the decision does not start the microphone');
  }
  run('startPlannerRecording=savedRecorder;OktiCommunication.showLegacy=savedLegacy');
  // Source name/body remain attached, saved with the source in one atomic record.

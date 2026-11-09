@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.269-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.270-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.269-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.270-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2099,7 +2099,7 @@ function plannerScheduleWarnings(proposed,excluded=[]){
       if(!overlap&&!(touching&&la&&lb&&plannerLocationKey(la)!==plannerLocationKey(lb)))continue;
       const key=[index,String(b.id??('new:'+b.date+':'+b.startTime)),overlap?'overlap':'travel'].join('|');if(seen.has(key))continue;seen.add(key);
       const aFirst=x.end===y.start,origin=aFirst?la:lb,destination=aFirst?lb:la;
-      warnings.push({kind:overlap?'overlap':'travel',title:b.title||'Wydarzenie',date:b.date,time:b.startTime??b.time??'',endTime:b.endTime||'',proposedDate:a.date,origin,destination,signature:JSON.stringify([key,x.start,x.end,y.start,y.end,...(overlap?[]:[plannerLocationKey(origin),plannerLocationKey(destination)])])});
+      warnings.push({eventId:b.id,eventPalette:plannerEventPalette(b),endDate:b.endDate||null,kind:overlap?'overlap':'travel',title:b.title||'Wydarzenie',date:b.date,time:b.startTime??b.time??'',endTime:b.endTime||'',proposedDate:a.date,origin,destination,signature:JSON.stringify([key,x.start,x.end,y.start,y.end,...(overlap?[]:[plannerLocationKey(origin),plannerLocationKey(destination)])])});
     }
   });return warnings;
 }
@@ -2150,7 +2150,7 @@ async function approvePlannerSchedule(proposed,excluded=[],{onCorrect,previous=[
     const yes=document.createElement('button');yes.type='button';yes.id='scheduleConfirm';yes.textContent='Zapisz mimo to';yes.onclick=()=>finish(true);
     const no=document.createElement('button');no.type='button';no.id='scheduleBack';no.textContent='Wróć';no.onclick=()=>finish(false,true);
     row.append(no,yes);box.append(message,row);box.scrollTop=box.scrollHeight;
-    window.OktiCommunication?.showLegacy(channel,[...message.querySelectorAll('p,a')].map(node=>node.textContent).join('\n\n'),[{label:'Wróć — popraw termin',original:no,cancel:true},{label:'Zapisz mimo to',original:yes,primary:true}],row,null,{onClose:()=>finish(false),onVoice:onCorrect?()=>finish(false,true):undefined});
+    window.OktiCommunication?.showLegacy(channel,[...message.querySelectorAll('p,a')].map(node=>node.textContent).join('\n\n'),[{label:'Wróć — popraw termin',original:no,cancel:true,negative:true},{label:'Zapisz mimo to',original:yes,primary:true}],row,null,{onClose:()=>finish(false),hideEdits:true,scheduleIssues:issues});
     plannerSchedulePending={channel,cancel:()=>finish(false)};
     requestAnimationFrame(()=>{if(yes.isConnected)yes.focus({preventScroll:true})});
   });
@@ -5415,7 +5415,7 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout:h
 <style id="okti-calendar-art-33-247">
 /* Approved light glass keys. Geometry, event data and the existing sheet flight
    stay unchanged; titles follow their key only while pressing and releasing. */
-#dayView .okti-calendar-card[data-event-palette]{
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]{
  --key-rim:#54858b;--key-rim-light:#a9c7c7;--key-rim-deep:#365f67;
  background-color:#fff!important;
  background-image:linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%)!important;
@@ -5427,42 +5427,42 @@ html:has(body.phone-layout),body.phone-layout,.phone-layout .app,.phone-layout:h
  transition:transform 260ms cubic-bezier(.2,.7,.25,1),box-shadow 260ms ease-out;
  -webkit-tap-highlight-color:transparent;touch-action:pan-y;
 }
-#dayView .okti-calendar-card[data-event-palette="sage"]{--key-rim:#6f927c;--key-rim-light:#b0c7b6;--key-rim-deep:#466751}
-#dayView .okti-calendar-card[data-event-palette="sand"]{--key-rim:#b18a59;--key-rim-light:#d7c4a8;--key-rim-deep:#87623b}
-#dayView .okti-calendar-card[data-event-palette="rose"]{--key-rim:#ab7e85;--key-rim-light:#d5b8bd;--key-rim-deep:#80575e}
-#dayView .okti-calendar-card::after{
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="sage"]{--key-rim:#6f927c;--key-rim-light:#b0c7b6;--key-rim-deep:#466751}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="sand"]{--key-rim:#b18a59;--key-rim-light:#d7c4a8;--key-rim-deep:#87623b}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette="rose"]{--key-rim:#ab7e85;--key-rim-light:#d5b8bd;--key-rim-deep:#80575e}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card::after{
  content:'';position:absolute;left:44%;right:3px;bottom:-6px;height:2px;pointer-events:none;border-radius:100%;
  background:linear-gradient(90deg,transparent,#edf7f5 28%,#fff 60%,color-mix(in srgb,var(--key-rim-light) 65%,#fff) 80%,transparent);
  transform:rotate(-.6deg);transition:opacity 260ms ease-out
 }
-#dayView .okti-calendar-card.okti-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
-#dayView .okti-calendar-card.okti-key-pressed::after{opacity:0;transition-duration:160ms}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed::after{opacity:0;transition-duration:160ms}
 .phone-layout .phone-event-title.okti-key-copy{transition:transform 260ms cubic-bezier(.2,.7,.25,1)}
 .phone-layout .phone-event-title.okti-key-pressed{transform:translateY(4px);transition-duration:160ms}
-#dayView .okti-calendar-card.okti-key-moving{pointer-events:none}
-#dayView .okti-calendar-card.done{filter:saturate(.55)}
-#dayView .okti-calendar-card:focus-visible{outline:2px solid #286b94;outline-offset:2px}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-moving{pointer-events:none}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.done{filter:saturate(.55)}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card:focus-visible{outline:2px solid #286b94;outline-offset:2px}
 .phone-layout .phone-event-title{color:#173b5b;text-shadow:0 1px 0 #ffffff50}
 .phone-layout .phone-event-time{color:#315271}
 .okti-event-flight-tile-art{position:absolute;inset:0;pointer-events:none}
-@media(prefers-reduced-motion:reduce){#dayView .okti-calendar-card,#dayView .okti-calendar-card::after,.phone-layout .phone-event-title.okti-key-copy{transition-duration:1ms!important}}
+@media(prefers-reduced-motion:reduce){:is(#dayView,.okti-schedule-cutout) .okti-calendar-card,:is(#dayView,.okti-schedule-cutout) .okti-calendar-card::after,.phone-layout .phone-event-title.okti-key-copy{transition-duration:1ms!important}}
 /* One inset colour bar lights a milky glass face inside a neutral glass rim. */
-#dayView .okti-calendar-card[data-event-palette]{
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]{
  background-image:linear-gradient(90deg,color-mix(in srgb,var(--key-rim) 14%,transparent) 0%,color-mix(in srgb,var(--key-rim) 6%,transparent) 42%,transparent 85%),linear-gradient(165deg,#fff 6%,#fff 56%,#fafafa 100%)!important;
  border-width:1px;border-color:#e0e0e0;border-top-color:#fff;
  box-shadow:inset 0 1px 2px #fff,inset 0 -2px 2px #e1e1e1b8,1px 5px 3px -2px #47474726,2px 8px 9px -3px #4b4b4b24;
 }
-#dayView .okti-calendar-card[data-event-palette]::before{
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]::before{
  content:'';position:absolute;left:6px;top:8px;bottom:8px;width:4px;border-radius:999px;
  background:linear-gradient(180deg,var(--key-rim-light),var(--key-rim) 42%,var(--key-rim));
  box-shadow:inset 1px 0 1px #ffffff85,0 0 7px color-mix(in srgb,var(--key-rim) 30%,transparent);
  pointer-events:none;
 }
-#dayView .okti-calendar-card[data-event-palette]:not(.phone-event){padding-left:18px}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-event-palette]:not(.phone-event){padding-left:18px}
 .phone-layout .okti-calendar-card[data-event-palette]+.phone-event-title{padding-left:17px}
-#dayView .okti-calendar-card[data-lanes]:not([data-lanes="1"])::before{left:1px;width:2px}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card[data-lanes]:not([data-lanes="1"])::before{left:1px;width:2px}
 .phone-layout .okti-calendar-card[data-event-palette]+.phone-event-title.narrow{padding-left:6px}
-#dayView .okti-calendar-card.okti-key-pressed{box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114}
+:is(#dayView,.okti-schedule-cutout) .okti-calendar-card.okti-key-pressed{box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114}
 </style>
 <style id="okti-compact-event-33-239">
 /* Event details sit above the existing dock, leaving the calendar visible. */
@@ -5516,6 +5516,23 @@ body:is(.event-sheet-open,.okti-event-transitioning) .voice-area :is(.octi-copy,
 @media(max-height:700px){.okti-decision-card{min-height:min(440px,calc(var(--okti-dialog-height,100dvh) - 24px))}.okti-decision-location{gap:15px;margin:2px 0}.okti-decision-edits{padding-top:14px}.okti-decision-edits .okti-decision-voice,.okti-decision-edit{min-height:62px}.okti-decision-card.is-typing{min-height:0}}
 @media(max-width:350px){.okti-decision-card{padding:17px}.okti-decision-header{gap:8px}.okti-decision-options.is-pair,.okti-decision-edits{gap:10px}.okti-decision-edit svg,.okti-decision-edits .okti-decision-voice svg{width:23px;height:23px}.okti-decision-address-copy span{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send){transition-duration:1ms}}
+</style>
+<style id="okti-schedule-preview-33-270">
+.okti-schedule-preview{display:flex;flex-direction:column;gap:15px;min-width:0}
+.okti-schedule-intro,.okti-schedule-question{margin:0;color:#193b5c;font-size:25px;font-weight:750;line-height:1.3}
+.okti-schedule-cutout{margin:0;min-width:0;background:#fff;border-radius:14px;padding:12px 10px 0;box-shadow:0 9px 18px -18px #263a4d55}
+.okti-schedule-date{font-size:16px;font-weight:650;color:#647181;line-height:1.35}
+.okti-schedule-axis{position:relative;padding:25px 5px 29px 55px;box-sizing:border-box;min-height:150px}
+.okti-schedule-hour{position:absolute;left:0;right:0;border-top:1px dashed #dfddd7}.okti-schedule-hour.is-start{top:25px}.okti-schedule-hour.is-end{bottom:29px}
+.okti-schedule-hour span{position:absolute;left:0;top:-9px;padding-right:8px;background:#fff;color:#647181;font-size:12px;line-height:18px;font-weight:650}
+.okti-schedule-cutout .okti-schedule-event{position:relative;z-index:1;min-height:96px;padding:0!important;box-sizing:border-box;pointer-events:none}
+.okti-schedule-cutout .phone-event-title{position:relative;display:flex;flex-direction:column;gap:7px;padding:14px 13px 13px 20px;overflow:hidden;white-space:normal;max-height:none;height:auto;color:#173b5b;font-size:18px;font-weight:750;line-height:22px;border-radius:10px}
+.okti-schedule-cutout .phone-event-title-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;max-height:none;overflow:hidden}
+.okti-schedule-cutout .phone-event-time{font-size:12px;font-weight:650;line-height:16px;color:#315271}
+.okti-schedule-travel,.okti-schedule-more{margin:0 0 12px;color:#647181;font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+.okti-decision-card.is-schedule .okti-decision-options{margin-top:4px}.okti-decision-card.is-schedule .okti-decision-option{min-height:72px}
+@media(max-height:700px){.okti-schedule-preview{gap:10px}.okti-schedule-intro,.okti-schedule-question{font-size:22px}.okti-schedule-cutout{padding:8px 8px 0}.okti-schedule-axis{padding-top:20px;padding-bottom:22px;min-height:130px}.okti-schedule-hour.is-start{top:20px}.okti-schedule-hour.is-end{bottom:22px}.okti-schedule-cutout .okti-schedule-event{min-height:88px}.okti-schedule-cutout .phone-event-title{padding-top:11px;padding-bottom:11px;font-size:17px}.okti-decision-card.is-schedule .okti-decision-option{min-height:62px}}
+@media(max-width:350px){.okti-schedule-axis{padding-left:48px}.okti-schedule-hour span{font-size:11px}.okti-schedule-cutout .phone-event-title{font-size:16px}}
 </style>
 <style id="okti-created-event-motion-33-238">
 /* A saved event stays in place; one light sweep identifies the new card. */
@@ -5603,8 +5620,8 @@ window.OktiCommunication=(()=>{
    catch(error){if(voiceDialogueValid(session))showClarification(session,error.message||'Nie udało się sprawdzić odpowiedzi. Spróbuj ponownie.')}
   },0);
  }
- function choiceButton(state,label,detail,run,primary=false){
-  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';if(/^Nie(?:\s|$|—)/.test(label))b.classList.add('is-negative');b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
+ function choiceButton(state,label,detail,run,primary=false,negative=false){
+  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';if(negative||/^Nie(?:\s|$|—)/.test(label))b.classList.add('is-negative');b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
   b.onclick=async()=>{if(!valid(state)||state.busy||state.session?.busy)return;if(!state.session){state.busy=true;b.disabled=true}try{await run()}catch(error){fail(state,error)}finally{if(current===state){state.busy=false;b.disabled=false}}};return b;
  }
  function wheels(state,target){
@@ -5625,17 +5642,33 @@ window.OktiCommunication=(()=>{
   cols[0].scrollTop=hour*44;cols[1].scrollTop=minute*44;update();target.append(save);
   requestAnimationFrame(()=>{if(valid(state)){cols[0].scrollTop=hour*44;cols[1].scrollTop=minute*44;update()}});
  }
+ function schedulePreview(issues){
+  const preview=node('div','okti-schedule-preview');preview.setAttribute('aria-hidden','true');
+  preview.append(node('p','okti-schedule-intro',issues.some(issue=>issue.kind==='overlap')?'Ten termin koliduje z:':'Brakuje czasu na dojazd:'));
+  for(const issue of issues.slice(0,20)){
+   const cutout=node('figure','okti-schedule-cutout');if(issue.eventId!=null)cutout.dataset.previewEventId=String(issue.eventId);
+   cutout.append(node('figcaption','okti-schedule-date',plannerDisplayDate(issue.date)+(issue.endDate&&issue.endDate!==issue.date?' – '+plannerDisplayDate(issue.endDate):'')));
+   const axis=node('div','okti-schedule-axis');
+   for(const [edge,label] of [['start',issue.time],['end',issue.endTime]]){const hour=node('div','okti-schedule-hour is-'+edge);hour.append(node('span','',label||'—'));axis.append(hour)}
+   const tile=node('div','okti-calendar-card okti-schedule-event');tile.dataset.eventPalette=issue.eventPalette||plannerEventPalette({title:issue.title});
+   const copy=node('div','phone-event-title'),title=node('span','phone-event-title-text',issue.title),time=node('small','phone-event-time',issue.time+(issue.endTime?'–'+issue.endTime:''));copy.append(title,time);tile.append(copy);axis.append(tile);cutout.append(axis);
+   if(issue.kind==='travel')cutout.append(node('p','okti-schedule-travel','Brak przerwy na dojazd: '+issue.origin+' → '+issue.destination));preview.append(cutout);
+  }
+  if(issues.length>20)preview.append(node('p','okti-schedule-more','Pozostałe kolizje: '+(issues.length-20)+'. Potwierdzenie dotyczy wszystkich.'));
+  preview.append(node('p','okti-schedule-question','Zapisać mimo to?'));return preview;
+ }
  function show(config){
   cancelKeyPress();stopSpeech();restore();const old=current;current={...config,revision:config.session?.dialogueState?.revision??0,busy:false};const state=current;
   if(shade.hidden)returnFocus=document.activeElement;
   for(const n of [document.querySelector('.app'),$('eventModal'),$('ideaModal')])if(n){suspended.push([n,n.inert]);n.inert=true}
-  card.replaceChildren();card.classList.remove('is-typing');shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
+  card.replaceChildren();card.classList.remove('is-typing');card.classList.toggle('is-schedule',!!state.scheduleIssues);shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
   if(state.motion==='created-event'){void card.offsetWidth;shade.classList.add('is-created-event')}
   const header=node('div','okti-decision-header');header.append(node('span','',state.title||'OCTI'));
   const read=node('button','okti-decision-icon');read.type='button';read.setAttribute('aria-label','Odczytaj pytanie');read.innerHTML=speaker;read.onclick=()=>speak(state.question);header.append(read);
   const key=node('button','okti-decision-icon');key.type='button';key.setAttribute('aria-label','Odpowiedz tekstowo');key.innerHTML=keyboard;header.append(key);
   const hide=node('button','okti-decision-icon','×');hide.type='button';hide.setAttribute('aria-label','Zamknij pytanie');hide.onclick=()=>{if(state.onClose)state.onClose();else if(state.motion==='created-event')return dismiss(state,state.onDismiss);else close(true)};header.append(hide);card.append(header);
   const h=node('h2','',state.question);h.id='oktiDecisionQuestion';h.tabIndex=-1;card.append(h);
+  if(state.scheduleIssues){h.classList.add('okti-decision-sr');card.append(schedulePreview(state.scheduleIssues))}
   let locationCopy=null;
   if(state.locationSummary){
    h.classList.add('okti-decision-sr');
@@ -5648,7 +5681,7 @@ window.OktiCommunication=(()=>{
   const ds=state.session?.dialogueState||{},clock=!!state.session&&(ds.activeHourChoice||['startTime','endTime'].includes(ds.pendingField)&&['create','reminder'].includes(ds.mode));
   if(clock)wheels(state,options);
   else if(state.actions?.length){for(const action of state.actions)options.append(choiceButton(state,action.label,action.detail,()=>dismiss(state,action.run),action.primary===true))}
-  else if(state.buttons?.length){for(const [i,b] of state.buttons.entries())options.append(choiceButton(state,b.label,b.detail,async()=>{if(!b.original.isConnected||b.original.disabled)return;if(b.original.onclick)await b.original.onclick();else b.original.click();if(current===state&&(!b.original.isConnected||b.done))close()},b.primary??(!state.buttons.some(button=>button.primary===true)&&i===state.buttons.length-1)))}
+  else if(state.buttons?.length){for(const [i,b] of state.buttons.entries())options.append(choiceButton(state,b.label,b.detail,async()=>{if(!b.original.isConnected||b.original.disabled)return;if(b.original.onclick)await b.original.onclick();else b.original.click();if(current===state&&(!b.original.isConnected||b.done))close()},b.primary??(!state.buttons.some(button=>button.primary===true)&&i===state.buttons.length-1),b.negative===true))}
   else{
    const choices=ds.clarificationChoices?.options||[];
    for(const [i,c] of choices.entries())options.append(choiceButton(state,c.label,c.detail,()=>answer(state,c.answer,{clarificationChoice:{id:ds.clarificationChoices.id,index:i,revision:state.revision}}),i===0));
@@ -5656,7 +5689,7 @@ window.OktiCommunication=(()=>{
   }
   if(!clock&&options.children.length===2&&[...options.children].every(button=>/^(?:Tak|Nie)\b/.test(button.querySelector('strong')?.textContent||'')))options.classList.add('is-pair');
   const error=node('p','okti-decision-error');error.setAttribute('role','alert');card.append(error);const status=node('p','okti-decision-status');status.setAttribute('role','status');card.append(status);
-  const replySession=state.session||voiceDialogues[state.channel],canType=!!state.onText||!!replySession&&voiceDialogueValid(replySession);
+  const replySession=state.session||voiceDialogues[state.channel],canType=!state.hideEdits&&(!!state.onText||!!replySession&&voiceDialogueValid(replySession));
   const typing=node('form','okti-decision-typing');typing.hidden=true;typing.style.display='none';
   const input=node('input');input.type='text';input.required=true;input.maxLength=state.onText?500:4000;input.value=state.inputValue||'';input.placeholder=state.inputLabel||'Wpisz odpowiedź';input.setAttribute('aria-label',state.inputLabel||'Odpowiedź dla Okti');
   const inputLabel=node('label','okti-decision-input-label',state.inputLabel||'Odpowiedź');input.id='oktiDecisionInput';inputLabel.htmlFor=input.id;
@@ -5667,7 +5700,7 @@ window.OktiCommunication=(()=>{
   const edits=node('div','okti-decision-edits');
   function openTyping(){if(!valid(state)||!canType||state.busy||state.session?.busy)return;card.classList.add('is-typing');h.classList.remove('okti-decision-sr');h.textContent=state.onText?'Wpisz lokalizację':'Wpisz odpowiedź';options.hidden=true;if(locationCopy)locationCopy.hidden=true;edits.hidden=true;typing.hidden=false;typing.style.display='flex';input.focus({preventScroll:true});input.setSelectionRange(0,input.value.length)};
   key.onclick=openTyping;key.hidden=true;
-  if(!state.actions||state.onText){const voice=node('button',(state.actions?'okti-decision-edit':'okti-decision-option')+' okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','','Zmień'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy){if(state.onVoice)state.onVoice();else startVoice(state.channel)}};edits.append(voice);}
+  if(!state.hideEdits&&(!state.actions||state.onText)){const voice=node('button',(state.actions?'okti-decision-edit':'okti-decision-option')+' okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','','Zmień'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy){if(state.onVoice)state.onVoice();else startVoice(state.channel)}};edits.append(voice);}
   if(canType){const write=node('button','okti-decision-edit');write.type='button';write.dataset.decisionTyping='';write.innerHTML=keyboard;write.append(node('strong','','Wpisz'));write.onclick=openTyping;edits.append(write);}
   if(edits.children.length)card.append(edits);
   requestAnimationFrame(()=>{if(valid(state))h.focus({preventScroll:true})});
