@@ -53,8 +53,8 @@ async function geometry(page){return page.evaluate(()=>{
    await page.evaluate(()=>OktiEventWeather.refresh());
    const weather=page.locator('[data-event-id="workshop"] .okti-event-card-weather');
    assert.equal(await weather.textContent(),'7°','The card shows weather for the event hour');
-   const weatherClear=await weather.evaluate(n=>{const clock=n.parentElement.nextElementSibling.querySelector('.phone-event-time').getBoundingClientRect(),r=n.getBoundingClientRect(),tile=n.parentElement.getBoundingClientRect();return clock.right<=r.left&&r.right<=tile.right-10&&r.top>=tile.top});
-   assert.equal(weatherClear,true,width+': weather clears both the time row and the travel connector markers');
+   const weatherClear=await weather.evaluate(n=>{const clock=n.parentElement.nextElementSibling.querySelector('.phone-event-time').getBoundingClientRect(),r=n.getBoundingClientRect(),tile=n.parentElement.getBoundingClientRect();return r.top>=clock.bottom+1&&r.left>=tile.left+5&&r.right<=tile.right-5&&r.bottom<=tile.bottom-3});
+   assert.equal(weatherClear,true,width+': weather sits below the time, inside the event card');
    const dataBefore=await page.evaluate(()=>JSON.stringify(tasks));
    assert.equal(new Set(await page.locator('.okti-calendar-card').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventArtwork))).size,fixture.length,'Every event has a different motif in this group');
    await page.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.okti-calendar-card')].map(n=>{const url=n.style.getPropertyValue('--calendar-art').match(/url\("(.*?)"\)/)?.[1];return url?new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Artwork failed: '+url));image.src=url;}):Promise.resolve();}));});
