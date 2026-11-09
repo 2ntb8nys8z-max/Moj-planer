@@ -29,9 +29,23 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    const fit=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,date:document.querySelector('.phone-day-number').scrollWidth<=document.querySelector('.phone-day-number').clientWidth,top:document.querySelector('#taskList').getBoundingClientRect().top,art:getComputedStyle(document.querySelector('.phone-sky-header'),'::before').display,white:getComputedStyle(document.querySelector('#taskList')).backgroundColor}));
    assert.equal(fit.overflow,false);assert.equal(fit.date,true,width+': full day/month fits');assert(fit.top<250,width+': compact header recovers calendar height');assert.equal(fit.art,'none');assert.equal(fit.white,'rgb(255, 255, 255)');
    await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-calendar.png'});
+   async function motionSamples(label,times){
+    return page.evaluate(({label,times})=>{
+     const key=document.querySelector(label==='date'?'#phoneDateButton':'#phoneWeatherButton'),glass=document.querySelector('.phone-day-glass-'+label),nodes=[key,glass],animations=nodes.flatMap(n=>n.getAnimations());
+     for(const a of animations)a.pause();
+     const samples=times.map(time=>{for(const a of animations)a.currentTime=time;return nodes.map(n=>{const r=n.getBoundingClientRect();return {height:r.height,center:r.y+r.height/2}})});
+     for(const a of animations)a.play();
+     return samples;
+    },{label,times});
+   }
    async function pressOpen(target,opposite,label){
     const rest=await target.boundingBox(),still=await opposite.boundingBox(),face=page.locator('.phone-day-glass-'+label),otherFace=page.locator('.phone-day-glass-'+(label==='date'?'weather':'date')),faceRest=await face.boundingBox(),otherFaceRest=await otherFace.boundingBox();
     await page.mouse.move(rest.x+rest.width/2,rest.y+rest.height/2);await page.mouse.down();
+    const down=await motionSamples(label,[0,80,160,280]);
+    for(let n=0;n<2;n++){
+     assert(Math.abs(down[0][n].height-rest.height)<.2,width+': pressure starts at rest');
+     for(let i=1;i<down.length;i++)assert(down[i-1][n].height>down[i][n].height+.2,width+': glass and label depress progressively rather than jumping');
+    }
     await target.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
     await face.evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));
     const held=await target.boundingBox(),glassHeld=await face.boundingBox();
@@ -45,6 +59,11 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false,'Holding never opens the forecast');
     if(width===390)await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-'+label+'-pressed.png'});
     await page.mouse.up();
+    const up=await motionSamples(label,[0,100,200,320]);
+    for(let n=0;n<2;n++){
+     for(let i=1;i<up.length;i++)assert(up[i][n].height>up[i-1][n].height+.05,width+': release rises smoothly without rebound');
+     assert(Math.abs(up.at(-1)[n].height-rest.height)<.2,width+': release returns to the original geometry');
+    }
    }
    const saved=await page.evaluate(()=>JSON.stringify(tasks));await pressOpen(date,weather,'date');await page.locator('#phoneDateModal').waitFor({state:'visible'});assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);assert.equal(await date.getAttribute('aria-expanded'),'true');
    await page.locator('.phone-date-prev').click();await page.locator('.phone-date-grid [data-date="2026-10-10"]').click();
@@ -92,6 +111,6 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
    }
    await context.close();
   }
-  assert.deepEqual(errors,[]);console.log('Shared header: optical surfaces and labels bend together, real touch taps and cancellation, independent held presses, release and cancellation, reduced motion, separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
+  assert.deepEqual(errors,[]);console.log('Shared header: progressive depression and smooth return, optical surfaces and labels bend together, real touch taps and cancellation, independent held presses, release and cancellation, reduced motion, separate date/weather dialogs, focus restoration, month selection, Today, independent weather motion, compact 320/390/430 px layout, white calendar and unchanged event data passed (forecast mocked).');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

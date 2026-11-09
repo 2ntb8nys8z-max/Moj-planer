@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.08.33.263-integration';
-const PREVIEW_VERSION='2026.11.08.33.263-test';
+const APP_VERSION='2026.11.09.33.264-integration';
+const PREVIEW_VERSION='2026.11.09.33.264-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.07.33.43-test';
 const WORKER_LABEL='Worker 33.43-test';
@@ -61,7 +61,7 @@ for(const file of listeningAssets){const hash=createHash('sha256').update(fs.rea
 output('octi-listening.js',listening,false);
 const listeningBuildId=createHash('sha256').update(listening).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-listening\.js(?:\?v=[a-z0-9]+)?/g,'octi-listening.js?v='+listeningBuildId);
-for(const file of ['octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp']){
+for(const file of ['octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
 }
@@ -109,7 +109,7 @@ output('index.html',canonical);
 output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
-for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 // Approved background collection: keep the integration preview byte-identical.
 const eventBackgroundDir='assets/event-backgrounds';
