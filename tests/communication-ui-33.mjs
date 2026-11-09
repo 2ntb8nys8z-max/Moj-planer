@@ -31,7 +31,7 @@ try{
  await turn('Mam pytanie',ask);assert.equal(options().length,4);assert.equal(run('tasks.length'),0);const old=options()[0],count=requestCount;
  get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]').click();await old.onclick();assert.equal(requestCount,count,'Closed decisions cannot send stale answers');assert.equal(run('voiceDialogues.main===testSession'),true,'Hiding a question preserves the conversation');
  run("showVoiceClarification(testSession,'Którą odpowiedź wybierasz?');started=null;startPlannerRecording=(channel,makeSession)=>{started={channel,session:makeSession()}};");
- options().find(b=>b.textContent==='Wybierz głosowo').click();await settle();assert.equal(get('oktiDecision').hidden,true);assert.equal(run('started.channel'),'main');assert.equal(run('started.session===testSession'),true);assert.equal(run('!!document.querySelector(".app").inert'),false);
+ options().find(b=>b.textContent==='Zmień').click();await settle();assert.equal(get('oktiDecision').hidden,true);assert.equal(run('started.channel'),'main');assert.equal(run('started.session===testSession'),true);assert.equal(run('!!document.querySelector(".app").inert'),false);
  // A turn failure keeps the question actionable for retry and never claims success.
  run("showVoiceClarification(testSession,'Którą odpowiedź wybierasz?');originalRequest=plannerApiRequest;plannerApiRequest=async()=>{throw Error('Test offline')}");
  await options()[0].onclick();assert.match(get('oktiDecision').querySelector('.okti-decision-error').textContent,/Test offline/);assert.equal(options()[0].disabled,false);assert.equal(run('tasks.length'),0);run('plannerApiRequest=originalRequest');

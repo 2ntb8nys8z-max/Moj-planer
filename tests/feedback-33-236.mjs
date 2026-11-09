@@ -29,7 +29,7 @@ try{
  transcript='Dopisz do notatki: odebrać samochód o 17:00.';
  model={kind:'event',intent:'modify',action:'continue',reply:'Sprawdź.',operations:[{op:'set',field:'notes',value:'Stara notatka\nodebrać samochód o 17:00'}],focus:'',ambiguity:null,uiAction:null};
  const editing=run('requestVoiceDialogue(testSession,{}).then(r=>r&&applyVoiceDialogueResult(testSession,r))');await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
- assert.doesNotMatch(get('oktiDecisionQuestion').textContent,/Rozpoznano:|Stara notatka.*→/);assert.deepEqual(options().slice(0,2).map(b=>b.textContent),['Tak — zmień','Nie — wróć']);assert.ok(options().some(b=>b.textContent==='Popraw głosowo'));assert.ok(!options().some(b=>b.textContent==='Wybierz głosowo'));
+ assert.doesNotMatch(get('oktiDecisionQuestion').textContent,/Rozpoznano:|Stara notatka.*→/);assert.deepEqual(options().slice(0,2).map(b=>b.textContent),['Tak — zmień','Nie — wróć']);assert.ok(options().some(b=>b.textContent==='Zmień'));assert.ok(!options().some(b=>b.textContent==='Popraw głosowo'));
  assert.equal(w.getComputedStyle(get('eventConversationPanel')).display,'none');
  await options().find(b=>b.textContent==='Tak — zmień').onclick();await editing;assert.equal(run('tasks[0].time'),'13:00');assert.equal(run('tasks[0].location'),'Riesa, Niemcy');assert.match(run('tasks[0].notes'),/odebrać/);assert.equal(w.getComputedStyle(get('eventConversationPanel')).display,'none');
  assert.equal(run("voiceEventChangePreview({location:'Riesa, Niemcy'},{location:'Görlitz, Niemcy'},['location'],'Zmień lokalizację na Görlitz')"),'Zmienić lokalizację na Görlitz, Niemcy?');

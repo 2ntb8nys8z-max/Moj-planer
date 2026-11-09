@@ -36,6 +36,7 @@ try{
     begin();maps=[place('Warszawa','first','12'),place('Warszawa','second','14')];
     const pending=turn('Mickiewicza w Warszawie.',answer('Mickiewicza, Warszawa'),audio);await waitFor(choosing);
     assert.deepEqual(options().map(button=>button.textContent),maps.map(result=>result.formatted_address));
+    assert.equal(get('oktiDecision').querySelector('.okti-decision-options').classList.contains('is-pair'),false,'Two long addresses retain full-width readable choices');
     assert.equal(get('googleLocationModal'),null);assert.equal(run('tasks[0].location'),'');
     await options()[1].onclick();await pending;
     assert.equal(run('tasks[0].googlePlace.placeId'),'second');assert.equal(run('tasks[0].notes'),'Ważna notatka');assert.equal(run('tasks.length'),1);
@@ -46,6 +47,22 @@ try{
   assert.deepEqual(options().map(button=>button.textContent),['Tak','Nie']);const stale=options()[0];await options()[1].onclick();await pending;
   assert.equal(run('tasks[0].location'),'');assert.equal(run('testSession.dialogueState.draft.location'),'');assert.equal(get('oktiDecision').hidden,true);
   await stale.onclick();assert.equal(run('tasks[0].location'),'','Old buttons cannot approve a rejected location');
+
+  // The visible keyboard action edits the address through the same Worker/session.
+  for(const audio of [false,true]){
+    begin();maps=[place('Warszawa','before','12')];pending=turn('Mickiewicza w Warszawie.',answer('Mickiewicza, Warszawa'),audio);await waitFor(choosing);
+    const write=[...get('oktiDecision').querySelectorAll('.okti-decision-edit')].find(button=>button.textContent==='Wpisz');assert.ok(write,'Typing is a visible labeled action');write.click();
+    const input=get('oktiDecisionInput');assert.equal(input.value,'Mickiewicza, Warszawa');assert.equal(get('oktiDecision').querySelector('.okti-decision-typing').hidden,false);assert.equal(get('oktiDecision').querySelector('.okti-decision-options').hidden,true);assert.equal(w.document.activeElement,input);
+    assert.equal(run('tasks[0].location'),'');input.value='Mickiewicza 14, Poznań';maps=[place('Poznań','typed','14')];model=answer('Mickiewicza 14, Poznań',[],{city:'Poznań',streetOnly:false});
+    get('oktiDecision').querySelector('.okti-decision-typing').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await pending;
+    await waitFor(()=>choosing()&&get('oktiDecisionQuestion').textContent.includes('Poznań'));
+    assert.match(lastPayload.text,/Zmień lokalizację na Mickiewicza 14, Poznań/);assert.equal(lastPayload.currentItem.eventId,'one');assert.equal(lastPayload.audio,undefined,'Keyboard edits remain typed input');assert.equal(run('tasks[0].location'),'');
+    await options()[0].onclick();await waitFor(()=>run('tasks[0].googlePlace?.placeId')==='typed');assert.equal(run('tasks[0].title'),'Spotkanie');assert.equal(run('tasks[0].notes'),'Ważna notatka');assert.equal(run('tasks.length'),1);
+  }
+  // Canceling the input returns to the existing decision without a lookup or mutation.
+  begin();maps=[place('Warszawa')];pending=turn('Mickiewicza w Warszawie',answer('Mickiewicza, Warszawa'));await waitFor(choosing);
+  [...get('oktiDecision').querySelectorAll('.okti-decision-edit')].find(button=>button.textContent==='Wpisz').click();const mapCount=mapCalls;get('oktiDecisionInput').value='Nie wysyłaj';get('oktiDecision').querySelector('.okti-decision-input-cancel').click();
+  assert.equal(mapCalls,mapCount);assert.equal(get('oktiDecision').querySelector('.okti-decision-typing').hidden,true);assert.equal(get('oktiDecisionInput').value,'Nie wysyłaj');assert.equal(run('tasks[0].location'),'');await options()[1].onclick();await pending;
 
   // A place choice never approves a simultaneous title change.
   begin();pending=turn('Zmień nazwę i adres.',answer('Mickiewicza, Warszawa',[{op:'set',field:'title',value:'Nowa nazwa'}]));await waitFor(choosing);await options()[0].onclick();

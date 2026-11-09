@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.265</title>
+<title>Mój Planer — test integracji 33.266</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.265</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.265</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.265-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.266</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.266</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.266-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.265-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.266-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1198,9 +1198,9 @@ async function choosePlannerVoiceLocation(item,session,current=()=>voiceDialogue
       if(globalThis.window?.OktiCommunication?.getState()?.locationPicker===picker)window.OktiCommunication.close();
       resolve({accepted:accepted&&fresh,confirmed:confirmed&&fresh,retry:!!retry&&fresh,question:typeof retry==='string'?retry:null,query});
     }
-    function show(question,actions){
+    function show(question,actions,locationSummary=null){
       if(!valid()){finish(false);return}
-      window.OktiCommunication.showActions(session.channel,question,actions,valid,{locationPicker:picker,onClose:()=>finish(false),speak:session.inputSource==='audio'});
+      window.OktiCommunication.showActions(session.channel,question,actions,valid,{locationPicker:picker,onClose:()=>finish(false),speak:session.inputSource==='audio',title:'Lokalizacja',locationSummary,inputValue:query,inputLabel:'Adres lub miejscowość',inputAction:'Szukaj',onText:value=>window.OktiCommunication.replyText(session,'Zmień lokalizację na '+value+'.')});
     }
     function select(place){if(!valid())return;setPlannerGooglePlace(item,place,query);finish(true)}
     plannerGooglePicker=picker;
@@ -1226,7 +1226,7 @@ async function choosePlannerVoiceLocation(item,session,current=()=>voiceDialogue
         if(places.length>3){finish(false,'Znalazłem kilka adresów w tej miejscowości. Podaj dokładniejszą ulicę lub numer budynku.');return;}
         // A city-only result must not silently stand in for the requested centre.
         const broad=place=>place.kind==='city'&&/\bcentrum\b/.test(query.toLocaleLowerCase('pl-PL'));
-        if(places.length===1){const place=places[0];show(`Znalazłem${broad(place)?' całe miasto':''}: ${place.label}. Wybrać?`,[{label:'Tak',primary:true,run:()=>select(place)},{label:'Nie',run:()=>finish(false)}]);return;}
+        if(places.length===1){const place=places[0];show(`Znalazłem${broad(place)?' całe miasto':''}: ${place.label}. Wybrać?`,[{label:'Tak',primary:true,run:()=>select(place)},{label:'Nie',run:()=>finish(false)}],{label:place.label,name:place.street?[place.street,place.number].filter(Boolean).join(' '):place.city||place.label,broad:broad(place)});return;}
         show('Znalazłem podobne miejsca. Które wybierasz?',places.map(place=>({label:place.label,detail:broad(place)?'Całe miasto — w zapytaniu podano centrum.':undefined,run:()=>select(place)})));
       }catch(_){
         if(valid())show('Nie udało się sprawdzić miejsca. Zachować podaną lokalizację?',[{label:'Tak',primary:true,run:()=>finish(true)},{label:'Nie',run:()=>finish(false)}]);else finish(false);
@@ -5471,6 +5471,37 @@ body:is(.event-sheet-open,.okti-event-transitioning) .voice-area :is(.octi-copy,
 @media(max-height:500px){#eventModal{--phone-bottom-inset:0px;padding-top:8px}#eventModal .event-sheet{max-height:calc(100dvh - 190px)}#eventModal #eventHeader{padding:10px 12px}#eventModal #eventFooter{bottom:calc(76px + var(--reply-keyboard-inset,0px))}}
 @media(prefers-reduced-motion:reduce){#eventModal .event-sheet{animation:none}}
 </style>
+<style id="okti-communication-glass-33-266">
+/* The large communication panel uses the same raised white keys as the plan. */
+.okti-decision-shade{inset:var(--okti-dialog-offset,0px) 0 auto;height:var(--okti-dialog-height,100dvh);background:#20252d42;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.okti-decision-card{position:relative;isolation:isolate;min-height:min(468px,calc(var(--okti-dialog-height,100dvh) - 28px));border:1px solid #d4d8db;border-top-color:#fff;border-radius:24px;background:linear-gradient(155deg,#fff 0%,#fff 65%,#f7f7f7 100%);color:#183959;box-shadow:inset 0 2px 2px #fff,inset 0 -3px 3px #dedfe1ad,0 1px 0 1px #ffffffba,0 18px 45px #17212d30}
+.okti-decision-card:before{content:'';position:absolute;inset:3px;border:1px solid #ffffffc7;border-radius:21px;pointer-events:none;z-index:-1}
+.okti-decision-card [hidden]{display:none!important}
+.okti-decision-header{color:#193f65;font-weight:750}.okti-decision-header span{overflow-wrap:anywhere;min-width:0}
+.okti-decision-card h2{font-weight:750;color:#193b5c}
+.okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send){position:relative;box-sizing:border-box;border:1px solid #dce0e2;border-top-color:#fff;border-radius:14px;background:linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%);color:#193b5c;box-shadow:inset 0 1px 2px #fff,inset 0 -2px 2px #e1e1e1b8,1px 5px 3px -2px #47474726,2px 8px 9px -3px #4b4b4b24;transform:translateY(0);transform-origin:center bottom;transition:transform 260ms cubic-bezier(.2,.7,.25,1),box-shadow 260ms ease-out;-webkit-tap-highlight-color:transparent;touch-action:pan-y}
+.okti-decision-card .okti-decision-option strong{font-weight:750}.okti-decision-card .okti-decision-option small{font-size:16px;color:#5b6a79}
+.okti-decision-card .okti-decision-option.is-primary{background-image:linear-gradient(90deg,#54858b10,transparent 65%),linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%);color:#193b5c;border-color:#d5dedd;border-top-color:#fff}
+.okti-decision-card .okti-decision-option.is-primary:before{content:'';position:absolute;left:6px;top:9px;bottom:9px;width:4px;border-radius:9px;background:linear-gradient(#adc9c8,#54858b);box-shadow:inset 1px 0 1px #ffffff85,0 0 7px #54858b25}
+.okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send).is-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
+.okti-decision-options.is-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.okti-decision-options.is-pair .okti-decision-option{text-align:center;align-items:center;padding-left:15px;padding-right:15px}
+.okti-decision-options.is-pair .is-primary strong:before{content:"✓";display:inline-block;margin-right:9px;font-weight:650}
+.okti-decision-edits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;border-top:1px solid #dfe2e4;padding-top:18px;margin-top:auto}
+.okti-decision-edits .okti-decision-voice,.okti-decision-edit{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:9px;min-height:72px;width:100%;margin:0;padding:12px 9px;font:inherit;white-space:normal;overflow-wrap:anywhere}
+.okti-decision-edit svg,.okti-decision-edits .okti-decision-voice svg{width:27px;height:27px;flex:none}.okti-decision-edit strong,.okti-decision-edits .okti-decision-voice strong{font-size:clamp(19px,4.6vw,23px);font-weight:750;line-height:1.2}
+.okti-decision-location{display:flex;flex-direction:column;gap:23px;margin:8px 0 2px}.okti-decision-intro{margin:0;color:#667387;font-size:18px;line-height:1.35}
+.okti-decision-address{display:flex;gap:14px;align-items:flex-start}.okti-decision-pin{color:#54858b;flex:none;width:30px;margin-top:3px}.okti-decision-pin svg{display:block;width:100%;height:34px}
+.okti-decision-address-copy{min-width:0;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere}.okti-decision-address-copy strong{font-size:clamp(26px,6vw,34px);font-weight:800;line-height:1.2}.okti-decision-address-copy span{font-size:19px;line-height:1.4;color:#667387}
+.okti-decision-location-question{margin:0;font-size:22px;line-height:1.35;font-weight:750}
+.okti-decision-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px!important;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap!important}
+.okti-decision-card.is-typing{min-height:0}.okti-decision-card.is-typing h2{font-size:25px;margin-bottom:8px}
+.okti-decision-typing{flex-direction:column;align-items:stretch;gap:12px}.okti-decision-input-label{font-size:16px;color:#667387;line-height:1.35}
+.okti-decision-typing input{box-sizing:border-box;min-height:54px;width:100%;flex:none;padding:13px 14px;border:1px solid #b6c5ce;border-radius:13px;background:#fff;color:#193b5c;box-shadow:inset 0 2px 3px #2d39480d;font-size:18px}
+.okti-decision-input-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:5px}.okti-decision-send{min-height:62px;padding:12px;font-size:19px;font-weight:750}.okti-decision-send:not(.okti-decision-input-cancel){border-color:#c3d4d5;background-image:linear-gradient(90deg,#54858b0e,transparent),linear-gradient(165deg,#fff,#fafafa)}
+@media(max-height:700px){.okti-decision-card{min-height:min(440px,calc(var(--okti-dialog-height,100dvh) - 24px))}.okti-decision-location{gap:15px;margin:2px 0}.okti-decision-edits{padding-top:14px}.okti-decision-edits .okti-decision-voice,.okti-decision-edit{min-height:62px}.okti-decision-card.is-typing{min-height:0}}
+@media(max-width:350px){.okti-decision-card{padding:17px}.okti-decision-header{gap:8px}.okti-decision-options.is-pair,.okti-decision-edits{gap:10px}.okti-decision-edit svg,.okti-decision-edits .okti-decision-voice svg{width:23px;height:23px}.okti-decision-address-copy span{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send){transition-duration:1ms}}
+</style>
 <style id="okti-created-event-motion-33-238">
 /* A saved event stays in place; one light sweep identifies the new card. */
 .okti-decision-shade.is-created-event{animation:okti-created-shade-in 420ms ease-out both}
@@ -5515,7 +5546,7 @@ window.OktiCommunication=(()=>{
   try{const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('pl'));if(voice)u.voice=voice;speechSynthesis.speak(u)}catch(_){}
  }
  function restore(){for(const [n,inert] of suspended)n.inert=inert;suspended=[]}
- function close(hideSource=false){stopSpeech();shade.hidden=true;shade.classList.remove('is-created-event','is-leaving');restore();if(hideSource&&current?.channel){$(current.channel+'Conversation')?.classList.add('hidden');$(current.channel+'Clarification')?.classList.add('hidden');if(current.channel==='main')$('mainConversationTools')?.classList.add('hidden');if(current.channel==='event')$('eventConversationPanel')?.classList.add('hidden')}const focus=returnFocus;current=null;if(focus?.isConnected&&!focus.closest('[inert]'))focus.focus({preventScroll:true})}
+ function close(hideSource=false){cancelKeyPress();stopSpeech();shade.hidden=true;shade.classList.remove('is-created-event','is-leaving');restore();if(hideSource&&current?.channel){$(current.channel+'Conversation')?.classList.add('hidden');$(current.channel+'Clarification')?.classList.add('hidden');if(current.channel==='main')$('mainConversationTools')?.classList.add('hidden');if(current.channel==='event')$('eventConversationPanel')?.classList.add('hidden')}const focus=returnFocus;current=null;if(focus?.isConnected&&!focus.closest('[inert]'))focus.focus({preventScroll:true})}
  async function dismiss(state,run){
   if(current!==state||state.leaving)return;
   state.leaving=true;stopSpeech();
@@ -5544,8 +5575,21 @@ window.OktiCommunication=(()=>{
   // Picker cancellation settles its current turn before the existing recorder is invoked.
   setTimeout(()=>{close();if(voiceDialogues[channel]?.busy||['opening','sending'].includes(plannerRecordings[channel]?.mode))return;if(button.onclick)button.onclick();else button.click()},0);
  }
+ function replyText(session,text){
+  if(!session||!voiceDialogueValid(session))return;
+  const cancel=current?.buttons?.find(button=>button.cancel);
+  if(cancel?.original?.isConnected)cancel.original.click();
+  if(plannerGooglePicker?.channel===session.channel)plannerGooglePicker.cancel();
+  close(true);
+  // Settle the pending location turn before reusing its session for typed input.
+  setTimeout(async()=>{
+   if(!voiceDialogueValid(session)||session.busy)return;
+   try{showClarification(session,'Sprawdzam odpowiedź…');const result=await requestVoiceDialogue(session,text);if(result)await applyVoiceDialogueResult(session,result)}
+   catch(error){if(voiceDialogueValid(session))showClarification(session,error.message||'Nie udało się sprawdzić odpowiedzi. Spróbuj ponownie.')}
+  },0);
+ }
  function choiceButton(state,label,detail,run,primary=false){
-  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
+  const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
   b.onclick=async()=>{if(!valid(state)||state.busy||state.session?.busy)return;if(!state.session){state.busy=true;b.disabled=true}try{await run()}catch(error){fail(state,error)}finally{if(current===state){state.busy=false;b.disabled=false}}};return b;
  }
  function wheels(state,target){
@@ -5567,16 +5611,24 @@ window.OktiCommunication=(()=>{
   requestAnimationFrame(()=>{if(valid(state)){cols[0].scrollTop=hour*44;cols[1].scrollTop=minute*44;update()}});
  }
  function show(config){
-  stopSpeech();restore();const old=current;current={...config,revision:config.session?.dialogueState?.revision??0,busy:false};const state=current;
+  cancelKeyPress();stopSpeech();restore();const old=current;current={...config,revision:config.session?.dialogueState?.revision??0,busy:false};const state=current;
   if(shade.hidden)returnFocus=document.activeElement;
   for(const n of [document.querySelector('.app'),$('eventModal'),$('ideaModal')])if(n){suspended.push([n,n.inert]);n.inert=true}
-  card.replaceChildren();shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
+  card.replaceChildren();card.classList.remove('is-typing');shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
   if(state.motion==='created-event'){void card.offsetWidth;shade.classList.add('is-created-event')}
-  const header=node('div','okti-decision-header');header.append(node('span','','OCTI'));
+  const header=node('div','okti-decision-header');header.append(node('span','',state.title||'OCTI'));
   const read=node('button','okti-decision-icon');read.type='button';read.setAttribute('aria-label','Odczytaj pytanie');read.innerHTML=speaker;read.onclick=()=>speak(state.question);header.append(read);
   const key=node('button','okti-decision-icon');key.type='button';key.setAttribute('aria-label','Odpowiedz tekstowo');key.innerHTML=keyboard;header.append(key);
   const hide=node('button','okti-decision-icon','×');hide.type='button';hide.setAttribute('aria-label','Zamknij pytanie');hide.onclick=()=>{if(state.onClose)state.onClose();else if(state.motion==='created-event')return dismiss(state,state.onDismiss);else close(true)};header.append(hide);card.append(header);
   const h=node('h2','',state.question);h.id='oktiDecisionQuestion';h.tabIndex=-1;card.append(h);
+  let locationCopy=null;
+  if(state.locationSummary){
+   h.classList.add('okti-decision-sr');
+   locationCopy=node('div','okti-decision-location');
+   locationCopy.append(node('p','okti-decision-intro',state.locationSummary.broad?'Znalazłem całe miasto':'Znalazłem miejsce'));
+   const address=node('div','okti-decision-address'),pin=node('span','okti-decision-pin');pin.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+   const copy=node('div','okti-decision-address-copy'),name=state.locationSummary.name||state.locationSummary.label,detail=state.locationSummary.label.replace(name,'').replace(/\s+,/g,',').replace(/^[,\s]+|[,\s]+$/g,'');copy.append(node('strong','',name));if(detail)copy.append(node('span','',detail));address.append(pin,copy);locationCopy.append(address,node('p','okti-decision-location-question','Dodać do wydarzenia?'));card.append(locationCopy);
+  }
   const options=node('div','okti-decision-options');card.append(options);
   const ds=state.session?.dialogueState||{},clock=!!state.session&&(ds.activeHourChoice||['startTime','endTime'].includes(ds.pendingField)&&['create','reminder'].includes(ds.mode));
   if(clock)wheels(state,options);
@@ -5587,10 +5639,22 @@ window.OktiCommunication=(()=>{
    for(const [i,c] of choices.entries())options.append(choiceButton(state,c.label,c.detail,()=>answer(state,c.answer,{clarificationChoice:{id:ds.clarificationChoices.id,index:i,revision:state.revision}}),i===0));
    if(!choices.length&&ds.pendingField==='date')for(const [i,label] of ['Dzisiaj','Jutro','Inny dzień'].entries())options.append(choiceButton(state,label,null,()=>i<2?answer(state,label):openTyping(),i===0));
   }
+  if(!clock&&options.children.length===2&&[...options.children].every(button=>/^(?:Tak|Nie)\b/.test(button.querySelector('strong')?.textContent||'')))options.classList.add('is-pair');
   const error=node('p','okti-decision-error');error.setAttribute('role','alert');card.append(error);const status=node('p','okti-decision-status');status.setAttribute('role','status');card.append(status);
-  const typing=node('form','okti-decision-typing');typing.hidden=true;typing.style.display='none';const input=node('input');input.type='text';input.maxLength=4000;input.placeholder='Wpisz odpowiedź';input.setAttribute('aria-label','Odpowiedź dla Okti');const send=node('button','okti-decision-send','Wyślij');send.type='submit';typing.append(input,send);typing.onsubmit=e=>{e.preventDefault();if(input.value.trim()&&state.session)answer(state,input.value.trim())};card.append(typing);
-  function openTyping(){if(!state.session)return;typing.hidden=false;typing.style.display='flex';input.focus()};key.onclick=openTyping;key.hidden=!state.session;
-  if(!state.actions){const voice=node('button','okti-decision-option okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','',state.buttons?.length?'Popraw głosowo':'Wybierz głosowo'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy)startVoice(state.channel)};card.append(voice);}
+  const replySession=state.session||voiceDialogues[state.channel],canType=!!state.onText||!!replySession&&voiceDialogueValid(replySession);
+  const typing=node('form','okti-decision-typing');typing.hidden=true;typing.style.display='none';
+  const input=node('input');input.type='text';input.required=true;input.maxLength=state.onText?500:4000;input.value=state.inputValue||'';input.placeholder=state.inputLabel||'Wpisz odpowiedź';input.setAttribute('aria-label',state.inputLabel||'Odpowiedź dla Okti');
+  const inputLabel=node('label','okti-decision-input-label',state.inputLabel||'Odpowiedź');input.id='oktiDecisionInput';inputLabel.htmlFor=input.id;
+  const send=node('button','okti-decision-send',state.inputAction||'Wyślij');send.type='submit';
+  const back=node('button','okti-decision-send okti-decision-input-cancel','Anuluj');back.type='button';back.onclick=()=>{typing.hidden=true;typing.style.display='none';card.classList.remove('is-typing');h.classList.toggle('okti-decision-sr',!!state.locationSummary);h.textContent=state.question;options.hidden=false;if(locationCopy)locationCopy.hidden=false;edits.hidden=false;(edits.querySelector('[data-decision-typing]')||hide).focus({preventScroll:true})};
+  const inputActions=node('div','okti-decision-input-actions');inputActions.append(back,send);typing.append(inputLabel,input,inputActions);
+  typing.onsubmit=e=>{e.preventDefault();if(!valid(state)||state.busy||!input.value.trim())return;if(state.onText)state.onText(input.value.trim());else if(state.session)answer(state,input.value.trim());else replyText(replySession,input.value.trim())};card.append(typing);
+  const edits=node('div','okti-decision-edits');
+  function openTyping(){if(!valid(state)||!canType||state.busy||state.session?.busy)return;card.classList.add('is-typing');h.classList.remove('okti-decision-sr');h.textContent=state.onText?'Wpisz lokalizację':'Wpisz odpowiedź';options.hidden=true;if(locationCopy)locationCopy.hidden=true;edits.hidden=true;typing.hidden=false;typing.style.display='flex';input.focus({preventScroll:true});input.setSelectionRange(0,input.value.length)};
+  key.onclick=openTyping;key.hidden=true;
+  if(!state.actions||state.onText){const voice=node('button',(state.actions?'okti-decision-edit':'okti-decision-option')+' okti-decision-voice');voice.type='button';voice.innerHTML=mic;voice.append(node('strong','','Zmień'));voice.onclick=()=>{if(valid(state)&&!state.busy&&!state.session?.busy)startVoice(state.channel)};edits.append(voice);}
+  if(canType){const write=node('button','okti-decision-edit');write.type='button';write.dataset.decisionTyping='';write.innerHTML=keyboard;write.append(node('strong','','Wpisz'));write.onclick=openTyping;edits.append(write);}
+  if(edits.children.length)card.append(edits);
   requestAnimationFrame(()=>{if(valid(state))h.focus({preventScroll:true})});
   setBusy(state.session,!!state.session?.busy);
   if(state.speak||state.session?.inputSource==='audio')speak(state.question,(state.channel||'main')+':'+state.revision+':'+state.question);
@@ -5600,12 +5664,42 @@ window.OktiCommunication=(()=>{
  function showLegacy(channel,question,buttons,owner,isCurrent){const previous=current?.owner?.isConnected?current:null;buttons=[...buttons].sort((a,b)=>Number(b.primary===true)-Number(a.primary===true));show({channel,question,buttons,owner,isCurrent,previous,onClose:()=>{if(owner?.classList.contains('voice-confirmation')&&!owner.classList.contains('schedule-confirmation')){close(true);return}const cancel=buttons.find(b=>b.cancel);if(cancel?.original.isConnected)cancel.original.click();else close()}})}
  function finishLegacy(owner,approved){if(current?.owner!==owner)return;const previous=current.previous;close();if(!approved&&previous?.owner?.isConnected)show(previous)}
  function clear(channel){if(current?.channel===channel)close()}
+ // Same 160ms press and 280ms rebound as the main calendar's glass keys.
+ // Only the final synthetic click invokes the existing handler; drag/cancel
+ // never activates a choice, and programmatic calls keep their old contract.
+ let keyPress=null,dispatchingKey=false;const cancelledKeys=new WeakMap();
+ const keyReduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ const keyPause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ function keyButton(target){const button=target?.closest?.('button');return button&&card.contains(button)&&!button.disabled&&!button.closest('.okti-decision-wheel')?button:null}
+ function restoreKey(record){record.animation?.cancel();record.button.classList.remove('is-key-pressed','is-key-releasing')}
+ function cancelKeyPress(){if(!keyPress)return;const record=keyPress;keyPress=null;record.cancelled=true;cancelledKeys.set(record.button,performance.now()+500);restoreKey(record)}
+ function beginKey(button,extra={}){if(keyPress)return null;const record={button,state:current,at:performance.now(),phase:'pressed',...extra};keyPress=record;button.classList.add('is-key-pressed');return record}
+ function keyValid(record){return keyPress===record&&!record.cancelled&&current===record.state&&!shade.hidden&&record.button.isConnected&&!record.button.disabled&&!document.hidden}
+ async function releaseKey(record){
+  if(keyPress!==record||record.phase!=='pressed')return;record.phase='releasing';
+  try{
+   const minimum=keyReduced()?0:Math.max(0,160-(performance.now()-record.at));if(minimum)await keyPause(minimum);if(!keyValid(record))return;
+   const transform=getComputedStyle(record.button).transform;record.button.classList.remove('is-key-pressed');record.button.classList.add('is-key-releasing');
+   if(!keyReduced()&&record.button.animate){record.animation=record.button.animate([{transform},{transform:'translateY(-2px)',offset:.67},{transform:'translateY(0)'}],{duration:280,easing:'cubic-bezier(.22,.65,.25,1)',fill:'both'});await record.animation.finished}else if(!keyReduced())await keyPause(280);
+   if(!keyValid(record))return;restoreKey(record);if(!keyReduced())await keyPause(70);if(!keyValid(record))return;
+   keyPress=null;dispatchingKey=true;try{record.button.click()}finally{dispatchingKey=false}
+  }catch(error){if(error?.name!=='AbortError')console.error('Decision key animation:',error)}
+  finally{if(keyPress===record){restoreKey(record);keyPress=null}}
+ }
+ shade.addEventListener('pointerdown',event=>{if(event.isPrimary===false||(event.pointerType==='mouse'&&event.button!==0))return;const button=keyButton(event.target);if(button)beginKey(button,{pointerId:event.pointerId,x:event.clientX,y:event.clientY})},true);
+ document.addEventListener('pointermove',event=>{if(keyPress?.phase==='pressed'&&keyPress.pointerId===event.pointerId&&Math.hypot(event.clientX-keyPress.x,event.clientY-keyPress.y)>14)cancelKeyPress()},true);
+ document.addEventListener('pointerup',event=>{const record=keyPress;if(!record||record.pointerId!==event.pointerId||record.phase!=='pressed')return;const rect=record.button.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom){cancelKeyPress();return}releaseKey(record)},true);
+ document.addEventListener('pointercancel',event=>{if(keyPress?.pointerId===event.pointerId)cancelKeyPress()},true);
+ shade.addEventListener('click',event=>{const button=keyButton(event.target);if(!button||dispatchingKey||event.detail===0&&!event.isTrusted)return;if(keyPress||(cancelledKeys.get(button)||0)>performance.now()){event.preventDefault();event.stopImmediatePropagation();return}if(event.detail===0){event.preventDefault();event.stopImmediatePropagation();const record=beginKey(button);if(record)releaseKey(record)}},true);
+ shade.addEventListener('keydown',event=>{if(![' ','Enter'].includes(event.key))return;const button=keyButton(event.target);if(!button)return;event.preventDefault();if(!event.repeat)beginKey(button,{key:event.key})},true);
+ document.addEventListener('keyup',event=>{if(keyPress?.phase==='pressed'&&keyPress.key===event.key){event.preventDefault();releaseKey(keyPress)}},true);
+ document.addEventListener('scroll',cancelKeyPress,true);window.addEventListener('blur',cancelKeyPress);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelKeyPress()});
  shade.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(current?.onClose)current.onClose();else if(current?.motion==='created-event')dismiss(current,current.onDismiss);else close(true);}
   if(e.key==='Tab'){const nodes=[...card.querySelectorAll('button:not(:disabled):not([tabindex="-1"]),input:not(:disabled),[role="spinbutton"]')].filter(n=>!n.hidden&&!n.closest('[hidden]'));const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===card.querySelector('h2'))){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}
  },true);
- function viewport(){shade.style.setProperty('--okti-dialog-height',(window.visualViewport?.height||window.innerHeight)+'px')};window.visualViewport?.addEventListener('resize',viewport);window.addEventListener('resize',viewport);viewport();
- return {showClarification,showActions,showLegacy,finishLegacy,clear,close,setBusy,startVoice,getState:()=>current};
+ function viewport(){shade.style.setProperty('--okti-dialog-height',(window.visualViewport?.height||window.innerHeight)+'px');shade.style.setProperty('--okti-dialog-offset',(window.visualViewport?.offsetTop||0)+'px')};window.visualViewport?.addEventListener('resize',viewport);window.addEventListener('resize',viewport);viewport();
+ return {showClarification,showActions,showLegacy,finishLegacy,clear,close,setBusy,startVoice,replyText,getState:()=>current};
 })();
 </script>
 
