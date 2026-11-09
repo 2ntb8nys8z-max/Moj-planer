@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.09.33.272-integration';
-const PREVIEW_VERSION='2026.11.09.33.272-test';
+const APP_VERSION='2026.11.09.33.273-integration';
+const PREVIEW_VERSION='2026.11.09.33.273-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.09.33.44-test';
 const WORKER_LABEL='Worker 33.44-test';
@@ -97,6 +97,12 @@ const eventWeatherBuildId=createHash('sha256').update(eventWeather).digest('hex'
 canonical=canonical.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
 preview=preview.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
 output('preview33/event-weather.js',eventWeather,false);
+const eventDelete=fs.readFileSync('event-delete.js','utf8');
+const eventDeleteBuildId=createHash('sha256').update(eventDelete).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v='+eventDeleteBuildId);
+preview=preview.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v='+eventDeleteBuildId);
+output('preview33/event-delete.js',eventDelete,false);
+
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';

@@ -11,7 +11,7 @@
  .okti-route-badge>svg{position:relative;width:26px;height:26px}.okti-route-badge>.okti-route-spinner{position:relative}
  .okti-route-duration{min-width:0;min-height:48px;padding:0 2px;border:0;border-radius:4px;box-shadow:none;background:transparent!important;color:#526477;font-size:15px;line-height:19px;font-weight:700;text-align:left;white-space:normal}
  .okti-route-controls[data-risk=late] .okti-route-duration{color:#ac5147}.okti-route-controls[data-risk=tight] .okti-route-duration{color:#97723f}
- .okti-route-controls[data-layout=compact]{flex-direction:column;gap:0}.okti-route-controls[data-layout=compact] .okti-route-duration{min-height:40px;font-size:13px;line-height:17px;text-align:center}
+ .okti-route-controls[data-layout=compact]{flex-direction:column;gap:0}.okti-route-controls[data-layout=compact] .okti-route-duration{min-height:34px;font-size:13px;line-height:17px;text-align:center}
  .okti-route-controls[data-layout=narrow] .okti-route-duration{font-size:14px;line-height:18px}.okti-route-controls button:focus-visible{outline:2px solid #bd882a;outline-offset:1px}
  .okti-route-focus{position:fixed;inset:0;z-index:24990;pointer-events:none}
  .okti-route-scrim{position:absolute;inset:0;pointer-events:auto;background:#29323e00;backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0);transition:background-color 520ms cubic-bezier(.4,0,.2,1),backdrop-filter 520ms cubic-bezier(.4,0,.2,1),-webkit-backdrop-filter 520ms cubic-bezier(.4,0,.2,1)}
@@ -99,10 +99,8 @@
   for(const mode of Object.keys(icons)){const option=document.createElement('button');option.type='button';option.dataset.mode=mode;option.setAttribute('role','radio');option.setAttribute('aria-label',names[mode]);option.innerHTML=svg(mode)+'<span>'+shortNames[mode]+'</span>';option.onclick=event=>{event.stopPropagation();if(mode===(saved[key]||'drive'))return;saved[key]=mode;try{localStorage.setItem(modeKey,JSON.stringify(saved))}catch(_){}calculate(key,menu.routeFrom,menu.routeTo,mode)};options.append(option)}
   options.onkeydown=event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;const buttons=[...options.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);if(index<0)return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowLeft'||event.key==='ArrowUp'?-1:1)+buttons.length)%buttons.length;buttons[next].focus({preventScroll:true});buttons[next].click()};
   menu.onkeydown=event=>{if(event.key!=='Tab')return;const buttons=[close,...options.querySelectorAll('[aria-checked=true]')];if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1).focus()}else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();close.focus()}};
-  // Bring both real cards into the calendar viewport before taking the sharp copies.
-  const scroller=$('taskList'),a=taskCard(from.id)?.getBoundingClientRect(),b=taskCard(to.id)?.getBoundingClientRect(),viewport=scroller?.getBoundingClientRect();if(a&&b&&viewport){const top=Math.min(a.top,b.top),bottom=Math.max(a.bottom,b.bottom),safeTop=Math.max(12,parseFloat(getComputedStyle(document.querySelector('.app')||document.body).getPropertyValue('--phone-top-inset'))||0),screenHeight=window.visualViewport?.height||window.innerHeight;if(bottom-top<viewport.height-24){if(top<viewport.top+12)scroller.scrollTop+=top-viewport.top-12;else if(bottom>viewport.bottom-12)scroller.scrollTop+=bottom-viewport.bottom+12}else if(bottom-top<screenHeight-safeTop-166){scroller.scrollTop+=top-safeTop}}
   document.body.append(menu);activeMenu=menu;menu.background=[document.querySelector('.app')||$('taskList')].filter(Boolean).map(element=>({element,inert:element.inert}));for(const node of menu.background)node.element.inert=true;
-  updateMenu(menu,button);makeFocus(menu);positionMenu(menu);ignoreScrollUntil=performance.now()+100;
+  updateMenu(menu,button);positionMenu(menu);makeFocus(menu);ignoreScrollUntil=performance.now()+100;
   if(motionEnabled()&&menu.animate)menu.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:360,delay:60,easing:'cubic-bezier(.2,.8,.25,1)',fill:'both'});
   menu.querySelector('[aria-checked=true]')?.focus({preventScroll:true});
  }
@@ -113,12 +111,20 @@
   for(const option of menu.querySelectorAll('[role=radio]')){const selected=option.dataset.mode===mode;option.setAttribute('aria-checked',String(selected));option.tabIndex=selected?0:-1}
  }
  function positionMenu(menu){
-  const target=taskCard(menu.routeTo.id),origin=taskCard(menu.routeFrom.id);if(!target||!origin)return;
-  const box=target.getBoundingClientRect(),first=origin.getBoundingClientRect(),view=window.visualViewport,leftEdge=view?.offsetLeft||0,topEdge=view?.offsetTop||0,width=view?.width||window.innerWidth,height=view?.height||window.innerHeight;
-  const app=document.querySelector('.app')?.getBoundingClientRect();menu.style.width=Math.min(300,Math.max(240,(app?.width||width)-24))+'px';const mw=menu.offsetWidth,mh=menu.offsetHeight;
-  let top=box.bottom+10;if(top+mh>topEdge+height-10){const before=Math.min(first.top,box.top)-mh-10;top=before>=topEdge+10?before:topEdge+height-mh-10}
-  menu.style.left=Math.max(leftEdge+10,Math.min(leftEdge+width-mw-10,box.right-mw))+'px';menu.style.top=Math.max(topEdge+10,top)+'px';
+  const target=taskCard(menu.routeTo.id);if(!target)return;
+  const view=window.visualViewport,leftEdge=view?.offsetLeft||0,topEdge=view?.offsetTop||0,width=view?.width||window.innerWidth,height=view?.height||window.innerHeight;
+  const app=document.querySelector('.app')?.getBoundingClientRect();menu.style.width=Math.min(300,Math.max(240,(app?.width||width)-24))+'px';menu.style.maxHeight=Math.max(60,height-20)+'px';menu.style.overflowY='auto';const mw=menu.offsetWidth,mh=menu.offsetHeight;
+  let box=target.getBoundingClientRect();const overflow=box.bottom+10+mh-(topEdge+height-10),scroller=$('taskList');
+  if(overflow>0&&scroller){
+   // The end of the day needs scroll room too. This changes only the visible
+   // timeline's tail; event dates and the piecewise time axis remain intact.
+   const missing=Math.max(0,overflow-(scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop)),timeline=target.closest('.phone-timeline');
+   if(missing>0&&timeline)timeline.style.height=(Math.max(parseFloat(timeline.style.height)||0,timeline.scrollHeight)+missing+2)+'px';
+   ignoreScrollUntil=performance.now()+200;scroller.scrollTop+=overflow;box=target.getBoundingClientRect();
+  }
+  menu.style.left=Math.max(leftEdge+10,Math.min(leftEdge+width-mw-10,box.right-mw))+'px';menu.style.top=(box.bottom+10)+'px';
  }
+
  function draw(){
   const timeline=document.querySelector('#taskList .phone-timeline');if(!timeline||!timeline.clientWidth){closeMenu(false,true);return}
   timeline.querySelectorAll('.okti-route-lines,.okti-route-nodes,.okti-route-controls,.okti-route-badge').forEach(node=>node.remove());
@@ -130,7 +136,7 @@
    const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
    const rect=b.node.getBoundingClientRect(),layout=rect.width>=280?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
-   const controlWidth=layout==='wide'?126:layout==='narrow'?Math.min(122,rect.width-10):Math.max(40,rect.width-8),controlHeight=layout==='compact'?98:48;
+   const controlWidth=layout==='wide'?126:layout==='narrow'?Math.min(122,rect.width-10):Math.max(40,rect.width-8),controlHeight=layout==='compact'?84:48;
    controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(layout==='wide'?rect.right-bounds.left-controlWidth-8:rect.left-bounds.left+(rect.width-controlWidth)/2)+'px';controls.style.top=(layout==='wide'?rect.top-bounds.top+(rect.height-controlHeight)/2+5:rect.bottom-bounds.top-controlHeight-4)+'px';
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
    const duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=label;
@@ -139,7 +145,7 @@
    const copy=b.node.nextElementSibling;if(copy?.matches('.phone-event-title')){copy.classList.add('has-inline-route');copy.dataset.routeLayout=layout}
    if(activeMenu?.dataset.routeKey===key){menuTrigger=activeMenu.routeTrigger?.classList.contains('okti-route-duration')?duration:modeButton;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
   }
-  if(activeMenu){if(menuTrigger){updateMenu(activeMenu,menuTrigger);refreshFocus(activeMenu);positionMenu(activeMenu)}else closeMenu(false,true)}
+  if(activeMenu){if(menuTrigger){updateMenu(activeMenu,menuTrigger);positionMenu(activeMenu);refreshFocus(activeMenu)}else closeMenu(false,true)}
  }
  window.flushPlannerRouteLayout=()=>{closeMenu(false,true);draw()};
  function queue(){cancelAnimationFrame(frame);frame=requestAnimationFrame(draw)}

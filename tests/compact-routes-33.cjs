@@ -1,6 +1,6 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
 const dom=new JSDOM('<div id="taskList"><div class="phone-timeline"><button class="phone-event" data-event-id="a"></button><button class="phone-event" data-event-id="b"></button></div></div>',{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true});
-const w=dom.window,document=w.document,calls=[];
+const w=dom.window,document=w.document,calls=[];let baseY=100;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(test){for(let i=0;i<100;i++){if(test())return;await wait(20)}throw Error('Timed out waiting for compact route state')}
 w.tasks=[{id:'a',title:'Pierwsze',time:'10:00',endTime:'11:00',location:'Berlin'},{id:'b',title:'Drugie',time:'13:00',endTime:'14:00',location:'Dresden'}];
@@ -12,7 +12,7 @@ Object.defineProperty(w.HTMLElement.prototype,'scrollHeight',{get(){return 900}}
 Object.defineProperty(w.HTMLElement.prototype,'offsetWidth',{get(){return this.classList.contains('okti-route-badge')?48:this.classList.contains('okti-route-menu')?244:350}});
 Object.defineProperty(w.HTMLElement.prototype,'offsetHeight',{get(){return this.classList.contains('okti-route-menu')?123:44}});
 w.HTMLElement.prototype.getBoundingClientRect=function(){
- const index=[...document.querySelectorAll('.phone-event')].indexOf(this),x=this.classList.contains('okti-route-badge')?Number.parseFloat(this.style.left):0,y=index>=0?100+index*150:Number.parseFloat(this.style.top)||0,width=this.classList.contains('phone-event')?294:this.offsetWidth,height=index>=0?60:this.offsetHeight;
+ const index=[...document.querySelectorAll('.phone-event')].indexOf(this),x=this.classList.contains('okti-route-badge')?Number.parseFloat(this.style.left):0,y=index>=0?baseY+index*150-document.getElementById('taskList').scrollTop:Number.parseFloat(this.style.top)||0,width=this.classList.contains('phone-event')?294:this.offsetWidth,height=index>=0?60:this.offsetHeight;
  return{x,y,left:x,top:y,right:x+width,bottom:y+height,width,height};
 };
 w.eval(fs.readFileSync('travel-routes.js','utf8'));
@@ -39,6 +39,7 @@ const badge=()=>document.querySelector('.okti-route-badge:not(:disabled)'),menu=
  panel.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert.equal(menu(),null);assert.equal(document.activeElement,badge());assert.equal(!!document.getElementById('taskList').inert,false);assert.equal(document.querySelector('.okti-route-focus'),null);
  badge().click();assert(menu());await wait(110);document.dispatchEvent(new w.Event('scroll'));assert.equal(menu(),null,'Scroll dismisses a fixed popup');
  badge().click();assert(menu());document.body.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true}));assert.equal(menu(),null);
+ baseY=550;w.flushPlannerRouteLayout();badge().click();assert(menu());const last=document.querySelector('[data-event-id=b]').getBoundingClientRect();assert.equal(Number.parseFloat(menu().style.top),last.bottom+10,'The panel remains below a late event');assert.ok(Number.parseFloat(menu().style.top)+menu().offsetHeight<=w.innerHeight-10,'The calendar scrolls to reveal room below the last event');document.body.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true}));
  w.tasks[1].location='  POZNAŃ ';w.dispatchEvent(new w.Event('resize'));await until(()=>!document.querySelector('.okti-route-badge'));assert.equal(document.querySelectorAll('.okti-route-lines').length,0);
  console.log('Compact routes: inline icon and separate visible time, soft focus pair, accessible duration, persistent live popup, four choices, stable controls, latest locations, dismissal and same-place hiding passed (DOM geometry/routes simulated).');
 }finally{dom.window.close()}})().catch(error=>{console.error(error);process.exitCode=1});

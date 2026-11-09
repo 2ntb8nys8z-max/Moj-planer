@@ -61,6 +61,11 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   await page.waitForFunction(()=>document.querySelectorAll('#taskList .okti-route-badge:not(:disabled)').length===8);
   assert.equal(await key(page).evaluateAll(nodes=>nodes.every(n=>{const r=n.parentElement.getBoundingClientRect(),card=document.querySelector(`[data-event-id="${n.dataset.destinationEventId}"]`).getBoundingClientRect();return n.getBoundingClientRect().width===48&&r.left>=card.left&&r.right<=card.right&&r.top>=card.top&&r.bottom<=card.bottom})),true,'Dense events keep their controls inside the correct destination card');await page.screenshot({path:path.join(out,'dense-inline.png')});
  }
+ // Open with the last card near the bottom. The panel must scroll into room
+ // BELOW that card instead of switching to the top of the focused pair.
+ await seed(page);await key(page).evaluate(n=>{const card=document.querySelector('[data-event-id="route-to"]'),scroller=document.getElementById('taskList');scroller.scrollTop+=card.getBoundingClientRect().bottom-(window.innerHeight-25);n.focus({preventScroll:true})});
+ await page.keyboard.press('Enter');await page.locator('.okti-route-menu[data-state=open]').waitFor();
+ const below=await page.locator('.okti-route-menu[data-state=open]').evaluate(n=>{const r=n.getBoundingClientRect(),card=document.querySelector('[data-event-id="route-to"]').getBoundingClientRect();return {top:r.top,bottom:r.bottom,cardBottom:card.bottom}});assert.ok(Math.abs(below.top-below.cardBottom-10)<1,label+': travel details always appear below their event');assert.ok(below.bottom<=height-9,label+': the lower panel remains visible');await closeMenu(page);
  await context.close();console.log(kind+' '+label+': inline time, four modes, sharp pair and center line, bounded white panel, animation, outside/Escape/close, risk, persistence and data preservation passed.');
  }
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),page=await context.newPage();await routing(page);await page.goto(live||'https://planner.test');await seed(page);await openMenu(page);assert.equal(await page.locator('.okti-route-menu').evaluate(n=>n.getAnimations().length),0);await closeMenu(page);await context.close();assert.deepEqual(errors,[]);

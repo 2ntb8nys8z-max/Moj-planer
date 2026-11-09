@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, 'work/event-hero-*', 'work/route-menu-*', 'work/calendar-art-*']
   pull_request:
-    paths: ['index.html', 'tests/event-hero-browser-33.cjs', '.github/workflows/event-hero-browser.yml']
+    paths: ['event-delete.js', 'travel-routes.js', 'tests/event-delete-browser-33.cjs', 'index.html', 'tests/event-hero-browser-33.cjs', '.github/workflows/event-hero-browser.yml']
 permissions:
   contents: read
 concurrency:
@@ -26,6 +26,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify guarded event deletion
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/event-delete-browser-33.cjs
       - name: Verify decorated calendar events and unchanged layout
         env:
           TZ: Europe/Warsaw
