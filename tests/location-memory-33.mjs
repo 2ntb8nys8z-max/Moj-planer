@@ -36,7 +36,7 @@ try{
   const context=JSON.parse(lastModelContext[1].content);assert.equal(context.locationContext.city,'Meissen');assert.equal(lastPayload.dialogueState.locationContext.city,'Meissen');assert.match(get('oktiDecisionQuestion').textContent,/Meissen/);assert.equal(run('tasks[0].notes'),'Ważna notatka');assert.equal(run('tasks[0].location'),'');
   // A genuine different-city command is allowed; ordinary omissions cannot reset it.
   const move=turn('Zmień miejscowość na Hannover.',ask('Doprecyzuj adres.',{city:'Hannover',cityChange:'replace',clarification:null}),audio);
-  await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));get('eventChangeCancel').click();await move;
+  await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Nie').click();await move;
   assert.equal(run('testSession.dialogueState.locationContext.city'),'Hannover');assert.equal(run('testSession.dialogueState.locationContext.alternativeCity'),undefined);
  }
  begin();await turn('Centrum Meissen.',ask('Potwierdź miejscowość.',{city:'Meissen',country:'Niemcy',area:'centrum',clarification:'city'}));
@@ -44,9 +44,9 @@ try{
  // The button answer passes through the actual request, resolver, review and atomic edit.
  model={kind:'event',intent:'modify',action:'continue',reply:'Sprawdź miejsce.',operations:[{op:'set',field:'location',value:'Centrum Meißen, Niemcy'}],focus:'',ambiguity:null,uiAction:null,locationContext:{city:'Meißen',clarification:null,alternativeCity:null}};
  const choose=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent.includes('Meißen')&&!b.textContent.includes('głosowo'));
- const changing=choose.onclick();await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
- assert.match(lastPayload.text,/Tak, nadal chodzi/);assert.ok(lastPayload.clarificationChoice);assert.equal(mapsCalls,3);assert.equal(run('tasks[0].location'),'');assert.match(get('oktiDecisionQuestion').textContent,/Dodać lokalizację/);
- const confirm=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak — (?:dodaj|zmień)$/.test(b.textContent));await confirm.onclick();await changing;
+ const changing=choose.onclick();await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));
+ assert.match(lastPayload.text,/Tak, nadal chodzi/);assert.ok(lastPayload.clarificationChoice);assert.equal(mapsCalls,3);assert.equal(run('tasks[0].location'),'');assert.match(get('oktiDecisionQuestion').textContent,/Znalazłem całe miasto/);
+ const confirm=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak$/.test(b.textContent));await confirm.onclick();await changing;
  assert.equal(run('tasks[0].googlePlace.placeId'),'test-'+mapCity);assert.equal(run('tasks[0].notes'),'Ważna notatka');assert.equal(get('oktiDecision').hidden,true);
  // An unresolved guessed new city is not allowed into a reviewed location mutation.
  begin();await turn('Meissen.',ask('Potwierdź.',{city:'Meissen',clarification:'city'}));
@@ -63,7 +63,7 @@ try{
   model=ask('Nadal chodzi o Breza?',{city:'Breza',clarification:'city'});
   const selected=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.querySelector('strong')?.textContent===city);
   const changing=selected.onclick();await selected.onclick();
-  await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
+  await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));
   assert.equal(modelCalls,before,'Click must bypass reinterpretation by the model');assert.equal(mapsCalls,beforeMaps+1);
   assert.equal(lastResult.dialogueState.locationContext.city,city);assert.equal(lastResult.dialogueState.locationContext.alternativeCity,undefined);assert.equal(lastResult.dialogueState.locationContext.region,undefined);assert.equal(lastResult.dialogueState.clarificationChoices,undefined);
   assert.equal(lastResult.item.location,'centrum, '+city+', Niemcy');assert.deepEqual(lastResult.item.changedFields,['location']);
@@ -75,24 +75,25 @@ try{
   }
   const response=await worker.fetch(new Request('https://worker',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({...sent,currentItem:{...sent.currentItem,eventId:'different',id:'different'}})}),env);
   assert.equal(response.status,409,'Old choices cannot edit a different event');
-  await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak — (?:dodaj|zmień)$/.test(b.textContent)).onclick();await changing;
+  await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>/^Tak$/.test(b.textContent)).onclick();await changing;
   assert.equal(run('tasks[0].googlePlace.placeId'),'test-'+city);assert.match(run('tasks[0].location'),new RegExp(city));assert.equal(run('tasks[0].notes'),'Ważna notatka');
  }
  // The same selection on a new event preserves the draft and the immediate one-hour default.
  run("closeEventActions();clearVoicePreview();tasks=[];saveTasks();testSession=beginVoiceDialogue('main',null,null)");mapCity='Riesa';
  await turn('Wydarzenie 4 stycznia o 17:00 w Breza.',{kind:'event',intent:'propose',action:'continue',reply:'Potwierdź miejsce.',operations:[{op:'set',field:'date',value:'2027-01-04'},{op:'set',field:'startTime',value:'17:00'}],focus:'location',ambiguity:null,uiAction:null,locationContext:{city:'Breza',country:'Niemcy',clarification:'city'}},true);
  await turn('Riza',ask('Breza czy Riesa?',{city:'Riesa',clarification:'city'}),true);
- await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.querySelector('strong')?.textContent==='Riesa').onclick();
+ const creating=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.querySelector('strong')?.textContent==='Riesa').onclick();
+ await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));await [...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Tak').onclick();await creating;
  assert.equal(run('tasks.length'),1);assert.equal(run('tasks[0].title'),'Wydarzenie');assert.equal(run('tasks[0].time'),'17:00');assert.equal(run('tasks[0].endTime'),'18:00');assert.equal(run('tasks[0].googlePlace.placeId'),'test-Riesa');assert.equal(lastResult.saveEvent,true);
  // Short voice answers resolve the displayed alternative without another model interpretation.
  begin();mapCity='Görlitz';await turn('Breza',ask('Potwierdź.',{city:'Breza',country:'Niemcy',clarification:'city'}),true);
  await turn('Gerlic',ask('Breza czy Görlitz?',{city:'Görlitz',clarification:'city'}),true);
  let before=modelCalls;let voiceChanging=turn('Görlitz.',ask('Nadal Breza?',{city:'Breza',clarification:'city'}),true);
- await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));assert.equal(modelCalls,before);assert.equal(lastResult.dialogueState.locationContext.city,'Görlitz');get('eventChangeCancel').click();await voiceChanging;
+ await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));assert.equal(modelCalls,before);assert.equal(lastResult.dialogueState.locationContext.city,'Görlitz');[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Nie').click();await voiceChanging;
  // Explicit spoken replacement also wins when the model omits cityChange and emits another question.
  begin();await turn('Breza',ask('Potwierdź.',{city:'Breza',country:'Niemcy',clarification:'city'}),true);
  voiceChanging=turn('Zmień miejscowość na Gerlic.',ask('Nadal Breza czy Görlitz?',{city:'Breza',alternativeCity:'Görlitz',clarification:'city'}),true);
- await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));assert.equal(lastResult.dialogueState.locationContext.city,'Görlitz');assert.equal(lastResult.item.location,'Görlitz, Niemcy');get('eventChangeCancel').click();await voiceChanging;
+ await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));assert.equal(lastResult.dialogueState.locationContext.city,'Görlitz');assert.equal(lastResult.item.location,'Görlitz, Niemcy');[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Nie').click();await voiceChanging;
  // Rejecting all choices clears them, so the next location cannot be trapped behind Breza.
  begin();await turn('Breza',ask('Potwierdź.',{city:'Breza',country:'Niemcy',clarification:'city'}));
  before=modelCalls;const rejected=[...get('oktiDecision').querySelectorAll('.okti-decision-option')].find(b=>b.textContent==='Nie — szukaj dalej');await rejected.onclick();

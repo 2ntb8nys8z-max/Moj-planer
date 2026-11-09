@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.43-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.44-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -337,6 +337,7 @@ function conversationLocationMemory(prior,patch){
       if(typeof value[field]!=='string'||value[field].length>200)throw conversationFault('invalid_location_context');
       if(value[field].trim())result[field]=value[field].trim();
     }
+    if(value.streetOnly!=null){if(typeof value.streetOnly!=='boolean')throw conversationFault('invalid_location_context');result.streetOnly=value.streetOnly;}
     if(value.clarification!=null&&!['city','region','area'].includes(value.clarification))throw conversationFault('invalid_location_context');
     if(value.clarification)result.clarification=value.clarification;
     return result;
@@ -443,6 +444,7 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
   const selectedHour=audioAmbiguous?null:parsedHour;
   const active=state.activeHourChoice;
   const mentions=conversationHourMentions(text,state,inputSource);
+  const exactHours=new Map(mentions.filter(m=>!m.ambiguous).map(m=>[m.field,m.time]));
   const unresolved=!selectedHour&&mentions.find(m=>m.ambiguous);
   let forcedAnswer=forcedLocationAnswer||null;
   if(selectedHour&&(manualTimeChoice||active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
@@ -456,11 +458,12 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
     }
   }
   if(unresolved&&['reminder','create'].includes(state.mode)&&!/przypom|kalendar|wydarzen|nowe|nowy|anuluj/.test(dialoguePlain(text)))return conversationHourWait(state,{field:unresolved.field,choices:unresolved.choices,mode:state.mode,flowId:active?.flowId||crypto.randomUUID()});
-  const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':text;
+  const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':exactHours.size?text+' [Jednoznacznie podane godziny: '+[...exactHours].map(([field,time])=>field+'='+time).join(', ')+'. Zachowaj je; nie pytaj o wybór między nocą i popołudniem.]':text;
   const immediateCreate=state.eventCreationPolicy==='immediate-v1'&&original?.type!=='event';
   const creationRules=immediateCreate?'\nNOWE WYDARZENIA — TE REGUŁY MAJĄ PIERWSZEŃSTWO: wykonuj bezpośrednie polecenie tworzenia od razu, zwracając open_create_event lub operacje wydarzenia, nigdy samą obietnicę ani odpowiedź continue bez akcji. Wystarczą dzień i jednoznaczny początek (lub jawne całodniowe). Tytuł jest opcjonalny: aplikacja użyje „Wydarzenie”, a przy konwersji nazwy wpisu. Koniec i długość są opcjonalne: aplikacja domyślnie rezerwuje 60 minut i skraca przed kolejnym wydarzeniem o bufor 15 minut. Nie wymyślaj endTime ani durationMinutes, gdy nie podał ich użytkownik. Nie pytaj o nazwę, długość ani potwierdzenie tworzenia. Zachowaj jawnie podany koniec/długość. Niejednoznaczne godziny nadal wymagają wyjaśnienia. Propozycja lub pytanie informacyjne nie jest zgodą na zapis. Nie mów o utworzeniu szkicu ani sukcesie zapisu — zapis i komunikat wykona aplikacja.':'';
   const locationRules=`\nPAMIĘĆ DOPRECYZOWANIA LOKALIZACJI: locationContext to niezatwierdzone ustalenia, NIE zapisana lokalizacja. Gdy rozmowa dotyczy miejsca, zwróć dodatkowe locationContext {city,region,country,area,alternativeCity,clarification}. Zachowaj podaną miejscowość od pierwszej wypowiedzi, nawet gdy nie zwracasz operacji i tylko pytasz o sprzeczny region. Odpowiedź podająca sam region/kraj lub „centrum” uzupełnia te pola, nigdy nie usuwa miasta. Null i pominięte city/region/country/area zachowują pamięć. clarification to city, region, area albo null po wyjaśnieniu. Przy niepewnym nowym słowie w transkrypcji zachowaj city, wpisz nowe słowo w alternativeCity i clarification city; zapytaj, czy nadal chodzi o poprzednią miejscowość, wymieniając jej nazwę. Nie ogłaszaj nieznajomości miasta, które już podano. Tylko jednoznaczne polecenie zmiany miasta albo jawny wybór alternatywy pozwala zwrócić cityChange replace z nowym city. Sama odpowiedź „w [niejasna nazwa]” po korekcie regionu nie wystarcza. Przy potwierdzeniu poprzedniego miasta alternativeCity null i clarification null (lub region, jeśli region nadal sprzeczny). Przykład: „centrum Meissen w Dolnej Saksonii” => zachowaj city Meißen i area centrum, spór dotyczy regionu. Po „mój błąd, w Excelsior” nie zakładaj nowego miasta: nadal city Meißen, alternativeCity Excelsior i pytanie „Nadal chodzi o centrum Meißen?”. Po samym „w Niemczech, w centrum” nadal pamiętaj Meißen. Nie zamieniaj tego przykładu w stałe domyślne miasto. Jeśli region jest sprzeczny, pytaj o niego z nazwą zachowanego miasta; nie narzucaj innej miejscowości i nie wymagaj znajomości landów. Nie twierdź, że zweryfikowałeś mapę — po ustaleniu miejsca przekaż set location do istniejącego resolvera Google. Nie dopisuj locationContext do notes, title ani location. Po zmianie tematu możesz normalnie odpowiedzieć i zachować pamięć bez zmian.`;
-  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT+creationRules+locationRules+'\nPRZYCISKI ODPOWIEDZI: przy pytaniu doprecyzowującym możesz zwrócić clarificationChoices: [{label:krótka nazwa odpowiedzi,detail:opcjonalny szczegół,answer:jednoznaczna pełna odpowiedź użytkownika}]. Od 2 do 5 rzeczywiście różnych opcji wynikających z rozmowy, bez wymyślonych adresów ani współrzędnych. Dla propozycji potwierdzenia miejsca pokaż jego nazwę i region, jeśli ustalony, oraz opcję szukania dalej. Dla niejasnej godziny nie generuj przycisków z godzinami: aplikacja pokaże bębenki godzin i minut. Przyciski tylko ułatwiają odpowiedź; nie oznaczają zgody, dopóki użytkownik ich nie wybierze. Krótkie odpowiedzi głosowe nadal działają tak samo. Jeżeli użytkownik potwierdzi zachowaną miejscowość, przekaż set location do resolvera Google bez ponownego pytania o miasto ani wymagania znajomości regionu.'},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,locationContext:locationMemory.value,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:!immediateCreate,immediateEventCreation:immediateCreate,defaultEventMinutes:60,eventGapMinutes:15,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
+  const streetRules='\nULICA BEZ MIASTA: deviceLocation to świeża lokalizacja urządzenia, jeśli dostępna. Przy samej ulicy lub numerze budynku (również skrócie typu „Mickiewicza 12”) zwróć locationContext.streetOnly true. Szukaj w mieście wcześniej jawnie ustalonym w tej rozmowie lub w deviceLocation.city; gdy użytkownik poda inne miasto, ono ma pierwszeństwo i streetOnly false. Nie wymyślaj miasta. Bez znanego miasta zapytaj krótko o miejscowość, zachowując nazwę ulicy. locationSearch.query to poprzednie nierozstrzygnięte zapytanie do map: odpowiedź z krajem, regionem, pobliskim miastem albo miastem dla ulicy uzupełnia to zapytanie, nie zastępuje go. Przy kilku miejscowościach o tej samej nazwie najpierw zawęź kraj/region, nie każ przeglądać długiej listy. Po uzupełnieniu przekaż pełne zapytanie jako set location. Ustalone city/country/region zachowaj w locationContext. streetOnly jest informacją o bieżącym poleceniu; ustaw false przy pełnym adresie z jawnym miastem.';
+  const messages=[{role:'system',content:CONVERSATION_ENGINE_PROMPT+creationRules+locationRules+streetRules+'\nPRZYCISKI ODPOWIEDZI: przy pytaniu doprecyzowującym możesz zwrócić clarificationChoices: [{label:krótka nazwa odpowiedzi,detail:opcjonalny szczegół,answer:jednoznaczna pełna odpowiedź użytkownika}]. Od 2 do 5 rzeczywiście różnych opcji wynikających z rozmowy, bez wymyślonych adresów ani współrzędnych. Dla propozycji potwierdzenia miejsca pokaż jego nazwę i region, jeśli ustalony, oraz opcję szukania dalej. Dla niejasnej godziny nie generuj przycisków z godzinami: aplikacja pokaże bębenki godzin i minut. Przyciski tylko ułatwiają odpowiedź; nie oznaczają zgody, dopóki użytkownik ich nie wybierze. Krótkie odpowiedzi głosowe nadal działają tak samo. Jeżeli użytkownik potwierdzi zachowaną miejscowość, przekaż set location do resolvera Google bez ponownego pytania o miasto ani wymagania znajomości regionu.'},{role:'user',content:JSON.stringify({dataOnly:true,original,draft,locationContext:locationMemory.value,deviceLocation:state.deviceLocation&&typeof state.deviceLocation.city==='string'?{city:state.deviceLocation.city.slice(0,200),countryCode:state.deviceLocation.countryCode||null}:null,locationSearch:typeof state.locationSearch?.query==='string'?{query:state.locationSearch.query.slice(0,500)}:null,reminderDraft:conversationReminderDraft(original,state),eventReminderDraft:state.eventReminderDraft||null,today,mode:state.mode||'idle',requiredNext:state.pendingField||null,pendingProposal:state.pendingProposal?{id:state.pendingProposal.id,draft:state.pendingProposal.draft,kind:state.pendingProposal.kind}:null,focus:state.conversationFocus||'',ambiguity:state.conversationAmbiguity||null,missing:draft.type==='event'?conversationMissing(draft,state.allDay===true||original?.type==='event'&&!original.startTime&&!state.draft):[],lastOperation:lastOperation||state.lastOperation||{status:'not_saved'},capabilities:{reviewBeforeSave:!immediateCreate,immediateEventCreation:immediateCreate,defaultEventMinutes:60,eventGapMinutes:15,multiDayWrite:false,...(original?.type==='event'?{eventScopeOnly:true,eventId:original.eventId??null,eventReminderImmediate:true}:{})}})},...history,{role:'user',content:interpretedText}];
   let failure=null;
   for(let attempt=0;attempt<2;attempt++){
     const priorLocationMemory={...locationMemory};
@@ -471,6 +474,20 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
       const outer=JSON.parse(raw),content=outer.choices?.[0]?.message?.content;
       answer=conversationEventAnswer(original,state,text,JSON.parse(content));
       if(immediateCreate&&answer.intent==='continue'&&!answer.uiAction&&!answer.operations?.length&&/\b(?:tworzę|utworzyłem|zapisuję|zapisałem|szkic|creating|created|saving|saved|draft)\b/iu.test(answer.reply||''))throw conversationFault('creation_claim_without_action');
+
+      // A full command's explicit 24-hour clock is just as authoritative as a
+      // short AM/PM selection. Do not let a model turn 13:00 back into 01/13.
+      const replyHours=dialogueClockMentions(answer.reply,{kind:'hour'}).map(m=>m.time);
+      for(const [field,time] of exactHours){
+        const alternate=plannerClock((plannerMinutes(time)+720)%1440);
+        if(answer.ambiguity?.field===field||answer.intent==='continue'&&/czy/i.test(answer.reply)&&replyHours.includes(time)&&replyHours.includes(alternate))throw conversationFault('explicit_hour_is_already_resolved:'+field+'='+time);
+        if(['set_entry_reminder','open_create_event'].includes(answer.uiAction?.type)){
+          answer.uiAction={...answer.uiAction,[field]:time};
+          if(field==='startTime'&&answer.uiAction.durationMinutes!=null&&!exactHours.has('endTime')){delete answer.uiAction.endTime;delete answer.uiAction.endDate;}
+        }else if(answer.kind==='event'&&answer.operations?.length){
+          answer.operations=answer.operations.map(op=>op.field===field&&op.op==='set'?{...op,value:time}:op);
+        }
+      }
 
       // Explicit AM/PM or the active selection is authoritative, not a model suggestion.
       if(selectedHour){
@@ -603,7 +620,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="d3dd04fac574d5c8";
+const BUILD_ID="6eed2c5377cbdab0";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -664,6 +681,7 @@ function dialogueClockMentions(text,pending){
   const out=[];
   for(const m of t.matchAll(regex)){
     if(!m[1]&&!m[2].includes(':')&&!['start','duration','hour'].includes(pending?.kind))continue;
+    if(/^\s*(?:minut\w*|min\b|godzin\w*|styczni\w*|lut\w*|marc\w*|kwietni\w*|maj\w*|czerwc\w*|lipc\w*|sierpni\w*|wrzesni\w*|pazdziernik\w*|listopad\w*|grudni\w*)\b/.test(t.slice(m.index+m[0].length)))continue;
     const raw=m[2];let hour,minute=0,explicit=raw.includes(':');
     if(/^\d/.test(raw)){const parts=raw.split(':');hour=Number(parts[0]);minute=Number(parts[1]||0)}
     else {hour=stems.findIndex(x=>raw.startsWith(x))+1;if(hour===20&&raw.includes(' '))hour+=stems.findIndex(x=>raw.split(' ')[1].startsWith(x))+1;}
@@ -752,13 +770,15 @@ async function checkApiAccess(request,env){
 }
 // Address lookup has its own atomic quota; it never consumes an AI turn.
 async function resolveGoogleLocation(body,env){
-  if(typeof body?.query!=='string'||!body.query.trim()||body.query.length>500||body.countryCode!=null&&!/^[A-Z]{2}$/.test(body.countryCode))throw new PlannerApiError('Podaj adres lub ulicę i miejscowość.');
+  if(typeof body?.query!=='string'||!body.query.trim()||body.query.length>500||body.countryCode!=null&&!/^[A-Z]{2}$/.test(body.countryCode)||body.city!=null&&(typeof body.city!=='string'||!body.city.trim()||body.city.length>200))throw new PlannerApiError('Podaj adres lub ulicę i miejscowość.');
   if(typeof env.GOOGLE_MAPS_API_KEY!=='string'||!env.GOOGLE_MAPS_API_KEY.trim())throw new PlannerApiError('Brakuje klucza Google Maps w Cloudflare.',503,'maps_not_configured','configuration');
   const period=quotaPeriod();
   await env.API_LIMITS_DB.prepare(QUOTA_SCHEMA.replaceAll('planner_api_quota','planner_maps_quota')).run();
   const reserved=await env.API_LIMITS_DB.prepare(QUOTA_RESERVE.replaceAll('planner_api_quota','planner_maps_quota')).bind(period.month,period.day,period.minute,1000,100,10).first();
   if(!reserved)throw new PlannerApiError('Osiągnięto limit wyszukiwania miejsc. Spróbuj później lub zachowaj wpisany adres bez przypięcia.',429,'maps_limit','maps');
-  const params=new URLSearchParams({address:body.query.trim(),language:'pl',key:env.GOOGLE_MAPS_API_KEY.trim()});
+  const cityKey=value=>dialoguePlain(String(value).replaceAll('ß','ss'));
+  const query=body.city&&!cityKey(body.query).includes(cityKey(body.city))?body.query.trim()+', '+body.city.trim():body.query.trim();
+  const params=new URLSearchParams({address:query,language:'pl',key:env.GOOGLE_MAPS_API_KEY.trim()});
   if(body.countryCode)params.set('components','country:'+body.countryCode);
   let response,data;
   try{
@@ -778,6 +798,9 @@ async function resolveGoogleLocation(body,env){
     const location=result?.geometry?.location,types=Array.isArray(result?.types)?result.types:[],components=Array.isArray(result?.address_components)?result.address_components:[];
     if(typeof result?.place_id!=='string'||!result.place_id||result.place_id.length>300||typeof result.formatted_address!=='string'||!result.formatted_address||result.formatted_address.length>1000||typeof location?.lat!=='number'||!Number.isFinite(location.lat)||Math.abs(location.lat)>90||typeof location.lng!=='number'||!Number.isFinite(location.lng)||Math.abs(location.lng)>180||seen.has(result.place_id))continue;
     const component=(type,short=false)=>{const c=components.find(c=>Array.isArray(c?.types)&&c.types.includes(type));return String((short?c?.short_name:c?.long_name)||'').slice(0,200)};
+    // Google locality bias is not a strict restriction. Enforce a street-only
+    // search's city on the returned address components, never widen it silently.
+    if(body.city&&!components.some(c=>c.types?.some(type=>['locality','postal_town','administrative_area_level_3'].includes(type))&&[c.long_name,c.short_name].some(name=>cityKey(name)===cityKey(body.city))))continue;
     seen.add(result.place_id);
     const street=component('route'),number=component('street_number');
     places.push({placeId:result.place_id,label:result.formatted_address,latitude:location.lat,longitude:location.lng,kind:number?'address':types.includes('route')?'street':types.some(t=>['locality','postal_town','administrative_area_level_3'].includes(t))?'city':'place',partialMatch:result.partial_match===true,locationType:String(result.geometry.location_type||'').slice(0,40),street,number,city:component('locality')||component('postal_town')||component('administrative_area_level_3'),country:component('country'),countryCode:component('country',true),region:component('administrative_area_level_1')});
@@ -1173,7 +1196,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.07.33.43-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.09.33.44-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

@@ -75,10 +75,10 @@ try{
     model=eventAnswer();googleResults=[street];const count=mapsCalls;
     transcript='Utwórz spotkanie jutro o 14:00 do 15:00 przy Wyszogrodzkiej w Warszawie.';
     const pending=run(`requestVoiceDialogue(testSession,${audio?'testAudio':JSON.stringify(transcript)}).then(async result=>{testResult=result;if(result)await applyVoiceDialogueResult(testSession,result)})`);
-    await waitFor(()=>get('googleLocationChoices')?.children.length);
+    await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));
     assert.equal(run('tasks.length'),0,'No write before confirming the Google place');
-    assert.match(get('googleLocationChoices').textContent,/bez numeru budynku/);
-    get('googleLocationChoices').querySelector('button').click();await pending;
+    assert.equal(get('googleLocationModal'),null);assert.deepEqual([...get('oktiDecision').querySelectorAll('.okti-decision-option')].map(b=>b.textContent),['Tak','Nie']);
+    get('oktiDecision').querySelector('.okti-decision-option').click();await pending;
     assert.equal(run('pendingVoiceItem.location'),street.formatted_address);assert.equal(run('pendingVoiceItem.googlePlace.placeId'),street.place_id);assert.equal(run('tasks.length'),0);
     // Next text turn crosses the Worker again and retains the chosen place.
     model={kind:'event',intent:'modify',action:'continue',reply:'Nowa nazwa.',operations:[{op:'set',field:'title',value:'Zmienione spotkanie'}],ambiguity:null,focus:'',uiAction:null};
@@ -114,22 +114,21 @@ try{
   run("openEventActions(tasks[0]);testSession=beginVoiceDialogue('event',activeTask.id,voiceEventSnapshot(activeTask))");
   model={kind:'event',intent:'modify',action:'continue',reply:'Sprawdź miejsce.',operations:[{op:'set',field:'location',value:'Wyszogrodzka 10, Warszawa'}],focus:'',ambiguity:null,uiAction:null};
   const edit=run("requestVoiceDialogue(testSession,'Ustaw lokalizację Wyszogrodzka 10, Warszawa').then(r=>r&&applyVoiceDialogueResult(testSession,r))");
-  await waitFor(()=>get('googleLocationChoices')?.children.length);get('googleLocationChoices').firstChild.click();await waitFor(()=>!get('eventChangePreview').classList.contains('hidden'));
-  assert.equal(run('tasks[0].location'),'');get('eventChangeConfirm').click();await edit;assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);run('closeEventActions()');
+  await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));assert.equal(run('tasks[0].location'),'');get('oktiDecision').querySelector('.okti-decision-option').click();await edit;assert.equal(get('eventChangePreview').classList.contains('hidden'),true);assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);run('closeEventActions()');
 
   // An already typed address can be explicitly verified later. The model's
   // capability disclaimer must not suppress the real Google lookup.
   run("delete tasks[0].googlePlace;delete tasks[0].weatherPlace;tasks[0].location='Wyszogrodzka 10, Warszawa';saveTasks();openEventActions(tasks[0]);testSession=beginVoiceDialogue('event',activeTask.id,voiceEventSnapshot(activeTask))");
   model={kind:'command',intent:'continue',action:'continue',reply:'Nie mogę sprawdzić Google Maps.',operations:[],focus:'',ambiguity:null,uiAction:null};googleResults=[building];
   const verify=run("requestVoiceDialogue(testSession,'Sprawdź ten adres w Google Maps')");
-  await waitFor(()=>get('googleLocationChoices')?.children.length);assert.equal(run('tasks[0].googlePlace'),undefined,'No place is saved before the user chooses a Google result');
-  get('googleLocationChoices').firstChild.click();await verify;
+  await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));assert.equal(run('tasks[0].googlePlace'),undefined,'No place is saved before the user chooses a Google result');
+  get('oktiDecision').querySelector('.okti-decision-option').click();await verify;
   assert.equal(run('tasks[0].googlePlace.placeId'),building.place_id);assert.equal(run('tasks[0].location'),building.formatted_address);
   assert.match(get('eventConversation').textContent,/Adres sprawdzony i przypięty/);run('closeEventActions()');
   for(const audio of [false,true]){
     run("delete tasks[0].googlePlace;delete tasks[0].weatherPlace;tasks[0].location='Ruciane Nida';saveTasks();openEventActions(tasks[0]);testSession=beginVoiceDialogue('event',activeTask.id,voiceEventSnapshot(activeTask))");
     googleResults=[city];transcript='Sprawdź ten adres w Google Maps';
-    await run(`requestVoiceDialogue(testSession,${audio?'testAudio':JSON.stringify(transcript)})`);
+    const checking=run(`requestVoiceDialogue(testSession,${audio?'testAudio':JSON.stringify(transcript)})`);await waitFor(()=>run('!!OktiCommunication.getState()?.locationPicker'));get('oktiDecision').querySelector('.okti-decision-option').click();await checking;
     assert.equal(run('tasks[0].googlePlace.placeId'),'ruciane-nida');assert.equal(run('tasks[0].location'),'Ruciane-Nida, Polska');assert.equal(get('googleLocationModal'),null,'Text and normalized audio resolve the town without a picker');run('closeEventActions()');
   }
 

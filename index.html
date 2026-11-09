@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.264-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.265-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.264-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.265-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -418,7 +418,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.07.33.43-test',EXPECTED_WORKER_BUILD_ID='d3dd04fac574d5c8';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.09.33.44-test',EXPECTED_WORKER_BUILD_ID='6eed2c5377cbdab0';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -1030,6 +1030,14 @@ function voiceDialogueValid(session){
   if(session.channel==='idea'&&activeIdea?.id!==session.id)return false;
   return JSON.stringify(voiceDialogueCurrent(session.channel,session.id))===session.snapshot;
 }
+async function plannerDeviceCity(){
+  if(typeof OktiLocalWeather==='undefined')return null;
+  let weather=OktiLocalWeather.snapshot();if(!weather.enabled)return null;
+  if(!weather.place||Date.now()-Number(weather.place.checkedAt||0)>=15*60*1000){await OktiLocalWeather.refresh();weather=OktiLocalWeather.snapshot()}
+  const place=weather.place;if(!place||Date.now()-Number(place.checkedAt||0)>=15*60*1000)return null;
+  const city=place.city||place.label?.split(',')[0]?.trim();
+  return city?{city,...(/^[A-Z]{2}$/.test(place.countryCode||'')?{countryCode:place.countryCode}:{})}:null;
+}
 function clearVoiceDialogue(channel,keepConversation=false){if(!keepConversation)window.OktiCommunication?.clear(channel);cancelPlannerGooglePicker(channel);if(plannerSchedulePending?.channel===channel)plannerSchedulePending.cancel();if(channel==='idea')$('entryReminderPreview')?.remove();voiceDialogues[channel]=null;const box=$(channel+'Clarification');if(box)box.remove();if(channel==='main')$('mainConversationTools')?.querySelector('.reply-keyboard')?.remove();if(!keepConversation){$(channel+'Conversation')?.remove();if(channel==='main')$('mainConversationTools')?.remove()}}
 // Presentation only: retain the original log, controls, inputs and event handlers.
 function mountMainConversationFrame(box,tools){
@@ -1096,7 +1104,8 @@ async function requestVoiceDialogue(session,body,selection=null){
     // Location corrections belong to Engine 3. A stale weather resolver must not
     // create a second dialogue that freezes the previous location.
     delete session.weatherContext;delete session.onWeatherAction;delete session.pendingLocationResult;
-    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:{...session.dialogueState,eventCreationPolicy:"immediate-v1"}};
+    const deviceLocation=await plannerDeviceCity();if(!voiceDialogueValid(session))return null;
+    const payload={protocolVersion:2,conversationEngine:3,lastOperation:session.lastOperation||null,text:typed?body:'',currentItem:session.currentItem,dialogue:session.history,dialogueState:{...session.dialogueState,deviceLocation,eventCreationPolicy:"immediate-v1"}};
     if(selection?.manualTimeChoice)payload.manualTimeChoice=selection.manualTimeChoice;
     if(selection?.clarificationChoice)payload.clarificationChoice=selection.clarificationChoice;
     if(!typed)payload.audio=await plannerAudioPayload(body);
@@ -1138,8 +1147,9 @@ async function handleEventGoogleLookupCommand(session){
   const location=plannerLocation(task);
   if(!location){showVoiceClarification(session,'Najpierw podaj adres wydarzenia, który mam sprawdzić w Google Maps.');return true}
   const candidate=structuredClone(task),current=()=>voiceDialogueValid(session)&&openEventCommandTask(session)===task&&plannerLocation(task)===location;
-  if(!await choosePlannerGoogleLocation(candidate,current,'event')){
-    if(current())showVoiceClarification(session,'Nie wybrano miejsca z Google Maps. Adres wydarzenia pozostał bez zmian.');
+  const selection=await choosePlannerVoiceLocation(candidate,session,current);
+  if(!selection.accepted){
+    if(current()&&selection.retry)showVoiceClarification(session,'Podaj inną lokalizację.');
     return true;
   }
   if(!current())return true;
@@ -1169,6 +1179,59 @@ function setPlannerGooglePlace(item,place,query){
   item.weatherPlace={location:item.location,latitude:place.latitude,longitude:place.longitude,name:place.city||place.street||place.label,admin1:place.region,country:place.country,country_code:place.countryCode,provider:'google',placeId:place.placeId};
 }
 function cancelPlannerGooglePicker(channel){if(plannerGooglePicker&&(!channel||plannerGooglePicker.channel===channel))plannerGooglePicker.cancel()}
+// Voice choices use the same compact decision surface as the conversation.
+// Selecting a result is approval of that location, not of any other event edit.
+async function choosePlannerVoiceLocation(item,session,current=()=>voiceDialogueValid(session)){
+  if(!plannerLocation(item)||plannerGooglePlace(item))return {accepted:true,confirmed:false};
+  const query=plannerLocation(item);
+  cancelPlannerGooglePicker();
+  return new Promise(resolve=>{
+    let finished=false;
+    const picker={channel:session.channel,cancel:()=>finish(false)};
+    const valid=()=>!finished&&plannerGooglePicker===picker&&current();
+    function finish(accepted,retry=false,confirmed=accepted){
+      if(finished)return;
+      const fresh=valid();finished=true;
+      if(plannerGooglePicker===picker)plannerGooglePicker=null;
+      if(globalThis.window?.OktiCommunication?.getState()?.locationPicker===picker)window.OktiCommunication.close();
+      resolve({accepted:accepted&&fresh,confirmed:confirmed&&fresh,retry:!!retry&&fresh,question:typeof retry==='string'?retry:null,query});
+    }
+    function show(question,actions){
+      if(!valid()){finish(false);return}
+      window.OktiCommunication.showActions(session.channel,question,actions,valid,{locationPicker:picker,onClose:()=>finish(false),speak:session.inputSource==='audio'});
+    }
+    function select(place){if(!valid())return;setPlannerGooglePlace(item,place,query);finish(true)}
+    plannerGooglePicker=picker;
+    (async()=>{
+      try{
+        const info=await getApiInfo();if(!valid()){finish(false);return}
+        if(!info.conversationFeatures?.includes('google-geocoding-v1')){
+          finish(true,false,false);return;
+        }
+        const memory=session.dialogueState?.locationContext||{},device=await plannerDeviceCity();
+        const streetOnly=memory.streetOnly===true||/^(?:ulica|ul\.|aleja|al\.|plac|pl\.|strasse|straße)\s/i.test(query)&&!query.includes(',')&&!memory.city;
+        const city=streetOnly?(memory.city||session.currentItem?.googlePlace?.city||device?.city):null;
+        if(streetOnly&&!city){finish(false,'W jakiej miejscowości mam szukać tej ulicy?');return;}
+        const countryCode=plannerWeatherHints(query).countryCode||plannerWeatherHints(memory.country||'').countryCode||(streetOnly&&city?.toLocaleLowerCase('pl-PL')===device?.city?.toLocaleLowerCase('pl-PL')?device?.countryCode:null);
+        const result=await plannerApiRequest('/locations/resolve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,...(city?{city}:{}),...(countryCode?{countryCode}:{})})});
+        if(!valid()){finish(false);return}
+        const places=(Array.isArray(result.places)?result.places:[]).filter(place=>typeof place?.label==='string'&&typeof place.placeId==='string'&&Number.isFinite(place.latitude)&&Number.isFinite(place.longitude));
+        if(!places.length){
+          show(city?`Nie znalazłem tej ulicy w ${city}. Podasz dokładniejszy adres?`:'Nie znalazłem tego miejsca. Podasz inną lokalizację?',[{label:'Tak',primary:true,run:()=>finish(false,true)},{label:'Nie',run:()=>finish(false)}]);return;
+        }
+        const town=place=>[place.city,place.region,place.countryCode].join('|').toLocaleLowerCase('pl-PL');
+        if(new Set(places.map(town)).size>1){finish(false,'Znalazłem kilka miejsc o tej nazwie. Podaj kraj, region albo pobliską miejscowość.');return;}
+        if(places.length>3){finish(false,'Znalazłem kilka adresów w tej miejscowości. Podaj dokładniejszą ulicę lub numer budynku.');return;}
+        // A city-only result must not silently stand in for the requested centre.
+        const broad=place=>place.kind==='city'&&/\bcentrum\b/.test(query.toLocaleLowerCase('pl-PL'));
+        if(places.length===1){const place=places[0];show(`Znalazłem${broad(place)?' całe miasto':''}: ${place.label}. Wybrać?`,[{label:'Tak',primary:true,run:()=>select(place)},{label:'Nie',run:()=>finish(false)}]);return;}
+        show('Znalazłem podobne miejsca. Które wybierasz?',places.map(place=>({label:place.label,detail:broad(place)?'Całe miasto — w zapytaniu podano centrum.':undefined,run:()=>select(place)})));
+      }catch(_){
+        if(valid())show('Nie udało się sprawdzić miejsca. Zachować podaną lokalizację?',[{label:'Tak',primary:true,run:()=>finish(true)},{label:'Nie',run:()=>finish(false)}]);else finish(false);
+      }
+    })();
+  });
+}
 async function choosePlannerGoogleLocation(item,current=()=>true,channel=null){
   if(!plannerLocation(item)||plannerGooglePlace(item))return true;
   let info;
@@ -1225,12 +1288,23 @@ async function prepareVoiceLocation(session,result){
   if(!voiceDialogueValid(session)||item?.type!=='event'||!plannerLocation(item))return false;
   if(session.currentItem?.type==='event'&&plannerLocation(session.currentItem)===plannerLocation(item)){
     applyVoicePlaceMetadata(item,session.currentItem);
-    if(plannerGooglePlace(item))return false;
+    return false;
   }
-  if(!await choosePlannerGoogleLocation(item,()=>voiceDialogueValid(session),session.channel)){
-    if(voiceDialogueValid(session))showVoiceClarification(session,'Możesz poprawić lokalizację lub kontynuować rozmowę. Wydarzenie nie zostało zapisane.');
+  const selection=await choosePlannerVoiceLocation(item,session);
+  if(!selection.accepted){
+    if(voiceDialogueValid(session)){
+      const previous=plannerLocation(session.currentItem);
+      if(session.dialogueState?.draft)session.dialogueState.draft.location=previous;
+      if(session.dialogueState)session.dialogueState.pendingProposal=null;
+      if(selection.retry){
+        session.dialogueState.locationSearch={query:selection.query};
+        const question=selection.question||'Podaj inną lokalizację.';session.history.push({role:'assistant',content:question});showVoiceClarification(session,question);
+      }
+    }
     return true;
   }
+  if(selection.confirmed)result.confirmedLocation={location:item.location,placeId:plannerGooglePlace(item)?.placeId||null};
+  if(session.dialogueState)delete session.dialogueState.locationSearch;
   if(session.dialogueState?.draft)session.dialogueState.draft.location=item.location;
   if(session.dialogueState?.pendingProposal)session.dialogueState.pendingProposal.location=item.location;
   if(result.dialogueState?.draft)result.dialogueState.draft.location=item.location;
@@ -1975,7 +2049,8 @@ if(fields.includes('startTime')&&nextEnd!==before.endTime&&!fields.includes('end
 if(fields.length===1&&fields[0]==='reminder'){const session=voiceDialogues.event||beginVoiceDialogue('event',targetTask.id,before);return applyEventScopedVoiceAction(session,after.reminder==null?{type:'remove_event_reminder',eventId:targetTask.id}:{type:'set_event_reminder',eventId:targetTask.id,minutesBefore:after.reminder.minutesBefore})}
 const preview=voiceEventChangePreview(before,after,fields,result.transcription);
 let scope="1";
-if(!await showEventChangePreview(targetTask,preview)){ $('eventVoiceHint').textContent='Anulowano zmianę';return }
+const locationAlreadyConfirmed=fields.length===1&&fields[0]==='location'&&result.confirmedLocation?.location===nextLocation&&(result.confirmedLocation.placeId||null)===(plannerGooglePlace(x)?.placeId||null);
+if(!locationAlreadyConfirmed&&!await showEventChangePreview(targetTask,preview)){ $('eventVoiceHint').textContent='Anulowano zmianę';return }
 if(activeTask?.id!==targetTask.id||!tasks.includes(targetTask)||JSON.stringify(voiceEventSnapshot(targetTask))!==JSON.stringify(before))return;
 if(fields.some(f=>['date','startTime','endTime','endDate','location'].includes(f))){const candidates=plannerEditedCandidates(targetTask,{title:nextTitle,date:nextDate,startTime:nextStart,time:nextStart,endTime:nextEnd,endDate:nextEndDate,location:nextLocation},scope);if(!await approvePlannerSchedule(candidates,candidates.map(t=>t.id)))return;if(!tasks.includes(targetTask)||JSON.stringify(voiceEventSnapshot(targetTask))!==JSON.stringify(before))return}
 const noteBefore=structuredClone(targetTask);const originalDate=targetTask.date,originalOrder=seriesOccurrenceOrder(targetTask);
@@ -2272,10 +2347,11 @@ const OktiLocalWeather=(()=>{
     if(needsLocation){
      const live=await position();if(!state.enabled)return;if(!valid(live))throw Error('Telefon zwrócił nieprawidłową lokalizację.');
      const same=place&&distance(place,live)<5;
-     place={latitude:Number(live.latitude.toFixed(3)),longitude:Number(live.longitude.toFixed(3)),accuracy:live.accuracy,checkedAt:Date.now(),label:same?place.label:''};
-     if(!same){
+     const sameCityPoint=place&&distance(place,live)<.25;
+     place={latitude:Number(live.latitude.toFixed(3)),longitude:Number(live.longitude.toFixed(3)),accuracy:live.accuracy,checkedAt:Date.now(),label:same?place.label:'',city:sameCityPoint?place.city:undefined,countryCode:sameCityPoint?place.countryCode:undefined};
+     if(!same||!place.city){
       // The free client endpoint is used only for a freshly obtained device fix.
-      try{const q=new URLSearchParams({latitude:String(live.latitude),longitude:String(live.longitude),localityLanguage:'pl'}),name=await json('https://api.bigdatacloud.net/data/reverse-geocode-client?'+q);place.label=[name.city||name.locality,name.countryName].filter(Boolean).join(', ')}catch(_){}
+      try{const q=new URLSearchParams({latitude:String(live.latitude),longitude:String(live.longitude),localityLanguage:'pl'}),name=await json('https://api.bigdatacloud.net/data/reverse-geocode-client?'+q);place.city=name.city||name.locality||'';place.countryCode=name.countryCode||'';place.label=[place.city,name.countryName].filter(Boolean).join(', ')}catch(_){place.label=''}
      }
      if(!state.enabled)return;state.place=place;save();notify();
     }
