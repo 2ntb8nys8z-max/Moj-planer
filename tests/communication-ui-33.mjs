@@ -13,16 +13,45 @@ const command=fields=>({kind:'command',intent:'execute',action:'continue',reply:
 function begin(){run("closeEventActions();clearVoicePreview();tasks=[];saveTasks();testSession=beginVoiceDialogue('main',null,null)")}
 async function turn(text,answer,audio=false){model=answer;transcript=text;w.testText=text;return run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`)}
 const options=()=>[...get('oktiDecision').querySelectorAll('button.okti-decision-option')];
+const hours=()=>[...get('oktiDecision').querySelectorAll('button[data-time-choice]')];
 async function settle(){await new Promise(r=>w.setTimeout(r,20))}
 try{
  begin();await turn('Utwórz wizytę 4 stycznia o 7:00',command({query:'Wizyta',date:'2027-01-04',startTime:'07:00'}),true);
- assert.equal(get('oktiDecision').hidden,false);assert.equal(get('oktiDecision').querySelectorAll('[role=spinbutton]').length,2);assert.equal(run('tasks.length'),0);
- assert.equal(options().some(b=>/^07:00$|^19:00$/.test(b.textContent)),false,'Ambiguous hours use wheels, not two hour buttons');
+ assert.equal(get('oktiDecision').hidden,false);assert.equal(get('oktiDecision').querySelectorAll('[role=spinbutton]').length,0);assert.equal(run('tasks.length'),0);
+ assert.deepEqual(hours().map(b=>b.textContent),['07:00','19:00'],'An ambiguous voice hour offers both exact alternatives immediately');assert.equal(get('oktiDecisionQuestion').textContent,'Wybierz godzinę');assert.equal(get('oktiDecision').querySelector('.okti-decision-options').classList.contains('is-pair'),true);
  assert.equal(get('mainConversation').querySelector('.voice-message.user').style.display,'none');assert.equal(run('testSession.history[0].role'),'user','Full internal history remains intact');
- const priorCalls=modelCalls;const cols=get('oktiDecision').querySelectorAll('[role=spinbutton]');cols[0].scrollTop=19*44;cols[0].onscroll();cols[1].scrollTop=35*44;cols[1].onscroll();assert.match(options()[0].textContent,/19:35/);
- await options()[0].onclick();assert.equal(modelCalls,priorCalls,'Exact wheel selection does not need another model guess');assert.equal(lastPayload.manualTimeChoice.time,'19:35');assert.equal(run('tasks[0].time'),'19:35');assert.equal(run('tasks[0].endTime'),'20:35');assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');await options().find(b=>b.textContent==='Nie — zakończ').onclick();assert.equal(get('oktiDecision').hidden,true);assert.equal(run('!!document.querySelector(".app").inert'),false);
+ const priorCalls=modelCalls;await hours()[1].onclick();assert.equal(modelCalls,priorCalls,'Exact button selection does not need another model guess');assert.equal(lastPayload.manualTimeChoice.time,'19:00');assert.equal(lastPayload.manualTimeChoice.field,'startTime');assert.equal(lastPayload.manualTimeChoice.revision,lastPayload.dialogueState.revision);assert.equal(lastPayload.audio,undefined,'Choosing a button requires no second recording');assert.equal(run('tasks[0].time'),'19:00');assert.equal(run('tasks[0].endTime'),'20:00');assert.equal(run('tasks[0].title'),'Wizyta');assert.equal(run('tasks[0].date'),'2027-01-04');assert.equal(get('oktiDecisionQuestion').textContent,'Dodać lokalizację?');await options().find(b=>b.textContent==='Nie — zakończ').onclick();assert.equal(get('oktiDecision').hidden,true);assert.equal(run('!!document.querySelector(".app").inert'),false);
  // Manual selection is freshness-checked on the Worker as well as in the UI.
  const stale=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify({...lastPayload,manualTimeChoice:{...lastPayload.manualTimeChoice,revision:-1}})}),env);assert.equal(stale.status,409);assert.equal((await stale.json()).code,'stale_time_choice');
+ // Both halves of the day, normalized minutes, and English labels retain exact 24-hour payloads.
+ for(const [lang,text,time,labels,index,audio] of [
+  ['pl','na pierwszą','01:00',['01:00','13:00'],0,false],
+  ['pl','o 1:00','13:00',['01:00','13:00'],1,true],
+  ['pl','o 7:35','19:35',['07:35','19:35'],1,true],
+  ['en','o 1:00','13:00',['1 AM','1 PM'],1,true],
+  ['en-US','o 12:00','00:00',['12 AM','12 PM'],0,true],
+  ['en-GB','o 12:00','12:00',['12 AM','12 PM'],1,true],
+  ['en','o 7:35','19:35',['7:35 AM','7:35 PM'],1,true]
+ ]){
+  begin();w.document.documentElement.lang=lang;await turn('Utwórz spotkanie 4 stycznia '+text,command({query:'Spotkanie',date:'2027-01-04',startTime:time,durationMinutes:15}),audio);
+  assert.deepEqual(hours().map(b=>b.textContent),labels);assert.equal(run('tasks.length'),0,'No guessed time is saved before the choice');
+  const calls=modelCalls;await hours()[index].onclick();assert.equal(modelCalls,calls);assert.equal(lastPayload.manualTimeChoice.time,time);assert.equal(run('tasks[0].time'),time);assert.equal(run('tasks[0].title'),'Spotkanie');assert.equal(run('tasks[0].date'),'2027-01-04');
+ }
+ w.document.documentElement.lang='pl';
+ // The same buttons target the pending end time and preserve the complete event draft.
+ begin();await turn('Spotkanie 4 stycznia od 13:00 do 2:00',event({title:'Spotkanie',date:'2027-01-04',startTime:'13:00',endTime:'02:00',notes:'Zabrać dokumenty'}),true);
+ assert.equal(run('testSession.dialogueState.activeHourChoice.field'),'endTime');assert.deepEqual(hours().map(b=>b.textContent),['02:00','14:00']);await hours()[1].onclick();assert.equal(lastPayload.manualTimeChoice.field,'endTime');assert.equal(run('tasks[0].time'),'13:00');assert.equal(run('tasks[0].endTime'),'14:00');assert.equal(run('tasks[0].notes'),'Zabrać dokumenty');
+ // Reminders keep their existing review contract after an exact hour button.
+ begin();await turn('Przypomnij mi o lekarzu 4 stycznia o 1:00.',command({type:'set_entry_reminder',date:'2027-01-04',startTime:'01:00',message:'Lekarz'}),true);
+ assert.deepEqual(hours().map(b=>b.textContent),['01:00','13:00']);await hours()[1].onclick();assert.equal(run('pendingVoiceItem.type'),'reminder');assert.equal(run('pendingVoiceItem.time'),'13:00');assert.equal(run('pendingVoiceItem.message'),'Lekarz');assert.equal(run('tasks.length'),0,'A reminder is still reviewed before saving');
+ // An offline hour choice remains retryable; stale captured buttons cannot submit.
+ begin();await turn('Utwórz spotkanie 4 stycznia o 1:00',command({query:'Spotkanie',date:'2027-01-04',startTime:'01:00'}),true);
+ run("originalRequest=plannerApiRequest;plannerApiRequest=async()=>{throw Error('Test offline')}");await hours()[1].onclick();assert.match(get('oktiDecision').querySelector('.okti-decision-error').textContent,/Test offline/);assert.equal(hours()[1].disabled,false);assert.equal(run('tasks.length'),0);run('plannerApiRequest=originalRequest');
+ const oldHour=hours()[0];await hours()[1].onclick();const afterChoice=requestCount;await oldHour.onclick();assert.equal(requestCount,afterChoice);assert.equal(run('tasks.length'),1);assert.equal(run('tasks[0].time'),'13:00');
+ // Without an indicated hour the original manual wheels still choose arbitrary minutes.
+ begin();await turn('Utwórz wizytę 4 stycznia',command({query:'Wizyta',date:'2027-01-04'}));
+ assert.equal(hours().length,0);const cols=get('oktiDecision').querySelectorAll('[role=spinbutton]');assert.equal(cols.length,2);cols[0].scrollTop=19*44;cols[0].onscroll();cols[1].scrollTop=35*44;cols[1].onscroll();assert.match(options()[0].textContent,/19:35/);
+ const wheelCalls=modelCalls;await options()[0].onclick();assert.equal(modelCalls,wheelCalls);assert.equal(lastPayload.manualTimeChoice.time,'19:35');assert.equal(run('tasks[0].time'),'19:35');assert.equal(run('tasks[0].endTime'),'20:35');
  // Choosing a date uses the current session; completed creation remains immediate.
  begin();await turn('Utwórz wizytę o 17:00',command({query:'Wizyta',startTime:'17:00'}));assert.ok(options().some(b=>b.textContent==='Jutro'));
  model=command({date:'2027-01-04'});await options().find(b=>b.textContent==='Jutro').onclick();assert.equal(lastPayload.text,'Jutro');assert.equal(run('tasks[0].time'),'17:00');
@@ -39,5 +68,5 @@ try{
  const staleOption=options()[0],before=requestCount;run("pendingVoiceItem={type:'event',title:'Inny',date:'2027-01-05',startTime:'18:00',endTime:'19:00'}");await staleOption.onclick();assert.equal(requestCount,before);
  run("OktiCommunication.close();clearVoicePreview();pendingVoiceItem={type:'event',title:'Zachowany projekt',date:'2027-01-05',startTime:'18:00',endTime:'19:00'};showVoicePreview(pendingVoiceItem)");get('oktiDecision').querySelector('[aria-label="Zamknij pytanie"]').click();assert.equal(run('pendingVoiceItem.title'),'Zachowany projekt','Closing the review keeps its draft; only the explicit reject button discards it');
  assert.match(fs.readFileSync('index.html','utf8'),/min-height:82px/);assert.match(fs.readFileSync('index.html','utf8'),/okti-decision-card h2\{[^}]*clamp\(25px/);
- console.log('Communication UI: real normalized audio → Worker → hour/minute wheels → exact manual choice → immediate durable save; date and 3-option answers, hidden transcript/internal history, voice handoff to existing recorder, stale/closed decisions, offline retry and source freshness passed (external providers mocked).');
+ console.log('Communication UI: real normalized audio → Worker → two exact hour buttons → next request → durable save; PL/EN, AM/PM including midnight/noon, minutes, arbitrary manual wheels, date and 3-option answers, hidden transcript/internal history, voice handoff, stale/closed decisions, offline retry and source freshness passed (external providers mocked).');
 }finally{dom.window.close();globalThis.fetch=savedFetch}

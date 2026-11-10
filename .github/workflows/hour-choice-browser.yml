@@ -1,0 +1,48 @@
+name: Direct hour choice browser regression
+on:
+  push:
+    branches: [main, 'work/hour-choice-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hour-choice-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify direct hour choices through the actual Worker
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/hour-choice-browser-33.cjs
+      - name: Wait for the tested production HTML
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/verify-event-hero-deployment.mjs
+      - name: Verify published hour choices
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+        run: node tests/hour-choice-browser-33.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hour-choice-${{ matrix.browser }}
+          path: test-results/hour-choice-*/
+          retention-days: 7

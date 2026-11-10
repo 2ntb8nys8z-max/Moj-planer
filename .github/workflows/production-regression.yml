@@ -2,7 +2,7 @@ name: Production regression tests
 
 on:
   push:
-    branches: [main, 'work/calendar-art-*']
+    branches: [main, 'work/calendar-art-*', 'work/hour-choice-*']
   workflow_dispatch:
 
 permissions:

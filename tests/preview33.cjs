@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.10\.33\.276-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.10\.33\.276-test/);
+assert.match(root,/Aplikacja: 2026\.11\.10\.33\.277-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.10\.33\.277-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');

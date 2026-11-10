@@ -79,7 +79,7 @@ try{
   run('testSession=correctionSession');
   if(audio){
    await turn('Przenieś na 7:00 do 8:00',event({startTime:'07:00',endTime:'08:00'},'modify'),true);
-   assert.ok(lastPayload.audio);assert.equal(stored().length,1,'A normalized ambiguous hour still needs clarification');assert.match(get('oktiDecisionQuestion').textContent,/07:00 czy 19:00/);
+   assert.ok(lastPayload.audio);assert.equal(stored().length,1,'A normalized ambiguous hour still needs clarification');assert.equal(get('oktiDecisionQuestion').textContent,'Wybierz godzinę');assert.deepEqual([...get('oktiDecision').querySelectorAll('[data-time-choice]')].map(b=>b.textContent),['07:00','19:00']);
   }
   await turn('Przenieś na 19:00 do 20:00',event({startTime:'19:00',endTime:'20:00'},'modify'),!audio);
   if(!audio)assert.ok(lastPayload.audio);assert.equal(lastPayload.dialogueState.draft.title,'Spotkanie z Anitką');assert.equal(lastPayload.currentItem,null);assert.equal(stored().length,2,'The corrected draft is saved without a second save question');

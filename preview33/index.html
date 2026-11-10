@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.276</title>
+<title>Mój Planer — test integracji 33.277</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.276</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.276</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.10.33.276-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.277</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.277</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.10.33.277-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.10.33.276-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.10.33.277-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5560,6 +5560,7 @@ body:is(.event-sheet-open,.okti-event-transitioning) .voice-area :is(.octi-copy,
 .okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send).is-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
 .okti-decision-options.is-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.okti-decision-options.is-pair .okti-decision-option{text-align:center;align-items:center;padding-left:15px;padding-right:15px}
 .okti-decision-options.is-pair .is-primary strong:before{content:"✓";display:inline-block;margin-right:9px;font-weight:650}
+.okti-decision-card.is-hour-choice{min-height:0}.okti-decision-options.is-hour-choice .okti-decision-option{font-variant-numeric:tabular-nums}
 .okti-decision-edits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;border-top:1px solid #dfe2e4;padding-top:18px;margin-top:auto}
 .okti-decision-edits .okti-decision-voice,.okti-decision-edit{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:9px;min-height:72px;width:100%;margin:0;padding:12px 9px;font:inherit;white-space:normal;overflow-wrap:anywhere}
 .okti-decision-edit svg,.okti-decision-edits .okti-decision-voice svg{width:27px;height:27px;flex:none}.okti-decision-edit strong,.okti-decision-edits .okti-decision-voice strong{font-size:clamp(19px,4.6vw,23px);font-weight:750;line-height:1.2}
@@ -5683,6 +5684,16 @@ window.OktiCommunication=(()=>{
   const b=node('button','okti-decision-option'+(primary?' is-primary':''));b.type='button';if(negative||/^Nie(?:\s|$|—)/.test(label))b.classList.add('is-negative');b.setAttribute('aria-label',label+(detail?' '+detail:''));b.append(node('strong','',label));if(detail)b.append(node('small','',detail));
   b.onclick=async()=>{if(!valid(state)||state.busy||state.session?.busy)return;if(!state.session){state.busy=true;b.disabled=true}try{await run()}catch(error){fail(state,error)}finally{if(current===state){state.busy=false;b.disabled=false}}};return b;
  }
+ function hourChoices(session){
+  const choice=session?.dialogueState?.activeHourChoice;
+  if(!choice||!['startTime','endTime'].includes(choice.field)||!Array.isArray(choice.choices)||choice.choices.length!==2||new Set(choice.choices).size!==2||!choice.choices.every(time=>isValidPlannerTime(time,false)))return null;
+  return choice;
+ }
+ function hourLabel(time){
+  if(!/^en(?:-|$)/i.test(document.documentElement.lang))return time;
+  const [hour,minute]=time.split(':').map(Number);
+  return (hour%12||12)+(minute?':'+String(minute).padStart(2,'0'):'')+(hour<12?' AM':' PM');
+ }
  function wheels(state,target){
   const ds=state.session.dialogueState||{},source=ds.mode==='reminder'?ds.reminderDraft||{}:ds.draft||{},field=ds.activeHourChoice?.field||ds.pendingField;
   const chosen=ds.activeHourChoice?.choices?.[0]||source[field]||'12:00';let hour=Number(chosen.slice(0,2))||0,minute=Number(chosen.slice(3))||0;
@@ -5718,9 +5729,13 @@ window.OktiCommunication=(()=>{
  }
  function show(config){
   cancelKeyPress();stopSpeech();restore();const old=current;current={...config,revision:config.session?.dialogueState?.revision??0,busy:false};const state=current;
+  const ds=state.session?.dialogueState||{},hours=hourChoices(state.session),clock=!!state.session&&!hours&&(ds.activeHourChoice||['startTime','endTime'].includes(ds.pendingField)&&['create','reminder'].includes(ds.mode));
+  // The Worker already resolved the two alternatives. Present them directly;
+  // keep its original question in the session history for subsequent turns.
+  if(hours)state.question=/^en(?:-|$)/i.test(document.documentElement.lang)?'Choose the time':'Wybierz godzinę';
   if(shade.hidden)returnFocus=document.activeElement;
   for(const n of [document.querySelector('.app'),$('eventModal'),$('ideaModal')])if(n){suspended.push([n,n.inert]);n.inert=true}
-  card.replaceChildren();card.classList.remove('is-typing');card.classList.toggle('is-schedule',!!state.scheduleIssues);shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
+  card.replaceChildren();card.classList.remove('is-typing');card.classList.toggle('is-schedule',!!state.scheduleIssues);card.classList.toggle('is-hour-choice',!!hours);shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
   if(state.motion==='created-event'){void card.offsetWidth;shade.classList.add('is-created-event')}
   const header=node('div','okti-decision-header');header.append(node('span','',state.title||'OCTI'));
   const read=node('button','okti-decision-icon');read.type='button';read.setAttribute('aria-label','Odczytaj pytanie');read.innerHTML=speaker;read.onclick=()=>speak(state.question);header.append(read);
@@ -5737,8 +5752,11 @@ window.OktiCommunication=(()=>{
    const copy=node('div','okti-decision-address-copy'),name=state.locationSummary.name||state.locationSummary.label,detail=state.locationSummary.label.replace(name,'').replace(/\s+,/g,',').replace(/^[,\s]+|[,\s]+$/g,'');copy.append(node('strong','',name));if(detail)copy.append(node('span','',detail));address.append(pin,copy);locationCopy.append(address,node('p','okti-decision-location-question','Dodać do wydarzenia?'));card.append(locationCopy);
   }
   const options=node('div','okti-decision-options');card.append(options);
-  const ds=state.session?.dialogueState||{},clock=!!state.session&&(ds.activeHourChoice||['startTime','endTime'].includes(ds.pendingField)&&['create','reminder'].includes(ds.mode));
-  if(clock)wheels(state,options);
+  if(hours){
+   options.classList.add('is-pair','is-hour-choice');
+   for(const time of hours.choices){const button=choiceButton(state,hourLabel(time),null,()=>answer(state,time,{manualTimeChoice:{field:hours.field,time,revision:state.revision}}));button.dataset.timeChoice=time;options.append(button)}
+  }
+  else if(clock)wheels(state,options);
   else if(state.actions?.length){for(const action of state.actions)options.append(choiceButton(state,action.label,action.detail,()=>dismiss(state,action.run),action.primary===true))}
   else if(state.buttons?.length){for(const [i,b] of state.buttons.entries())options.append(choiceButton(state,b.label,b.detail,async()=>{if(!b.original.isConnected||b.original.disabled)return;if(b.original.onclick)await b.original.onclick();else b.original.click();if(current===state&&(!b.original.isConnected||b.done))close()},b.primary??(!state.buttons.some(button=>button.primary===true)&&i===state.buttons.length-1),b.negative===true))}
   else{
@@ -5764,7 +5782,7 @@ window.OktiCommunication=(()=>{
   if(edits.children.length)card.append(edits);
   requestAnimationFrame(()=>{if(valid(state))h.focus({preventScroll:true})});
   setBusy(state.session,!!state.session?.busy);
-  if(state.speak||state.session?.inputSource==='audio')speak(state.question,(state.channel||'main')+':'+state.revision+':'+state.question);
+  if(!hours&&(state.speak||state.session?.inputSource==='audio'))speak(state.question,(state.channel||'main')+':'+state.revision+':'+state.question);
  }
  function showActions(channel,question,actions,isCurrent,options={}){show({channel,question,actions,isCurrent,...options})}
  function showClarification(session,question){if(!voiceDialogueValid(session))return;show({session,channel:session.channel,question})}
