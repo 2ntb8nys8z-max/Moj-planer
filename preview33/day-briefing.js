@@ -72,8 +72,8 @@
   const timed=records.filter(r=>!r.allDay),located=timed.filter(r=>location(r.item)),warnings=[],legs=[],notes=[];
   for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0){const minutes=Math.ceil(overlap/60000),unit=minutes===1?'minutę':minutes%10>=2&&minutes%10<=4&&(minutes%100<12||minutes%100>14)?'minuty':'minut';warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy wydarzeń „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+minutes+' '+unit+'.'});}}
   const validOrigin=origin&&Number.isFinite(origin.latitude)&&Math.abs(origin.latitude)<=90&&Number.isFinite(origin.longitude)&&Math.abs(origin.longitude)<=180&&Number.isFinite(origin.checkedAt)&&+now-origin.checkedAt<15*60000&&+now-origin.checkedAt>=0&&(!Number.isFinite(origin.accuracy)||origin.accuracy<=1000);
-  if(located.length&&validOrigin){const target=located[0],from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Twoja ostatnia lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
-  else if(located.length)notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
+  if(mode==='remaining'&&located.length&&validOrigin){const target=located[0],from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Twoja ostatnia lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
+  else if(mode==='remaining'&&located.length)notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
   for(let i=0;i<located.length-1;i++){const from=located[i],to=located[i+1];if(locationKey(location(from.item))===locationKey(location(to.item)))continue;legs.push({from:from.item,to:to.item,target:to,start:Math.max(from.end,mode==='remaining'?+now:from.end),end:to.start,mode:getMode(from.item,to.item)});}
   let requested=0,index=0;
   async function work(){while(index<legs.length){const leg=legs[index++];try{let value=cached(leg.from,leg.to,leg.mode);if(!value&&requested<maxRequests){requested++;value=await route(leg.from,leg.to,{mode:leg.mode,origin:leg.origin});}leg.route=value;}catch(_){leg.route=null}}}
@@ -99,30 +99,44 @@
   if(legs.some(l=>!l.route||!Number.isFinite(l.route.minutes)))notes.push('Nie wszystkie dojazdy zostały ustalone.');
   return {legs,warnings,notes};
  }
- function speech(model){
-  const {mode,date,records,entry,weather:forecast,travel:journey}=model,parts=[];
-  const count=(n,one,few,many)=>n+' '+(n===1?one:n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?few:many);
-  const finish=()=>{let text=parts.join(' ');for(const r of records)if(r.title.length>110)text=text.split(r.title).join(r.title.slice(0,110).trimEnd()+'…');return text};
-  if(mode==='review'){
-   parts.push('Podsumowanie '+new Date(date+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long'})+'.');
-   parts.push('W kalendarzu: '+count(records.length,'zaplanowane wydarzenie','zaplanowane wydarzenia','zaplanowanych wydarzeń')+'. Oznaczone jako wykonane: '+records.filter(r=>r.item.done).length+'.');
-   if(records.length)parts.push('W planie: '+records.slice(0,4).map(r=>r.title).join(', ')+(records.length>4?' i '+(records.length-4)+' dalsze wydarzenia':'')+'.');
-   // A future task module can provide its own dated completion adapter.
-   if(entry?.complete?.length)parts.push('Wykonane zadania: '+entry.complete.slice(0,4).map(r=>r.title).join(', ')+'.');
-   if(entry?.pending?.length)parts.push('Do zrobienia pozostaje '+entry.pending.length+' zadań z terminem tego dnia.');return finish();
+ // The briefing exposes counts and actionable risks. Detailed routes and
+ // weather belong to their existing calendar/event views.
+ function summary(model,{allWarnings=false}={}){
+  const {mode,date,records=[],travel:journey}=model,now=model.now||new Date(),n=records.length;
+  const count=n+' '+(n===1?'spotkanie':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'spotkania':'spotkań');
+  const when=date===nextDay(dayKey(now))?'jutro':date===dayKey(now)?'dzisiaj':'tego dnia';
+  const countText=mode==='review'?'W kalendarzu zaplanowano '+count+'. Oznaczone jako wykonane: '+records.filter(r=>r.item.done).length+'.':mode==='remaining'?(n?'Masz dziś jeszcze '+count+'.':'Na dziś nie masz już zaplanowanych spotkań.'):(n?'Masz '+when+' '+count+'.':'Nie masz '+when+' zaplanowanych spotkań.');
+  const names=new Map(records.map(r=>[r.item.id,r.title])),starts=new Map(records.map(r=>[r.item.id,r.start]));
+  const name=id=>{const text=String(names.get(id)||'Wydarzenie');return '„'+(text.length>80?text.slice(0,80).trimEnd()+'…':text)+'”'};
+  const raw=journey?.warnings||[],overlaps=raw.filter(w=>w.kind==='overlap'),covered=new Set(),pairs=new Map();
+  for(const warning of raw.filter(w=>w.kind==='travel')){
+   const id=warning.eventIds?.[0],leg=journey.legs?.find(l=>l.to.id===id&&l.risk==='late');
+   const pair=leg&&!leg.current&&overlaps.find(w=>w.eventIds.includes(id)&&w.eventIds.includes(leg.from.id));
+   if(pair){pairs.set(warning,pair);covered.add(pair)}
   }
-  parts.push((mode==='remaining'?'Jeszcze dzisiaj':'Plan na '+new Date(date+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long'}))+': '+(records.length?count(records.length,'wydarzenie','wydarzenia','wydarzeń')+' w kalendarzu.':'brak kolejnych wydarzeń w kalendarzu.'));
-  const spokenOrder=[...records.filter(r=>!r.allDay),...records.filter(r=>r.allDay)];
-  for(const r of spokenOrder.slice(0,4))parts.push((r.status==='ongoing'?'Trwa ':r.allDay?'Cały dzień: ':'O '+clock(new Date(r.start))+': ')+r.title+'.');
-  if(records.length>4)parts.push('Pozostałe '+(records.length-4)+' wydarzeń pokazuję na ekranie.');
-  if(entry?.pending?.length)parts.push('Do zrobienia także: '+entry.pending.slice(0,3).map(r=>r.title).join(', ')+(entry.pending.length>3?' i '+(entry.pending.length-3)+' dalsze wpisy':'')+'.');
-  for(const warning of (journey?.warnings||[]).slice(0,3))parts.push(warning.text);
-  if(journey?.warnings.length>3)parts.push('Pozostałe ostrzeżenia: '+(journey.warnings.length-3)+'. Pokazuję je na ekranie.');
-  const first=journey?.legs.find(l=>l.current&&l.route);if(first&&!journey.warnings.some(w=>w.kind==='ongoing-travel'))parts.push(first.text);
-  for(const leg of (journey?.legs||[]).filter(l=>!l.current&&l.route&&(l.route.minutes>=45||l.route.distanceMeters>=50000)).slice(0,2))parts.push('Dłuższy dojazd: '+leg.text);
-  if(journey?.notes.length)parts.push(journey.notes.join(' '));
-  if(forecast)parts.push((forecast.place?'Pogoda dla '+forecast.place+'. ':'')+forecast.text);
-  return finish();
+  const warnings=[];
+  for(const warning of raw){
+   const ids=warning.eventIds||[],id=ids[0];let text,rank=0;
+   if(warning.kind==='travel')text='Ryzyko spóźnienia na spotkanie '+name(id)+' — '+(pairs.has(warning)?'terminy się nakładają.':'za mało czasu na dojazd.');
+   else if(warning.kind==='ongoing-travel')text='Spotkanie '+name(id)+' według planu już trwa.';
+   else if(warning.kind==='overlap'){if(covered.has(warning))continue;rank=1;text='Nakładają się terminy wydarzeń '+ids.map(name).join(' i ')+'.'}
+   else if(warning.kind==='tight'){rank=2;text='Dojazd na spotkanie '+name(id)+' może być na styk.'}
+   if(text)warnings.push({kind:warning.kind,eventIds:[...ids],text,rank});
+  }
+  warnings.sort((a,b)=>a.rank-b.rank||(starts.get(a.eventIds[0])||0)-(starts.get(b.eventIds[0])||0));
+  const visibleWarnings=allWarnings?warnings:warnings.slice(0,2),moreCount=warnings.length-visibleWarnings.length;
+  const timed=records.filter(r=>!r.allDay),incomplete=!!journey?.notes?.length||timed.length>1&&timed.some(r=>!r.hasEnd);
+  let note='';
+  if(n&&mode!=='review'&&!warnings.length){
+   if(incomplete)note='Nie udało się ocenić wszystkich dojazdów.';
+   else if(mode==='remaining'&&journey?.legs?.some(l=>l.current))note='Nie wykryto ryzyka spóźnienia.';
+   else if(mode==='plan'&&timed.length>1)note='Nie wykryto ryzyka między spotkaniami.';
+  }
+  return {countText,warnings,visibleWarnings,moreCount,note};
  }
- return {target,interval,events,weather,travel,freeWindows,speech,dayKey,clock,duration};
+ function speech(model,options){
+  const brief=summary(model,options);
+  return [brief.countText,...brief.visibleWarnings.map(w=>w.text),brief.moreCount?'Pozostałe ostrzeżenia: '+brief.moreCount+'.':'',brief.note].filter(Boolean).join(' ');
+ }
+ return {target,interval,events,weather,travel,freeWindows,summary,speech,dayKey,clock,duration};
 });
