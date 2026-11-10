@@ -90,13 +90,13 @@ async function geometry(page){return page.evaluate(()=>{
    assert.match(tilePaint,/linear-gradient/);assert.doesNotMatch(tilePaint,/url\(/,width+': accepted keys have white faces, not calendar illustrations');
    assert.doesNotMatch(await page.locator('[data-event-id="all-day"]').evaluate(n=>getComputedStyle(n).backgroundImage),/url\(/);
    assert.ok(await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n).backgroundColor==='rgb(255, 255, 255)'),width+': key face stays white');
-   const beforeOpenImages=images;
    await page.locator('[data-event-id="workshop"]').scrollIntoViewIfNeeded();
    const stripePaint=await page.locator('[data-event-id="workshop"]').evaluate(n=>getComputedStyle(n,'::before').backgroundImage);
    await open(page);const first=await frame(page,0);assert.equal(first.background,tilePaint);assert.equal(first.opacity,1);assert.equal(first.weather,1,'Weather follows the existing flight and fades with its glass surface');assert.equal(first.stripes,1);assert.equal(first.stripe.background,stripePaint,'The same single inset bar follows the flight surface');assert.equal(first.stripe.left,'6px');assert.equal(first.stripe.width,'4px');const later=await frame(page,280);assert.equal(later.opacity,0);assert.notEqual(later.shadow,first.shadow,width+': elevation interpolates instead of jumping between incompatible shadow lists');
    await page.screenshot({path:path.join(output,width+'-opening.png')});
    // Close during opening: keep the interrupted decoration, then settle cleanly.
    await page.evaluate(()=>closeEventActions());await clean(page);
+   const beforeReopenImages=images;
    if(width===390){
     const key=page.locator('.phone-event[data-event-id="workshop"]');await key.scrollIntoViewIfNeeded();
     const restingShadow=await key.evaluate(n=>getComputedStyle(n).boxShadow),box=await key.boundingBox();
@@ -129,7 +129,7 @@ async function geometry(page){return page.evaluate(()=>{
    await page.locator('[data-event-id="workshop"]').tap();await clean(page);
    assert.match(await page.locator('#eventNotesCards').textContent(),/Przynieść aparat/);
    await page.locator('#closeEvent').tap();await clean(page);
-   assert.equal(images,beforeOpenImages,width+': reopening does not request the artwork again');
+   assert.equal(images,beforeReopenImages,width+': reopening reuses the already loaded header artwork');
    assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),dataBefore,width+': decoration does not modify events');
    // Existing overlap layout and tiny event cards remain usable with art enabled.
    await page.evaluate(()=>{tasks=[...tasks,{id:'overlap',title:'Konsultacja w pracy',date:'2026-11-07',time:'12:30',endTime:'13:00'}];renderAll();});

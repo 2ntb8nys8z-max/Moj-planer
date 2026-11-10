@@ -65,7 +65,14 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
  // BELOW that card instead of switching to the top of the focused pair.
  await seed(page);await key(page).evaluate(n=>{const card=document.querySelector('[data-event-id="route-to"]'),scroller=document.getElementById('taskList');scroller.scrollTop+=card.getBoundingClientRect().bottom-(window.innerHeight-25);n.focus({preventScroll:true})});
  await page.keyboard.press('Enter');await page.locator('.okti-route-menu[data-state=open]').waitFor();
- const below=await page.locator('.okti-route-menu[data-state=open]').evaluate(n=>{const r=n.getBoundingClientRect(),card=document.querySelector('[data-event-id="route-to"]').getBoundingClientRect();return {top:r.top,bottom:r.bottom,cardBottom:card.bottom}});assert.ok(Math.abs(below.top-below.cardBottom-10)<1,label+': travel details always appear below their event');assert.ok(below.bottom<=height-9,label+': the lower panel remains visible');await closeMenu(page);
+ // The opening animation deliberately translates the menu by 6px. Check
+ // its layout anchor during animation, then its rendered bounds after settling.
+ const opening=await page.locator('.okti-route-menu[data-state=open]').evaluate(n=>({top:parseFloat(n.style.top),cardBottom:document.querySelector('[data-event-id="route-to"]').getBoundingClientRect().bottom}));
+ assert.ok(Math.abs(opening.top-opening.cardBottom-10)<1,JSON.stringify({label,opening}));
+ await page.locator('.okti-route-menu[data-state=open]').evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished)));
+ const below=await page.locator('.okti-route-menu[data-state=open]').evaluate(n=>{const r=n.getBoundingClientRect(),card=document.querySelector('[data-event-id="route-to"]').getBoundingClientRect();return {top:r.top,bottom:r.bottom,cardBottom:card.bottom}});
+ await page.screenshot({path:path.join(out,label+'-last-event.png')});
+ assert.ok(Math.abs(below.top-below.cardBottom-10)<1,JSON.stringify({label,below}));assert.ok(below.bottom<=height-9,label+': the lower panel remains visible');await closeMenu(page);
  await context.close();console.log(kind+' '+label+': inline time, four modes, sharp pair and center line, bounded white panel, animation, outside/Escape/close, risk, persistence and data preservation passed.');
  }
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),page=await context.newPage();await routing(page);await page.goto(live||'https://planner.test');await seed(page);await openMenu(page);assert.equal(await page.locator('.okti-route-menu').evaluate(n=>n.getAnimations().length),0);await closeMenu(page);await context.close();assert.deepEqual(errors,[]);
