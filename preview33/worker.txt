@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.44-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.45-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -295,7 +295,7 @@ function conversationCandidate(original,state,answer){
 // Resolve a short answer against the immediately preceding hour choices.
 // Never interpret an isolated bare hour as an AM/PM choice.
 function conversationHourChoice(text,state,history){
-  const choices=state.activeHourChoice?.choices||null;
+  const choices=(state.activeHourChoice||state.conversationAmbiguity)?.choices||null;
   const t=dialoguePlain(String(text).replace(/\b([ap])\s*\.\s*m\s*\.?/gi,'$1m').replace(/:/g,'zzcolonzz')).replace(/zzcolonzz/g,':').replace(/\b([ap])\s+m\b/g,'$1m').trim();
   if(choices&&/^(?:pierwsza opcja|pierwsza z nich)$/.test(t))return choices[0];
   if(choices&&/^(?:druga opcja|druga z nich)$/.test(t))return choices[1];
@@ -316,7 +316,7 @@ function conversationHourMentions(text,state,inputSource='text'){
   if(/\b[ap]\s*m\b/i.test(normalized))return [];
   if(/\?\s*$/.test(text)||/^(dlaczego|czemu|czy|wyjasnij)\b/.test(dialoguePlain(text)))return [];
   const short=/^(?:(?:na|o|do)\s+)?(?:godzin\w*\s+)?(?:[a-z]+|\d{1,2}(?::\d{2})?)(?:\s+(?:rano|w nocy|po poludniu))?\.?$/.test(dialoguePlain(text));
-  const pending={kind:short?'hour':undefined,field:state.activeHourChoice?.field||(state.pendingField==='endTime'?'endTime':'startTime')};
+  const pending={kind:short?'hour':undefined,field:(state.activeHourChoice||state.conversationAmbiguity)?.field||(state.pendingField==='endTime'?'endTime':'startTime')};
   return dialogueClockMentions(normalized,pending).map(m=>inputSource==='audio'&&plannerMinutes(m.time)>=60&&plannerMinutes(m.time)<780&&!/rano|w nocy|nad ranem|po poludniu|wieczor/.test(dialoguePlain(text))?{...m,ambiguous:true,choices:[plannerClock(plannerMinutes(m.time)%720),plannerClock(plannerMinutes(m.time)%720+720)]}:m);
 }
 function conversationHourWait(state,choice){
@@ -436,13 +436,13 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
   }
   const draft={...(original||{}),...(state.draft||{})};
   if(manualTimeChoice){
-    const expected=state.activeHourChoice?.field||state.pendingField;
-    if(!manualTimeChoice||!['startTime','endTime'].includes(manualTimeChoice.field)||manualTimeChoice.field!==expected||plannerMinutes(manualTimeChoice.time)===null||manualTimeChoice.revision!==state.revision||!state.activeHourChoice&&!['create','reminder'].includes(state.mode)&&original?.type!=='event')throw new PlannerApiError('Wybór godziny jest nieaktualny. Otwórz pytanie ponownie.',409,'stale_time_choice');
+    const expected=(state.activeHourChoice||state.conversationAmbiguity)?.field||state.pendingField;
+    if(!manualTimeChoice||!['startTime','endTime'].includes(manualTimeChoice.field)||manualTimeChoice.field!==expected||plannerMinutes(manualTimeChoice.time)===null||manualTimeChoice.revision!==state.revision||!state.activeHourChoice&&!state.conversationAmbiguity&&!['create','reminder'].includes(state.mode)&&original?.type!=='event')throw new PlannerApiError('Wybór godziny jest nieaktualny. Otwórz pytanie ponownie.',409,'stale_time_choice');
   }
   const parsedHour=manualTimeChoice?.time||conversationHourChoice(text,state,history);
-  const audioAmbiguous=!manualTimeChoice&&inputSource==='audio'&&!state.activeHourChoice&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
+  const audioAmbiguous=!manualTimeChoice&&inputSource==='audio'&&!state.activeHourChoice&&!state.conversationAmbiguity&&!/\b[ap]\s*\.?\s*m\b|rano|w nocy|nad ranem|po poludniu|wieczor/i.test(dialoguePlain(text))&&conversationHourMentions(text,state,inputSource).some(m=>m.ambiguous);
   const selectedHour=audioAmbiguous?null:parsedHour;
-  const active=state.activeHourChoice;
+  const active=state.activeHourChoice||state.conversationAmbiguity;
   const mentions=conversationHourMentions(text,state,inputSource);
   const exactHours=new Map(mentions.filter(m=>!m.ambiguous).map(m=>[m.field,m.time]));
   const unresolved=!selectedHour&&mentions.find(m=>m.ambiguous);
@@ -450,13 +450,16 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
   if(selectedHour&&(manualTimeChoice||active||state.mode==='reminder'||state.mode==='create')&&!/przypom|kalendar|wydarzen|jutro|dzis|nowe|nowy|anuluj/.test(dialoguePlain(text))){
     const field=manualTimeChoice?.field||active?.field||(state.pendingField==='endTime'?'endTime':'startTime');
     const mode=active?.mode||state.mode;
-    if(mode==='reminder'||mode==='create'||manualTimeChoice){
+    if(mode==='reminder'||mode==='create'||manualTimeChoice&&original?.type==='event'){
       forcedAnswer={reply:'Sprawdź ustalenia.',kind:'command',intent:'execute',action:'continue',operations:[],focus:'',ambiguity:null,
         uiAction:{type:mode==='reminder'?'set_entry_reminder':'open_create_event',[field]:selectedHour}};
       if(original?.type==='event'&&(mode==='create'||manualTimeChoice))forcedAnswer={reply:'Sprawdź ustalenia.',kind:'event',intent:'modify',action:'continue',operations:[{op:'set',field,value:selectedHour}],focus:'',ambiguity:null,uiAction:null};
-      state={...state};delete state.activeHourChoice;delete state.conversationAmbiguity;
     }
   }
+  // A conversational question may precede the create/reminder action. Its
+  // exact choice still goes through the model with the retained history;
+  // never create an empty event merely because a time button was pressed.
+  if(selectedHour&&(active||manualTimeChoice)){state={...state};delete state.activeHourChoice;delete state.conversationAmbiguity;}
   if(unresolved&&['reminder','create'].includes(state.mode)&&!/przypom|kalendar|wydarzen|nowe|nowy|anuluj/.test(dialoguePlain(text)))return conversationHourWait(state,{field:unresolved.field,choices:unresolved.choices,mode:state.mode,flowId:active?.flowId||crypto.randomUUID()});
   const interpretedText=selectedHour?text+' [Jednoznacznie wybrana godzina: '+selectedHour+'. Zachowaj pozostałe ustalenia; nie pytaj ponownie o porę.]':exactHours.size?text+' [Jednoznacznie podane godziny: '+[...exactHours].map(([field,time])=>field+'='+time).join(', ')+'. Zachowaj je; nie pytaj o wybór między nocą i popołudniem.]':text;
   const immediateCreate=state.eventCreationPolicy==='immediate-v1'&&original?.type!=='event';
@@ -501,13 +504,13 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
         }
       }
       // Gate unresolved hours before any command or event operation can apply them.
-      const hourFlow=answer.uiAction?.type==='set_entry_reminder'?'reminder':answer.uiAction?.type==='open_create_event'||answer.kind==='event'&&(answer.operations?.length||state.mode==='create')?'create':null;
+      const hourFlow=answer.uiAction?.type==='set_entry_reminder'?'reminder':answer.uiAction?.type==='open_create_event'||answer.kind==='event'&&(answer.operations?.length||state.mode==='create')?'create':answer.intent==='continue'&&['command','event'].includes(answer.kind)?'conversation':null;
       if(unresolved&&hourFlow){
         const safe=structuredClone(answer);safe.ambiguity=null;
         if(safe.uiAction){delete safe.uiAction[unresolved.field];if(unresolved.field==='startTime'){delete safe.uiAction.endTime;delete safe.uiAction.endDate;}}
         else safe.operations=safe.operations.filter(op=>op.field!==unresolved.field&&(unresolved.field!=='startTime'||!['endTime','endDate'].includes(op.field)));
         const kept=conversationCandidate(original,state,safe);
-        const next=hourFlow==='reminder'?{...state,mode:'reminder',reminderDraft:conversationReminderDraft(original,state,kept.uiAction||{}),draft:{}}:{...state,mode:'create',draft:kept.createDraft||kept.draft,allDay:kept.allDay};
+        const next=hourFlow==='reminder'?{...state,mode:'reminder',reminderDraft:conversationReminderDraft(original,state,kept.uiAction||{}),draft:{}}:hourFlow==='create'?{...state,mode:'create',draft:kept.createDraft||kept.draft,allDay:kept.allDay}:{...state,mode:state.mode||'conversation',draft:kept.draft||state.draft||{}};
         return conversationHourWait(next,{field:unresolved.field,choices:unresolved.choices,mode:hourFlow,flowId:crypto.randomUUID()});
       }
       if(!['execute','accept','reject','modify','propose','continue'].includes(answer.intent))throw conversationFault('invalid_semantic_intent');
@@ -620,7 +623,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="6eed2c5377cbdab0";
+const BUILD_ID="6a0b8cd63510b638";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1196,7 +1199,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.09.33.44-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.10.33.45-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

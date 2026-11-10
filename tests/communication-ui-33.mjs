@@ -52,6 +52,19 @@ try{
  begin();await turn('Utwórz wizytę 4 stycznia',command({query:'Wizyta',date:'2027-01-04'}));
  assert.equal(hours().length,0);const cols=get('oktiDecision').querySelectorAll('[role=spinbutton]');assert.equal(cols.length,2);cols[0].scrollTop=19*44;cols[0].onscroll();cols[1].scrollTop=35*44;cols[1].onscroll();assert.match(options()[0].textContent,/19:35/);
  const wheelCalls=modelCalls;await options()[0].onclick();assert.equal(modelCalls,wheelCalls);assert.equal(lastPayload.manualTimeChoice.time,'19:35');assert.equal(run('tasks[0].time'),'19:35');assert.equal(run('tasks[0].endTime'),'20:35');
+ // The production failure: a model may ask only a natural-language question,
+ // without an action or activeHourChoice. The API must still expose the pair.
+ for(const [kind,audio,index] of [['command',false,0],['command',true,1],['event',true,1]]){
+  begin();const question={kind,intent:'continue',action:'continue',reply:'Czy chodzi o pierwszą w nocy czy trzynastą po południu?',operations:[],focus:'',ambiguity:kind==='event'?{field:'startTime',choices:['01:00','13:00']}:null,uiAction:null};
+  await turn('Dodaj konsultację 4 stycznia na pierwszą na pół godziny.',question,audio);
+  assert.deepEqual(hours().map(b=>b.textContent),['01:00','13:00']);assert.equal(run('tasks.length'),0);assert.equal(run('testSession.dialogueState.activeHourChoice.mode'),'conversation');
+  assert.match(run('testSession.history[0].content'),/konsultację.*4 stycznia.*pół godziny/);
+  const calls=modelCalls;model=command({query:'Konsultacja',date:'2027-01-04',startTime:'07:00',durationMinutes:30});await hours()[index].onclick();
+  const time=index?'13:00':'01:00';assert.equal(modelCalls,calls+1,'The still-uninterpreted event uses the original conversation, rather than creating an empty event');assert.ok(lastPayload.dialogue.some(m=>m.role==='user'&&/konsultację.*4 stycznia.*pół godziny/.test(m.content)));assert.equal(run('tasks[0].title'),'Konsultacja');assert.equal(run('tasks[0].date'),'2027-01-04');assert.equal(run('tasks[0].time'),time);assert.equal(run('tasks[0].endTime'),index?'13:30':'01:30');assert.equal(lastResult.dialogueState.activeHourChoice,undefined);
+ }
+ // A previously issued structured question may have conversationAmbiguity only.
+ begin();await turn('Dodaj konsultację 4 stycznia na pierwszą.',{kind:'event',intent:'continue',action:'continue',reply:'01:00 czy 13:00?',operations:[],focus:'startTime',ambiguity:{field:'startTime',choices:['01:00','13:00']},uiAction:null});
+ run("delete testSession.dialogueState.activeHourChoice;testSession.dialogueState.mode='idle';testSession.dialogueState.pendingField='title';showVoiceClarification(testSession,'01:00 czy 13:00?')");assert.deepEqual(hours().map(b=>b.textContent),['01:00','13:00']);model=command({query:'Konsultacja',date:'2027-01-04',startTime:'01:00'});await hours()[1].onclick();assert.equal(run('tasks[0].time'),'13:00');assert.equal(run('tasks[0].title'),'Konsultacja');
  // Choosing a date uses the current session; completed creation remains immediate.
  begin();await turn('Utwórz wizytę o 17:00',command({query:'Wizyta',startTime:'17:00'}));assert.ok(options().some(b=>b.textContent==='Jutro'));
  model=command({date:'2027-01-04'});await options().find(b=>b.textContent==='Jutro').onclick();assert.equal(lastPayload.text,'Jutro');assert.equal(run('tasks[0].time'),'17:00');
