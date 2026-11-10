@@ -36,7 +36,9 @@ window.OktiBriefLinks=(()=>{
   window.OktiDayBriefUI?.cancel();$('entryResultsModal').classList.add('hidden');
   operation(session,'brief_reference_expired');showVoiceClarification(session,'To wskazanie jest już nieaktualne. Poproś o nowe podsumowanie.');
  }
- function open(session,key){
+ function open(session,key,token=current?.token){
+  if(current?.owner!==session||voiceDialogues.main!==session||JSON.stringify(voiceDialogueCurrent('main',session.id))!==session.snapshot)return;
+  if(token!==current.token)return stale(session);
   const record=entry(key);if(!record||Date.now()-current.at>ttl||Date.now()<current.at)return stale(session);
   current.context.focusKeys=[key];operation(session,'brief_event_opened');
   window.OktiDayBriefUI?.cancel();$('entryResultsModal').classList.add('hidden');$('mainClarification')?.remove();
@@ -55,7 +57,7 @@ window.OktiBriefLinks=(()=>{
   operation(session,'brief_event_choices');current.context.focusKeys=keys;
   showVoiceClarification(session,'Które spotkanie chcesz zobaczyć?');showEntryResults(records,'Które spotkanie chcesz zobaczyć?');
   // Validate again on tap: a sync or edit may have changed a displayed result.
-  $('entryResults').querySelectorAll('.entry-result').forEach((button,i)=>{button.onclick=()=>open(session,keys[i])});
+  $('entryResults').querySelectorAll('.entry-result').forEach((button,i)=>{button.onclick=()=>open(session,keys[i],action.token)});
  }
  return {remember,attach,apply};
 })();
