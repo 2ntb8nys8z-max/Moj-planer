@@ -19,11 +19,13 @@ const intersects=(a,b)=>a.left<b.right-.5&&b.left<a.right-.5&&a.top<b.bottom-.5&
    const measured=await page.evaluate(()=>{
     const rect=n=>n.getBoundingClientRect().toJSON();return [...document.querySelectorAll('#taskList .phone-event')].map(card=>{
      const copy=card.nextElementSibling,title=copy.querySelector('.phone-event-title-text'),time=copy.querySelector('.phone-event-time'),weather=card.querySelector('.okti-event-card-weather'),controls=document.querySelector('.okti-route-controls[data-destination-event-id="'+card.dataset.eventId+'"]');
-     return {id:card.dataset.eventId,card:rect(card),copy:rect(copy),title:rect(title),time:rect(time),font:parseFloat(getComputedStyle(copy).fontSize),padding:parseFloat(getComputedStyle(copy).paddingTop),weather:weather&&rect(weather),controls:controls&&rect(controls),button:controls&&rect(controls.querySelector('.okti-route-badge')),icon:controls&&rect(controls.querySelector('.okti-route-badge>svg'))};
+     const hours=[...time.querySelector('.phone-event-time-range').childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim()).flatMap(n=>{const r=document.createRange();r.selectNodeContents(n);return [...r.getClientRects()].map(b=>b.toJSON())});
+     return {hours,id:card.dataset.eventId,card:rect(card),copy:rect(copy),title:rect(title),time:rect(time),font:parseFloat(getComputedStyle(copy).fontSize),padding:parseFloat(getComputedStyle(copy).paddingTop),weather:weather&&rect(weather),controls:controls&&rect(controls),button:controls&&rect(controls.querySelector('.okti-route-badge')),icon:controls&&rect(controls.querySelector('.okti-route-badge>svg'))};
     });
    });
    for(const item of measured){
     assert.equal(item.font,16);assert.ok(item.padding>=8&&item.title.top>=item.card.top+7,'Title has breathing room above');assert.ok(item.time.bottom<=item.copy.bottom+1,'Hours fit the reserved header');
+    for(const r of item.hours)assert.ok(r.left>=item.time.left-1&&r.right<=item.time.right+1&&r.top>=item.time.top-1&&r.bottom<=item.time.bottom+1,'Complete hour fragments stay readable');
     if(item.controls){assert.ok(item.button.width===44&&item.icon.width===22,'Smaller transport face preserves a 44px touch target');assert.ok(item.controls.left>=item.card.left&&item.controls.right<=item.card.right&&item.controls.bottom<=item.card.bottom,'Controls fit their destination');}
     if(item.weather){assert.ok(item.weather.right<=item.card.right-5&&item.weather.left>=item.card.left,'Weather fits at the right');if(item.controls)assert.ok(item.weather.bottom<=item.controls.top+1,'Weather stays above transport');assert.ok(!intersects(item.weather,item.title)&&!intersects(item.weather,item.time),'Weather and text do not overlap');}
     if(lanes===1)assert.ok(item.card.height<=101,'Ordinary short events shrink from the previous 158px/108px minimum');
