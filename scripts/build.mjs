@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.09.33.273-integration';
-const PREVIEW_VERSION='2026.11.09.33.273-test';
+const APP_VERSION='2026.11.10.33.274-integration';
+const PREVIEW_VERSION='2026.11.10.33.274-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.09.33.44-test';
 const WORKER_LABEL='Worker 33.44-test';
@@ -104,6 +104,19 @@ preview=preview.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v
 output('preview33/event-delete.js',eventDelete,false);
 
 
+// Approved background collection: keep the integration preview byte-identical.
+const eventBackgroundDir='assets/event-backgrounds';
+const eventBackgroundCatalog=JSON.parse(fs.readFileSync(eventBackgroundDir+'/catalog.json','utf8'));
+for(const item of eventBackgroundCatalog.backgrounds){
+  const content=fs.readFileSync(eventBackgroundDir+'/'+item.file);
+  if(createHash('sha256').update(content).digest('hex')!==item.sha256)throw Error('Event background and catalog differ: '+item.file);
+  const file=eventBackgroundDir+'/'+item.file;
+  canonical=canonical.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+item.sha256.slice(0,16));
+  preview=preview.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+item.sha256.slice(0,16));
+  output('preview33/'+eventBackgroundDir+'/'+item.file,content,false);
+}
+for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgroundDir+'/'+file,fs.readFileSync(eventBackgroundDir+'/'+file),false);
+
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
 const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261109-33.44-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
@@ -117,15 +130,6 @@ output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
-// Approved background collection: keep the integration preview byte-identical.
-const eventBackgroundDir='assets/event-backgrounds';
-const eventBackgroundCatalog=JSON.parse(fs.readFileSync(eventBackgroundDir+'/catalog.json','utf8'));
-for(const item of eventBackgroundCatalog.backgrounds){
-  const content=fs.readFileSync(eventBackgroundDir+'/'+item.file);
-  if(createHash('sha256').update(content).digest('hex')!==item.sha256)throw Error('Event background and catalog differ: '+item.file);
-  output('preview33/'+eventBackgroundDir+'/'+item.file,content,false);
-}
-for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgroundDir+'/'+file,fs.readFileSync(eventBackgroundDir+'/'+file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);
 

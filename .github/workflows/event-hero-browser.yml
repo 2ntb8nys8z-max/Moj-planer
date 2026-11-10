@@ -49,6 +49,13 @@ jobs:
       - name: Wait for the tested production HTML
         if: github.ref == 'refs/heads/main'
         run: node scripts/verify-event-hero-deployment.mjs
+      - name: Verify deployed delete gesture and glass controls
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+        run: node tests/event-delete-browser-33.cjs
       - name: Verify the deployed application in an empty browser profile
         if: github.ref == 'refs/heads/main'
         env:

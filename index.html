@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.09.33.273-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.10.33.274-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.09.33.273-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.10.33.274-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1512,12 +1512,46 @@ function plannerEventPalette(task){let hash=0;for(const char of String(task.titl
 // Calendar artwork is presentation only: existing and new events use the same
 // local collection without changing their stored data or the sheet's theme.
 const plannerCalendarArtFiles={
- 'light-shadow':'assets/calendar-art/light-shadow.webp?v=2754b26f6df8c4af','city-dusk':'assets/event-backgrounds/02-city-dusk.webp',
- 'coffee-conversation':'assets/event-backgrounds/03-coffee-conversation.webp','forest-breath':'assets/calendar-art/forest-breath.webp?v=61989c7bcdfaafff',
- journey:'assets/event-backgrounds/05-journey.webp','work-focus':'assets/calendar-art/work-focus.webp?v=da7b25d5a942a566',
- 'culture-evening':'assets/event-backgrounds/07-culture-evening.webp','calm-balance':'assets/calendar-art/calm-balance.webp?v=907e68651db11f88',
- celebration:'assets/event-backgrounds/09-celebration.webp','night-moon':'assets/event-backgrounds/10-night-moon.webp'
+ 'light-shadow':'assets/calendar-art/light-shadow.webp?v=2754b26f6df8c4af','city-dusk':'assets/event-backgrounds/02-city-dusk.webp?v=cb9e5f14366cc0ce',
+ 'coffee-conversation':'assets/event-backgrounds/03-coffee-conversation.webp?v=383756371e98c0dc','forest-breath':'assets/calendar-art/forest-breath.webp?v=61989c7bcdfaafff',
+ journey:'assets/event-backgrounds/05-journey.webp?v=ccc6c521d6423b29','work-focus':'assets/calendar-art/work-focus.webp?v=da7b25d5a942a566',
+ 'culture-evening':'assets/event-backgrounds/07-culture-evening.webp?v=061b75834b8d6482','calm-balance':'assets/calendar-art/calm-balance.webp?v=907e68651db11f88',
+ celebration:'assets/event-backgrounds/09-celebration.webp?v=ec7a857d1e915539','night-moon':'assets/event-backgrounds/10-night-moon.webp?v=da4903668635d59c'
 };
+// Header art uses the approved full-contrast collection. Calendar tile
+// assignments stay unchanged; semantic selection never mutates stored events.
+const plannerEventHeaderArtFiles={
+ 'light-shadow':'assets/event-backgrounds/01-light-shadow.webp?v=1f0abb80ae46d719',
+ 'city-dusk':'assets/event-backgrounds/02-city-dusk.webp?v=cb9e5f14366cc0ce',
+ 'coffee-conversation':'assets/event-backgrounds/03-coffee-conversation.webp?v=383756371e98c0dc',
+ 'forest-breath':'assets/event-backgrounds/04-forest-breath.webp?v=aa219147eeb8acc0',
+ journey:'assets/event-backgrounds/05-journey.webp?v=ccc6c521d6423b29',
+ 'work-focus':'assets/event-backgrounds/06-work-focus.webp?v=d11a5bf7a3d799f3',
+ 'culture-evening':'assets/event-backgrounds/07-culture-evening.webp?v=061b75834b8d6482',
+ 'calm-balance':'assets/event-backgrounds/08-calm-balance.webp?v=386d0c957df8ca28',
+ celebration:'assets/event-backgrounds/09-celebration.webp?v=ec7a857d1e915539',
+ 'night-moon':'assets/event-backgrounds/10-night-moon.webp?v=da4903668635d59c'
+};
+function plannerEventHeaderArtwork(task){
+ const text=String(task.title||'').toLocaleLowerCase('pl-PL').normalize('NFD').replace(/[\u0300-\u036f]/g,''),hour=task.time?Number(task.time.split(':')[0]):null;
+ if(/jog[aięe]|yoga|medyt|odpocz|relaks|fizjoter|rehabilit/.test(text))return 'calm-balance';
+ if(/kaw[aeęy]|coffee|kawiarn|rozmowa/.test(text))return 'coffee-conversation';
+ if(/prac[aeęy]|biuro|projekt|business|meeting|spotkanie/.test(text))return 'work-focus';
+ if(/teatr|koncert|kino|muze|opera|kultur/.test(text))return 'culture-evening';
+ if(/urodzin|imienin|swiet|imprez|wesele/.test(text))return 'celebration';
+ if(/fotograf|swiatl|cien/.test(text))return 'light-shadow';
+ if(/las|spacer|park|natura|ogrod/.test(text))return 'forest-breath';
+ if(/podroz|wyjazd|pociag|lotn|przejazd/.test(text))return 'journey';
+ if(hour!==null&&(hour>=21||hour<5))return 'night-moon';
+ if(String(task.location||'').trim())return 'city-dusk';
+ if(hour!==null&&hour>=17)return 'journey';
+ return 'light-shadow';
+}
+function plannerPaintEventHeader(task){
+ const modal=$('eventModal'),key=plannerEventHeaderArtwork(task),url=plannerEventHeaderArtFiles[key];
+ modal.dataset.headerArtwork=key;
+ modal.style.setProperty('--event-art','linear-gradient(180deg,#07101a30 0%,#07101a08 35%,#07101a70 100%),url("'+url+'")');
+}
 const plannerCalendarArtworkAssignments=new Map();
 function plannerCalendarArtworkKey(task){return String(task.id??[task.date,task.time,task.title,task.createdAt].join('|'))}
 function plannerCalendarArtworkHash(value){let hash=2166136261;for(const char of value)hash=Math.imul(hash^char.codePointAt(0),16777619)>>>0;return hash}
@@ -4703,9 +4737,7 @@ initializeMemoTools();
 .event-header-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px;min-height:44px;background:#fbfbff;isolation:isolate;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important}
 #eventModal #actionTitle{flex:1;min-width:0;display:block;max-height:2.4em;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.012em;color:#302744!important;opacity:1!important;filter:none!important;text-shadow:none!important;-webkit-font-smoothing:auto;text-rendering:auto;transform:none!important;will-change:auto}
 #eventHeaderActions{position:relative;z-index:3;display:flex;align-items:center;gap:2px;flex:none;background:#fbfbff}
-#eventHeaderActions button{filter:none!important;opacity:1!important;text-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important;will-change:auto;color:#5945a7!important}
 #eventHeaderActions svg{display:block;width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;filter:none!important;opacity:1!important;shape-rendering:geometricPrecision}
-#eventModal #closeEvent{display:grid;place-items:center;padding:9px!important;font-size:0!important}
 #eventHeaderMeta{color:#554a70;font-weight:650}
 
 /* The heading is intentionally not real backdrop glass: this keeps it sharp in iOS Safari. */
@@ -4715,7 +4747,6 @@ initializeMemoTools();
 #eventHeaderMeta{position:relative;z-index:2;margin-top:5px;color:#302b4c;font-size:14px;font-weight:750;letter-spacing:.005em}
 #eventHeaderActions{align-self:flex-start;margin-top:-2px;background:transparent}
 #eventHeaderActions,#eventHeaderActions button{pointer-events:auto!important;touch-action:manipulation}
-#eventHeaderActions button{border:1px solid #ffffffd9!important;background:linear-gradient(145deg,#ffffffeb,#e6f2faaa)!important;box-shadow:inset 1px 1px 2px #fff,0 3px 8px #577ea326!important;color:#6250ad!important}
 #eventHeaderActions button.hidden{display:none!important}
 #eventReminderBadge{position:relative;z-index:2;max-width:285px;margin-top:10px;padding:7px 12px!important;border:1px solid #ffb9aa!important;border-radius:17px!important;background:radial-gradient(ellipse at 18% 0,#fff7f2,transparent 48%),linear-gradient(145deg,#ffd9cf,#ffab98)!important;box-shadow:inset 1px 2px 3px #fff,0 3px 9px #d6755b32!important;color:#a8402d!important;font-size:14px!important}
 #eventReminderBadge svg{color:#cf553d}
@@ -4801,7 +4832,6 @@ body,.octi-dock{font-family:var(--okti-font)}
 .event-header-top{align-items:flex-start;min-height:44px;gap:8px}
 #eventModal #actionTitle{padding:3px 0 0;font-family:var(--okti-font);font-size:clamp(23px,6.5vw,31px);font-weight:750;line-height:1.12;letter-spacing:-.025em;color:#172a40!important;max-height:none;overflow:visible;-webkit-line-clamp:unset}
 #eventHeaderActions{gap:5px;margin:0;align-self:flex-start}
-#eventHeaderActions button{display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0!important;padding:11px!important;border:1px solid #c3d8eb!important;border-radius:50%;background:#f7fbffdc!important;box-shadow:0 2px 6px #4b749414!important;color:#405f85!important}
 #eventHeaderActions svg{width:22px;height:22px}
 #eventHeaderMeta{margin-top:6px;color:#4d6380;font-size:17px;font-weight:500;letter-spacing:0;line-height:1.4}
 .event-time-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -5761,11 +5791,17 @@ window.OktiCommunication=(()=>{
 #eventModal .event-sheet:before{content:none!important}
 /* The hidden forecast does not reserve a second, empty content card. */
 #eventModal #eventHeader{display:grid;grid-template-columns:minmax(0,1fr) 82px;grid-template-rows:1fr auto;gap:10px 12px;min-height:230px;padding:14px 16px 16px!important;background:transparent!important;border:0;box-shadow:none;isolation:isolate}
-.okti-event-header-art{position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--event-art)}
+.okti-event-header-art{position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--event-art);background-size:cover;background-position:center}
 #eventModal .event-header-top{display:grid;grid-column:1/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:42px 1fr;min-height:0;padding:0;gap:14px;background:transparent!important}
 #eventModal #actionTitle{grid-row:2;align-self:end;display:block;overflow:visible;-webkit-line-clamp:unset;margin:0;padding:0;font-family:var(--okti-font);font-size:25px;font-weight:850;line-height:1.2;letter-spacing:-.6px;color:#fffdf7!important;text-shadow:0 2px 8px #061b2b80}
 #eventModal #eventHeaderActions{grid-row:1;justify-self:end;margin:0;gap:7px;align-self:start}
-#eventModal #eventHeaderActions button{width:39px;min-width:39px;height:42px;min-height:42px;padding:8px!important;border:1px solid #ffffffc0!important;border-radius:13px;background:linear-gradient(145deg,#fffdfa,#f4f4ee)!important;color:#183b5b!important;box-shadow:0 2px 5px #06273415!important}
+/* One glass treatment owns all three controls. Never lock their transforms:
+   the delete thumb must follow the finger, including in WebKit. */
+#eventModal #eventHeaderActions button{position:relative;display:grid;place-items:center;flex:none;width:44px;min-width:44px;height:44px;min-height:44px;margin:0;padding:11px;border:0;border-radius:14px;background:transparent;color:#fff;box-shadow:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;isolation:isolate}
+#eventModal #eventHeaderActions button:before{content:'';position:absolute;inset:4px;z-index:-1;border:1px solid #ffffff35;border-radius:11px;background:#ffffff0d;box-shadow:inset 0 1px #ffffff26,0 2px 6px #101b2410;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none}
+#eventModal #eventHeaderActions button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+#eventModal #eventHeaderActions button svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#eventModal #eventHeaderActions #eventActionsToggle svg{stroke-width:2.8}
 #eventModal #eventHeaderActions svg{width:21px;height:21px}
 #eventModal #eventHeaderMeta{grid-column:1;align-self:end;margin:0;padding:0;font-size:14px;line-height:20px;font-weight:650;color:#fffdf7;text-shadow:0 1px 4px #071b2c80}
 #eventModal .event-time-row{margin-top:7px;gap:6px}
@@ -5781,13 +5817,13 @@ window.OktiCommunication=(()=>{
 #eventModal.okti-event-building .okti-event-header-art{visibility:hidden}
 .okti-event-flight-panel{position:fixed;pointer-events:none;z-index:0;box-sizing:border-box;border:3px solid var(--event-rim);background:var(--event-paper);overflow:hidden}
 .okti-event-flight-panel:after{content:'';position:absolute;inset:0;border:1px solid #ffffffc0;border-radius:inherit;pointer-events:none}
-.okti-event-flight-band{position:absolute;inset:0 0 auto;background:var(--event-art)}
+.okti-event-flight-band{position:absolute;inset:0 0 auto;background:var(--event-art);background-size:cover;background-position:center}
 .okti-event-flight-label{position:fixed;pointer-events:none;z-index:30;transform-origin:0 0;box-sizing:border-box}
 .okti-event-flight-time{position:fixed;pointer-events:none;z-index:29;box-sizing:border-box}
 .okti-event-flight-pill{position:absolute;inset:0;border:1px solid var(--event-time-rule);border-radius:999px;background:var(--event-time-fill);box-shadow:inset 0 1px 2px #ffffff30,0 2px 4px #071b2c15;transform-origin:61% 50%}
 .okti-event-flight-clock{position:absolute;width:16px;height:16px;left:12px;top:50%;margin-top:-8px;color:var(--event-time-ink);transform-origin:center}
 .okti-event-flight-clock svg{display:block;width:16px;height:16px}
-@media(max-width:359px){#eventModal #eventHeader{grid-template-columns:minmax(0,1fr) 70px;gap:10px;padding:12px!important}#eventModal #actionTitle{font-size:22px}#eventModal #eventHeaderActions{gap:5px}#eventModal #eventHeaderActions button{width:36px;min-width:36px}#eventModal #eventHeaderMeta{font-size:13px}}
+@media(max-width:359px){#eventModal #eventHeader{grid-template-columns:minmax(0,1fr) 70px;gap:10px;padding:12px!important}#eventModal #actionTitle{font-size:22px}#eventModal #eventHeaderActions{gap:5px}#eventModal #eventHeaderMeta{font-size:13px}}
 /* Short screens scroll the complete header and details together above the dock. */
 @media(max-height:650px){#eventModal .event-sheet{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}#eventModal #eventMainRegion{flex-shrink:0}#eventModal #eventContent{overflow:visible}}
 @media(max-height:500px){#eventModal #eventHeader{min-height:180px;padding:10px 14px!important}#eventModal .event-header-top{gap:8px}#eventModal #actionTitle{font-size:22px}}
@@ -5806,7 +5842,7 @@ window.OktiEventMotion=(()=>{
   sage:{head:'linear-gradient(115deg,#315f4c,#56826a)',paper:'linear-gradient(115deg,#f5fbf5,#e0ecdf)',rim:'#759a7e',light:'#a2bea3',shine:'#cfe1cd',rule:'#bdd2bd',pill:'#fafff8'}
  };
  let motion=null,held=[];
- function theme(task){const key=plannerEventPalette(task),colors=themes[key]||themes.sand;modal.dataset.eventPalette=key;for(const [name,value] of Object.entries(colors))modal.style.setProperty('--event-'+({head:'head',paper:'paper',rim:'rim',light:'rim-light',shine:'rim-shine',rule:'rule',pill:'pill'}[name]),value)}
+ function theme(task){plannerPaintEventHeader(task);const key=plannerEventPalette(task),colors=themes[key]||themes.sand;modal.dataset.eventPalette=key;for(const [name,value] of Object.entries(colors))modal.style.setProperty('--event-'+({head:'head',paper:'paper',rim:'rim',light:'rim-light',shine:'rim-shine',rule:'rule',pill:'pill'}[name]),value)}
  function origin(task){
   const tile=[...$('taskList').querySelectorAll('[data-event-id]')].find(n=>n.dataset.eventId===String(task?.id));if(!tile)return null;
   const rect=tile.getBoundingClientRect(),list=$('taskList').getBoundingClientRect();if(!rect.width||rect.bottom<=list.top||rect.top>=list.bottom)return null;
@@ -6053,5 +6089,5 @@ window.OktiEventMotion=(()=>{
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
 </style>
-<script src="event-delete.js?v=8f5aee0a"></script>
+<script src="event-delete.js?v=252559d65ddfea7b"></script>
 </body></html>
