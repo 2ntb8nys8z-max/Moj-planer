@@ -33,7 +33,7 @@ const event=(id,time,endTime,fields={})=>({id,title:id,date,time,endTime,...fiel
  const route=async(from,to,options)=>{calls++;active++;peak=Math.max(peak,active);await Promise.resolve();active--;return {minutes:from.id==='@device'?45:from.id==='A'?20:10,distanceMeters:80000}};
  const travel=await core.travel(records,upcoming,{now,origin,route,getMode:()=> 'transit'});
  assert.equal(calls,3);assert.ok(peak<=2);assert.equal(travel.legs[0].risk,'late');assert.match(travel.legs[0].text,/80 km/);assert.match(travel.legs[0].text,/komunikacją/);
- const leg=travel.legs.find(l=>l.from.id==='A');assert.equal(leg.availableMinutes,10,'An intervening event splits the available travel window');assert.equal(leg.risk,'late');assert.ok(travel.warnings.some(w=>/Brakuje około 10 min/.test(w.text)));
+ const leg=travel.legs.find(l=>l.from.id==='A');assert.equal(leg.availableMinutes,10,'An intervening event splits the available travel window');assert.equal(leg.risk,'late');const travelWarning=travel.warnings.find(w=>w.kind==='travel'&&w.eventIds.includes('B'));assert.match(travelWarning.text,/Ryzyko spóźnienia na spotkanie „B”: za mało czasu na dojazd, który potrwa około 20 minut/);assert.doesNotMatch(travelWarning.text,/Brakuje|wolna przerwa|nakładają/);
  assert.ok(travel.notes.some(s=>/bez lokalizacji/.test(s)));assert.equal(JSON.stringify(upcoming),travelBefore);
  assert.match(core.speech({mode:'remaining',date,records,travel}),/Dłuższy dojazd: „A” → „B”/,'A long transfer is spoken even when it is not the first journey from the phone');
  calls=0;const stale=await core.travel(records,upcoming,{now,origin:{...origin,checkedAt:+now-15*60000},route});assert.equal(stale.legs.some(l=>l.current),false);assert.ok(stale.notes.some(s=>/Brak aktualnej/.test(s)));
@@ -42,6 +42,13 @@ const event=(id,time,endTime,fields={})=>({id,title:id,date,time,endTime,...fiel
  const plan=await core.travel(records,upcoming,{now,mode:'plan',origin,cached:()=>({minutes:45,distanceMeters:80000})});assert.equal(plan.legs[0].risk,'planning');assert.doesNotMatch(plan.legs[0].text,/wyruszyć teraz|wyjazd około/,'A tomorrow plan does not order the user to leave now');
  calls=0;const budget=await core.travel(records,upcoming,{now,origin,route,maxRequests:1});assert.equal(calls,1);assert.ok(budget.notes.some(s=>/Nie wszystkie/.test(s)));
  const overlap=[event('D','16:00','18:00'),event('E','17:00','17:30'),event('F','17:40','18:20')];const conflicts=await core.travel(core.events(overlap,date,now),overlap,{now});assert.equal(conflicts.warnings.filter(w=>w.kind==='overlap').length,2,'Nested overlaps are not missed');
+ for(const [minutes,unit] of [[1,'minutę'],[2,'minuty'],[5,'minut'],[12,'minut'],[22,'minuty'],[30,'minut']]){
+  const pair=[event('copy-before','16:00','17:00',{title:'Rozmowa',location:'Warszawa'}),event('copy-after','16:'+String(60-minutes).padStart(2,'0'),'18:00',{title:'Konsultacja',location:'Łódź'})],before=JSON.stringify(pair);
+  const result=await core.travel(core.events(pair,date,now),pair,{now,route:async()=>({minutes:10,distanceMeters:5000})});
+  assert.equal(result.warnings.find(w=>w.kind==='overlap').text,'Terminy wydarzeń „Rozmowa” i „Konsultacja” nakładają się o '+minutes+' '+unit+'.');
+  const warning=result.warnings.find(w=>w.kind==='travel');assert.equal(warning.text,'Ryzyko spóźnienia na spotkanie „Konsultacja”: terminy wydarzeń się nakładają, a dojazd potrwa około 10 minut.');assert.deepEqual(warning.eventIds,['copy-after']);assert.doesNotMatch(warning.text,/Brakuje|wolna przerwa|\b0 minut\b/);
+  assert.equal(result.legs[0].availableMinutes,0);assert.equal(result.legs[0].risk,'late');assert.equal(JSON.stringify(pair),before,'Clarifying the warning does not alter the appointments');
+ }
  assert.deepEqual(core.freeWindows(+new Date(date+'T16:30:00'),+new Date(date+'T17:00:00'),upcoming,['A','B']).map(([a,b])=>(b-a)/60000),[10,5]);
  console.log('Day briefing core: remaining/tomorrow/review, local date, end boundary, ongoing/overnight/all-day/missing-end/completed events; future-only/stale/missing weather; actual-time travel risk, intervening busy windows, overlap, modes, GPS age/accuracy, cache, request budget and no planner mutations passed (provider fixtures).');
 })().catch(error=>{console.error(error);process.exitCode=1});

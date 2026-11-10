@@ -11,6 +11,9 @@ concurrency:
 jobs:
   browser:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -24,7 +27,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Verify briefing and existing exact hour choices
         env:
           TZ: Europe/Warsaw

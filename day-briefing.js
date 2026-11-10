@@ -70,7 +70,7 @@
  const duration=n=>n>=60?Math.floor(n/60)+' godz.'+(n%60?' '+n%60+' min':''):n+' min';
  async function travel(records,all,{now=new Date(),mode='remaining',origin=null,route=async()=>null,cached=()=>null,getMode=()=> 'drive',maxRequests=8}={}){
   const timed=records.filter(r=>!r.allDay),located=timed.filter(r=>location(r.item)),warnings=[],legs=[],notes=[];
-  for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0)warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+Math.ceil(overlap/60000)+' min.'});}
+  for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0){const minutes=Math.ceil(overlap/60000),unit=minutes===1?'minutę':minutes%10>=2&&minutes%10<=4&&(minutes%100<12||minutes%100>14)?'minuty':'minut';warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy wydarzeń „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+minutes+' '+unit+'.'});}}
   const validOrigin=origin&&Number.isFinite(origin.latitude)&&Math.abs(origin.latitude)<=90&&Number.isFinite(origin.longitude)&&Math.abs(origin.longitude)<=180&&Number.isFinite(origin.checkedAt)&&+now-origin.checkedAt<15*60000&&+now-origin.checkedAt>=0&&(!Number.isFinite(origin.accuracy)||origin.accuracy<=1000);
   if(located.length&&validOrigin){const target=located[0],from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Twoja ostatnia lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
   else if(located.length)notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
@@ -86,7 +86,12 @@
    if(leg.current&&leg.target.status==='ongoing'){leg.risk='ongoing';if(r.distanceMeters>2000)warnings.push({kind:'ongoing-travel',eventIds:[leg.to.id],text:'„'+title(leg.to)+'” według kalendarza już trwa. '+leg.text});continue;}
    const windows=freeWindows(leg.start,leg.end,all,[leg.from.id,leg.to.id]),available=Math.max(0,...windows.map(([a,b])=>(b-a)/60000));
    leg.availableMinutes=Math.floor(available);leg.risk=mins>available?'late':mins+10>available?'tight':'safe';
-   if(leg.risk==='late')warnings.push({kind:'travel',eventIds:[leg.to.id],text:'Ryzyko spóźnienia do „'+title(leg.to)+'”: dojazd około '+duration(mins)+', a wolna przerwa tylko '+Math.floor(available)+' min. Brakuje około '+Math.ceil(mins-available)+' min.'});
+   if(leg.risk==='late'){
+    const overlap=!leg.current&&warnings.some(w=>w.kind==='overlap'&&w.eventIds.includes(leg.from.id)&&w.eventIds.includes(leg.to.id));
+    const reason=overlap?'terminy wydarzeń się nakładają, a dojazd potrwa około ':'za mało czasu na dojazd, który potrwa około ';
+    const travelDuration=mins===1?'minuty':mins<60?mins+' minut':duration(mins);
+    warnings.push({kind:'travel',eventIds:[leg.to.id],text:'Ryzyko spóźnienia na spotkanie „'+title(leg.to)+'”: '+reason+travelDuration+'.'});
+   }
    else if(leg.risk==='tight')warnings.push({kind:'tight',eventIds:[leg.to.id],text:'Mały zapas przed „'+title(leg.to)+'”: po dojeździe zostaje około '+Math.max(0,Math.floor(available-mins))+' min.'});
    if(leg.current&&leg.risk!=='late'){const window=windows.filter(([a,b])=>b-a>=mins*60000).at(-1);if(window){const leave=window[1]-(mins+10)*60000;leg.leaveAt=Math.max(+now,leave);leg.text+=' '+(leave<=+now?'Warto wyruszyć teraz.':'Zaplanuj wyjazd około '+clock(new Date(leave))+' (z 10 min zapasu).');}}
   }
