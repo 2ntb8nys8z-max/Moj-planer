@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.10.33.281-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.10.33.282-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button><button id="daySummary" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">🔊 Podsumowanie dnia</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.10.33.281-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.10.33.282-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -5559,6 +5559,8 @@ body:is(.event-sheet-open,.okti-event-transitioning) .voice-area :is(.octi-copy,
 .okti-decision-card .okti-decision-option.is-negative{background-image:linear-gradient(90deg,#b15c580d,transparent 65%),linear-gradient(165deg,#fff 8%,#fff 62%,#fafafa 100%);border-color:#e3d7d7;border-top-color:#fff}
 .okti-decision-card .okti-decision-option.is-negative:before{content:'';position:absolute;left:6px;top:9px;bottom:9px;width:4px;border-radius:9px;background:linear-gradient(#dab2ae,#b15c58);box-shadow:inset 1px 0 1px #ffffff85,0 0 7px #b15c5825}
 .okti-decision-card :is(.okti-decision-option,.okti-decision-edit,.okti-decision-icon,.okti-decision-send).is-key-pressed{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,inset 0 -1px 0 #39707433,0 1px 1px #232f3114;transition-duration:160ms}
+.okti-decision-card [data-speech-read]:not(:disabled):active{transform:translateY(4px);box-shadow:inset 0 1px 1px #2b4b4e0f,0 1px 1px #232f3114;transition-duration:160ms}
+.okti-decision-speech-status{margin:0;color:#637387;font-size:14px;line-height:1.4}
 .okti-decision-options.is-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.okti-decision-options.is-pair .okti-decision-option{text-align:center;align-items:center;padding-left:15px;padding-right:15px}
 .okti-decision-options.is-pair .is-primary strong:before{content:"✓";display:inline-block;margin-right:9px;font-weight:650}
 .okti-decision-card.is-hour-choice{min-height:0}.okti-decision-options.is-hour-choice .okti-decision-option{font-variant-numeric:tabular-nums}
@@ -5624,19 +5626,37 @@ html.okti-communication-ready .voice-reply{display:none!important}
 // The same dialogue/session and recorder own all mutations. This surface only gathers a decision.
 window.OktiCommunication=(()=>{
  document.documentElement.classList.add('okti-communication-ready');
- let current=null,returnFocus=null,speakingKey='',suspended=[];
+ let current=null,returnFocus=null,speakingKey='',activeSpeech=null,suspended=[];
  const shade=document.createElement('div');shade.id='oktiDecision';shade.className='okti-decision-shade';shade.hidden=true;
  const card=document.createElement('section');card.className='okti-decision-card';card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');card.setAttribute('aria-labelledby','oktiDecisionQuestion');shade.append(card);document.body.append(shade);
  const mic='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>';
  const speaker='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 9h4l5-5v16l-5-5H3zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>';
  const keyboard='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2m2 0h2m2 0h2m2 0h2M5 12h2m2 0h2m2 0h2m2 0h2M7 16h10"/></svg>';
  function node(tag,className,text){const n=document.createElement(tag);if(className)n.className=className;if(text!=null)n.textContent=text;return n}
- function stopSpeech(){try{window.speechSynthesis?.cancel()}catch(_){}speakingKey=''}
+ function speechSupported(){return !!window.speechSynthesis&&typeof window.SpeechSynthesisUtterance==='function'}
+ function speechStatus(state,phase,message=''){
+  if(current!==state)return;
+  const read=card.querySelector('[data-speech-read]'),status=card.querySelector('.okti-decision-speech-status');
+  read?.setAttribute('aria-busy',String(phase==='pending'));read?.setAttribute('aria-pressed',String(phase==='playing'));read?.setAttribute('aria-label',phase==='playing'?'Zatrzymaj czytanie':'Odczytaj pytanie');
+  if(status){status.textContent=message;status.hidden=!message}
+ }
+ function stopSpeech(){const old=activeSpeech;activeSpeech=null;speakingKey='';if(old){clearTimeout(old.timer);speechStatus(old.owner,'idle')}try{window.speechSynthesis?.cancel()}catch(_){}}
  function speak(text,key='manual'){
-  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
+  if(!speechSupported())return;
   if(key!=='manual'&&speakingKey===key)return;
-  stopSpeech();speakingKey=key;
-  try{const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('pl'));if(voice)u.voice=voice;speechSynthesis.speak(u)}catch(_){}
+  stopSpeech();speakingKey=key;const owner=current,entry=activeSpeech={owner,started:false,utterance:null,timer:null};
+  const finish=message=>{if(activeSpeech!==entry)return;activeSpeech=null;speakingKey='';clearTimeout(entry.timer);speechStatus(owner,message?'error':'idle',message)};
+  speechStatus(owner,'pending','Uruchamiam czytanie…');
+  try{
+   const synth=window.speechSynthesis,u=entry.utterance=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;
+   try{const voice=synth.getVoices().find(v=>v.lang?.toLowerCase().startsWith('pl'));if(voice)u.voice=voice}catch(_){}
+   u.onstart=()=>{if(activeSpeech!==entry)return;entry.started=true;clearTimeout(entry.timer);speechStatus(owner,'playing','Czytam…')};
+   u.onend=()=>finish('');u.onerror=()=>finish('Nie udało się uruchomić czytania. Dotknij głośnika, aby spróbować ponownie.');
+   entry.timer=setTimeout(()=>{if(activeSpeech!==entry||entry.started)return;stopSpeech();speechStatus(owner,'error','Czytanie nie wystartowało. Dotknij głośnika, aby ponowić.')},6000);
+   // Keep resume/speak in the native tap's call stack; awaiting the key animation
+   // or a voice-list event loses the speech-start gesture on iOS.
+   if(synth.paused)synth.resume?.();synth.speak(u);
+  }catch(_){finish('Nie udało się uruchomić czytania. Dotknij głośnika, aby spróbować ponownie.')}
  }
  function restore(){for(const [n,inert] of suspended)n.inert=inert;suspended=[]}
  function close(hideSource=false){cancelKeyPress();stopSpeech();shade.hidden=true;shade.classList.remove('is-created-event','is-leaving');restore();if(hideSource&&current?.channel){$(current.channel+'Conversation')?.classList.add('hidden');$(current.channel+'Clarification')?.classList.add('hidden');if(current.channel==='main')$('mainConversationTools')?.classList.add('hidden');if(current.channel==='event')$('eventConversationPanel')?.classList.add('hidden')}const focus=returnFocus;current=null;if(focus?.isConnected&&!focus.closest('[inert]'))focus.focus({preventScroll:true})}
@@ -5653,8 +5673,8 @@ window.OktiCommunication=(()=>{
   const active=valid(state);close(true);if(active&&run)await run();
  }
  function valid(state){return current===state&&(!state.session||voiceDialogueValid(state.session)&&(state.session.dialogueState?.revision??0)===state.revision)&&(!state.owner||state.owner.isConnected)&&(!state.isCurrent||state.isCurrent())}
- function setBusy(session,busy){if(!current||current.session!==session)return;current.busy=busy;for(const b of card.querySelectorAll('button,input'))b.disabled=busy;const status=card.querySelector('.okti-decision-status');if(status)status.textContent=busy?'Chwila…':''}
- function fail(state,error){if(current!==state)return;state.busy=false;for(const b of card.querySelectorAll('button,input'))b.disabled=false;card.querySelector('.okti-decision-error').textContent=error?.message||'Nie udało się wykonać wyboru. Spróbuj ponownie.'}
+ function setBusy(session,busy){if(!current||current.session!==session)return;current.busy=busy;for(const b of card.querySelectorAll('button,input'))b.disabled=busy||b.dataset.speechUnavailable==='true';const status=card.querySelector('.okti-decision-status');if(status)status.textContent=busy?'Chwila…':''}
+ function fail(state,error){if(current!==state)return;state.busy=false;for(const b of card.querySelectorAll('button,input'))b.disabled=b.dataset.speechUnavailable==='true';card.querySelector('.okti-decision-error').textContent=error?.message||'Nie udało się wykonać wyboru. Spróbuj ponownie.'}
  async function answer(state,text,selection=null){
   if(!valid(state)||state.busy||state.session?.busy)return;
   setBusy(state.session,true);
@@ -5739,10 +5759,11 @@ window.OktiCommunication=(()=>{
   card.replaceChildren();card.classList.remove('is-typing');card.classList.toggle('is-schedule',!!state.scheduleIssues);card.classList.toggle('is-hour-choice',!!hours);shade.classList.remove('is-created-event','is-leaving');shade.hidden=false;
   if(state.motion==='created-event'){void card.offsetWidth;shade.classList.add('is-created-event')}
   const header=node('div','okti-decision-header');header.append(node('span','',state.title||'OCTI'));
-  const read=node('button','okti-decision-icon');read.type='button';read.setAttribute('aria-label','Odczytaj pytanie');read.innerHTML=speaker;read.onclick=()=>speak(state.question);header.append(read);
+  const read=node('button','okti-decision-icon');read.type='button';read.dataset.speechRead='';read.dataset.speechUnavailable=String(!speechSupported());read.setAttribute('aria-label','Odczytaj pytanie');read.setAttribute('aria-pressed','false');read.setAttribute('aria-busy','false');read.innerHTML=speaker;read.onclick=()=>{if(!valid(state)||state.busy)return;if(activeSpeech?.owner===state&&activeSpeech.started)stopSpeech();else speak(state.question)};header.append(read);
   const key=node('button','okti-decision-icon');key.type='button';key.setAttribute('aria-label','Odpowiedz tekstowo');key.innerHTML=keyboard;header.append(key);
   const hide=node('button','okti-decision-icon','×');hide.type='button';hide.setAttribute('aria-label','Zamknij pytanie');hide.onclick=()=>{if(state.onClose)state.onClose();else if(state.motion==='created-event')return dismiss(state,state.onDismiss);else close(true)};header.append(hide);card.append(header);
   const h=node('h2','',state.question);h.id='oktiDecisionQuestion';h.tabIndex=-1;card.append(h);
+  const speechNotice=node('p','okti-decision-speech-status');speechNotice.setAttribute('role','status');speechNotice.hidden=speechSupported();if(!speechNotice.hidden)speechNotice.textContent='Czytanie jest niedostępne w tej przeglądarce.';card.append(speechNotice);
   if(state.scheduleIssues){h.classList.add('okti-decision-sr');card.append(schedulePreview(state.scheduleIssues))}
   let locationCopy=null;
   if(state.locationSummary){
@@ -5796,7 +5817,7 @@ window.OktiCommunication=(()=>{
  let keyPress=null,dispatchingKey=false;const cancelledKeys=new WeakMap();
  const keyReduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const keyPause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
- function keyButton(target){const button=target?.closest?.('button');return button&&card.contains(button)&&!button.disabled&&!button.closest('.okti-decision-wheel')?button:null}
+ function keyButton(target){const button=target?.closest?.('button');return button&&card.contains(button)&&!button.disabled&&!button.matches('[data-speech-read]')&&!button.closest('.okti-decision-wheel')?button:null}
  function restoreKey(record){record.animation?.cancel();record.button.classList.remove('is-key-pressed','is-key-releasing')}
  function cancelKeyPress(){if(!keyPress)return;const record=keyPress;keyPress=null;record.cancelled=true;cancelledKeys.set(record.button,performance.now()+500);restoreKey(record)}
  function beginKey(button,extra={}){if(keyPress)return null;const record={button,state:current,at:performance.now(),phase:'pressed',...extra};keyPress=record;button.classList.add('is-key-pressed');return record}
@@ -5819,7 +5840,7 @@ window.OktiCommunication=(()=>{
  shade.addEventListener('click',event=>{const button=keyButton(event.target);if(!button||dispatchingKey||event.detail===0&&!event.isTrusted)return;if(keyPress||(cancelledKeys.get(button)||0)>performance.now()){event.preventDefault();event.stopImmediatePropagation();return}if(event.detail===0){event.preventDefault();event.stopImmediatePropagation();const record=beginKey(button);if(record)releaseKey(record)}},true);
  shade.addEventListener('keydown',event=>{if(![' ','Enter'].includes(event.key))return;const button=keyButton(event.target);if(!button)return;event.preventDefault();if(!event.repeat)beginKey(button,{key:event.key})},true);
  document.addEventListener('keyup',event=>{if(keyPress?.phase==='pressed'&&keyPress.key===event.key){event.preventDefault();releaseKey(keyPress)}},true);
- document.addEventListener('scroll',cancelKeyPress,true);window.addEventListener('blur',cancelKeyPress);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelKeyPress()});
+ document.addEventListener('scroll',cancelKeyPress,true);window.addEventListener('blur',cancelKeyPress);document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelKeyPress();stopSpeech()}});
  shade.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(current?.onClose)current.onClose();else if(current?.motion==='created-event')dismiss(current,current.onDismiss);else close(true);}
   if(e.key==='Tab'){const nodes=[...card.querySelectorAll('button:not(:disabled):not([tabindex="-1"]),input:not(:disabled),[role="spinbutton"]')].filter(n=>!n.hidden&&!n.closest('[hidden]'));const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===card.querySelector('h2'))){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}
