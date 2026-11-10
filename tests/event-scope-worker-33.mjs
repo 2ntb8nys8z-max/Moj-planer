@@ -36,6 +36,11 @@ function assertReminder(result,minutesBefore,id=event.eventId){
   assert.equal(result.dialogueState.reminderDraft,undefined);
 }
 try{
+  // A past briefing must never redirect commands away from the currently open event.
+  model=aside;
+  const briefState={lastOperation:{status:'day_brief_complete'},briefEventContext:{token:'previous-brief',candidates:[{key:'b0',title:'Inne spotkanie',time:'17:00'}],focusKeys:['b0']}};
+  const scopedBrief=await post('Pokaż mi to wydarzenie',event,briefState);assert.notEqual(scopedBrief.uiAction?.type,'open_brief_event');assert.notEqual(scopedBrief.uiAction?.type,'choose_brief_event');assert.equal(contexts.at(-1).original.eventId,event.eventId);
+  model=command({type:'set_event_reminder',minutesBefore:15});
   // Exercise the reducer itself, then the public text and normalized-audio routes.
   let result=await ctx.runConversationTurn({text:'Ustaw przypomnienie 15 minut przed.',history:[],original:event,state:{},env,today:'2026-10-12'});
   result=JSON.parse(JSON.stringify(result));assertReminder(result,15);

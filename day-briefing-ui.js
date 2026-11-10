@@ -62,6 +62,7 @@ window.OktiDayBriefUI=(()=>{
    const details=spec.mode!=='review'?OktiLocalWeather.details(new Date(spec.date+'T12:00:00')):null;
    const model=state.model={...spec,now,records,travel:journey,weather:spec.mode!=='review'?core.weather(details,spec.date,now,spec.mode):null};model.text=core.speech(model);
    if(session){const historyText=model.text.length>3500?model.text.slice(0,3400).replace(/[\uD800-\uDBFF]$/,'')+' Pełna wersja jest na ekranie.':model.text;session.history.push({role:'assistant',content:historyText});session.lastOperation={status:'day_brief_complete',date:model.date,briefMode:model.mode};if(session.dialogueState)session.dialogueState.lastOperation=session.lastOperation;}
+   window.OktiBriefLinks?.remember(model,session);
    render(state);if(read)speak(state);return model;
   }catch(error){
    if(owned(state)){list.replaceChildren(section('Niepełne podsumowanie',[error.message||'Nie udało się zakończyć podsumowania. Spróbuj ponownie.']));const retry=document.createElement('button');retry.className='secondary day-brief-read';retry.textContent='Sprawdź ponownie';retry.onclick=()=>show(action,session,{speak:read});list.append(retry)}return null;

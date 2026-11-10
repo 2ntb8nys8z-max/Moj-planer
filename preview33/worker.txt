@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.46-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.47-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -310,6 +310,27 @@ function conversationDayBriefRequest(text,lastOperation){
  if(!follow&&!(query&&(today||tomorrow||yesterday||review&&/\b(?:dzien|dnia)\b/.test(t)||/reszt\w* dnia/.test(t))))return null;
  return {type:'day_brief',day:tomorrow?'tomorrow':yesterday?'yesterday':'today',briefMode:tomorrow?'plan':yesterday||review&&!plan?'review':'remaining'};
 }
+// A deictic follow-up can use only the exact event keys supplied by the frontend.
+// It is a read-only detour: active creation/hour-choice state remains intact.
+function conversationBriefEventRequest(text,state,lastOperation){
+ const status=(lastOperation||state.lastOperation)?.status;
+ if(!['day_brief_complete','brief_event_choices','brief_event_opened','brief_reference_expired'].includes(status))return null;
+ const context=state.briefEventContext;if(!context||typeof context.token!=='string'||!/^[a-zA-Z0-9-]{1,80}$/.test(context.token))return null;
+ const t=dialoguePlain(text).replace(/^(?:prosze |okti |octi )+/,'').trim();
+ const deictic=/^(?:pokaz|otworz|wyswietl)(?: mi)? (?:to|tamto|wspomniane|wskazane)(?: wydarzenie| spotkanie)?$/.test(t)||/^(?:pokaz|otworz|wyswietl)(?: mi)? je$/.test(t);
+ const choosing=status==='brief_event_choices'&&/^(?:(?:pokaz|otworz|wyswietl)(?: mi)? )?(?:to |spotkanie |wydarzenie )/.test(t);
+ if(!deictic&&!choosing)return null;
+ if(context.expired)return {type:'stale_brief_event',token:context.token};
+ const candidates=Array.isArray(context.candidates)?context.candidates.filter(c=>c&&typeof c.key==='string'&&/^b\d{1,2}$/.test(c.key)&&typeof c.title==='string'&&c.title.length<=150).slice(0,12):[];
+ const focus=candidates.filter(c=>Array.isArray(context.focusKeys)&&context.focusKeys.includes(c.key));
+ let matches=focus.length?focus:candidates;
+ if(!deictic){
+  const query=t.replace(/^(?:pokaz|otworz|wyswietl)(?: mi)? /,'').replace(/^(?:to |spotkanie |wydarzenie )/,'');
+  matches=matches.filter(c=>query===dialoguePlain(c.title)||query==='o '+dialoguePlain(c.time||''));
+  if(!matches.length)return null;
+ }
+ return matches.length===1?{type:'open_brief_event',token:context.token,key:matches[0].key}:matches.length?{type:'choose_brief_event',token:context.token,keys:matches.map(c=>c.key)}:{type:'stale_brief_event',token:context.token};
+}
 // Resolve a short answer against the immediately preceding hour choices.
 // Never interpret an isolated bare hour as an AM/PM choice.
 function conversationHourChoice(text,state,history){
@@ -450,6 +471,8 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
   original=conversationEventContext(original);
   const briefing=original?.type!=='event'&&!manualTimeChoice&&conversationDayBriefRequest(text,lastOperation||state.lastOperation);
   if(briefing)return {engine:3,success:true,status:'command',reply:'Sprawdzam zapisany plan.',uiAction:briefing,dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1,lastOperation:{status:'day_brief',...briefing}}};
+  const briefEvent=original?.type!=='event'&&!manualTimeChoice&&conversationBriefEventRequest(text,state,lastOperation);
+  if(briefEvent)return {engine:3,success:true,status:'command',reply:briefEvent.type==='choose_brief_event'?'Które spotkanie chcesz zobaczyć?':'Sprawdzam wskazane wydarzenie.',uiAction:briefEvent,dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1,lastOperation:{status:briefEvent.type==='choose_brief_event'?'brief_event_choices':briefEvent.type==='open_brief_event'?'brief_event_opened':'brief_reference_expired'}}};
   if(original?.type==='event'){
     if(state.eventContextId!=null&&state.eventContextId!==original.eventId)state={engine:3,revision:state.revision,eventContextId:original.eventId};
     else state={...state,eventContextId:original.eventId??null};
@@ -644,7 +667,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="3bc31d3df4e2bbe5";
+const BUILD_ID="efe8501394c50ac1";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1221,7 +1244,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.10.33.46-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.10.33.47-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

@@ -24,7 +24,7 @@ w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
 const spoken=[];w.speechSynthesis={cancel(){},getVoices(){return []},speak(u){spoken.push(u.text)}};w.SpeechSynthesisUtterance=function(text){this.text=text};
 w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);const response=await worker.fetch(new Request('https://worker'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:options.body}),env);const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));return value};
 run(fs.readFileSync('sync-core.js','utf8'));for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
-run(fs.readFileSync('day-briefing.js','utf8'));run(fs.readFileSync('travel-routes.js','utf8'));run(fs.readFileSync('day-briefing-ui.js','utf8'));
+run(fs.readFileSync('day-briefing.js','utf8'));run(fs.readFileSync('travel-routes.js','utf8'));run(fs.readFileSync('day-briefing-ui.js','utf8'));run(fs.readFileSync('brief-event-links.js','utf8'));
 run("plannerApiRequest=testApi;plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});showPlannerWeather=async()=>{};loadVoiceMemo=async()=>null");
 async function turn(text,audio=false){transcript=text;w.testText=text;return run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`)}
 const event=(id,time,endTime,fields={})=>({id,title:id,date:'2026-11-10',time,endTime,...fields});
@@ -54,5 +54,29 @@ try{
  const pending=w.OktiDayBriefUI.show({day:'today',briefMode:'remaining'},null,{speak:true});get('closeEntryResults').click();release();await pending;assert.equal(get('entryResultsModal').classList.contains('hidden'),true);assert.equal(spoken.length,speechBefore);w.OktiLocalWeather.refresh=refresh;
  // No GPS request is made when local weather/location is switched off.
  w.OktiLocalWeather.disable();const fixesBefore=gps;await w.OktiDayBriefUI.show({day:'today',briefMode:'remaining'});assert.equal(gps,fixesBefore);assert.match(get('entryResults').textContent,/Brak aktualnej/);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),dataBefore);
- console.log('Day briefing flow: real Worker → frontend → text/normalized audio → read-only briefing; remaining/tomorrow/review, live selected-day independence, coordinate Routes request, future weather, travel/overlap alerts, preserved active hour draft → next turn, no task completion inference, cancellation, disabled GPS, no calendar/entry/sync mutations passed (model/STT/GPS/weather/Google fixtures).');
+ // Exact references must survive a complete next turn, including normalized audio.
+ get('closeEntryResults').click();run("clearVoiceDialogue('main');testSession=beginVoiceDialogue('main',null,null)");
+ w.linkTasks=[event('same-1','16:00','16:30',{title:'Konsultacja'}),event('same-2','16:40','17:00',{title:'Konsultacja'})];
+ run('tasks=linkTasks;saveTasks();renderAll()');const linkBefore=run('JSON.stringify(PlannerData.snapshot())');
+ const linkModel=(focus=[])=>({mode:'remaining',date:'2026-11-10',records:w.OktiDayBriefing.events(w.linkTasks,'2026-11-10',new w.Date()),travel:{warnings:focus.map(eventId=>({eventIds:[eventId]}))}});
+ const callBefore=modelCalls;
+ w.OktiBriefLinks.remember(linkModel(['same-2']),run('testSession'));
+ await turn('Pokaż mi to wydarzenie.',true);assert.equal(run('activeTask.id'),'same-2','A duplicate title must not redirect an exact warned-event reference');assert.equal(modelCalls,callBefore);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),linkBefore);run('closeEventActions()');
+ w.OktiBriefLinks.remember(linkModel(['same-1','same-2']),run('testSession'));run("testSession.lastOperation={status:'day_brief_complete'}");
+ await turn('Pokaż mi to spotkanie');assert.equal(run('activeTask'),null);assert.equal(get('entryResults').querySelectorAll('.entry-result').length,2);
+ await turn('To o 16:40',true);assert.equal(run('activeTask.id'),'same-2');run('closeEventActions()');
+ w.OktiBriefLinks.remember(linkModel(['same-1','same-2']),run('testSession'));run("testSession.lastOperation={status:'day_brief_complete'}");await turn('Otwórz to wydarzenie');
+ get('entryResults').querySelector('.entry-result').click();assert.equal(run('activeTask.id'),'same-1');run('closeEventActions()');
+ // An unrelated new topic removes the reference from the request.
+ run("testSession.lastOperation={status:'draft_only'};OktiBriefLinks.attach(testSession)");assert.equal(run('testSession.dialogueState.briefEventContext'),undefined);
+ // Explicit reference questions preserve the draft and its unresolved AM/PM choice.
+ run("testSession.dialogueState={engine:3,mode:'create',draft:{title:'Nowe spotkanie',date:'2026-11-11'},activeHourChoice:{field:'startTime',choices:['01:00','13:00']}};testSession.lastOperation={status:'day_brief_complete'}");
+ w.OktiBriefLinks.remember(linkModel(['same-1','same-2']),run('testSession'));await turn('Pokaż mi to wydarzenie');assert.equal(run('testSession.dialogueState.draft.title'),'Nowe spotkanie');assert.equal(run('testSession.dialogueState.activeHourChoice.choices[1]'),'13:00');get('closeEntryResults').click();
+ // Changes between the response and a tap invalidate the exact reference.
+ await turn('Pokaż mi to wydarzenie');run("tasks[0].time='16:05'");get('entryResults').querySelector('.entry-result').click();assert.equal(run('activeTask'),null);assert.match(get('mainClarification').textContent+get('mainConversation').textContent,/nieaktualne/);run("tasks[0].time='16:00'");
+ run("testSession.lastOperation={status:'day_brief_complete'}");w.OktiBriefLinks.remember(linkModel(['same-2']),run('testSession'));run('tasks=tasks.filter(t=>t.id!=="same-2")');await turn('Pokaż mi to wydarzenie');assert.equal(run('activeTask'),null);assert.equal(run('testSession.lastOperation.status'),'brief_reference_expired');run('tasks=linkTasks');
+ // Closing a briefing from the toolbar still permits a fresh main conversation.
+ run("clearVoiceDialogue('main')");w.OktiBriefLinks.remember(linkModel(['same-2']),null);run("testSession=beginVoiceDialogue('main',null,null)");await turn('Pokaż mi to wydarzenie');assert.equal(run('activeTask.id'),'same-2');run('closeEventActions()');
+ run("testSession.lastOperation={status:'day_brief_complete'}");w.OktiBriefLinks.remember(linkModel(['same-2']),run('testSession'));now+=11*60*1000;await turn('Pokaż mi to wydarzenie',true);assert.equal(run('activeTask'),null);assert.equal(run('testSession.lastOperation.status'),'brief_reference_expired');assert.equal(modelCalls,callBefore);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),linkBefore);
+ console.log('Day briefing flow: real Worker → frontend → text/normalized audio → read-only briefing; remaining/tomorrow/review, live selected-day independence, coordinate Routes request, future weather, travel/overlap alerts, preserved active hour draft → next turn, exact warned IDs despite duplicate names, ambiguous selection by normalized audio and native tap, preserved hour draft, stale/expired/deleted reference refusal, toolbar-to-conversation continuity, no task completion inference, cancellation, disabled GPS, no calendar/entry/sync mutations passed (model/STT/GPS/weather/Google fixtures).');
 }finally{dom.window.close();globalThis.fetch=originalFetch}
