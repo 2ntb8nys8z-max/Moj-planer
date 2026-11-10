@@ -15,7 +15,7 @@ function render(){timeline.replaceChildren(...w.tasks.map(t=>{const n=d.createEl
 render();w.eval(fs.readFileSync('travel-routes.js','utf8'));
 const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Route chain did not settle')};
 (async()=>{try{
- for(const mobileWidth of [320,390,430])for(const laneCount of [1,2,3]){
+ for(const mobileWidth of [320,390,430])for(const laneCount of [1,2,3,4]){
   width=mobileWidth-25;columns=laneCount;spacing=laneCount===1?90:180;w.tasks=records(30);const before=JSON.stringify(w.tasks);render();
   await until(()=>d.querySelectorAll('#taskList .okti-route-badge:not(:disabled)').length===4);
   assert.equal(d.querySelectorAll('.okti-route-lines,.okti-route-focus-lines').length,0,'Idle calendar has no route strokes');
@@ -39,5 +39,5 @@ const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r
  for(const control of d.querySelectorAll('.okti-route-controls')){assert.equal(control.dataset.risk,'late');assert.equal(control.querySelector('.okti-route-duration').textContent,'1 h 13 min')}
  // A new opening while the prior focus is fading must not leak layers or leave the app inert.
  w.matchMedia=()=>({matches:false});d.querySelector('.okti-route-badge').click();d.querySelector('.okti-route-close').click();d.querySelectorAll('#taskList .okti-route-badge')[1].click();assert.equal(d.querySelectorAll('.okti-route-focus').length,1);w.flushPlannerRouteLayout();assert.equal(d.querySelectorAll('.okti-route-focus,.okti-route-menu').length,0);assert.equal(!!d.querySelector('.app').inert,false);
- console.log('Travel focus: 320/390/430px, 1/2/3 columns, controls inside destination cards, separate duration, exact source/destination center line, four modes, inert/focus cleanup, late status and unchanged event data passed (simulated geometry/provider).');
+ console.log('Travel focus: 320/390/430px, 1/2/3/4 columns, controls inside destination cards, separate duration, exact source/destination center line, four modes, inert/focus cleanup, late status and unchanged event data passed (simulated geometry/provider).');
 }finally{dom.window.close()}})().catch(e=>{console.error(e);process.exitCode=1});

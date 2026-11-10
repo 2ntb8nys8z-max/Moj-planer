@@ -10,11 +10,11 @@ const intersects=(a,b)=>a.left<b.right-.5&&b.left<a.right-.5&&a.top<b.bottom-.5&
   await page.goto(live||origin);await page.evaluate(()=>document.fonts.ready);
   async function seed(lanes){await page.evaluate(lanes=>{
    selected=new Date('2026-11-07T12:00:00');today=()=>new Date('2026-11-07T12:00:00');showPlannerWeather=async()=>{};ideas=[];
-   tasks=[{id:'first',title:'Kawa i rozmowa',date:'2026-11-07',time:'09:00',endTime:'09:30',location:'Berlin'},...Array.from({length:lanes},(_,i)=>({id:'target-'+i,title:i?'Spotkanie projektowe':'Warsztaty fotografii w mieście',date:'2026-11-07',time:'10:00',endTime:'10:30',location:['Warszawa','Dresden','Leipzig'][i]}))];
+   tasks=[{id:'first',title:'Kawa i rozmowa',date:'2026-11-07',time:'09:00',endTime:'09:30',location:'Berlin'},...Array.from({length:lanes},(_,i)=>({id:'target-'+i,title:i?'Spotkanie projektowe':'Warsztaty fotografii w mieście',date:'2026-11-07',time:'10:00',endTime:'10:30',location:['Warszawa','Dresden','Leipzig'][i%3]}))];
    for(const task of tasks){task.weatherPlace={location:task.location,latitude:52.23,longitude:21.01};task.weatherForecast={key:plannerWeatherForecastKey(task,task.weatherPlace),fetchedAt:new Date().toISOString(),rows:[{key:task.date+'T'+task.time.slice(0,2)+':00',index:0,temperature:7,code:2,isDay:true}]};}
    saveTasks();renderAll();document.querySelector('.app').inert=false;
   },lanes);await page.waitForFunction(lanes=>document.querySelectorAll('#taskList .okti-route-badge:not(:disabled)').length===lanes,lanes);await page.evaluate(()=>OktiEventWeather.refresh());}
-  for(const lanes of [1,2,3]){
+  for(const lanes of [1,2,3,4]){
    await seed(lanes);
    const measured=await page.evaluate(()=>{
     const rect=n=>n.getBoundingClientRect().toJSON();return [...document.querySelectorAll('#taskList .phone-event')].map(card=>{
@@ -33,6 +33,6 @@ const intersects=(a,b)=>a.left<b.right-.5&&b.left<a.right-.5&&a.top<b.bottom-.5&
    await page.locator('[data-event-id="target-0"]').evaluate(n=>n.scrollIntoView({block:'center'}));await page.screenshot({path:path.join(output,width+'-'+lanes+'-columns.png')});
    if(lanes===1){const key=page.locator('#taskList .okti-route-badge').first();await key.tap();await page.locator('.okti-route-menu[data-state=open]').waitFor();assert.equal(await page.locator('.okti-route-menu [role=radio]').count(),4);await page.locator('.okti-route-close').tap();await page.locator('.okti-route-menu').waitFor({state:'detached'});}
   }
-  assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': 16px title, top inset, shorter cards, upper-right weather above 44px transport, readable hours, no text collisions in 1/2/3 columns, existing route menu passed.');
+  assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': 16px title, top inset, shorter cards, upper-right weather above 44px transport, readable hours, no text collisions in 1/2/3/4 columns, existing route menu passed.');
  }
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
