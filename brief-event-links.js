@@ -55,7 +55,7 @@ window.OktiBriefLinks=(()=>{
   const keys=Array.isArray(action.keys)?[...new Set(action.keys)].slice(0,12):[];
   const records=keys.map(entry);if(!keys.length||records.some(r=>!r))return stale(session);
   operation(session,'brief_event_choices');current.context.focusKeys=keys;
-  showVoiceClarification(session,'Które spotkanie chcesz zobaczyć?');showEntryResults(records,'Które spotkanie chcesz zobaczyć?');
+  showVoiceClarification(session,'Które spotkanie chcesz zobaczyć?');window.OktiCommunication?.clear(session.channel);showEntryResults(records,'Które spotkanie chcesz zobaczyć?');
   // Validate again on tap: a sync or edit may have changed a displayed result.
   $('entryResults').querySelectorAll('.entry-result').forEach((button,i)=>{button.onclick=()=>open(session,keys[i],action.token)});
  }

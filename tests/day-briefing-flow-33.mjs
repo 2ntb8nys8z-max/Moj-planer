@@ -63,7 +63,7 @@ try{
  w.OktiBriefLinks.remember(linkModel(['same-2']),run('testSession'));
  await turn('Pokaż mi to wydarzenie.',true);assert.equal(run('activeTask.id'),'same-2','A duplicate title must not redirect an exact warned-event reference');assert.equal(modelCalls,callBefore);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),linkBefore);run('closeEventActions()');
  w.OktiBriefLinks.remember(linkModel(['same-1','same-2']),run('testSession'));run("testSession.lastOperation={status:'day_brief_complete'}");
- await turn('Pokaż mi to spotkanie');assert.equal(run('activeTask'),null);assert.equal(get('entryResults').querySelectorAll('.entry-result').length,2);
+ await turn('Pokaż mi to spotkanie');assert.equal(run('activeTask'),null);assert.equal(get('entryResults').querySelectorAll('.entry-result').length,2);assert.equal(w.OktiCommunication.getState(),null,'The event choices must be usable without a conversation overlay');
  await turn('To o 16:40',true);assert.equal(run('activeTask.id'),'same-2');run('closeEventActions()');
  w.OktiBriefLinks.remember(linkModel(['same-1','same-2']),run('testSession'));run("testSession.lastOperation={status:'day_brief_complete'}");await turn('Otwórz to wydarzenie');
  get('entryResults').querySelector('.entry-result').click();assert.equal(run('activeTask.id'),'same-1');run('closeEventActions()');
