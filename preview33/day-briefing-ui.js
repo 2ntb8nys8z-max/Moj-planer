@@ -25,7 +25,7 @@ window.OktiDayBriefUI=(()=>{
   const model=state.model;showEntryResults(model.records,model.title,'Brak wydarzeń w tym zakresie.',true);modal.classList.add('is-day-brief');
   document.getElementById('entryResultsCount').textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})+' · '+(model.mode==='remaining'?'od '+core.clock(model.now):model.mode==='review'?'plan zapisany w kalendarzu':'cały dzień');
   const intro=[];const read=document.createElement('button');read.type='button';read.className='secondary day-brief-read';read.textContent='Odczytaj podsumowanie';read.onclick=()=>speak(state);intro.push(read);
-  if(model.mode==='review')intro.push(section('Zapisany plan dnia',[model.records.length+' zaplanowanych wydarzeń. '+model.records.filter(r=>r.item.done).length+' oznaczonych jako wykonane.','To przegląd zapisów w kalendarzu. Upływ terminu nie potwierdza udziału w spotkaniu.']));
+  if(model.mode==='review')intro.push(section('Zapisany plan dnia',['Zaplanowane wydarzenia: '+model.records.length+'. Oznaczone jako wykonane: '+model.records.filter(r=>r.item.done).length+'.','To przegląd zapisów w kalendarzu. Upływ terminu nie potwierdza udziału w spotkaniu.']));
   if(model.travel?.warnings.length){const box=section('Na co zwrócić uwagę',model.travel.warnings.map(w=>w.text),true);box.dataset.briefWarnings='';intro.push(box)}
   if(model.travel?.legs.length){const box=section('Dojazdy',model.travel.legs.map(l=>l.text));box.dataset.briefTravel='';intro.push(box)}
   if(model.weather){const box=section('Pogoda'+(model.weather.place?' · '+model.weather.place:''),[model.weather.text]);box.dataset.briefWeather='';intro.push(box)}
