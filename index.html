@@ -4960,6 +4960,7 @@ body,.octi-dock{font-family:var(--okti-font)}
 .phone-layout .phone-event-title[data-card-layout=rows][data-has-travel=true]{padding-bottom:2px}
 .phone-layout .phone-event-title[data-card-layout=rows] .phone-event-title-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--card-title-lines);width:auto;min-width:0;max-width:none;margin-right:58px;flex:none;white-space:normal;overflow:hidden;text-overflow:ellipsis;animation:none!important;line-height:20px}
 .phone-layout .phone-event-title[data-card-layout=rows] .phone-event-time{display:flex;align-items:center;gap:3px;margin:0;flex:none;font-size:11.5px;line-height:15px}
+.phone-layout .phone-event-title[data-card-layout=rows]:not([data-has-travel=true]) .phone-event-time{max-width:calc(100% - 58px)}
 
 .phone-layout .phone-free-time{font-size:14px}
 .phone-layout .phone-free-time strong,.phone-layout .phone-free-time span{font-weight:600}
