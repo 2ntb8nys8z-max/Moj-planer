@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.10.33.278-integration';
-const PREVIEW_VERSION='2026.11.10.33.278-test';
+const APP_VERSION='2026.11.10.33.279-integration';
+const PREVIEW_VERSION='2026.11.10.33.279-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
-const WORKER_VERSION='2026.11.10.33.45-test';
-const WORKER_LABEL='Worker 33.45-test';
+const WORKER_VERSION='2026.11.10.33.46-test';
+const WORKER_LABEL='Worker 33.46-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -31,7 +31,7 @@ for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','promp
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.45-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.46-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
@@ -104,6 +104,13 @@ preview=preview.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v
 output('preview33/event-delete.js',eventDelete,false);
 
 
+for(const file of ['day-briefing.js','day-briefing-ui.js']){
+  const content=fs.readFileSync(file,'utf8'),hash=createHash('sha256').update(content).digest('hex').slice(0,16);
+  canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
+  preview=preview.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
+  output('preview33/'+file,content,false);
+}
+
 // Approved background collection: keep the integration preview byte-identical.
 const eventBackgroundDir='assets/event-backgrounds';
 const eventBackgroundCatalog=JSON.parse(fs.readFileSync(eventBackgroundDir+'/catalog.json','utf8'));
@@ -119,7 +126,7 @@ for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgro
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
-const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261110-33.45-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
+const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261110-33.46-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
 
 output('worker.js',worker);
 output('worker.txt',worker);

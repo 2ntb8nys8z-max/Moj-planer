@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.45-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.46-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -18,6 +18,7 @@ Godziny 1–12 bez jasnej pory wymagają doprecyzowania, chyba że użytkownik w
 Nazwę Wydarzenie można wybrać po odmowie własnego tytułu; nie wstawiaj jej automatycznie. Lokalizacja opcjonalna, zachowaj sam poprawiony adres bez dyktowanych instrukcji literowania. Jeśli użytkownik poprawia pisownię aktualnej lub proponowanej lokalizacji przez instrukcję znakową, np. „zamień u na ó”, „przez rz”, „dopisz h” albo „usuń ostatnią literę”, zastosuj tę korektę do istniejącej wartości location i zwróć pełną poprawioną wartość przez set location. Nie zgaduj, którego znaku dotyczy polecenie, jeśli wskazanie nie jest jednoznaczne — wtedy krótko dopytaj. Miejscowość weryfikuje odrębny resolver; nie twierdź, że sprawdziłeś mapę. Zagraniczne nazwy zachowuj w oryginalnej pisowni. Przypomnienia pozostają tylko w Planerze: reminder {minutesBefore:0..10080}. Serie: recurrence {frequency:daily|weekly|monthly,interval:1..365,count:1..500 lub null,until:YYYY-MM-DD lub null}; count i until nie jednocześnie. Edycja dotyczy pojedynczego wystąpienia; nie obiecuj zmian całej serii.
 Jeśli celem jest dowolny wpis poza kalendarzem, kind idea i dodatkowo idea {type:idea,text:pełna treść,action:replace|append,addition:nowa treść lub null,listAction:null,items:[]}; operations puste. Lista zakupów ma tytuł „Lista zakupów” i listę produktów, bez wciskania tytułu do pierwszego produktu. Przy tworzeniu lub zastępowaniu listy zwróć text „Lista zakupów”, listAction „replace” i items jako osobne krótkie nazwy produktów; pusta lista jest dozwolona, gdy użytkownik mówi, że na razie nie ma produktów. Nie dodawaj entryType; wszystkie są wpisami. Dla istniejącej listy: „dopisz X” => listAction add; „usuń X” => remove; „zostaw tylko X” => keep_only; „kupiłem X” lub „oznacz X jako kupione” => complete. items zawiera wyłącznie wskazane produkty. Zwykła dodatkowa informacja, która nie jest produktem, pozostaje action append i addition; aplikacja pokaże ją oddzielnie z datą. Dla wyjaśnienia dotyczącego pomysłu action continue i idea null. Istniejący Pomysł ZAWSZE pozostaje Pomysłem, chyba że użytkownik wyraźnie prosi o przeniesienie lub utworzenie wydarzenia w kalendarzu. Pomysł nie ma osobnego pola location: polecenie dodania lokalizacji do Pomysłu przedstaw jako action append i addition „Lokalizacja: [dokładna nazwa]”; nie żądaj wtedy daty ani godzin. Istniejące wydarzenie nie staje się pomysłem bez osobnego przepływu konwersji.
 ZBIORCZE ZAKUPY: Bezpośrednie „podaj/pokaż rzeczy do kupienia”, „niekupione produkty”, „zbierz zakupy ze wszystkich list” to kind command, intent execute, operations [], uiAction {type:"shopping_summary"}. Nie szukaj wtedy wpisów przez find_entry. Brak zakresu oznacza wszystkie listy. „Ostatnie trzy dni” to lastDays:3; „ostatni tydzień” lub „ostatnie siedem dni” to lastDays:7. lastDays to liczba dni kalendarzowych razem z dzisiejszym, dotyczy daty UTWORZENIA źródłowej listy, nigdy terminu wydarzenia. Dla jawnego przedziału dat użyj createdFrom i createdTo YYYY-MM-DD (włącznie), bez lastDays. Jeśli użytkownik doprecyzowuje zakres po pokazaniu zakupów, użyj shopping_summary z nowym zakresem; lastOperation.shoppingFilter to poprzedni zakres. Zwykłe pytanie o możliwość to intent continue bez uiAction. Frontend sam zbiera produkty, pokazuje źródła i zapisuje checkboxy dopiero po naciśnięciu „Zaktualizuj listy”. Nie wymyślaj produktów, liczby list ani nie twierdź, że cokolwiek odhaczono.
+PODSUMOWANIE DNIA: pytania „co jeszcze dziś przede mną”, „co mam dzisiaj”, „plan na jutro”, „podsumuj wczorajszy dzień” to kind command, intent execute, operations [], uiAction {type:"day_brief",day:"today|tomorrow|yesterday",briefMode:"remaining|plan|review"}. Dzisiaj domyślnie remaining, jutro plan, wczoraj review; jawne „co zrobiłem dziś / jak minął dzień” to today review. To tylko odczyt. Frontend sam wybierze lokalny dzień, pominie zakończone spotkania w remaining i dołączy rzeczywistą prognozę oraz szacowane trasy. Nie wymyślaj spotkań, obecności, pogody, ukończonych zadań ani ryzyka spóźnienia. Moduł zadań będzie osobny; aktualne podsumowanie dotyczy kalendarza. Dla ogólnego wyszukania wszystkich wydarzeń zachowaj list_entries.
 KOMENDY INTERFEJSU: dla tworzenia kalendarza open_create_event. Dla szukania find_entry z query, dla listowania list_entries z opcjonalnym query, a dla wolnych przedziałów find_free_time z date YYYY-MM-DD. Wolny czas oznacza przerwy w kalendarzu danego dnia; nie szukaj wpisów i nie wymyślaj godzin. Opcjonalne windowStart/windowEnd ustawiaj wyłącznie, gdy użytkownik poda granice dnia; w przeciwnym razie Planer użyje 08:00–22:00. scope all|entries|calendar oznacza zakres: domyślnie all, entries dla wyraźnego „wpisy” lub „poza kalendarzem”, calendar dla wydarzeń. Nigdy nie filtruj po dawnym entryType. createdOn to today lub YYYY-MM-DD, wyłącznie data utworzenia. scheduledOn to YYYY-MM-DD, wyłącznie termin kalendarzowy. Możesz łączyć filtry, nie zamieniaj ich. „Utworzone 8 października” dotyczy createdOn, „wydarzenia 8 października” scheduledOn. Nieznana data utworzenia nie pasuje do filtra daty. „Znajdź mleko” szuka też produktów i dopisków. Nie widzisz danych użytkownika; frontend wykona komendę i pokaże wszystkie trafienia. Nie twórz niczego po braku wyników.
 lastOperation mówi o wyniku technicznym poprzedniego kroku. Jeśli wystąpił błąd, nie zaprzeczaj mu i nie zapewniaj, że zapis działa. Wolno powiedzieć tylko to, co wynika z kontekstu. Nie masz dostępu do testów systemu, całego kalendarza ani potwierdzenia synchronizacji. Nigdy nie ogłaszaj zapisania zmian: kończysz na podglądzie. Słowa użytkownika typu „dodaj”, „zapisz”, „wprowadź”, „tak”, „zgadza się” mogą semantycznie potwierdzać wcześniej uzgodniony szkic; jeśli szkic jest kompletny i nie ma ambiguity, przejdź wtedy do action review bez ponownego ustawiania już uzgodnionych pól. review nadal oznacza wyłącznie podgląd do zatwierdzenia przez aplikację, nie wykonany zapis. Odrzucenie lub poprawka użytkownika pozostaje continue i odpowiednio zmienia szkic. missing zawiera braki danych, nie gotowe pytania ani wymaganą kolejność rozmowy.
 
@@ -183,7 +184,11 @@ function conversationCandidate(original,state,answer){
     if(!(answer.intent==='execute'&&(action?.type!=='remove_entry_reminder')||answer.intent==='modify'&&(action?.type==='set_entry_reminder'||action?.type==='remove_entry_reminder'||action?.type==='open_create_event'&&(original?.type==='idea'||state.mode==='create')))||answer.action!=='continue'||answer.operations.length||!action)throw conversationFault('invalid_ui_action');
     if(action.newFlow!=null&&(typeof action.newFlow!=='boolean'||!['open_create_event','set_entry_reminder'].includes(action.type)))throw conversationFault('invalid_ui_action');
     if(action.type==='open_create_event')action=conversationCreateAction(state,action);
-    if(!['list_entries','find_entry','open_event','open_create_event','find_free_time','set_entry_deadline','set_entry_reminder','remove_entry_reminder','start_timer','shopping_summary'].includes(action.type))throw conversationFault('invalid_ui_action');
+    if(!['list_entries','find_entry','open_event','open_create_event','find_free_time','set_entry_deadline','set_entry_reminder','remove_entry_reminder','start_timer','shopping_summary','day_brief'].includes(action.type))throw conversationFault('invalid_ui_action');
+    if(action.type==='day_brief'){
+      action={...action,day:action.day||'today',briefMode:action.briefMode||(action.day==='tomorrow'?'plan':action.day==='yesterday'?'review':'remaining')};
+      if(!['today','tomorrow','yesterday'].includes(action.day)||!['remaining','plan','review'].includes(action.briefMode)||action.day==='tomorrow'&&action.briefMode!=='plan'||action.day==='yesterday'&&action.briefMode!=='review')throw conversationFault('invalid_day_brief');
+    }
     if(action.query!=null&&(typeof action.query!=='string'||action.query.length>500)||['find_entry','open_event'].includes(action.type)&&!action.query?.trim()||action.createdOn!=null&&action.createdOn!=='today'&&!conversationDate(action.createdOn)||action.scheduledOn!=null&&!conversationDate(action.scheduledOn)||action.date!=null&&!conversationDate(action.date)||action.endDate!=null&&!conversationDate(action.endDate)||action.type==='find_free_time'&&!conversationDate(action.date)||action.scope!=null&&!['all','entries','calendar'].includes(action.scope)||action.startTime!=null&&plannerMinutes(action.startTime)===null||action.endTime!=null&&plannerMinutes(action.endTime)===null||action.windowStart!=null&&plannerMinutes(action.windowStart)===null||action.windowEnd!=null&&plannerMinutes(action.windowEnd)===null||action.message!=null&&(typeof action.message!=='string'||action.message.length>500)||(action.type==='find_free_time'&&plannerMinutes(action.windowEnd||'22:00')<=plannerMinutes(action.windowStart||'08:00'))||action.allDay!=null&&typeof action.allDay!=='boolean'||action.durationMinutes!=null&&(action.type!=='open_create_event'||!Number.isInteger(action.durationMinutes)||action.durationMinutes<1||action.durationMinutes>=1440))throw conversationFault('invalid_ui_action');
     if(action.type==='open_create_event'&&action.allDay&&(action.durationMinutes!=null||action.startTime||action.endTime))throw conversationFault('duration_end_conflict');
     if(action.type==='open_create_event'&&action.durationMinutes!=null&&action.startTime){
@@ -202,7 +207,7 @@ function conversationCandidate(original,state,answer){
     if(action.type==='start_timer'&&action.minutes!=null&&(!Number.isInteger(action.minutes)||action.minutes<1||action.minutes>1440))throw conversationFault('invalid_timer_minutes');
     if(action.type==='shopping_summary'&&(action.lastDays!=null&&(!Number.isInteger(action.lastDays)||action.lastDays<1||action.lastDays>3660)||action.createdFrom!=null&&!conversationDate(action.createdFrom)||action.createdTo!=null&&!conversationDate(action.createdTo)||action.lastDays!=null&&(action.createdFrom!=null||action.createdTo!=null)||action.createdFrom&&action.createdTo&&action.createdFrom>action.createdTo))throw conversationFault('invalid_shopping_range');
     const uiAction={type:action.type};
-    for(const field of ['query','scope','createdOn','scheduledOn','date','startTime','endTime','endDate','windowStart','windowEnd','allDay','durationMinutes','message','minutes','newFlow','lastDays','createdFrom','createdTo'])if(action[field]!=null)uiAction[field]=action[field];
+    for(const field of ['query','scope','createdOn','scheduledOn','date','startTime','endTime','endDate','windowStart','windowEnd','allDay','durationMinutes','message','minutes','newFlow','lastDays','createdFrom','createdTo',...(action.type==='day_brief'?['day','briefMode']:[])])if(action[field]!=null)uiAction[field]=action[field];
     if(action.type==='open_create_event'&&action.query==null)uiAction.query=null;
     const createDraft=action.type==='open_create_event'?{...(state.mode==='create'&&!action.newFlow?state.draft||{}:{}),type:'event'}:null;
     if(createDraft){
@@ -291,6 +296,19 @@ function conversationCandidate(original,state,answer){
     if(invalid)throw conversationFault('invalid_draft:'+invalid);
   }
   return {draft,allDay,missing,ambiguity};
+}
+// Clear day-overview requests are read-only and preserve the active draft.
+function conversationDayBriefRequest(text,lastOperation){
+ const t=dialoguePlain(text).replace(/^(?:(?:hej|czesc|okti|octi|octopus|prosze)[ ,]+)+/,'').trim();
+ if(/^(?:utworz|stworz|dodaj|zapisz|zanotuj|dopisz|przypomnij|ustaw|zmien|usun|przenies|przeloz|nazwij|uloz|wymysl|zaplanuj|zaproponuj|znajdz|wyszukaj|odszukaj|otworz)\b/.test(t)||/\b(?:notatk\w*|wpis\w*|utworzon\w*|zakup\w*)\b/.test(t))return null;
+ if(/\b(?:zadani\w*|task\w*)\b/.test(t)&&!/\b(?:kalendar\w*|spotkani\w*|wydarzen\w*)\b/.test(t))return null;
+ const tomorrow=/\b(?:jutro|jutrzejsz\w*|nastepn\w* dni\w*|nastepn\w* dzien|(?:dzien|dnia) nastepn\w*)\b/.test(t),yesterday=/\b(?:wczoraj|wczorajsz\w*|poprzedn\w* dni\w*|poprzedn\w* dzien|(?:dzien|dnia) poprzedn\w*)\b/.test(t),today=/\b(?:dzis|dzisiaj|dzisiejsz\w*)\b/.test(t);
+ const review=/\b(?:podsumuj|podsumowanie|jak minal|co zrobilem|co udalo|co mialem|zakonczon\w* dzien|minion\w* dzien)\b/.test(t);
+ const plan=/\b(?:plan|plany|przede mna|przed soba|jeszcze|reszt\w* dnia|co (?:mnie )?czeka|co czeka mnie)\b/.test(t);
+ const query=/\b(?:co (?:jeszcze )?mam|co mnie (?:jeszcze )?czeka|co (?:jeszcze )?czeka mnie|co (?:jest )?przede mna|jak wyglada|plan|reszt\w* dnia|podsumuj|podsumowanie|jak minal|co zrobilem|co mialem|co udalo)\b/.test(t)||/\bco\b.*\b(?:mam|czeka|przede mna|przed soba)\b/.test(t);
+ const follow=/^a (?:jutro|wczoraj|dzis|dzisiaj)\??$/.test(t)&&/^day_brief/.test(lastOperation?.status||'');
+ if(!follow&&!(query&&(today||tomorrow||yesterday||review&&/\b(?:dzien|dnia)\b/.test(t)||/reszt\w* dnia/.test(t))))return null;
+ return {type:'day_brief',day:tomorrow?'tomorrow':yesterday?'yesterday':'today',briefMode:tomorrow?'plan':yesterday||review&&!plan?'review':'remaining'};
 }
 // Resolve a short answer against the immediately preceding hour choices.
 // Never interpret an isolated bare hour as an AM/PM choice.
@@ -430,6 +448,8 @@ async function runConversationTurn(args){
 }
 async function runConversationTurnCore({text,history,original,state,env,today,lastOperation,inputSource='text',locationMemory,manualTimeChoice,forcedLocationAnswer}){
   original=conversationEventContext(original);
+  const briefing=original?.type!=='event'&&!manualTimeChoice&&conversationDayBriefRequest(text,lastOperation||state.lastOperation);
+  if(briefing)return {engine:3,success:true,status:'command',reply:'Sprawdzam zapisany plan.',uiAction:briefing,dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1,lastOperation:{status:'day_brief',...briefing}}};
   if(original?.type==='event'){
     if(state.eventContextId!=null&&state.eventContextId!==original.eventId)state={engine:3,revision:state.revision,eventContextId:original.eventId};
     else state={...state,eventContextId:original.eventId??null};
@@ -535,6 +555,7 @@ async function runConversationTurnCore({text,history,original,state,env,today,la
       locationMemory.choices=conversationChoiceList(answer.clarificationChoices);
       if(answer.kind==='command'&&!candidate.uiAction)return {engine:3,success:true,status:'continue',reply:answer.reply.trim(),dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1}};
       if(answer.kind==='command'){
+        if(candidate.uiAction.type==='day_brief')return {engine:3,success:true,status:'command',reply:'Sprawdzam zapisany plan.',uiAction:candidate.uiAction,dialogueState:{...state,engine:3,revision:(Number(state.revision)||0)+1,lastOperation:{status:'day_brief',...candidate.uiAction}}};
         if(['set_event_reminder','remove_event_reminder'].includes(candidate.uiAction.type)){
           const uiAction=candidate.uiAction,eventId=original.eventId??null;
           const pendingField=uiAction.type==='set_event_reminder'&&uiAction.minutesBefore==null?'eventReminderMinutes':null;
@@ -623,7 +644,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="6a0b8cd63510b638";
+const BUILD_ID="3bc31d3df4e2bbe5";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -816,14 +837,15 @@ function plannerRouteSeconds(value){
  const seconds=Number(match[1])+Number('0.'+(match[2]||0));return Number.isFinite(seconds)&&seconds>0?seconds:null;
 }
 async function computeGoogleRoute(body,env){
- const origin=typeof body?.origin==='string'?body.origin.trim():'',destination=typeof body?.destination==='string'?body.destination.trim():'',mode=String(body?.mode||'DRIVE').toUpperCase();
- if(!origin||!destination||origin.length>500||destination.length>500||!['DRIVE','WALK','BICYCLE','TRANSIT'].includes(mode))throw new PlannerApiError('Podaj dwie lokalizacje i prawidłowy środek transportu.',400,'invalid_route','routes');
+ const point=body?.origin,coordinates=point&&typeof point==='object'&&Number.isFinite(point.latitude)&&Math.abs(point.latitude)<=90&&Number.isFinite(point.longitude)&&Math.abs(point.longitude)<=180;
+ const origin=typeof point==='string'?point.trim():'',destination=typeof body?.destination==='string'?body.destination.trim():'',mode=String(body?.mode||'DRIVE').toUpperCase();
+ if(!coordinates&&!origin||!destination||origin.length>500||destination.length>500||!['DRIVE','WALK','BICYCLE','TRANSIT'].includes(mode))throw new PlannerApiError('Podaj dwie lokalizacje i prawidłowy środek transportu.',400,'invalid_route','routes');
  if(typeof env.GOOGLE_MAPS_API_KEY!=='string'||!env.GOOGLE_MAPS_API_KEY.trim())throw new PlannerApiError('Brakuje klucza Google Maps w Cloudflare.',503,'maps_not_configured','configuration');
  const period=quotaPeriod(),schema=QUOTA_SCHEMA.replaceAll('planner_api_quota','planner_routes_quota'),reserve=QUOTA_RESERVE.replaceAll('planner_api_quota','planner_routes_quota');
  await env.API_LIMITS_DB.prepare(schema).run();
  const reserved=await env.API_LIMITS_DB.prepare(reserve).bind(period.month,period.day,period.minute,1500,200,15).first();
  if(!reserved)throw new PlannerApiError('Osiągnięto limit obliczania tras. Spróbuj później.',429,'routes_limit','routes');
- const requestBody={origin:{address:origin},destination:{address:destination},travelMode:mode,languageCode:'pl',units:'METRIC'};
+ const requestBody={origin:coordinates?{location:{latLng:{latitude:point.latitude,longitude:point.longitude}}}:{address:origin},destination:{address:destination},travelMode:mode,languageCode:'pl',units:'METRIC'};
  if(mode==='DRIVE')requestBody.routingPreference='TRAFFIC_AWARE';
  let response,data;
  try{
@@ -1199,7 +1221,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.10.33.45-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.10.33.46-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

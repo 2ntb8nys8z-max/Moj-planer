@@ -40,7 +40,7 @@
  const names={drive:'Samochód',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja'},shortNames={drive:'Auto',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja'};
  const svg=mode=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[mode]+'</svg>';
  const modeKey='okti-route-modes-v1';let saved={};try{saved=JSON.parse(localStorage.getItem(modeKey)||'{}');if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={}}catch(_){}
- const routes=new Map(),closing=new Set();let frame=0,activeMenu=null,menuSerial=0;
+ const routes=new Map(),inflight=new Map(),closing=new Set();let frame=0,activeMenu=null,menuSerial=0;
  const pairKey=(from,to)=>String(from.id)+'→'+String(to.id),cacheKey=(key,mode,from,to)=>JSON.stringify([key,mode,...[from,to].map(task=>[plannerLocationKey(plannerLocation(task)),task.googlePlace?.placeId||''])]);
  const motionEnabled=()=>!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const taskCard=id=>[...document.querySelectorAll('#taskList .phone-event')].find(node=>node.dataset.eventId===String(id));
@@ -59,10 +59,14 @@
   if(menu.animate)menu.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(5px)'}],{duration:240,easing:'ease-out',fill:'both'});
   menu.closeTimer=setTimeout(()=>cleanup(menu),540);
  }
- async function calculate(key,from,to,mode){
-  const cache=cacheKey(key,mode,from,to);if(routes.get(cache)?.pending)return;routes.set(cache,{pending:true});queue();
-  try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters}:{hidden:true})}
-  catch(error){routes.set(cache,{error:error.message||'Błąd trasy'})}queue();
+ function readRoute(from,to,mode){const value=routes.get(cacheKey(pairKey(from,to),mode,from,to));return value&&Number.isFinite(value.minutes)&&Date.now()-value.at<15*60000?{...value}:null}
+ async function calculate(key,from,to,mode,origin){
+  const cache=cacheKey(key,mode,from,to);if(inflight.has(cache))return inflight.get(cache);routes.set(cache,{pending:true});queue();
+  const work=(async()=>{
+   try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:origin||plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters,at:Date.now()}:{hidden:true})}
+   catch(error){routes.set(cache,{error:error.message||'Błąd trasy',at:Date.now()})}
+   finally{inflight.delete(cache);queue()}return routes.get(cache);
+  })();inflight.set(cache,work);return work;
  }
  function availableGap(from,to,events){let cursor=phoneMinutes(from.endTime||from.time),best=0;const end=phoneMinutes(to.time);for(const task of events){if(task===from||task===to||phoneMinutes(task.time)>=end||phoneMinutes(task.endTime||task.time)<=cursor)continue;const start=phoneMinutes(task.time);best=Math.max(best,start-cursor);cursor=Math.max(cursor,phoneMinutes(task.endTime||task.time))}return Math.max(0,best,end-cursor)}
  function cloneSurface(node,layer,z){
@@ -153,6 +157,11 @@
   if(activeMenu){if(menuTrigger){updateMenu(activeMenu,menuTrigger);positionMenu(activeMenu);refreshFocus(activeMenu)}else closeMenu(false,true)}
  }
  window.flushPlannerRouteLayout=()=>{closeMenu(false,true);draw()};
+ window.OktiTravelRoutes={
+  get:readRoute,
+  mode(from,to){if(!from)from=tasks.filter(t=>t!==to&&t.date===to.date&&t.time&&t.time<to.time&&plannerLocation(t)).sort((a,b)=>a.time.localeCompare(b.time)).at(-1);const value=from?saved[pairKey(from,to)]:null;return value in icons?value:'drive'},
+  async ensure(from,to,{mode='drive',origin}={}){if(!(mode in icons))mode='drive';return readRoute(from,to,mode)||calculate(pairKey(from,to),from,to,mode,origin)}
+ };
  function queue(){cancelAnimationFrame(frame);frame=requestAnimationFrame(draw)}
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&activeMenu){event.preventDefault();event.stopPropagation();closeMenu(true)}},true);
  document.addEventListener('scroll',event=>{if(!activeMenu||activeMenu.contains(event.target))return;const own=activeMenu.anchorScroll;if(event.target===own?.element&&Math.abs(own.element.scrollTop-own.top)<1&&Math.abs(own.element.scrollLeft-own.left)<1)return;closeMenu()},true);
