@@ -14,7 +14,7 @@
  .okti-event-delete[data-state=idle] .okti-event-delete-thumb{transition:transform 180ms ease}
  .okti-event-delete-thumb:focus-visible{outline:2px solid #fff;outline-offset:2px}
  .okti-event-delete[aria-busy=true]{opacity:.7}
- #eventModal #eventHeaderActions #closeEvent{display:grid;place-items:center;flex:none;width:42px;height:42px;min-width:42px;padding:11px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.24);color:#fff;opacity:.86}
+ #eventModal #eventHeaderActions button{touch-action:none!important}\n #eventModal #eventHeaderActions #closeEvent{display:grid;place-items:center;flex:none;width:42px;height:42px;min-width:42px;padding:11px;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.10);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.24);color:#fff;opacity:.86}
  #eventModal #eventHeaderActions #closeEvent svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;fill:none}
  @media(prefers-reduced-motion:reduce){.okti-event-delete[data-state=idle] .okti-event-delete-thumb{transition:none}}
  `;document.head.append(style);
@@ -39,7 +39,7 @@
  }
  function arm(state){if(state.timer||gesture!==state)return;root.dataset.state='holding';label.textContent='';state.timer=setTimeout(()=>finish(state),holdMs)}
  thumb.onpointerdown=event=>{if(committing||event.button!==0||event.isPrimary===false||!current(activeTask))return;reset();event.preventDefault();gesture={task:activeTask,pointerId:event.pointerId,x:event.clientX,y:event.clientY,travel:Math.max(1,root.getBoundingClientRect().width-thumb.getBoundingClientRect().width-6)};root.dataset.state='sliding';try{thumb.setPointerCapture?.(event.pointerId)}catch(_){}};
- thumb.onpointermove=event=>{const state=gesture;if(!state||state.pointerId!==event.pointerId)return;const dx=state.x-event.clientX,dy=Math.abs(state.y-event.clientY);if(dy>20&&dy>Math.abs(dx)){reset();return}event.preventDefault();const progress=Math.max(0,Math.min(1,dx/state.travel));thumb.style.transform='translateX('+(-progress*state.travel)+'px)';if(progress>=.94)arm(state);else{clearTimeout(state.timer);state.timer=null;root.dataset.state='sliding';label.textContent='← Usuń'}};
+ thumb.onpointermove=event=>{const state=gesture;if(!state||state.pointerId!==event.pointerId)return;const dx=state.x-event.clientX,dy=Math.abs(state.y-event.clientY);if(dy>20&&dy>Math.abs(dx)){reset();return}event.preventDefault();const progress=Math.max(0,Math.min(1,dx/state.travel));thumb.style.transform='translateX('+(-progress*state.travel)+'px)';if(progress>=.94)arm(state);else{clearTimeout(state.timer);state.timer=null;root.dataset.state='sliding';label.textContent=''}};
  for(const name of ['pointerup','pointercancel','lostpointercapture'])thumb.addEventListener(name,event=>{if(gesture?.pointerId===event.pointerId)reset()});
  thumb.onkeydown=event=>{if(['Escape','ArrowRight'].includes(event.key)){event.preventDefault();reset();return}if(!['Enter',' ','ArrowLeft'].includes(event.key)||event.repeat||committing||!current(activeTask))return;event.preventDefault();reset();gesture={task:activeTask,key:event.key};thumb.style.transform='translateX('+(-Math.max(1,root.getBoundingClientRect().width-thumb.getBoundingClientRect().width-6))+'px)';arm(gesture)};
  thumb.onkeyup=event=>{if(gesture?.key===event.key){event.preventDefault();reset()}};thumb.onblur=()=>{if(gesture)reset()};
@@ -51,8 +51,16 @@
   thumb.addEventListener('touchmove',e=>{const p=touchPoint(e);if(p)thumb.onpointermove(p)},{passive:false});
   for(const type of ['touchend','touchcancel'])thumb.addEventListener(type,()=>reset(),{passive:true});
  }
+ // Keep touch handling active on iOS Safari even when PointerEvent exists.
+ // Ignore synthetic touch events if the pointer gesture is already active.
+ if(window.PointerEvent){
+  let touchActive=false;
+  thumb.addEventListener('touchstart',e=>{if(gesture)return;const t=e.changedTouches?.[0];if(!t)return;touchActive=true;thumb.onpointerdown({pointerId:-1,button:0,isPrimary:true,clientX:t.clientX,clientY:t.clientY,preventDefault:()=>e.preventDefault()})},{passive:false});
+  thumb.addEventListener('touchmove',e=>{if(!touchActive)return;const t=e.changedTouches?.[0];if(!t)return;thumb.onpointermove({pointerId:-1,clientX:t.clientX,clientY:t.clientY,preventDefault:()=>e.preventDefault()})},{passive:false});
+  for(const name of ['touchend','touchcancel'])thumb.addEventListener(name,()=>{if(touchActive){touchActive=false;reset()}},{passive:true});
+ }
  const originalOpen=openEventActions,originalClose=closeEventActions;openEventActions=function(...args){reset();return originalOpen.apply(this,args)};closeEventActions=function(...args){reset();return originalClose.apply(this,args)};
- document.addEventListener('scroll',()=>{if(gesture)reset()},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});window.addEventListener('blur',reset);
+ // Scrolling the surrounding event sheet must not interrupt an active horizontal drag.document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});window.addEventListener('blur',reset);
  new MutationObserver(()=>{if(modal.classList.contains('hidden')&&gesture)reset()}).observe(modal,{attributes:true,attributeFilter:['class']});
  window.OktiEventDelete={reset};
 })();
