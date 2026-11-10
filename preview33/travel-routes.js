@@ -2,7 +2,7 @@
 (()=>{
  const style=document.createElement('style');style.textContent=`
  .phone-travel-animation{display:none!important}
- .phone-event-title.has-inline-route[data-route-layout=wide]{padding-right:112px}
+ .phone-event-title.has-inline-route:not([data-card-layout=rows])[data-route-layout=wide]{padding-right:112px}
  .okti-route-controls{position:absolute;z-index:26;display:flex;flex-direction:row-reverse;align-items:center;gap:3px;box-sizing:border-box;color:#526477;touch-action:pan-y}
  .okti-route-controls button{-webkit-tap-highlight-color:transparent;touch-action:pan-y;font-family:var(--okti-font,sans-serif)}
  .okti-route-badge{position:relative;display:grid;place-items:center;flex:none;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:#465f70!important;box-shadow:none}
@@ -132,17 +132,18 @@
   const timeline=document.querySelector('#taskList .phone-timeline');if(!timeline||!timeline.clientWidth){closeMenu(false,true);return}
   timeline.querySelectorAll('.okti-route-lines,.okti-route-nodes,.okti-route-controls,.okti-route-badge').forEach(node=>node.remove());
   const cards=[...timeline.querySelectorAll('.phone-event')].map(node=>({node,task:tasks.find(task=>String(task.id)===node.dataset.eventId)})).filter(item=>item.task).sort((a,b)=>phoneMinutes(a.task.time)-phoneMinutes(b.task.time));
-  for(const card of cards){card.node.nextElementSibling?.classList.remove('has-inline-route');card.node.nextElementSibling?.removeAttribute('data-route-layout')}
+  for(const card of cards){const copy=card.node.nextElementSibling;copy?.classList.remove('has-inline-route');copy?.removeAttribute('data-route-layout');const clock=copy?.querySelector?.('.phone-event-time');if(clock)clock.style.maxWidth=''}
   const located=cards.filter(card=>plannerLocation(card.task)),bounds=timeline.getBoundingClientRect();let menuTrigger=null;
   for(let i=0;i<located.length-1;i++){
    const a=located[i],b=located[i+1];if(plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task)))continue;
    const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
    const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
-   const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
+   const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='wide'?Math.min(144,Math.max(96,rect.width-116)):layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
    controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-inset)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
+   const caption=b.node.nextElementSibling,clock=caption?.querySelector?.('.phone-event-time');if(caption?.dataset.cardLayout==='rows'&&clock){clock.style.maxWidth=Math.max(44,rect.width-17-controlWidth-inset-6)+'px';const line=clock.getBoundingClientRect();controls.style.top=(line.top-bounds.top+(line.height-controlHeight)/2)+'px';}
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
-   const duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=label;
+   const displayMinutes=ready?Math.round(state.minutes):0,duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=layout==='compact'&&ready&&displayMinutes>=60?Math.floor(displayMinutes/60)+':'+String(displayMinutes%60).padStart(2,'0'):label;
    for(const button of [modeButton,duration]){button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.dataset.routeDuration=label;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label',names[mode]+', '+label+'. Dojazd z '+a.task.title+' do '+b.task.title+'. '+(button===modeButton?'Zmień środek transportu':'Pokaż szczegóły dojazdu'));button.disabled=!!busy;button.onclick=event=>{event.stopPropagation();showModes(key,a.task,b.task,button)}}
    duration.title=state?.error?state.error:risk==='late'?'Za mało czasu na dojazd':risk==='tight'?'Mały zapas czasu':'Dojazd z poprzedniego wydarzenia';controls.append(modeButton,duration);timeline.append(controls);
    const copy=b.node.nextElementSibling;if(copy?.matches('.phone-event-title')){copy.classList.add('has-inline-route');copy.dataset.routeLayout=layout}

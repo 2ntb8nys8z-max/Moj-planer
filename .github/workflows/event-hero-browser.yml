@@ -31,6 +31,14 @@ jobs:
           TZ: Europe/Warsaw
           PLANNER_BROWSER: ${{ matrix.browser }}
         run: node tests/calendar-compact-browser-33.cjs
+      - name: Retain compact calendar preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compact-preview-${{ matrix.browser }}
+          path: test-results/calendar-compact-${{ matrix.browser }}/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify guarded event deletion
         env:
           TZ: Europe/Warsaw
