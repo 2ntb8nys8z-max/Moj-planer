@@ -2,7 +2,7 @@ name: Production regression tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'work/regression-compact-33-275']
   workflow_dispatch:
 
 permissions:
