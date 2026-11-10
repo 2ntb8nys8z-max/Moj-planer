@@ -14,6 +14,10 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
 async function clean(page){await page.waitForFunction(()=>!window.OktiEventKey?.getState()&&!OktiEventMotion.getState());assert.equal(await page.locator('.okti-event-flight-panel,.okti-event-flight-tile-art').count(),0);}
 async function frame(page,time){return page.evaluate(time=>{for(const a of $('eventModal').getAnimations({subtree:true})){a.pause();a.currentTime=time;}const n=$('eventModal').querySelector('.okti-event-flight-tile-art'),stripe=n?.querySelector('.okti-event-flight-stripe');return n?{background:getComputedStyle(n).backgroundImage,opacity:Number(getComputedStyle(n).opacity),shadow:getComputedStyle(n.parentElement).boxShadow,weather:n.querySelectorAll('.okti-event-card-weather').length,stripes:n.querySelectorAll('.okti-event-flight-stripe').length,stripe:stripe?{background:getComputedStyle(stripe).backgroundImage,left:getComputedStyle(stripe).left,width:getComputedStyle(stripe).width}:null}:null;},time);}
 async function open(page){await page.evaluate(()=>{const timer=window.setTimeout;window.setTimeout=(fn,ms,...args)=>String(fn).includes('token.finish()')?0:timer(fn,ms,...args);openEventActions(tasks.find(t=>t.id==='workshop'));window.setTimeout=timer;});}
+async function tapEventHeader(page,id){
+ const tile=page.locator('.phone-event[data-event-id="'+id+'"]');await tile.scrollIntoViewIfNeeded();const r=await tile.boundingBox(),point={x:r.x+24,y:r.y+14};
+ assert.equal(await page.evaluate(p=>document.elementFromPoint(p.x,p.y)?.closest('.phone-event')?.dataset.eventId,point),id,'The event header is a real, unobstructed touch target');await page.touchscreen.tap(point.x,point.y);
+}
 async function geometry(page){return page.evaluate(()=>{
  const rect=n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height]};
  return {events:[...document.querySelectorAll('#taskList .phone-event,#taskList .phone-event-title,#taskList .entry-deadline-row')].map(n=>({id:n.dataset.eventId||n.className,rect:rect(n)})),dock:[...document.querySelectorAll('.voice-area .stage,.voice-area #voice,.voice-area .menu-toggle,.phone-bottom-bar,.phone-sky-header')].map(rect)};
@@ -126,7 +130,7 @@ async function geometry(page){return page.evaluate(()=>{
     await clean(page);assert.equal(await page.locator('.okti-key-pressed,.okti-key-moving').count(),0);
     await page.locator('#closeEvent').tap();await clean(page);
    }
-   await page.locator('[data-event-id="workshop"]').tap();await clean(page);
+   await tapEventHeader(page,'workshop');await clean(page);
    assert.match(await page.locator('#eventNotesCards').textContent(),/Przynieść aparat/);
    await page.locator('#closeEvent').tap();await clean(page);
    assert.equal(images,beforeReopenImages,width+': reopening reuses the already loaded header artwork');
@@ -138,7 +142,7 @@ async function geometry(page){return page.evaluate(()=>{
    // A missing/offline image retains a light surface and fully functional event.
    await page.route('**/assets/calendar-art/**',r=>r.abort());
    await page.locator('[data-event-id="coffee"]').evaluate(n=>n.style.setProperty('--calendar-art','url("assets/calendar-art/unavailable.webp")'));
-   await page.locator('[data-event-id="coffee"]').tap();await clean(page);assert.equal(await page.locator('#actionTitle').textContent(),'Kawa i rozmowa');
+   await tapEventHeader(page,'coffee');await clean(page);assert.equal(await page.locator('#actionTitle').textContent(),'Kawa i rozmowa');
    await page.locator('#closeEvent').tap();await clean(page);
    assert.ok(await page.locator('.phone-event[data-event-id="coffee"]').evaluate(n=>getComputedStyle(n).backgroundColor.match(/\d+/g).slice(0,3).every(v=>Number(v)>=240)),width+': offline fallback stays light');
    // Reproduce the reported iPhone case: many independent events all named

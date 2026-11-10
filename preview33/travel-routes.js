@@ -3,7 +3,8 @@
  const style=document.createElement('style');style.textContent=`
  .phone-travel-animation{display:none!important}
  .phone-event-title.has-inline-route:not([data-card-layout=rows])[data-route-layout=wide]{padding-right:112px}
- .okti-route-controls{position:absolute;z-index:26;display:flex;flex-direction:row-reverse;align-items:center;gap:3px;box-sizing:border-box;color:#526477;touch-action:pan-y}
+ .okti-route-controls{position:absolute;z-index:26;display:flex;flex-direction:row-reverse;align-items:center;gap:3px;box-sizing:border-box;color:#526477;touch-action:pan-y;pointer-events:none}
+ #taskList .okti-route-controls button{pointer-events:auto}
  .okti-route-controls button{-webkit-tap-highlight-color:transparent;touch-action:pan-y;font-family:var(--okti-font,sans-serif)}
  .okti-route-badge{position:relative;display:grid;place-items:center;flex:none;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:#465f70!important;box-shadow:none}
  .okti-route-badge:before{content:'';position:absolute;inset:5px;border:1px solid #b9c8ce;border-top-color:#fff;border-left-color:#e5edf0;border-radius:7px;background:linear-gradient(145deg,#fff 12%,#fdfefe 62%,#edf1f2);box-shadow:inset 0 1px 2px #fff,inset 0 -2px 1px #a9b8c342,1px 4px 2px -1px #32495738,1px 7px 9px -3px #3249572e;transition:transform 160ms ease,box-shadow 160ms ease}
