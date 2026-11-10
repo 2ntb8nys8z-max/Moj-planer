@@ -33,7 +33,19 @@ const output='test-results/speech-button-'+kind+(live?'-deployed':''),mime={'.ht
    await page.waitForTimeout(650);assert.equal(await page.evaluate(()=>speechFixture.calls.length),1,'The key animation cannot replay the speech request');await page.screenshot({path:path.join(output,width+'-reading.png')});
    await read.tap();assert.equal(await read.getAttribute('aria-pressed'),'false');assert.equal(await page.evaluate(()=>speechFixture.calls.length),1,'A second tap stops rather than adding another utterance');
    // Native keyboard activation must retain the same trusted call stack.
-   await read.focus();await page.keyboard.press('Space');assert.equal(await read.getAttribute('aria-pressed'),'true');assert.equal(await page.evaluate(()=>speechFixture.calls.at(-1).trusted),true);await read.tap();
+   const beforeKeyboard=await page.evaluate(()=>speechFixture.calls.length);
+   try{
+    await read.press('Space');
+    // The browser driver may finish keyup before the native Space click is
+    // dispatched. Wait for that click; the fixture still rejects speech which
+    // starts outside its trusted event dispatch, including all delayed retries.
+    await page.waitForFunction(()=>document.querySelector('[data-speech-read]')?.getAttribute('aria-pressed')==='true');
+    assert.equal(await page.evaluate(()=>speechFixture.calls.length),beforeKeyboard+1);assert.equal(await page.evaluate(()=>speechFixture.calls.at(-1).trusted),true);
+   }catch(error){
+    console.error('Keyboard diagnostics',await page.evaluate(()=>({active:document.activeElement?.outerHTML,calls:speechFixture.calls,denied:speechFixture.denied,status:document.querySelector('.okti-decision-speech-status')?.textContent})));
+    await page.screenshot({path:path.join(output,width+'-keyboard-failure.png')});throw error;
+   }
+   await read.tap();
    await page.evaluate(()=>{speechSynthesis.paused=true});await read.tap();assert.equal(await page.evaluate(()=>speechFixture.resumes),1);assert.equal(await read.getAttribute('aria-pressed'),'true');await read.tap();
    await page.evaluate(()=>{speechFixture.failNext=true});await read.tap();await page.waitForFunction(()=>document.querySelector('.okti-decision-speech-status').textContent.includes('Nie udało się'));assert.equal(await read.getAttribute('aria-pressed'),'false');await page.screenshot({path:path.join(output,width+'-retry.png')});await read.tap();assert.equal(await read.getAttribute('aria-pressed'),'true');await read.tap();
    if(width===390){
