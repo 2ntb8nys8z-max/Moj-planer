@@ -49,7 +49,9 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     window.testSpeech=[];Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{cancel(){},getVoices(){return []},speak(utterance){testSpeech.push(utterance.text)}}});window.SpeechSynthesisUtterance=function(text){this.text=text};
     window.hourSession=beginVoiceDialogue('main',null,null);const result=await requestVoiceDialogue(hourSession,new Blob(['test audio'],{type:'audio/mp4'}));if(result)await applyVoiceDialogueResult(hourSession,result);
    },{lang,token:env.PLANNER_ACCESS_TOKEN});
-   const choices=page.locator('#oktiDecision [data-time-choice]');await choices.first().waitFor();assert.deepEqual(await choices.allTextContents(),labels);assert.equal(await page.locator('#oktiDecision [role=spinbutton]').count(),0);
+   const choices=page.locator('#oktiDecision [data-time-choice]');await choices.first().waitFor();
+   await page.waitForFunction(()=>{const card=document.querySelector('#oktiDecision .okti-decision-card');return card&&Number(getComputedStyle(card).opacity)>.99&&card.getAnimations().every(animation=>animation.playState==='finished')});
+   assert.deepEqual(await choices.allTextContents(),labels);assert.equal(await page.locator('#oktiDecision [role=spinbutton]').count(),0);
    assert.equal(await page.evaluate(()=>tasks.length),0);assert.deepEqual(await page.evaluate(()=>testSpeech),[],'The ready-made hour choices do not require another spoken question');
    const geometry=await choices.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(node.querySelector('strong'));const text=range.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,text:{x:text.x,right:text.right,bottom:text.bottom}}}));
    assert.ok(Math.abs(geometry[0].y-geometry[1].y)<1,'Both alternatives appear side by side');
