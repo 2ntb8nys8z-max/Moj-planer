@@ -13,7 +13,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     if(url.origin==='https://planner.test'){const file=path.resolve(url.pathname.slice(1)||'index.html');if(file.startsWith(process.cwd()+path.sep)&&fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/octet-stream'});}
     return route.request().resourceType()==='script'?route.fulfill({body:'',contentType:'application/javascript'}):route.fulfill({json:{requiresAccess:false}});
    });
-   await page.goto('https://planner.test');await page.evaluate(()=>document.fonts.ready);
+   await page.goto('https://planner.test');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(()=>{
     today=()=>new Date('2026-11-06T12:00:00');selected=today();tasks=[{id:'header-check',title:'Wyjście do lasu',date:'2026-11-06',time:'17:00',endTime:'18:00'}];ideas=[];
     OktiLocalWeather.get=()=>({temperature:4,code:3,label:'Pochmurno',isDay:true});

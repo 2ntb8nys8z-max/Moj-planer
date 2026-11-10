@@ -81,7 +81,7 @@ assert.equal(previewWorkerText,worker,'published test Worker must exactly match 
 assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.46-TEST — CONVERSATION 33/);
 assert.match(worker,/apiVersion:"2026\.11\.10\.33\.46-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.11.10.33.279-test');
+assert.equal(release.version,'2026.11.10.33.280-test');
 assert.equal(release.workerVersion,'2026.11.10.33.46-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
@@ -92,7 +92,7 @@ assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
 assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-glass-33-184.png').equals(fs.readFileSync('octi-glass-33-184.png')),'The approved pale-blue glass sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-caustic-33-196.svg').equals(fs.readFileSync('octi-caustic-33-196.svg')),'The bright lens caustic must be published with the UI');
-console.log('Preview 33.279: calendar briefing and current preview contract verified.');
+console.log('Preview 33.280: device permissions and current preview contract verified.');
 
 
 assert.equal(fs.readFileSync('preview33/event-weather.js','utf8'),fs.readFileSync('event-weather.js','utf8'),'Event weather is published with its matching frontend');

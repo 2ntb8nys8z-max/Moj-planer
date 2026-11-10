@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.10.33.279-integration';
-const PREVIEW_VERSION='2026.11.10.33.279-test';
+const APP_VERSION='2026.11.10.33.280-integration';
+const PREVIEW_VERSION='2026.11.10.33.280-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.10.33.46-test';
 const WORKER_LABEL='Worker 33.46-test';
@@ -79,6 +79,7 @@ planner=planner.replaceAll('localStorage.getItem(','PREVIEW33_STORE.getItem(').r
 preview=preview.slice(0,plannerStart)+planner+preview.slice(plannerEnd);
 for(const file of ['sync-core.js','google-calendar.js']){
   const content=fs.readFileSync(file,'utf8'),buildId=createHash('sha256').update(content).digest('hex').slice(0,16);
+  canonical=canonical.replace(new RegExp('src="'+file.replace('.',String.fromCharCode(92)+'.')+'[^" ]*"'),'src="'+file+'?v='+buildId+'"');
   preview=preview.replace(new RegExp('src="'+file.replace('.',String.fromCharCode(92)+'.')+'[^" ]*"'),'src="'+file+'?v='+buildId+'"');
   output('preview33/'+file,content,false);
 }
@@ -104,7 +105,7 @@ preview=preview.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v
 output('preview33/event-delete.js',eventDelete,false);
 
 
-for(const file of ['day-briefing.js','day-briefing-ui.js']){
+for(const file of ['day-briefing.js','day-briefing-ui.js','device-permissions.js']){
   const content=fs.readFileSync(file,'utf8'),hash=createHash('sha256').update(content).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
   preview=preview.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);

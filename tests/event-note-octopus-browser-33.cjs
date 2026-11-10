@@ -25,7 +25,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
     stop(){this.state='inactive';this.ondataavailable({data:new Blob(['audio'],{type:'audio/mp4'})});this.onstop?.()}
    };
   });
-  await page.goto('https://planner.test/preview33/index.html');
+  await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
   await page.evaluate(()=>{
    showPlannerWeather=async()=>{};plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});
    // Provider response is controlled; the complete recorder/save/UI flow is real.

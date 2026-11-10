@@ -36,7 +36,7 @@ async function geometry(page){return page.evaluate(()=>{
     if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{requiresAccess:false}});
    });
-   await page.goto(live||origin);await page.evaluate(()=>document.fonts.ready);
+   await page.goto(live||origin);await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(records=>{showPlannerWeather=async()=>{};selected=new Date('2026-11-07T12:00:00');tasks=records;const task=tasks.find(t=>t.id==='workshop');task.location='Warszawa';task.weatherPlace={location:task.location,latitude:52.23,longitude:21.01};task.weatherForecast={key:plannerWeatherForecastKey(task,task.weatherPlace),fetchedAt:new Date().toISOString(),rows:[{key:task.date+'T12:00',index:0,temperature:7,code:2,isDay:true}]};ideas=[];renderAll();document.querySelector('.app').inert=false;},fixture);
    await page.locator('.phone-event[data-event-id="workshop"]').waitFor();
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));

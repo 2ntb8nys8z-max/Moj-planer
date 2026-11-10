@@ -7,7 +7,7 @@ async function plannerGoogleFetch(url,options={}){
 }
 
 // Bump this version and index.html's script URL whenever this file changes.
-const GOOGLE_SYNC_VERSION="2026.10.06.29";
+const GOOGLE_SYNC_VERSION="2026.11.10.33.280";
 const GOOGLE_CLIENT_ID="241609919500-lif1p32j92okqtgmcmi0k3vk2k1825vf.apps.googleusercontent.com";
 const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_CONNECTED_KEY="moj-planer-google-connected";
@@ -448,6 +448,7 @@ function initGoogleTokenClient(){
       GOOGLE_STORAGE.setItem(GOOGLE_CONNECTED_KEY,'1');
       setGoogleStatus(true,'Połączony • synchronizacja ręczna');
       toast('✓ Google Calendar połączony');
+      window.dispatchEvent(new Event('okti-authenticated'));
     }});
   }
   return true;

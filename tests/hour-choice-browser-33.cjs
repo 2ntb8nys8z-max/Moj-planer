@@ -43,7 +43,7 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     if(request.resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{}});
    });
-   await page.goto(live||origin);await page.evaluate(()=>document.fonts.ready);
+   await page.goto(live||origin);await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
    requests=[];transcript='Utwórz spotkanie 4 stycznia o '+spoken;
    const creation={kind:'command',intent:'execute',action:'continue',reply:'Sprawdź.',operations:[],focus:'',ambiguity:null,uiAction:{type:'open_create_event',query:'Spotkanie',date:'2027-01-04',startTime:time,durationMinutes:15}};
    model=questionKind?{kind:questionKind,intent:'continue',action:'continue',reply:'Czy chodzi o pierwszą w nocy czy trzynastą po południu?',operations:[],focus:'',ambiguity:questionKind==='event'?{field:'startTime',choices:['01:00','13:00']}:null,uiAction:null}:creation;

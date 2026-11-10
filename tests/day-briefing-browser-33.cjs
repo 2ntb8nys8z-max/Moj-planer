@@ -27,7 +27,7 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     if(url.hostname==='api.bigdatacloud.net')return route.fulfill({json:{city:'Warszawa',countryCode:'PL',countryName:'Polska'}});
     if(request.resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});return route.fulfill({json:{}});
    });
-   await page.goto(live||origin);await page.evaluate(()=>document.fonts.ready);
+   await page.goto(live||origin);await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(async token=>{
     tasks=[{id:'past',title:'Minione spotkanie',date:'2026-11-10',time:'09:00',endTime:'10:00'},{id:'ongoing',title:'Trwające spotkanie',date:'2026-11-10',time:'15:00',endTime:'15:45',location:'Rynek, Warszawa'},{id:'future',title:'Nadchodząca konsultacja',date:'2026-11-10',time:'16:00',endTime:'17:00',location:'Centrum, Łódź'},{id:'done',title:'Już wykonane',date:'2026-11-10',time:'18:00',endTime:'19:00',done:true},{id:'tomorrow',title:'Jutro rano',date:'2026-11-11',time:'09:00',endTime:'10:00',location:'Warszawa'},{id:'yesterday',title:'Wczorajszy plan',date:'2026-11-09',time:'12:00',endTime:'13:00',done:true}];ideas=[{id:'future-task-module',text:'Nie przypisuj mi zadania do dnia',done:true}];saveTasks();saveIdeas();saveApiAccess(token);selected=new Date('2026-11-11T12:00:00');renderAll();showPlannerWeather=async()=>{};await OktiLocalWeather.enable();window.briefSession=beginVoiceDialogue('main',null,null);window.briefBefore=JSON.stringify(PlannerData.snapshot());
    },env.PLANNER_ACCESS_TOKEN);
