@@ -23,7 +23,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
  const label=width+'x'+height,context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,reducedMotion:'no-preference',timezoneId:'Europe/Berlin',recordVideo:{dir:path.join(out,'video'),size:{width,height}}}),page=await context.newPage(),requests=[];
  page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(label+': '+e.message));await routing(page,requests);
  await page.goto(live||'https://planner.test');await page.evaluate(()=>document.fonts.ready);await seed(page);assert.equal(await key(page).getAttribute('data-route-duration'),expected.DRIVE);
- assert.equal((await key(page).textContent()).trim(),'');assert.equal(await page.locator('.okti-route-duration').textContent(),'26 min','Time is separate from the icon');assert.equal(await key(page).evaluate(n=>n.offsetWidth),48);
+ assert.equal((await key(page).textContent()).trim(),'');assert.equal(await page.locator('.okti-route-duration').textContent(),'26 min','Time is separate from the icon');assert.equal(await key(page).evaluate(n=>n.offsetWidth),44);
  assert.equal(await page.locator('.okti-route-lines,.okti-route-focus-lines').count(),0,'There are no permanent route lines');
  assert.equal(await key(page).evaluate(n=>{const r=n.parentElement.getBoundingClientRect(),card=document.querySelector('[data-event-id="route-to"]').getBoundingClientRect();return r.left>=card.left&&r.right<=card.right&&r.top>=card.top&&r.bottom<=card.bottom}),true,label+': icon and time fit inside their event');
  if(width===390)await page.screenshot({path:path.join(out,label+'-drive.png')});
@@ -36,7 +36,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   await menu.getByRole('radio',{name,exact:true}).tap();assert.equal(await page.locator('.okti-route-menu[data-state=open]').count(),1);await menu.locator('.okti-route-detail-duration').filter({hasText:expected[mode]}).waitFor();
   assert.equal(await key(page).getAttribute('data-route-duration'),expected[mode]);assert.equal(await menu.getByRole('radio',{name,exact:true}).getAttribute('aria-checked'),'true');
   assert.equal(await menu.locator('.okti-route-detail-duration').evaluate(n=>n.scrollWidth<=n.clientWidth),true,label+': complete duration fits');
-  assert.equal(await key(page).evaluate(n=>{const glyph=n.querySelector(':scope > svg').getBoundingClientRect(),r=n.getBoundingClientRect();return glyph.width===26&&glyph.height===26&&glyph.left>=r.left+3&&glyph.right<=r.right-3}),true);
+  assert.equal(await key(page).evaluate(n=>{const glyph=n.querySelector(':scope > svg').getBoundingClientRect(),r=n.getBoundingClientRect();return glyph.width===22&&glyph.height===22&&glyph.left>=r.left+3&&glyph.right<=r.right-3}),true);
   assert.equal((await key(page).textContent()).trim(),'');if(mode==='WALK')assert.equal(await key(page).locator('svg circle').count(),10,'Walking retains the two detailed footprints');
   if(width===390)await page.screenshot({path:path.join(out,label+'-'+mode.toLowerCase()+'.png')});
   await page.touchscreen.tap(5,5);await page.locator('.okti-route-menu').waitFor({state:'detached'});assert.equal(await page.locator('.app').evaluate(n=>n.inert),false);
@@ -59,7 +59,7 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   await page.screenshot({path:path.join(out,'risk-times.png')});
   await page.evaluate(()=>{tasks=Array.from({length:9},(_,i)=>({id:'dense-'+i,title:'Wydarzenie',date:'2026-11-07',time:'12:'+String(i*5).padStart(2,'0'),endTime:'12:'+String(i*5+5).padStart(2,'0'),location:['Berlin','Dresden','Leipzig'][i%3]}));renderAll()});
   await page.waitForFunction(()=>document.querySelectorAll('#taskList .okti-route-badge:not(:disabled)').length===8);
-  assert.equal(await key(page).evaluateAll(nodes=>nodes.every(n=>{const r=n.parentElement.getBoundingClientRect(),card=document.querySelector(`[data-event-id="${n.dataset.destinationEventId}"]`).getBoundingClientRect();return n.getBoundingClientRect().width===48&&r.left>=card.left&&r.right<=card.right&&r.top>=card.top&&r.bottom<=card.bottom})),true,'Dense events keep their controls inside the correct destination card');await page.screenshot({path:path.join(out,'dense-inline.png')});
+  assert.equal(await key(page).evaluateAll(nodes=>nodes.every(n=>{const r=n.parentElement.getBoundingClientRect(),card=document.querySelector(`[data-event-id="${n.dataset.destinationEventId}"]`).getBoundingClientRect();return n.getBoundingClientRect().width===44&&r.left>=card.left&&r.right<=card.right&&r.top>=card.top&&r.bottom<=card.bottom})),true,'Dense events keep their controls inside the correct destination card');await page.screenshot({path:path.join(out,'dense-inline.png')});
  }
  // Open with the last card near the bottom. The panel must scroll into room
  // BELOW that card instead of switching to the top of the focused pair.

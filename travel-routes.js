@@ -2,17 +2,17 @@
 (()=>{
  const style=document.createElement('style');style.textContent=`
  .phone-travel-animation{display:none!important}
- .phone-event-title.has-inline-route[data-route-layout=wide]{padding-right:134px}
- .okti-route-controls{position:absolute;z-index:26;display:flex;align-items:center;gap:3px;box-sizing:border-box;color:#526477;touch-action:pan-y}
+ .phone-event-title.has-inline-route[data-route-layout=wide]{padding-right:112px}
+ .okti-route-controls{position:absolute;z-index:26;display:flex;flex-direction:row-reverse;align-items:center;gap:3px;box-sizing:border-box;color:#526477;touch-action:pan-y}
  .okti-route-controls button{-webkit-tap-highlight-color:transparent;touch-action:pan-y;font-family:var(--okti-font,sans-serif)}
- .okti-route-badge{position:relative;display:grid;place-items:center;flex:none;width:48px;min-width:48px;height:48px;padding:0;border:0;border-radius:9px;background:transparent;color:#465f70!important;box-shadow:none}
- .okti-route-badge:before{content:'';position:absolute;inset:3px;border:1px solid #b9c8ce;border-top-color:#fff;border-left-color:#e5edf0;border-radius:7px;background:linear-gradient(145deg,#fff 12%,#fdfefe 62%,#edf1f2);box-shadow:inset 0 1px 2px #fff,inset 0 -2px 1px #a9b8c342,1px 4px 2px -1px #32495738,1px 7px 9px -3px #3249572e;transition:transform 160ms ease,box-shadow 160ms ease}
+ .okti-route-badge{position:relative;display:grid;place-items:center;flex:none;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:#465f70!important;box-shadow:none}
+ .okti-route-badge:before{content:'';position:absolute;inset:5px;border:1px solid #b9c8ce;border-top-color:#fff;border-left-color:#e5edf0;border-radius:7px;background:linear-gradient(145deg,#fff 12%,#fdfefe 62%,#edf1f2);box-shadow:inset 0 1px 2px #fff,inset 0 -2px 1px #a9b8c342,1px 4px 2px -1px #32495738,1px 7px 9px -3px #3249572e;transition:transform 160ms ease,box-shadow 160ms ease}
  .okti-route-badge:active:before{transform:translateY(2px);box-shadow:inset 0 1px 2px #263a4d15,0 1px 2px #263a4d19}
- .okti-route-badge>svg{position:relative;width:26px;height:26px}.okti-route-badge>.okti-route-spinner{position:relative}
- .okti-route-duration{min-width:0;min-height:48px;padding:0 2px;border:0;border-radius:4px;box-shadow:none;background:transparent!important;color:#526477;font-size:15px;line-height:19px;font-weight:700;text-align:left;white-space:normal}
+ .okti-route-badge>svg{position:relative;width:22px;height:22px}.okti-route-badge>.okti-route-spinner{position:relative}
+ .okti-route-duration{min-width:0;min-height:44px;padding:0 2px;border:0;border-radius:4px;box-shadow:none;background:transparent!important;color:#526477;font-size:13px;line-height:17px;font-weight:700;text-align:right;white-space:normal}
  .okti-route-controls[data-risk=late] .okti-route-duration{color:#ac5147}.okti-route-controls[data-risk=tight] .okti-route-duration{color:#97723f}
- .okti-route-controls[data-layout=compact]{flex-direction:column;gap:0}.okti-route-controls[data-layout=compact] .okti-route-duration{min-height:34px;font-size:13px;line-height:17px;text-align:center}
- .okti-route-controls[data-layout=narrow] .okti-route-duration{font-size:14px;line-height:18px}.okti-route-controls button:focus-visible{outline:2px solid #bd882a;outline-offset:1px}
+ .okti-route-controls[data-layout=compact]{flex-direction:column;gap:0}.okti-route-controls[data-layout=compact] .okti-route-duration{min-height:30px;font-size:12px;line-height:15px;text-align:center}
+ .okti-route-controls[data-layout=narrow] .okti-route-duration{font-size:12px;line-height:16px}.okti-route-controls button:focus-visible{outline:2px solid #bd882a;outline-offset:1px}
  .okti-route-focus{position:fixed;inset:0;z-index:24990;pointer-events:none}
  .okti-route-scrim{position:absolute;inset:0;pointer-events:auto;background:#29323e00;backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0);transition:background-color 520ms cubic-bezier(.4,0,.2,1),backdrop-filter 520ms cubic-bezier(.4,0,.2,1),-webkit-backdrop-filter 520ms cubic-bezier(.4,0,.2,1)}
  .okti-route-focus[data-state=open] .okti-route-scrim{background:#29323e24;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
@@ -134,10 +134,10 @@
   for(let i=0;i<located.length-1;i++){
    const a=located[i],b=located[i+1];if(plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task)))continue;
    const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
-   const rect=b.node.getBoundingClientRect(),layout=rect.width>=280?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
+   const rect=b.node.getBoundingClientRect();if(rect.width<52)continue;const layout=rect.width>=170?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
-   const controlWidth=layout==='wide'?126:layout==='narrow'?Math.min(122,rect.width-10):Math.max(40,rect.width-8),controlHeight=layout==='compact'?84:48;
-   controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(layout==='wide'?rect.right-bounds.left-controlWidth-8:rect.left-bounds.left+(rect.width-controlWidth)/2)+'px';controls.style.top=(layout==='wide'?rect.top-bounds.top+(rect.height-controlHeight)/2+5:rect.bottom-bounds.top-controlHeight-4)+'px';
+   const controlWidth=layout==='compact'?Math.max(44,Math.min(76,rect.width-16)):Math.min(104,rect.width-16),controlHeight=layout==='compact'?74:44;
+   controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-8)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
    const duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=label;
    for(const button of [modeButton,duration]){button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.dataset.routeDuration=label;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label',names[mode]+', '+label+'. Dojazd z '+a.task.title+' do '+b.task.title+'. '+(button===modeButton?'Zmień środek transportu':'Pokaż szczegóły dojazdu'));button.disabled=!!busy;button.onclick=event=>{event.stopPropagation();showModes(key,a.task,b.task,button)}}

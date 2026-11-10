@@ -95,11 +95,11 @@ window.OktiEventWeather=(()=>{
   });
  }
  const style=document.createElement('style');style.textContent=`
- .okti-event-card-weather{position:absolute;top:46px;left:9px;display:flex;align-items:center;gap:2px;max-width:66px;height:30px;pointer-events:none;color:#315271;font:800 16px/1 var(--okti-font,sans-serif);white-space:nowrap}
- .okti-event-card-weather-icon{width:30px;height:30px;display:block;flex:none;transform:none;transform-origin:left center}.okti-event-card-weather-icon svg{display:block;width:100%;height:100%}
- .okti-event-card-weather[data-layout=compact]{gap:2px;height:28px;font-size:15px}.okti-event-card-weather[data-layout=compact] .okti-event-card-weather-icon{width:28px;height:28px}
+ .okti-event-card-weather{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:2px;max-width:62px;height:24px;pointer-events:none;color:#315271;font:750 14px/1 var(--okti-font,sans-serif);white-space:nowrap}
+ .okti-event-card-weather-icon{width:24px;height:24px;display:block;flex:none;transform:none;transform-origin:left center}.okti-event-card-weather-icon svg{display:block;width:100%;height:100%}
+ .okti-event-card-weather[data-layout=compact]{gap:2px;height:22px;font-size:13px}.okti-event-card-weather[data-layout=compact] .okti-event-card-weather-icon{width:22px;height:22px}
  .phone-layout .phone-event-title.has-card-weather .phone-event-time{max-width:100%}
- .phone-layout .phone-event-title.has-card-weather:not(.single-line) .phone-event-title-text{max-height:44px!important;-webkit-line-clamp:2}
+ .phone-layout .phone-event-title.has-card-weather:not(.has-inline-route)[data-weather-layout=normal]{padding-right:78px}
  `;document.head.append(style);
  function badge(weather,layout){
   const node=document.createElement('span');node.className='okti-event-card-weather';node.dataset.layout=layout;
@@ -117,7 +117,7 @@ window.OktiEventWeather=(()=>{
    const show=weather&&layout!=='hidden',signature=show?[weather.temperature,weather.code,weather.isDay,layout,weather.stale].join('|'):'';
    copy.classList.toggle('has-card-weather',!!show);copy.dataset.weatherLayout=layout;
    const base=card.getAttribute('aria-label')?.split(' · Prognoza:')[0]||task.title;
-   const reserve=()=>{const node=card.querySelector('.okti-event-card-weather');if(node){const clock=copy.querySelector('.phone-event-time').getBoundingClientRect(),bounds=card.getBoundingClientRect();node.style.top=Math.max(5,Math.min(bounds.height-(layout==='compact'?28:30)-4,clock.bottom-bounds.top+4))+'px';node.style.left=Math.max(7,clock.left-bounds.left)+'px';node.style.right='auto'}};
+   const reserve=()=>{const node=card.querySelector('.okti-event-card-weather');if(node){const bounds=card.getBoundingClientRect(),header=copy.getBoundingClientRect();node.style.top=(layout==='normal'?8:Math.max(8,header.bottom-bounds.top+3))+'px';node.style.left='auto';node.style.right='8px'}};
    if(card.dataset.weatherSignature===signature){reserve();continue}
    card.dataset.weatherSignature=signature;card.querySelector('.okti-event-card-weather')?.remove();
    if(show){
