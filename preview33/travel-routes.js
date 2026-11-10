@@ -39,7 +39,7 @@
  const names={drive:'Samochód',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja'},shortNames={drive:'Auto',walk:'Pieszo',bicycle:'Rower',transit:'Komunikacja'};
  const svg=mode=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[mode]+'</svg>';
  const modeKey='okti-route-modes-v1';let saved={};try{saved=JSON.parse(localStorage.getItem(modeKey)||'{}');if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={}}catch(_){}
- const routes=new Map(),closing=new Set();let frame=0,activeMenu=null,menuSerial=0,ignoreScrollUntil=0;
+ const routes=new Map(),closing=new Set();let frame=0,activeMenu=null,menuSerial=0;
  const pairKey=(from,to)=>String(from.id)+'→'+String(to.id),cacheKey=(key,mode,from,to)=>JSON.stringify([key,mode,...[from,to].map(task=>[plannerLocationKey(plannerLocation(task)),task.googlePlace?.placeId||''])]);
  const motionEnabled=()=>!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const taskCard=id=>[...document.querySelectorAll('#taskList .phone-event')].find(node=>node.dataset.eventId===String(id));
@@ -100,7 +100,7 @@
   options.onkeydown=event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;const buttons=[...options.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);if(index<0)return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowLeft'||event.key==='ArrowUp'?-1:1)+buttons.length)%buttons.length;buttons[next].focus({preventScroll:true});buttons[next].click()};
   menu.onkeydown=event=>{if(event.key!=='Tab')return;const buttons=[close,...options.querySelectorAll('[aria-checked=true]')];if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1).focus()}else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();close.focus()}};
   document.body.append(menu);activeMenu=menu;menu.background=[document.querySelector('.app')||$('taskList')].filter(Boolean).map(element=>({element,inert:element.inert}));for(const node of menu.background)node.element.inert=true;
-  updateMenu(menu,button);positionMenu(menu);makeFocus(menu);ignoreScrollUntil=performance.now()+100;
+  updateMenu(menu,button);positionMenu(menu);makeFocus(menu);
   if(motionEnabled()&&menu.animate)menu.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:360,delay:60,easing:'cubic-bezier(.2,.8,.25,1)',fill:'both'});
   menu.querySelector('[aria-checked=true]')?.focus({preventScroll:true});
  }
@@ -120,9 +120,12 @@
    // timeline's tail; event dates and the piecewise time axis remain intact.
    const missing=Math.max(0,overflow-(scroller.scrollHeight-scroller.clientHeight-scroller.scrollTop)),timeline=target.closest('.phone-timeline');
    if(missing>0&&timeline)timeline.style.height=(Math.max(parseFloat(timeline.style.height)||0,timeline.scrollHeight)+missing+2)+'px';
-   ignoreScrollUntil=performance.now()+200;scroller.scrollTop+=overflow;box=target.getBoundingClientRect();
+   scroller.scrollTop+=overflow;box=target.getBoundingClientRect();
   }
   menu.style.left=Math.max(leftEdge+10,Math.min(leftEdge+width-mw-10,box.right-mw))+'px';menu.style.top=(box.bottom+10)+'px';
+  // Ignore delayed scroll events only while they still describe this exact
+  // programmatic position. A real user scroll changes it and closes the menu.
+  menu.anchorScroll=scroller?{element:scroller,top:scroller.scrollTop,left:scroller.scrollLeft}:null;
  }
 
  function draw(){
@@ -134,10 +137,10 @@
   for(let i=0;i<located.length-1;i++){
    const a=located[i],b=located[i+1];if(plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task)))continue;
    const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
-   const rect=b.node.getBoundingClientRect();if(rect.width<52)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
+   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
-   const controlWidth=layout==='compact'?Math.max(44,Math.min(76,rect.width-16)):Math.min(104,rect.width-16),controlHeight=layout==='compact'?74:44;
-   controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-8)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
+   const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
+   controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-inset)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
    const duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=label;
    for(const button of [modeButton,duration]){button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.dataset.routeDuration=label;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label',names[mode]+', '+label+'. Dojazd z '+a.task.title+' do '+b.task.title+'. '+(button===modeButton?'Zmień środek transportu':'Pokaż szczegóły dojazdu'));button.disabled=!!busy;button.onclick=event=>{event.stopPropagation();showModes(key,a.task,b.task,button)}}
@@ -150,7 +153,7 @@
  window.flushPlannerRouteLayout=()=>{closeMenu(false,true);draw()};
  function queue(){cancelAnimationFrame(frame);frame=requestAnimationFrame(draw)}
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&activeMenu){event.preventDefault();event.stopPropagation();closeMenu(true)}},true);
- document.addEventListener('scroll',event=>{if(activeMenu&&performance.now()>=ignoreScrollUntil&&!activeMenu.contains(event.target))closeMenu()},true);
+ document.addEventListener('scroll',event=>{if(!activeMenu||activeMenu.contains(event.target))return;const own=activeMenu.anchorScroll;if(event.target===own?.element&&Math.abs(own.element.scrollTop-own.top)<1&&Math.abs(own.element.scrollLeft-own.left)<1)return;closeMenu()},true);
  document.addEventListener('pointerdown',event=>{if(activeMenu&&!activeMenu.contains(event.target)&&!activeMenu.routeControls?.contains(event.target)&&!event.target.closest?.('.okti-route-focus'))closeMenu(true)},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)closeMenu(false,true)});
  const observer=new MutationObserver(records=>{if(records.some(record=>record.target===$('taskList')||[...record.addedNodes].some(node=>node.classList?.contains('phone-timeline-scroll'))))queue()});observer.observe($('taskList'),{childList:true,subtree:true});
