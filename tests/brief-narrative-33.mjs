@@ -24,6 +24,8 @@ assert.throws(()=>narrator.input({...context,facts:[...facts,facts[0]]}));
 assert.throws(()=>narrator.input({...context,facts:[] }));
 const review={...model,mode:'review',travel:null},reviewContext={mode:'review',facts:narrator.facts(review,core.summary(review))};
 assert.throws(()=>narrator.validate({...valid,spoken:[{text:'Spotkania odbyły się zgodnie z planem.',factIds:['review']}]},reviewContext));
+const reviewCount=reviewContext.facts.find(f=>f.id==='count');assert.match(narrator.validate({intro:{text:reviewCount.text,factIds:['count']},insights:[],spoken:[{text:reviewCount.text,factIds:['count']},{text:'Nie mam potwierdzenia, czy spotkania się odbyły.',factIds:['review']}]},reviewContext).speech,/Nie mam potwierdzenia/);
+assert.throws(()=>narrator.validate({...valid,spoken:[...valid.spoken,...Array.from({length:5},()=>({text:'x'.repeat(640),factIds:['count']}))]},context),'Few extremely long words must not overflow the next conversation history turn');
 const fallback=narrator.fallback(model,{...brief,warnings:Array.from({length:100},()=>warning)});assert.ok(fallback.split(/\s+/).length<=120);
 const holidayVM=vm.createContext({window:{},AbortController,setTimeout,clearTimeout,Date,Intl});vm.runInContext(fs.readFileSync('brief-holidays.js','utf8'),holidayVM);
 const holidays=holidayVM.window.OktiBriefHolidays,regional=[{date:'2026-11-18',countryCode:'DE',global:false,counties:['DE-SN'],types:['Public'],localName:'Buß- und Bettag'},{date:'2026-11-18',countryCode:'DE',global:true,types:['School'],localName:'School-only fixture'}];

@@ -668,7 +668,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="189d1005073f8774";
+const BUILD_ID="25de54602ca1394a";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1264,12 +1264,14 @@ const OktiBriefNarrative=(()=>{
    if(!s||typeof s.text!=='string'||!s.text.trim()||s.text.length>650||/[<>\u0000-\u0008]/.test(s.text)||!Array.isArray(s.factIds)||!s.factIds.length||s.factIds.length>8||s.factIds.some(id=>!byId.has(id)))throw Error('Niepoparta treść podsumowania.');
    const evidence=s.factIds.map(id=>byId.get(id).text).join(' '),allowed=new Set(numbers(evidence));
    if(numbers(s.text).some(n=>!allowed.has(n)))throw Error('AI podało liczbę spoza przekazanych faktów.');
-   if(data.mode==='review'&&/odby[łl]|uczestniczy[łl]|zrealizowa[łl]|zrobi[łl]e[śs]|by[łl]e[śs]/i.test(s.text))throw Error('Plan nie potwierdza odbycia spotkań.');
+   const attendance=/odby[łl]|uczestniczy[łl]|zrealizowa[łl]|zrobi[łl]e[śs]|by[łl]e[śs]/i.test(s.text),uncertain=/nie (?:wiem|wiemy|wiadomo|potwierdza(?:my|m)?|mam(?:y)? potwierdzenia)|bez potwierdzenia|brak (?:danych|potwierdzenia)/i.test(s.text);
+   if(data.mode==='review'&&attendance&&!uncertain)throw Error('Plan nie potwierdza odbycia spotkań.');
    return {text:s.text.trim(),factIds:[...new Set(s.factIds)]};
   }
   if(!value||!Array.isArray(value.insights)||value.insights.length>5||!Array.isArray(value.spoken)||!value.spoken.length||value.spoken.length>7)throw Error('Nieprawidłowa odpowiedź AI.');
   const intro=sentence(value.intro),insights=value.insights.map(sentence),spoken=value.spoken.map(sentence);
-  if(!spoken.some(s=>s.factIds.includes('count'))||words(spoken.map(s=>s.text).join(' '))>data.wordBudget)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');
+  const speech=spoken.map(s=>s.text).join(' ');
+  if(!spoken.some(s=>s.factIds.includes('count'))||words(speech)>data.wordBudget||speech.length>3000)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');
   for(const fact of data.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(!spoken.some(s=>s.factIds.includes(fact.id)))throw Error('W głosie pominięto istotne ostrzeżenie.');
   if(data.mode==='review'&&!spoken.some(s=>s.factIds.includes('review')))throw Error('Brak zastrzeżenia dotyczącego zapisanego planu.');
   return {intro,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
