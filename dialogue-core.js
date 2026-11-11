@@ -56,6 +56,7 @@ function dialogueClockMentions(text,pending){
   const out=[];
   for(const m of t.matchAll(regex)){
     if(!m[1]&&!m[2].includes(':')&&!['start','duration','hour'].includes(pending?.kind))continue;
+    if(/^\s*(?:minut\w*|min\b|godzin\w*|styczni\w*|lut\w*|marc\w*|kwietni\w*|maj\w*|czerwc\w*|lipc\w*|sierpni\w*|wrzesni\w*|pazdziernik\w*|listopad\w*|grudni\w*)\b/.test(t.slice(m.index+m[0].length)))continue;
     const raw=m[2];let hour,minute=0,explicit=raw.includes(':');
     if(/^\d/.test(raw)){const parts=raw.split(':');hour=Number(parts[0]);minute=Number(parts[1]||0)}
     else {hour=stems.findIndex(x=>raw.startsWith(x))+1;if(hour===20&&raw.includes(' '))hour+=stems.findIndex(x=>raw.split(' ')[1].startsWith(x))+1;}

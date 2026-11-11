@@ -1,0 +1,28 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,d=w.document,ctx=dom.getInternalVMContext(),run=source=>vm.runInContext(source,ctx);
+Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>true,alert(){},fetch:async()=>new Response('{}')});w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};
+const wait=()=>new Promise(resolve=>setTimeout(resolve,0));
+(async()=>{try{
+ for(const script of d.scripts)if(!script.src)run(script.textContent);
+ let now=0,nextTimer=-1;const timers=new Map(),originalSet=w.setTimeout.bind(w),originalClear=w.clearTimeout.bind(w);
+ w.setTimeout=(fn,ms,...args)=>{if(ms!==800)return originalSet(fn,ms,...args);const id=nextTimer--;timers.set(id,{at:now+ms,fn:()=>fn(...args)});return id};w.clearTimeout=id=>{if(!timers.delete(id))originalClear(id)};
+ const advance=async ms=>{now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){timers.delete(id);timer.fn()}await wait()};
+ run(fs.readFileSync('event-delete.js','utf8'));
+ const thumb=d.querySelector('.okti-event-delete-thumb'),root=d.getElementById('eventDeleteControl');root.getBoundingClientRect=()=>({left:0,top:0,width:156,height:42,right:156,bottom:42});thumb.getBoundingClientRect=()=>({left:117,top:3,width:36,height:36,right:153,bottom:39});
+ const task=(id,extra={})=>({id,title:'Spotkanie '+id,date:'2026-11-09',time:'22:00',endTime:'23:00',...extra});
+ const seed=records=>{w.records=records;run('closeEventActions();tasks=records;saveTasks();openEventActions(tasks[0])')};
+ const pointer=(type,x=150,y=20)=>{const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,button:0,clientX:x,clientY:y});Object.defineProperty(event,'pointerId',{value:7});Object.defineProperty(event,'isPrimary',{value:true});thumb.dispatchEvent(event)};
+ const slide=()=>{pointer('pointerdown');pointer('pointermove',25)};
+ seed([task('a'),task('b')]);const initial=run('JSON.stringify(tasks)');thumb.click();await advance(1000);assert.equal(run('JSON.stringify(tasks)'),initial,'A tap is never a deletion');
+ pointer('pointerdown');pointer('pointermove',100);await advance(1000);pointer('pointerup',100);assert.equal(run('JSON.stringify(tasks)'),initial,'A partial left slide cannot delete');
+ slide();await advance(799);assert.equal(run('tasks.length'),2);pointer('pointerup',25);await advance(100);assert.equal(run('tasks.length'),2,'Releasing before the hold finishes cancels');
+ slide();pointer('pointercancel',25);await advance(1000);assert.equal(run('tasks.length'),2,'A cancelled pointer cannot delete');
+ slide();pointer('pointermove',80);await advance(1000);pointer('pointerup',80);assert.equal(run('tasks.length'),2,'Leaving the endpoint cancels the hold');
+ slide();run('closeEventActions();openEventActions(tasks[1])');await advance(1000);assert.equal(run('tasks.length'),2,'Closing or switching the event invalidates a pending gesture');
+ seed([task('a'),task('b')]);slide();await advance(800);assert.equal(run('tasks.length'),1);assert.equal(run('tasks[0].id'),'b');assert.equal(run('PlannerData.snapshot().tasks[0].id'),'b','The deletion is durable');assert.equal(d.getElementById('eventModal').classList.contains('hidden'),true);
+ seed([task('google',{googleEventId:'remote-a',googleData:{etag:'v1'}}),task('keep')]);slide();await advance(800);let snapshot=run('PlannerData.snapshot()');assert.equal(snapshot.tasks.length,1);assert.equal(snapshot.deleteQueue.length,1);assert.equal(snapshot.deleteQueue[0].googleEventId,'remote-a');assert.equal(snapshot.deleteQueue[0].localSnapshot.id,'google');assert.equal(snapshot.deleteQueue[0].baseEtag,'v1');await advance(1600);assert.equal(run('PlannerData.snapshot().deleteQueue.length'),1,'One gesture creates one sync intent');
+ seed([task('series-a',{seriesId:'series'}),task('series-b',{seriesId:'series'})]);let scopes=0;w.prompt=()=>{scopes++;return '1'};slide();await advance(800);assert.equal(scopes,1,'Series deletion retains the existing scope choice');assert.equal(run('tasks.length'),1);assert.equal(run('tasks[0].id'),'series-b');
+ seed([task('keyboard'),task('keep')]);thumb.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}));await advance(799);thumb.dispatchEvent(new w.KeyboardEvent('keyup',{key:'ArrowLeft',bubbles:true,cancelable:true}));await advance(10);assert.equal(run('tasks.length'),2);thumb.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));await advance(800);assert.equal(run('tasks.length'),1,'Keyboard confirmation requires the same hold');
+ seed([task('failed',{googleEventId:'remote-failed'}),task('keep')]);const before=run('JSON.stringify(PlannerData.snapshot())');run('PlannerData.commit=()=>{throw Error("Zapis niedostępny")}');slide();await advance(800);assert.equal(run('tasks.length'),2);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),before,'A failed atomic write leaves the event and Google queue intact');assert.equal(root.dataset.state,'idle');assert.equal(thumb.disabled,false);assert.match(d.getElementById('toast').textContent,/Nie udało się usunąć/);
+ console.log('Event deletion: tap/partial/released/cancelled/retreated/stale gestures, 800ms pointer and keyboard hold, real durable storage, atomic Google intent, series scope and failed-save preservation passed (pointer and clock simulated).');
+}finally{dom.window.close()}})().catch(error=>{console.error(error);process.exitCode=1});

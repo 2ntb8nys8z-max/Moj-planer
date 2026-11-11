@@ -31,7 +31,7 @@ const within=(inner,outer,message)=>assert.ok(inner.left>=outer.left-epsilon&&in
     if(route.request().resourceType()==='script')return route.fulfill({body:'',contentType:'application/javascript'});
     return route.fulfill({json:{requiresAccess:false,protocolVersion:2,apiVersion:'2026.10.08.33.14-test'}});
    });
-   await page.goto('https://planner.test');await page.evaluate(()=>document.fonts.ready);
+   await page.goto('https://planner.test');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
    await page.evaluate(fixture=>{
     selected=new Date('2026-10-12T12:00:00');tasks=fixture;
     ideas=[{id:'reminder',title:'Przypomnienie',text:'Przypomnienie',alarm:{date:'2026-10-12',time:'12:15',message:'Przypomnienie'}}];

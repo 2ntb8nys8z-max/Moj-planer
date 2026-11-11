@@ -1,0 +1,46 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const {JSDOM}=require('jsdom');
+const html=fs.readFileSync('index.html','utf8'),source=fs.readFileSync('event-keys.js','utf8');
+const css=html.match(/<style id="okti-calendar-art-33-247">([\s\S]*?)<\/style>/)[1];
+const dom=new JSDOM('<style>'+css+'</style><div id="dayView"><div id="taskList"><button class="phone-event okti-calendar-card" data-event-id="one" data-event-palette="blue">Spacer</button><span class="phone-event-title"><span class="phone-event-title-text">Spacer</span></span><div class="task okti-calendar-card" data-event-id="two"><input type="checkbox"><button class="delete">Menu</button></div></div></div>',{runScripts:'outside-only',pretendToBeVisual:true});
+const w=dom.window,tile=w.document.querySelector('.phone-event'),copy=tile.nextElementSibling;
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)),animations=[],opened=[];
+w.tasks=[{id:'one',title:'Spacer'},{id:'two',title:'Drugie'}];
+w.openEventActions=task=>opened.push(task.id);
+w.matchMedia=()=>({matches:false});
+w.Element.prototype.animate=function(frames,options){
+ let resolve,finished=new Promise(done=>resolve=done);
+ const timer=setTimeout(resolve,options.duration),animation={frames,options,finished,cancel(){clearTimeout(timer);resolve()}};
+ animations.push(animation);return animation;
+};
+tile.getBoundingClientRect=()=>({left:0,top:0,right:240,bottom:80,width:240,height:80});
+const pointer=(type,values={})=>{
+ const e=new w.MouseEvent(type,{bubbles:true,cancelable:true,clientX:80,clientY:30,...values});
+ Object.defineProperties(e,{pointerId:{value:1},pointerType:{value:'touch'},isPrimary:{value:true}});tile.dispatchEvent(e);
+};
+w.eval(source);
+(async()=>{try{
+ const before=JSON.stringify(w.tasks);
+ pointer('pointerdown');assert(tile.classList.contains('okti-key-pressed'));assert(copy.classList.contains('okti-key-pressed'));
+ await wait(185);assert.equal(opened.length,0,'Holding never opens the event');
+ pointer('pointerup');tile.click();await wait(25);
+ assert.equal(w.OktiEventKey.getState().phase,'releasing');assert(!tile.classList.contains('okti-key-pressed'));
+ assert.equal(opened.length,0,'Release returns the key before opening');
+ await wait(280);assert.equal(opened.length,0,'The complete rebound is visible before the settling pause');
+ await wait(100);assert.deepEqual(opened,['one']);assert.equal(w.OktiEventKey.getState(),null);
+ assert(!tile.classList.contains('okti-key-moving'));assert(!copy.classList.contains('okti-key-copy'));
+ assert.equal(animations[0].options.duration,280);assert.equal(animations[0].frames.at(-1).transform,'translateY(0)');
+ opened.length=0;pointer('pointerdown');pointer('pointermove',{clientY:65});pointer('pointerup',{clientY:65});tile.dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));await wait(560);
+ assert.equal(opened.length,0,'Dragging/scrolling cannot open an event');
+ pointer('pointerdown');pointer('pointercancel');await wait(200);assert.equal(w.OktiEventKey.getState(),null);
+ const input=w.document.querySelector('input');input.click();assert.equal(w.OktiEventKey.getState(),null,'Checkboxes retain their normal action');
+ let menu=0;w.document.querySelector('.delete').onclick=()=>menu++;w.document.querySelector('.delete').click();assert.equal(menu,1);
+ tile.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+ assert(tile.classList.contains('okti-key-pressed'));await wait(170);
+ tile.dispatchEvent(new w.KeyboardEvent('keyup',{key:'Enter',bubbles:true,cancelable:true}));await wait(410);assert.deepEqual(opened,['one']);
+ opened.length=0;pointer('pointerdown');await wait(180);pointer('pointerup');
+ w.document.dispatchEvent(new w.Event('scroll'));await wait(400);assert.equal(opened.length,0,'Scrolling during release cancels delayed opening');
+ w.matchMedia=()=>({matches:true});tile.click();await wait(30);assert.deepEqual(opened,['one'],'Reduced motion skips the visible spring and pause');
+ assert.equal(JSON.stringify(w.tasks),before,'Presentation never changes stored event data');
+ console.log('Event keys: held press, 280ms rebound then pause, duplicate click, drag/pointer cancellation, scroll, keyboard, nested controls and reduced motion passed (DOM animation fixtures).');
+}finally{dom.window.close()}})().catch(error=>{console.error(error);process.exitCode=1});

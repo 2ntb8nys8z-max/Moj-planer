@@ -63,7 +63,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
    const elapsed=lastFrame?t-lastFrame:0;if(elapsed>50){transition.start+=elapsed-50;recordStart+=elapsed-50;if(turnTransition)turnTransition.start+=elapsed-50;}
    pose=value(t);headTurn=turnTransition?turnTransition.from*(1-smooth((t-turnTransition.start)/650)):(isRecording?smooth((t-recordStart-550)/900):0);
    const dt=lastFrame?Math.min(.1,(t-lastFrame)/1000):1/30;lastFrame=t;follow+=(pose-follow)*(1-Math.exp(-dt/.07));
-   if(t-lastDraw>=30){try{renderer.draw({approach:pose,lag:follow,gesture:headTurn,clock:t/1000,phase:video.currentTime});layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback');rendering=true;lastDraw=t;}catch(error){fail(error);return;}}
+   if(t-lastDraw>=30){try{renderer.draw({approach:pose,lag:follow,gesture:headTurn,clock:t/1000,phase:video.currentTime});if(!rendering){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback')}rendering=true;lastDraw=t;}catch(error){fail(error);return;}}
   }
   if(video.currentTime!==lastVideoTime){lastVideoTime=video.currentTime;lastProgress=t;}
   if(t-lastProgress>5000){fail(Error('Animation stalled'));return;}

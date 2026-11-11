@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+
+const html=fs.readFileSync('index.html','utf8');
+const source=html.slice(html.indexOf('const plannerCalendarArtFiles='),html.indexOf('function paintCreatedEventCue()'));
+const context=vm.createContext({});vm.runInContext(source,context);
+const records=Array.from({length:24},(_,i)=>({id:'event-'+i,title:'Wydarzenie',date:'2026-11-06',time:String(8+Math.floor(i/4)).padStart(2,'0')+':'+String(i%4*15).padStart(2,'0')}));
+context.records=records;const before=JSON.stringify(records);
+const assign=()=>JSON.parse(vm.runInContext('plannerPrepareCalendarArtwork(records);JSON.stringify(Object.fromEntries(records.map(task=>[task.id,plannerEventArtwork(task)])))',context));
+const first=assign(),motifs=Object.values(first);
+assert.equal(new Set(motifs.slice(0,10)).size,10,'Ten identical titles receive all ten different motifs');
+assert.equal(new Set(motifs.slice(10,20)).size,10,'A second set also uses every motif');
+for(let i=1;i<motifs.length;i++)assert.notEqual(motifs[i],motifs[i-1],'Neighbours never repeat, including between sets');
+assert.equal(JSON.stringify(records),before,'Decoration does not mutate event records');
+assert.deepEqual(assign(),first,'A rerender keeps the same artwork');
+context.records=records.slice().reverse();assert.deepEqual(assign(),first,'Storage/import order does not change the assignment');
+context.records=records.map(task=>({...task,title:'Inna nazwa'}));assert.deepEqual(assign(),first,'Renaming an event does not select its motif');
+context.records=records.map(task=>({...task}));vm.runInContext('plannerCalendarArtworkAssignments.clear()',context);assert.deepEqual(assign(),first,'Reloading the app with the same events is stable');
+context.task={id:1780000000.123,title:'Wydarzenie',date:'2026-11-06',time:'19:00'};
+assert.equal(vm.runInContext('plannerEventArtwork(task)',context),vm.runInContext('plannerEventArtwork({...task})',context),'Numeric persistent IDs are stable too');
+console.log('Calendar artwork: identical titles, ten-motif diversity, adjacent sets, stable reopen/reload/rename/import order and unchanged records passed.');

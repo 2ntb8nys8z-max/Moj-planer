@@ -3,6 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 
+// Legacy installed client review contract; immediate creation has its own full-flow suite.
 // Real Worker -> frontend -> main microphone -> next Worker request.
 // External model/STT responses and microphone hardware are controlled.
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
@@ -15,7 +16,7 @@ const w=dom.window,run=code=>vm.runInContext(code,dom.getInternalVMContext()),ge
 Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>{throw Error('Unexpected native confirmation')},alert(){},fetch:async()=>new Response('{}')});
 w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};
 w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
-w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:options.body}),env);assert.equal(response.status,200);return response.json()};
+w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);if(lastPayload.dialogueState)delete lastPayload.dialogueState.eventCreationPolicy;options={...options,body:JSON.stringify(lastPayload)};const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:options.body}),env);assert.equal(response.status,200);return response.json()};
 run(fs.readFileSync('sync-core.js','utf8'));
 for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
 run("plannerApiRequest=testApi;plannerAudioPayload=async()=>({base64:'YXVkaW8=',type:'audio/mp4'});startPlannerRecording=(channel,makeSession)=>{testSession=makeSession();};tasks=[];ideas=[]");
@@ -74,9 +75,9 @@ try{
  assert.equal(w.document.querySelectorAll('.modal-backdrop:not(.hidden)').length,0,'No separate warning modal');
  assert.match(reviewed.textContent,/Ten termin pokrywa się z wydarzeniem „Zajęty termin”/);assert.equal(run('tasks.length'),1,'Overlap cannot save before explicit approval');
  assert.equal(get('conversationConfirm').parentElement.classList.contains('hidden'),true);
- get('scheduleBack').click();await firstApproval;assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Nowe spotkanie');assert.equal(get('conversationConfirm').disabled,false);
- // Correction by the main microphone retains the project after returning.
- get('voice').click();await turn('Zmień godziny: od 23:30 do 23:45',eventAnswer({startTime:'23:30',endTime:'23:45'},'modify'),true);
+ get('scheduleBack').click();await firstApproval;await new Promise(resolve=>w.setTimeout(resolve,20));assert.equal(run('tasks.length'),1);assert.equal(run('pendingVoiceItem.title'),'Nowe spotkanie');assert.equal(get('conversationConfirm'),null);assert.equal(get('oktiDecision').hidden,true,'Back starts correction without another approval');
+ // The automatically started main microphone retains the project after returning.
+ await turn('Zmień godziny: od 23:30 do 23:45',eventAnswer({startTime:'23:30',endTime:'23:45'},'modify'),true);
  assert.equal(lastPayload.currentItem.title,'Nowe spotkanie');assert.equal(run('pendingVoiceItem.date'),'2027-01-04');assert.equal(run('pendingVoiceItem.startTime'),'23:30');
  await get('conversationConfirm').onclick();assert.equal(run('tasks.length'),2);assert.equal(run('tasks[1].time'),'23:30');
  // Explicit override still writes once, and closed/stale decisions never write.

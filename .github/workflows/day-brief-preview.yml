@@ -1,0 +1,84 @@
+name: Okti day brief test preview
+on:
+  push:
+    branches: [feature/okti-readable-day-brief]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: okti-day-brief-preview
+  cancel-in-progress: true
+jobs:
+  test-and-preview:
+    if: github.ref == 'refs/heads/feature/okti-readable-day-brief'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install existing dependencies
+        working-directory: source
+        run: npm ci
+      - name: Verify source and regression tests
+        working-directory: source
+        env:
+          TZ: Europe/Warsaw
+        run: npm test
+      - name: Select browser
+        run: |
+          planner_browser="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$planner_browser" ]; then
+            echo "PLANNER_CHROMIUM=$planner_browser" >> "$GITHUB_ENV"
+          else
+            cd source
+            npx playwright install --with-deps chromium
+          fi
+      - name: Verify mobile day report
+        working-directory: source
+        run: npm run test:brief-browser
+      - name: Retain mobile screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: day-brief-mobile
+          path: source/test-results/day-briefing-chromium/*.png
+          if-no-files-found: ignore
+      - name: Upload test Worker version without deployment
+        working-directory: source
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/publish-brief-worker.mjs
+      - name: Stage complete test app
+        working-directory: source
+        run: node scripts/stage-brief-preview.mjs
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: pages
+      - name: Publish only the independent day brief preview
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p pages/brief-preview
+          cp -R source/test-artifacts/brief-preview/. pages/brief-preview/
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add brief-preview
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Okti day brief test ${SOURCE_SHA} [skip ci]"
+            git push origin HEAD:main
+          fi
+      - name: Request Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${{ github.repository }}/pages/builds"
+      - name: Verify deployed test bytes
+        working-directory: source
+        run: node scripts/verify-brief-preview.mjs
