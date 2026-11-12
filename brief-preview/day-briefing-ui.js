@@ -4,28 +4,29 @@ window.OktiDayBriefUI=(()=>{
  let current=null,serial=0;
  const style=document.createElement('style');style.textContent=`
  #entryResultsModal.is-day-brief{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));align-items:center;justify-content:center;background:#14202e65}
- #entryResultsModal.is-day-brief .action-card{box-sizing:border-box;width:min(100%,640px);max-width:640px;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:26px 22px 22px;border:1px solid #e1e4e7;border-radius:24px;background:#fff;box-shadow:0 22px 65px #16202c30;color:#23323e}
- #entryResultsModal.is-day-brief h2{margin:0 0 10px;padding-right:40px;font-size:27px;line-height:1.2;letter-spacing:-.025em;color:#243540}
- #entryResultsModal.is-day-brief #entryResults{display:flex;flex-direction:column;gap:16px;max-height:none;overflow:visible;padding:8px 0 0}
- #entryResultsModal.is-day-brief #entryResultsCount{font-size:16px;line-height:1.5;color:#61707c;white-space:pre-line}
+ #entryResultsModal.is-day-brief .action-card{box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:min(100%,680px);max-width:680px;height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:980px;overflow:hidden;padding:0;border:1px solid #e1e4e7;border-radius:24px;background:#fff;box-shadow:0 22px 65px #16202c30;color:#23323e}
+ #entryResultsModal.is-day-brief h2{margin:0;padding:26px 68px 10px 24px;font-size:27px;line-height:1.2;letter-spacing:-.025em;color:#243540}
+ #entryResultsModal.is-day-brief #entryResults{display:flex;flex-direction:column;gap:24px;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:22px 24px;margin:0;border:0}
+ #entryResultsModal.is-day-brief #entryResultsCount{font-size:18px;line-height:1.5;color:#52636f;padding:0 24px 18px;margin:0;border-bottom:1px solid #e7eaec;white-space:normal}.day-brief-date,.day-brief-year{display:block}.day-brief-year{margin-top:9px;font-size:17px;line-height:1.5;color:#445b68}
  #entryResultsModal.is-day-brief #closeEntryResults{width:44px;height:44px;right:12px;top:12px;font-size:28px;color:#4f5a64;background:#f3f4f5;border:1px solid #e6e8eb;box-shadow:none}
- .day-brief-section{padding:18px;border:1px solid #e0e4e7;border-radius:18px;background:#fff;color:#263743;overflow-wrap:anywhere;box-shadow:0 3px 14px #16202c06}
- .day-brief-section h3{margin:0 0 9px;font-size:19px;line-height:1.35}.day-brief-section p{margin:7px 0;font-size:17px;line-height:1.55}
- .day-brief-warning{border-left:4px solid #ac6545;background:#fffcf9}.day-brief-intro{margin:0;font-size:19px;line-height:1.55;color:#293e4b;overflow-wrap:anywhere}
- #entryResultsModal.is-day-brief .day-brief-count{margin:0;padding:18px;color:#233b4b;font-size:22px;font-weight:750;line-height:1.4;background:#f4f5f6;border:1px solid #e8eaec;border-radius:18px}
+ .day-brief-section{padding:0;color:#263743;overflow-wrap:anywhere}
+ .day-brief-section h3{margin:0 0 9px;font-size:21px;line-height:1.35}.day-brief-section p{margin:8px 0 0;font-size:19px;line-height:1.6}
+ .day-brief-warning{padding:16px 18px;border-left:4px solid #ac6545;border-radius:0 14px 14px 0;background:#fffcf9}.day-brief-intro{margin:0;font-size:22px;line-height:1.55;font-weight:500;color:#293e4b;overflow-wrap:anywhere}
+ #entryResultsModal.is-day-brief .day-brief-count{margin:0;padding:15px 18px;color:#233b4b;font-size:22px;font-weight:650;line-height:1.4;background:#f7f8f8;border:1px solid #e8eaec;border-radius:16px}
  button.day-brief-count{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;touch-action:manipulation;cursor:pointer}button.day-brief-count:active{background:#eceff1}.day-brief-count-arrow{flex:none;font-size:30px;line-height:1;color:#627783}
  .day-brief-read{box-sizing:border-box;min-height:52px;width:100%;margin:0;padding:13px 15px;font-size:17px;font-weight:700;line-height:1.4;border-radius:15px;white-space:normal;touch-action:manipulation}
- #entryResultsModal.is-day-brief .day-brief-primary{background:#274b5d;color:#fff;border:1px solid #274b5d;box-shadow:0 4px 10px #16202c12}
+ #entryResultsModal.is-day-brief .day-brief-primary{background:#274b5d!important;color:#fff!important;border:1px solid #274b5d;box-shadow:0 4px 10px #16202c12}
+ #entryResultsModal.is-day-brief .day-brief-read::before,#entryResultsModal.is-day-brief .day-brief-read::after{display:none}.day-brief-footer{padding:14px 24px 18px;border-top:1px solid #e7eaec;background:#fff}.day-brief-footer .day-brief-status:empty{display:none}.day-brief-footer .day-brief-status{margin-top:8px}
  #entryResultsModal.is-day-brief .entry-result{min-height:52px;font-size:17px}.is-day-brief .entry-result-meta{white-space:normal}
  .day-brief-status{margin:0;font-size:14px;line-height:1.5;color:#64717c}.day-brief-sources{font-size:14px;line-height:1.5;color:#64717c}.day-brief-sources summary{min-height:36px;cursor:pointer}.day-brief-sources p{margin:7px 0}.day-brief-sources a{color:#375a6c;text-decoration:underline}
  #entryResultsModal.is-day-brief button:focus-visible,#entryResultsModal.is-day-brief summary:focus-visible{outline:3px solid #567889;outline-offset:3px}
- @media(max-width:360px){#entryResultsModal.is-day-brief .action-card{padding:24px 16px 18px;border-radius:20px}.day-brief-section,.day-brief-count{padding:16px}}
+ @media(max-width:360px){#entryResultsModal.is-day-brief .action-card{border-radius:20px}#entryResultsModal.is-day-brief h2{padding-left:18px}#entryResultsModal.is-day-brief #entryResultsCount{padding-left:18px;padding-right:18px}#entryResultsModal.is-day-brief #entryResults{padding:20px 18px}.day-brief-footer{padding:12px 18px 14px}}
  `;document.head.append(style);
  const fingerprint=()=>JSON.stringify(tasks);
  const owned=state=>current===state&&state.serial===serial&&!modal.classList.contains('hidden')&&(!state.session||voiceDialogues[state.session.channel]===state.session);
  function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent='Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
- function cancel(){serial++;if(current){stop(current);current.controller.abort()}current=null;modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
- function close(){const state=current,card=modal.querySelector('.action-card');cancel();if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){modal.classList.add('is-day-brief');const motion=card.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(12px)'}],{duration:150,easing:'ease-in'});motion.onfinish=()=>{if(!current){modal.classList.add('hidden');modal.classList.remove('is-day-brief');state?.returnFocus?.focus?.({preventScroll:true})}}}else{modal.classList.add('hidden');state?.returnFocus?.focus?.({preventScroll:true})}}
+ function cancel({keepFooter=false}={}){serial++;if(current){stop(current);current.controller.abort()}current=null;if(!keepFooter)modal.querySelector('[data-brief-footer]')?.remove();modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
+ function close(){const state=current,card=modal.querySelector('.action-card');cancel({keepFooter:true});if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){modal.classList.add('is-day-brief');const motion=card.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(12px)'}],{duration:150,easing:'ease-in'});motion.onfinish=()=>{if(!current){modal.classList.add('hidden');modal.classList.remove('is-day-brief');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}}else{modal.classList.add('hidden');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}
  function speak(state){
   if(!owned(state)||!state.model||fingerprint()!==state.version||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
   if(state.speechToken){stop(state);return}
@@ -55,22 +56,23 @@ window.OktiDayBriefUI=(()=>{
   list.prepend(button('Wróć do podsumowania',()=>{if(owned(state))render(state)}));
  }
  function render(state,{focus=false}={}){
-  const model=state.model,brief=core.summary(model,{allWarnings:state.showAllWarnings}),scroll=modal.querySelector('.action-card').scrollTop;model.displayWarnings=brief.visibleWarnings;state.view='brief';
+  const model=state.model,brief=core.summary(model,{allWarnings:state.showAllWarnings}),scroll=list.scrollTop;model.displayWarnings=brief.visibleWarnings;state.view='brief';
   showEntryResults([],model.title,'',true);decorate();list.replaceChildren();
-  document.getElementById('entryResultsCount').textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const meta=document.getElementById('entryResultsCount'),date=document.createElement('span'),year=document.createElement('span'),calendar=model.calendar||core.calendarContext(model.date);date.className='day-brief-date';date.textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});year.className='day-brief-year';year.dataset.briefCalendar='';year.textContent=calendar.dayOfYear+'. dzień roku. Do końca roku '+(calendar.daysRemaining===1?'został 1 dzień.':'zostało '+calendar.daysRemaining+' dni.');meta.replaceChildren(date,year);
   if(model.narrative?.intro?.text){const intro=document.createElement('p');intro.className='day-brief-intro';intro.dataset.briefIntro='';intro.textContent=model.narrative.intro.text;list.append(intro)}
   const count=document.createElement(model.records.length?'button':'p');count.className='day-brief-count';count.dataset.briefCount='';count.textContent=brief.countText;
   if(model.records.length){count.type='button';count.dataset.briefEvents='';count.setAttribute('aria-label',brief.countText+' Zobacz '+(model.records.length===1?'spotkanie.':'spotkania.'));count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow)}list.append(count);
   if(brief.visibleWarnings.length){const box=section('Zwróć uwagę',brief.visibleWarnings.map(w=>w.text),true);box.dataset.briefWarnings='';list.append(box)}
   if(brief.moreCount){const more=button('Pokaż pozostałe ostrzeżenia ('+brief.moreCount+')',()=>{if(owned(state)){state.showAllWarnings=true;render(state);window.OktiBriefLinks?.remember(model,state.session)}});more.dataset.briefMore='';list.append(more)}
-  if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.weather.text]);box.dataset.briefWeather='';list.append(box)}
+  if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.narrative?.weather?.text||narrator?.weatherText(model)||model.weather.text]);box.dataset.briefWeather='';list.append(box)}
   if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
-  if(model.narrative?.insights?.length){const box=section('Wnioski na ten dzień',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
+  if(model.narrative?.insights?.length){const box=section('Warto pamiętać',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
   if(model.mode==='review')list.append(section('To zapisany plan',['Kalendarz nie potwierdza, czy spotkania rzeczywiście się odbyły.']));
-  state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));list.append(state.readButton);
-  const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Przygotowuję krótką analizę AI…':model.narrative?'Analiza AI na podstawie danych · krótki odczyt':state.aiError||'Podsumowanie na podstawie danych · analiza AI jest niedostępna.';list.append(status);
+  modal.querySelector('[data-brief-footer]')?.remove();const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';
+  state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
+  const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Chwilę, układam podsumowanie…':'';footer.append(status);modal.querySelector('.action-card').append(footer);
   const sources=document.createElement('details');sources.className='day-brief-sources';const summary=document.createElement('summary');summary.textContent='Źródła i dostępność danych';sources.append(summary);
-  const notes=[...(model.travel?.notes||[])];
+  const notes=[...(model.travel?.notes||[])];if(state.aiError)notes.push(state.aiError);
   if(!model.place)notes.push('Brak aktualnej lokalizacji.');
   if(model.mode!=='review'&&!model.weather?.available)notes.push('Brak aktualnej prognozy dla tego dnia.');
   if(model.weather?.stale)notes.push('Zapisana prognoza jest nieaktualna.');
@@ -79,7 +81,7 @@ window.OktiDayBriefUI=(()=>{
   if(model.mode==='plan'&&model.place)notes.push('Pogoda i święta dotyczą ostatniej znanej lokalizacji, bez potwierdzenia miejsca pobytu tego dnia.');
   for(const text of [...new Set(notes)]){const p=document.createElement('p');p.textContent=text;sources.append(p)}
   for(const [label,url,show] of [['Pogoda: Open-Meteo','https://open-meteo.com/',model.weather?.available],['Święta: Nager.Date',model.holidays?.source,model.holidays?.available],['Trasy: Google Maps','https://maps.google.com/',model.travel?.legs?.some(l=>l.route)]])if(show){const p=document.createElement('p'),a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener noreferrer';p.append(a);sources.append(p)}
-  list.append(sources);modal.querySelector('.action-card').scrollTop=focus?0:scroll;
+  list.append(sources);list.scrollTop=focus?0:scroll;
   if(focus){modal.querySelector('h2').tabIndex=-1;modal.querySelector('h2').focus({preventScroll:true})}
  }
  async function analyze(state){
@@ -87,7 +89,7 @@ window.OktiDayBriefUI=(()=>{
   const info=await getApiInfo();if(!owned(state))return;
   if(!info.conversationFeatures?.includes('day-brief-narrative-v1')){state.aiError='Podsumowanie na podstawie danych · serwer AI czeka na aktualizację.';return}
   const timer=setTimeout(()=>state.controller.abort(),22000);
-  try{const result=await plannerApiRequest('/briefing',{method:'POST',headers:{'Content-Type':'application/json'},signal:state.controller.signal,body:JSON.stringify({context})});if(!owned(state))return;model.narrative=narrator.validate(result.narrative,context);model.narrativeEventIds=[...new Set([...model.narrative.spoken,...model.narrative.insights].flatMap(s=>s.factIds).filter(id=>/^event-\d+$/.test(id)).map(id=>model.records[Number(id.slice(6))]?.item.id).filter(id=>id!=null))]}
+  try{const result=await plannerApiRequest('/briefing',{method:'POST',headers:{'Content-Type':'application/json'},signal:state.controller.signal,body:JSON.stringify({context})});if(!owned(state))return;model.narrative=narrator.validate(result.narrative,context);model.narrativeEventIds=[...new Set([...model.narrative.spoken,...model.narrative.insights,...(model.narrative.intro?[model.narrative.intro]:[])].flatMap(s=>s.factIds).filter(id=>/^event-\d+$/.test(id)).map(id=>model.records[Number(id.slice(6))]?.item.id).filter(id=>id!=null))]}
   finally{clearTimeout(timer)}
  }
  async function show(action,session=null,{speak:read=!!session&&session.inputSource==='audio'}={}){
@@ -114,7 +116,7 @@ window.OktiDayBriefUI=(()=>{
    records=core.events(tasks,spec.date,now,spec.mode);if(spec.mode!=='review')journey=await core.travel(records,tasks,{...travelOptions,now,maxRequests:0});
    if(!owned(state)||fingerprint()!==state.version)return null;
    const weather=spec.mode!=='review'&&place?core.weather(OktiLocalWeather.details(new Date(spec.date+'T12:00:00')),spec.date,now,spec.mode):null;
-   const model=state.model={...spec,now,records,travel:journey,place,weather,holidays:results[1]};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
+   const model=state.model={...spec,now,records,travel:journey,place,weather,holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey})};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
    try{if(narrator)await analyze(state)}catch(_){state.aiError='Analiza AI jest chwilowo niedostępna. Pokazuję sprawdzone dane kalendarza.'}finally{state.analyzing=false}
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas analizy. Poproś o podsumowanie ponownie.');
