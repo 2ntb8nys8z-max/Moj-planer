@@ -4,11 +4,11 @@ window.OktiDayBriefUI=(()=>{
  let current=null,serial=0;
  const style=document.createElement('style');style.textContent=`
  #entryResultsModal.is-day-brief{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));align-items:center;justify-content:center;background:#14202e65}
- #entryResultsModal.is-day-brief .action-card{box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:min(100%,680px);max-width:680px;height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:980px;overflow:hidden;padding:0;border:1px solid #e1e4e7;border-radius:24px;background:#fff;box-shadow:0 22px 65px #16202c30;color:#23323e}
+ #entryResultsModal.is-day-brief .action-card{position:relative;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:min(100%,680px);max-width:680px;height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:980px;overflow:hidden;padding:0;border:1px solid #e1e4e7;border-radius:24px;background:#fff;box-shadow:0 22px 65px #16202c30;color:#23323e}
  #entryResultsModal.is-day-brief h2{margin:0;padding:26px 68px 10px 24px;font-size:27px;line-height:1.2;letter-spacing:-.025em;color:#243540}
  #entryResultsModal.is-day-brief #entryResults{display:flex;flex-direction:column;gap:24px;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:22px 24px;margin:0;border:0}
  #entryResultsModal.is-day-brief #entryResultsCount{font-size:18px;line-height:1.5;color:#52636f;padding:0 24px 18px;margin:0;border-bottom:1px solid #e7eaec;white-space:normal}.day-brief-date,.day-brief-year{display:block}.day-brief-year{margin-top:9px;font-size:17px;line-height:1.5;color:#445b68}
- #entryResultsModal.is-day-brief #closeEntryResults{width:44px;height:44px;right:12px;top:12px;font-size:28px;color:#4f5a64;background:#f3f4f5;border:1px solid #e6e8eb;box-shadow:none}
+ #entryResultsModal.is-day-brief #closeEntryResults{position:absolute;z-index:2;left:auto;bottom:auto;width:44px;height:44px;right:12px;top:12px;font-size:28px;color:#4f5a64;background:#f3f4f5;border:1px solid #e6e8eb;border-radius:12px;box-shadow:none}
  .day-brief-section{padding:0;color:#263743;overflow-wrap:anywhere}
  .day-brief-section h3{margin:0 0 9px;font-size:21px;line-height:1.35}.day-brief-section p{margin:8px 0 0;font-size:19px;line-height:1.6}
  .day-brief-warning{padding:16px 18px;border-left:4px solid #ac6545;border-radius:0 14px 14px 0;background:#fffcf9}.day-brief-intro{margin:0;font-size:22px;line-height:1.55;font-weight:500;color:#293e4b;overflow-wrap:anywhere}
@@ -97,7 +97,7 @@ window.OktiDayBriefUI=(()=>{
   if(session){if(JSON.stringify(voiceDialogueCurrent(session.channel,session.id))!==session.snapshot)return null;if(voiceDialogues[session.channel]&&voiceDialogues[session.channel]!==session)return null;voiceDialogues[session.channel]=session}
   cancel();showEntryResults([],spec.title,'Sprawdzam plan i dojazdy…',true);decorate();
   const state=current={serial,session,action,speaking:false,model:null,controller:new AbortController(),version:fingerprint(),returnFocus,view:'brief'};
-  const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
+  const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
   const routeAdapter=window.OktiTravelRoutes;
   try{
    if(spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(spec.mode==='remaining');
