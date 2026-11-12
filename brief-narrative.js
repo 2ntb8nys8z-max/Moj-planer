@@ -1,6 +1,6 @@
 // Shared evidence contract for the browser and the read-only Worker endpoint.
 const OktiBriefNarrative=(()=>{
- const kinds=new Set(['date','location','count','activity','warning','travel','weather','holiday','limitation','review']);
+ const kinds=new Set(['date','location','count','activity','warning','travel','weather','holiday','limitation','review','load']);
  const words=text=>text.trim().split(/\s+/u).filter(Boolean).length;
  const numbers=text=>(text.match(/\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|-?\d+(?:[.,]\d+)?(?:\s*[–—-]\s*-?\d+(?:[.,]\d+)?)?/g)||[]).flatMap(token=>{
   if(/^\d{4}-\d{2}-\d{2}$/.test(token))return ['date:'+token];
@@ -8,11 +8,14 @@ const OktiBriefNarrative=(()=>{
   const range=token.match(/^(-?\d+(?:[.,]\d+)?)\s*[–—-]\s*(-?\d+(?:[.,]\d+)?)$/);
   return (range?range.slice(1):[token]).map(value=>String(Number(value.replace(',','.'))));
  });
+ const weatherText=model=>String(model.weather?.text||'').replace(/^W dzień /,'W ciągu dnia będzie ');
  function facts(model,brief){
   const result=[],add=(id,kind,text,priority=0)=>{if(text)result.push({id,kind,text:String(text).slice(0,900),priority})};
   add('date','date',new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'. Zakres: '+(model.mode==='review'?'przegląd zapisanego planu':model.mode==='remaining'?'pozostała część dnia od '+model.now.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}):'plan dnia'));
+  if(model.calendar){const fact=result[0];fact.text+=' To '+model.calendar.dayOfYear+'. dzień roku. Do końca roku zostało '+model.calendar.daysRemaining+' dni (bez opisywanego dnia).';}
   if(model.place?.label)add('location','location','Ostatnia znana lokalizacja: '+model.place.label+'. To nie jest potwierdzenie miejsca pobytu w opisywanym dniu.');
   add('count','count',brief.countText,2);
+  if(model.overview){const o=model.overview;add('day-load','load','Dotyczy tylko zapisów w kalendarzu, a nie wszystkich obowiązków użytkownika. Wpisy godzinowe ze znanym końcem: '+o.timedCount+'. Zajmują łącznie '+o.occupiedMinutes+' minut, bez podwójnego liczenia nakładających się terminów. Najdłuższa przerwa między nimi: '+o.longestGapMinutes+' minut; nie oznacza automatycznie czasu wolnego, bo trzeba uwzględnić dojazdy.'+(o.firstStart!=null?' Pierwszy początek w tym zakresie: '+new Date(o.firstStart).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'. Ostatni koniec: '+new Date(o.lastEnd).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'.':'')+' Wpisy całodniowe: '+o.allDayCount+'; nie znamy ich zajętości godzinowej. Wpisy bez godziny końca: '+o.unknownEndCount+'. Ustalony czas przejazdów: '+o.routeMinutes+' minut dla '+o.knownRouteCount+' odcinków; pozostałe mogą być nieznane.');}
   brief.warnings.slice(0,8).forEach((w,i)=>add('warning-'+i,'warning',w.text,i<2?3:1));
   (model.records||[]).slice(0,12).forEach((r,i)=>add('event-'+i,'activity','W kalendarzu: „'+String(r.title).slice(0,150)+'”. '+(r.summaryMeta||'')+'. Status: '+r.status+'. To plan, bez potwierdzenia obecności.'));
   if(model.mode==='review')add('review','review','Kalendarz opisuje zamiary. Nie potwierdza obecności, odbycia spotkań ani realizacji zadań.',3);
@@ -23,14 +26,14 @@ const OktiBriefNarrative=(()=>{
    (model.travel?.notes||[]).slice(0,3).forEach((text,i)=>add('travel-limit-'+i,'limitation',text));
    if(brief.note)add('organization','limitation',brief.note);
   }
-  if(model.weather?.available&&!model.weather.stale)add('weather','weather',model.weather.text);
+  if(model.weather?.available&&!model.weather.stale)add('weather','weather',model.weather.text+(model.weather.date?' Prognoza dla daty '+model.weather.date+'.':'')+(model.weather.rainAt?' Opady wskazano na '+model.weather.rainAt+'. Północ 00:00 należy do początku tej daty, a nie nocy po wieczornych wydarzeniach.':''));
   if(model.weather?.stale)add('weather-limit','limitation','Prognoza pogody jest nieaktualna; pomijam wskazówki pogodowe.');
   (model.holidays?.items||[]).slice(0,4).forEach((h,i)=>add('holiday-'+i,'holiday','Święto ustawowe w '+model.holidays.countryLabel+': '+h.localName+'. Źródło: Nager.Date. Święto nie oznacza automatycznie, że użytkownik ma wolne.'));
   if(model.holidays?.regionalUnknown)add('holiday-limit','limitation','Nie ustalono regionu; uwzględniono tylko święta ogólnokrajowe.');
   return result;
  }
  function input(value){
-  if(!value||!['remaining','plan','review'].includes(value.mode)||!Array.isArray(value.facts)||value.facts.length<2||value.facts.length>44||JSON.stringify(value).length>24000)throw Error('Nieprawidłowe fakty podsumowania.');
+  if(!value||!['remaining','plan','review'].includes(value.mode)||!Array.isArray(value.facts)||value.facts.length<2||value.facts.length>46||JSON.stringify(value).length>24000)throw Error('Nieprawidłowe fakty podsumowania.');
   const ids=new Set();
   const list=value.facts.map(f=>{
    if(!f||!/^[-a-z0-9]{1,40}$/.test(f.id)||ids.has(f.id)||!kinds.has(f.kind)||typeof f.text!=='string'||!f.text.trim()||f.text.length>900||![0,1,2,3].includes(f.priority))throw Error('Nieprawidłowy fakt podsumowania.');
@@ -55,21 +58,22 @@ const OktiBriefNarrative=(()=>{
   // useful standalone findings to repeat in the report or read aloud.
   const useful=(s,voice=false)=>s.factIds.some(id=>!['date','location','limitation',...(voice?[]:['count'])].includes(byId.get(id).kind));
   const candidate=value.intro===null?null:sentence(value.intro),intro=candidate&&useful(candidate)?candidate:null,insights=value.insights.map(sentence).filter(s=>useful(s)),spoken=value.spoken.map(sentence).filter(s=>useful(s,true));
+  const weather=value.weather==null?null:sentence(value.weather);if(weather&&!weather.factIds.every(id=>byId.get(id).kind==='weather'))throw Error('Opis pogody wymaga aktualnej prognozy.');
   const speech=spoken.map(s=>s.text).join(' ');
   if(!spoken.some(s=>s.factIds.includes('count'))||words(speech)>data.wordBudget||speech.length>3000)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');
   for(const fact of data.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(!spoken.some(s=>s.factIds.includes(fact.id)))throw Error('W głosie pominięto istotne ostrzeżenie.');
   if(data.mode==='review'&&!spoken.some(s=>s.factIds.includes('review')))throw Error('Brak zastrzeżenia dotyczącego zapisanego planu.');
-  return {intro,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
+  return {intro,weather,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
  }
  function fallback(model,brief){
   const sentences=[brief.countText,...brief.warnings.slice(0,2).map(w=>w.text)];
   if(model.mode==='review')sentences.push('To zapisany plan, bez potwierdzenia, czy spotkania się odbyły.');
-  if(model.weather?.available&&!model.weather.stale)sentences.push(model.weather.text);
+  if(model.weather?.available&&!model.weather.stale)sentences.push(weatherText(model));
   const holiday=model.holidays?.items?.[0];if(holiday)sentences.push('Święto ustawowe: '+holiday.localName+'.');
   // The voice stays concise even after all on-screen warnings are expanded.
   const kept=[];let length=0;for(const text of sentences){const size=words(text);if(length+size>120)break;kept.push(text);length+=size}return kept.join(' ');
  }
- return {facts,input,validate,fallback};
+ return {facts,input,validate,fallback,weatherText};
 })();
 if(typeof module==='object'&&module.exports)module.exports=OktiBriefNarrative;
 if(typeof window!=='undefined')window.OktiBriefNarrative=OktiBriefNarrative;

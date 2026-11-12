@@ -37,6 +37,20 @@
    return [{type:'event',item,title:title(item),...span,status,summaryMeta:(status==='ongoing'?'Trwa · ':'')+time+(mode==='review'&&item.done?' · oznaczone jako wykonane':'')}];
   }).sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start-b.start||a.title.localeCompare(b.title,'pl'));
  }
+ function calendarContext(date){
+  if(!validDay(date))throw Error('Nieprawidłowa data.');
+  const [year,month,day]=date.split('-').map(Number),stamp=Date.UTC(year,month-1,day),start=Date.UTC(year,0,1),end=Date.UTC(year+1,0,1);
+  return {dayOfYear:Math.round((stamp-start)/86400000)+1,daysInYear:Math.round((end-start)/86400000),daysRemaining:Math.round((end-stamp)/86400000)-1};
+ }
+ function dayOverview({date,mode,now=new Date(),records=[],travel}){
+  const start=Math.max(+new Date(date+'T00:00:00'),mode==='remaining'?+now:0),end=+new Date(nextDay(date)+'T00:00:00');
+  const spans=records.filter(r=>!r.allDay&&r.hasEnd&&Number.isFinite(r.start)&&Number.isFinite(r.end)).map(r=>[Math.max(start,r.start),Math.min(end,r.end)]).filter(([a,b])=>b>a).sort((a,b)=>a[0]-b[0]),merged=[];
+  for(const [a,b] of spans){const previous=merged.at(-1);if(previous&&a<=previous[1])previous[1]=Math.max(previous[1],b);else merged.push([a,b])}
+  const occupiedMinutes=Math.round(merged.reduce((sum,[a,b])=>sum+b-a,0)/60000),longestGapMinutes=Math.round(Math.max(0,...merged.slice(1).map(([a],i)=>a-merged[i][1]))/60000);
+  const allDayCount=records.filter(r=>r.allDay).length,unknownEndCount=records.filter(r=>!r.allDay&&!r.hasEnd).length;
+  const knownRoutes=(travel?.legs||[]).filter(l=>Number.isFinite(l.route?.minutes)&&l.route.minutes>=0),routeMinutes=Math.ceil(knownRoutes.reduce((sum,l)=>sum+l.route.minutes,0));
+  return {occupiedMinutes,longestGapMinutes,allDayCount,unknownEndCount,timedCount:spans.length,routeMinutes,knownRouteCount:knownRoutes.length,firstStart:merged[0]?.[0]??null,lastEnd:merged.at(-1)?.[1]??null};
+ }
  function weather(details,date,now=new Date(),mode='remaining'){
   if(!details||!Array.isArray(details.rows))return {text:'Brak aktualnej prognozy dla Twojej lokalizacji.',available:false};
   let from=mode==='remaining'?now.getHours()*60:0;
@@ -51,7 +65,8 @@
   // Keep night conditions available for a relevant warning, without calling them daytime weather.
   const dayRows=rows.filter(r=>minutes(r.time)>=8*60&&minutes(r.time)<20*60),main=dayRows.length?dayRows:rows;
   const place=details.place||'Twoja lokalizacja',text=[],first=main[0],peak=main.reduce((a,b)=>b.temperature>a.temperature?b:a),after=main.filter(r=>minutes(r.time)>minutes(peak.time)),low=after.reduce((a,b)=>!a||b.temperature<a.temperature?b:a,null);
-  const period=time=>{const n=minutes(time);return n===0?'o północy':n<5*60?'w nocy':n<7*60?'nad ranem':n<11*60?'rano':n<12*60?'przed południem':n<18*60?'po południu':n<22*60?'wieczorem':'późnym wieczorem'};
+  const weekday=new Date(date+'T12:00:00').getDay(),night='w nocy z '+['soboty','niedzieli','poniedziałku','wtorku','środy','czwartku','piątku'][weekday]+' na '+['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'][weekday];
+  const period=time=>{const n=minutes(time);return n<5*60&&mode==='plan'?night:n===0?'o północy':n<5*60?'w nocy':n<7*60?'nad ranem':n<11*60?'rano':n<12*60?'przed południem':n<18*60?'po południu':n<22*60?'wieczorem':'późnym wieczorem'};
   const min=Math.round(Math.min(...main.map(r=>r.temperature))),max=Math.round(Math.max(...main.map(r=>r.temperature))),range=min===max?min+'°C':'od '+min+' do '+max+'°C';
   if(mode==='remaining'&&dayRows.length&&low&&peak.temperature-low.temperature>=3){
    const when=period(low.time);text.push(when[0].toUpperCase()+when.slice(1)+' ochłodzi się z '+Math.round(peak.temperature)+' do '+Math.round(low.temperature)+'°C.');
@@ -65,7 +80,7 @@
   if(wet){const kind=wet.code>=95?'burze':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'śnieg':'opady';text.push('Możliwe '+kind+(mode==='remaining'&&minutes(wet.time)<=from?' w najbliższej godzinie':' '+period(wet.time))+'.');}
   if(wind?.wind>=40)text.push('Wiatr do '+Math.round(wind.wind)+' km/h '+period(wind.time)+'.');
   const stale=!!details.stale,prefix=stale?'Zapisana prognoza z '+new Date(details.at).toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+'. ':'';
-  return {available:true,place,stale,text:prefix+text.join(' ')};
+  return {available:true,place,stale,date,rainAt:wet?date+'T'+wet.time:null,text:prefix+text.join(' ')};
  }
  function freeWindows(start,end,items,excluded=[]){
   if(end<=start)return [];
@@ -144,5 +159,5 @@
   const brief=summary(model,options);
   return [brief.countText,...brief.visibleWarnings.map(w=>w.text),brief.moreCount?'Pozostałe ostrzeżenia: '+brief.moreCount+'.':'',brief.note].filter(Boolean).join(' ');
  }
- return {target,interval,events,weather,travel,freeWindows,summary,speech,dayKey,clock,duration};
+ return {target,interval,events,calendarContext,dayOverview,weather,travel,freeWindows,summary,speech,dayKey,clock,duration};
 });
