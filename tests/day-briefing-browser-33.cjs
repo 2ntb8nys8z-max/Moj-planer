@@ -18,6 +18,8 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
  try{
   browser=await engine.launch({headless:true,...(kind==='chromium'?{args:['--no-sandbox'],...(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{})}: {})});
   for(const width of [320,390,430]){
+   // Every viewport has an independent planner session and provider counters.
+   modelCalls=0;briefCalls=0;routeCalls=[];
    const height=width===320?568:844,context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,timezoneId:'Europe/Warsaw',geolocation:{latitude:52.23,longitude:21.01},permissions:['geolocation']}),page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(20000);
    await page.addInitScript(()=>{
