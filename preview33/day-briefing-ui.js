@@ -97,7 +97,7 @@ window.OktiDayBriefUI=(()=>{
   if(session){if(JSON.stringify(voiceDialogueCurrent(session.channel,session.id))!==session.snapshot)return null;if(voiceDialogues[session.channel]&&voiceDialogues[session.channel]!==session)return null;voiceDialogues[session.channel]=session}
   cancel();showEntryResults([],spec.title,'Sprawdzam plan i dojazdy…',true);decorate();
   const state=current={serial,session,action,speaking:false,model:null,controller:new AbortController(),version:fingerprint(),returnFocus,view:'brief'};
-  const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
+  const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
   const routeAdapter=window.OktiTravelRoutes;
   try{
    if(spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(spec.mode==='remaining');
