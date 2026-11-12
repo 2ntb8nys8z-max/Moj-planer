@@ -24,21 +24,21 @@ window.OktiDayBriefUI=(()=>{
  `;document.head.append(style);
  const fingerprint=()=>JSON.stringify(tasks);
  const owned=state=>current===state&&state.serial===serial&&!modal.classList.contains('hidden')&&(!state.session||voiceDialogues[state.session.channel]===state.session);
- function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent='Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
+ function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent=state.readLabel||'Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
  function cancel({keepFooter=false}={}){serial++;if(current){stop(current);current.controller.abort()}current=null;if(!keepFooter)modal.querySelector('[data-brief-footer]')?.remove();modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
  function close(){const state=current,card=modal.querySelector('.action-card');cancel({keepFooter:true});if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){modal.classList.add('is-day-brief');const motion=card.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(12px)'}],{duration:150,easing:'ease-in'});motion.onfinish=()=>{if(!current){modal.classList.add('hidden');modal.classList.remove('is-day-brief');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}}else{modal.classList.add('hidden');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}
  function speak(state){
   if(!owned(state)||!state.model||fingerprint()!==state.version||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
   if(state.speechToken){stop(state);return}
-  const text=state.model.narrative?.speech||narrator?.fallback(state.model,core.summary(state.model))||core.speech(state.model);
+  const text=state.speechText||state.model.narrative?.speech||narrator?.fallback(state.model,core.summary(state.model))||core.speech(state.model);
   const token=state.speechToken={},finish=message=>{if(state.speechToken!==token)return;stop(state);if(message&&owned(state)&&state.statusNode)state.statusNode.textContent=message};
   try{
    window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;
    try{const voice=speechSynthesis.getVoices().find(v=>v.lang?.toLowerCase().startsWith('pl'));if(voice)u.voice=voice}catch(_){}
    if(state.readButton){state.readButton.textContent='Zatrzymaj odczyt';state.readButton.setAttribute('aria-busy','true')}
    u.onstart=()=>{if(state.speechToken!==token)return;state.speaking=true;clearTimeout(state.speechStartTimer);state.readButton?.setAttribute('aria-busy','false');state.readButton?.setAttribute('aria-pressed','true')};
-   u.onend=()=>finish('');u.onerror=()=>finish('Czytanie nie wystartowało. Dotknij „Odczytaj podsumowanie”, aby spróbować ponownie.');
-   state.speechStartTimer=setTimeout(()=>finish('Dotknij „Odczytaj podsumowanie”, aby uruchomić głos.'),6000);state.speechEndTimer=setTimeout(()=>finish(''),60000);
+   u.onend=()=>finish('');u.onerror=()=>finish('Czytanie nie wystartowało. Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby spróbować ponownie.');
+   state.speechStartTimer=setTimeout(()=>finish('Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby uruchomić głos.'),6000);state.speechEndTimer=setTimeout(()=>finish(''),60000);
    // Stay in the native button callback: Safari requires the tap for manual TTS.
    if(speechSynthesis.paused)speechSynthesis.resume?.();speechSynthesis.speak(u);
   }catch(_){finish('Nie udało się uruchomić odczytu. Spróbuj ponownie.')}
@@ -67,6 +67,7 @@ window.OktiDayBriefUI=(()=>{
   if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.narrative?.weather?.text||narrator?.weatherText(model)||model.weather.text]);box.dataset.briefWeather='';list.append(box)}
   if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
   if(model.narrative?.insights?.length){const box=section('Warto pamiętać',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
+  if(model.inspiration){const box=section('Inspiracja dnia',[model.narrative?.inspiration?.text||model.inspiration.text]);box.dataset.briefInspiration='';const source=document.createElement('p');source.className='day-brief-status';source.style.fontSize='16px';source.textContent=model.inspiration.attribution;box.querySelector('h3').after(source);list.append(box)}
   if(model.mode==='review')list.append(section('To zapisany plan',['Kalendarz nie potwierdza, czy spotkania rzeczywiście się odbyły.']));
   modal.querySelector('[data-brief-footer]')?.remove();const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';
   state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
@@ -116,7 +117,7 @@ window.OktiDayBriefUI=(()=>{
    records=core.events(tasks,spec.date,now,spec.mode);if(spec.mode!=='review')journey=await core.travel(records,tasks,{...travelOptions,now,maxRequests:0});
    if(!owned(state)||fingerprint()!==state.version)return null;
    const weather=spec.mode!=='review'&&place?core.weather(OktiLocalWeather.details(new Date(spec.date+'T12:00:00')),spec.date,now,spec.mode):null;
-   const model=state.model={...spec,now,records,travel:journey,place,weather,holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey})};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
+   const model=state.model={...spec,now,records,travel:journey,place,weather,holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
    try{if(narrator)await analyze(state)}catch(_){state.aiError='Analiza AI jest chwilowo niedostępna. Pokazuję sprawdzone dane kalendarza.'}finally{state.analyzing=false}
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas analizy. Poproś o podsumowanie ponownie.');
@@ -128,6 +129,28 @@ window.OktiDayBriefUI=(()=>{
    if(owned(state)){stop(state);state.model=null;list.replaceChildren(section('Sprawdź aktualny plan',[error.message||'Nie udało się zakończyć podsumowania. Spróbuj ponownie.']),button('Sprawdź ponownie',()=>show(action,session,{speak:read})))}return null;
   }
  }
+ async function showInspiration(action,session=null){
+  const source=window.OktiDayInspiration;if(!source)throw Error('Odśwież aplikację, aby wczytać inspiracje dnia.');
+  if(session){if(JSON.stringify(voiceDialogueCurrent(session.channel,session.id))!==session.snapshot)return null;if(voiceDialogues[session.channel]&&voiceDialogues[session.channel]!==session)return null;voiceDialogues[session.channel]=session}
+  const returnFocus=document.activeElement;cancel();showEntryResults([],'Dobry moment na '+({work:'pracę',rest:'odpoczynek',relax:'relaks'}[action.topic]||'Twój plan'),'',true);decorate();list.replaceChildren();
+  const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
+  const now=new Date(),state=current={serial,session,action,version:fingerprint(),controller:new AbortController(),returnFocus,view:'inspiration-search',model:{date:core.dayKey(now),mode:'plan',now,records:[]}};
+  try{
+   const result=source.search(action,tasks,now);state.result=result;state.speechText=source.message(result);state.model.text=state.speechText;
+   const meta=document.getElementById('entryResultsCount'),origin=document.createElement('span'),period=document.createElement('span');origin.className='day-brief-date';origin.textContent='Według astrologii · Kalendarz Jagi';period.className='day-brief-year';period.textContent=source.dateLabel(result.from)+' – '+source.dateLabel(result.to);meta.replaceChildren(origin,period);
+   if(result.status!=='found')list.append(section('Sprawdzony zakres',[state.speechText]));
+   for(const candidate of result.candidates){
+    const reason=action.topic==='relax'&&candidate.inspiration.theme!=='rest'?'Wpis astrologiczny na ten dzień wymienia relaksujące aktywności.':'Motyw astrologiczny: '+candidate.inspiration.label+'.';
+    const box=section(source.dateLabel(candidate.date),[reason,source.calendarText(candidate.calendar)]);box.dataset.inspirationDate=candidate.date;box.append(button('Zobacz plan tego dnia',()=>{if(owned(state)&&fingerprint()===state.version)show({date:candidate.date,briefMode:candidate.date===core.dayKey(new Date())?'remaining':'plan'},session,{speak:false})}));list.append(box);
+   }
+   if(result.missing)list.append(section('Dostępność danych',['W bazie są dane dla '+result.checked+' dni tego zakresu. Pozostałe daty pomijam.']));
+   const details=document.createElement('details');details.className='day-brief-sources';const summary=document.createElement('summary');summary.textContent='Jak powstała propozycja';details.append(summary);
+   for(const text of ['Motyw pochodzi z astrologicznego Kalendarza Jagi autorstwa Zofii Rende. To symboliczna inspiracja, nie prognoza Twojej energii ani powodzenia.','Spośród pasujących dni pierwszeństwo ma dzień z dłuższą przerwą w zapisach. Przerwy liczone są od 08:00 do 22:00, dla dzisiaj od bieżącej chwili. Nie potwierdzają czasu wolnego od innych obowiązków i nie uwzględniają nieznanych dojazdów.','Nic nie jest zapisywane ani przesuwane.']){const p=document.createElement('p');p.textContent=text;details.append(p)}list.append(details);
+   const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';state.readLabel='Odczytaj propozycję';state.readButton=button(state.readLabel,()=>speak(state),true);state.readButton.setAttribute('aria-pressed','false');footer.append(state.readButton);state.statusNode=document.createElement('p');state.statusNode.className='day-brief-status';state.statusNode.setAttribute('role','status');footer.append(state.statusNode);modal.querySelector('.action-card').append(footer);list.scrollTop=0;
+   if(session){session.history.push({role:'assistant',content:state.speechText});session.lastOperation={status:'inspiration_days_complete',topic:action.topic,...(action.fromDate?{fromDate:result.from,toDate:result.to}:{period:action.period||'this_week'})};if(session.dialogueState)session.dialogueState.lastOperation=session.lastOperation;}
+   const heading=modal.querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});if(session?.inputSource==='audio')speak(state);return result;
+  }catch(error){state.model=null;list.replaceChildren(section('Sprawdź zakres',[error.message||'Nie udało się sprawdzić inspiracji.']));return null;}
+ }
  modal.addEventListener('click',event=>{if(!current)return;if(event.target===modal||event.target.closest('#closeEntryResults')){event.preventDefault();event.stopImmediatePropagation();close()}else if(event.target.closest('.entry-result'))cancel()},true);
  document.addEventListener('keydown',event=>{
   if(!current||modal.classList.contains('hidden'))return;
@@ -135,5 +158,5 @@ window.OktiDayBriefUI=(()=>{
   if(event.key==='Tab'){const focusable=[...modal.querySelectorAll('button,a[href],summary')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!focusable.includes(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}
  },true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&current)stop(current)});
- return {show,cancel,getState:()=>current};
+ return {show,showInspiration,cancel,getState:()=>current};
 })();

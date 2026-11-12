@@ -1,6 +1,6 @@
 // Shared evidence contract for the browser and the read-only Worker endpoint.
 const OktiBriefNarrative=(()=>{
- const kinds=new Set(['date','location','count','activity','warning','travel','weather','holiday','limitation','review','load']);
+ const kinds=new Set(['date','location','count','activity','warning','travel','weather','holiday','limitation','review','load','inspiration']);
  const words=text=>text.trim().split(/\s+/u).filter(Boolean).length;
  const numbers=text=>(text.match(/\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|-?\d+(?:[.,]\d+)?(?:\s*[–—-]\s*-?\d+(?:[.,]\d+)?)?/g)||[]).flatMap(token=>{
   if(/^\d{4}-\d{2}-\d{2}$/.test(token))return ['date:'+token];
@@ -30,10 +30,11 @@ const OktiBriefNarrative=(()=>{
   if(model.weather?.stale)add('weather-limit','limitation','Prognoza pogody jest nieaktualna; pomijam wskazówki pogodowe.');
   (model.holidays?.items||[]).slice(0,4).forEach((h,i)=>add('holiday-'+i,'holiday','Święto ustawowe w '+model.holidays.countryLabel+': '+h.localName+'. Źródło: Nager.Date. Święto nie oznacza automatycznie, że użytkownik ma wolne.'));
   if(model.holidays?.regionalUnknown)add('holiday-limit','limitation','Nie ustalono regionu; uwzględniono tylko święta ogólnokrajowe.');
+  if(model.inspiration&&model.mode!=='review'){const i=model.inspiration;add('inspiration','inspiration','Symboliczna inspiracja według astrologii. Źródło: '+i.source+'. Data: '+i.date+'. Motyw: '+i.label+'. Według źródła: '+i.moon+', '+i.phase+'. Propozycja: '+i.text+' To ogólny motyw kalendarza, nie osobisty horoskop ani prognoza kondycji, zdrowia lub powodzenia.');}
   return result;
  }
  function input(value){
-  if(!value||!['remaining','plan','review'].includes(value.mode)||!Array.isArray(value.facts)||value.facts.length<2||value.facts.length>46||JSON.stringify(value).length>24000)throw Error('Nieprawidłowe fakty podsumowania.');
+  if(!value||!['remaining','plan','review'].includes(value.mode)||!Array.isArray(value.facts)||value.facts.length<2||value.facts.length>47||JSON.stringify(value).length>24000)throw Error('Nieprawidłowe fakty podsumowania.');
   const ids=new Set();
   const list=value.facts.map(f=>{
    if(!f||!/^[-a-z0-9]{1,40}$/.test(f.id)||ids.has(f.id)||!kinds.has(f.kind)||typeof f.text!=='string'||!f.text.trim()||f.text.length>900||![0,1,2,3].includes(f.priority))throw Error('Nieprawidłowy fakt podsumowania.');
@@ -59,17 +60,21 @@ const OktiBriefNarrative=(()=>{
   const useful=(s,voice=false)=>s.factIds.some(id=>!['date','location','limitation',...(voice?[]:['count'])].includes(byId.get(id).kind));
   const candidate=value.intro===null?null:sentence(value.intro),intro=candidate&&useful(candidate)?candidate:null,insights=value.insights.map(sentence).filter(s=>useful(s)),spoken=value.spoken.map(sentence).filter(s=>useful(s,true));
   const weather=value.weather==null?null:sentence(value.weather);if(weather&&!weather.factIds.every(id=>byId.get(id).kind==='weather'))throw Error('Opis pogody wymaga aktualnej prognozy.');
+  const inspiration=value.inspiration==null?null:sentence(value.inspiration);if(inspiration&&(inspiration.text.length>340||!inspiration.factIds.includes('inspiration')||!inspiration.factIds.every(id=>['inspiration','activity','load','count'].includes(byId.get(id).kind))))throw Error('Niepoparta inspiracja dnia.');
+  if([...(intro?[intro]:[]),...insights,...(weather?[weather]:[])].some(s=>s.factIds.some(id=>byId.get(id).kind==='inspiration')))throw Error('Inspiracja astrologiczna wymaga osobnej sekcji.');
+  if(spoken.some(s=>s.factIds.some(id=>byId.get(id).kind==='inspiration')&&!/astrolog|kalendarz[a-ząćęłńóśźż]* jagi/iu.test(s.text)))throw Error('Głos musi wskazywać astrologiczne źródło inspiracji.');
   const speech=spoken.map(s=>s.text).join(' ');
   if(!spoken.some(s=>s.factIds.includes('count'))||words(speech)>data.wordBudget||speech.length>3000)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');
   for(const fact of data.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(!spoken.some(s=>s.factIds.includes(fact.id)))throw Error('W głosie pominięto istotne ostrzeżenie.');
   if(data.mode==='review'&&!spoken.some(s=>s.factIds.includes('review')))throw Error('Brak zastrzeżenia dotyczącego zapisanego planu.');
-  return {intro,weather,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
+  return {intro,weather,inspiration,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
  }
  function fallback(model,brief){
   const sentences=[brief.countText,...brief.warnings.slice(0,2).map(w=>w.text)];
   if(model.mode==='review')sentences.push('To zapisany plan, bez potwierdzenia, czy spotkania się odbyły.');
   if(model.weather?.available&&!model.weather.stale)sentences.push(weatherText(model));
   const holiday=model.holidays?.items?.[0];if(holiday)sentences.push('Święto ustawowe: '+holiday.localName+'.');
+  if(model.inspiration&&model.mode!=='review')sentences.push('Astrologiczna inspiracja z Kalendarza Jagi: '+model.inspiration.text);
   // The voice stays concise even after all on-screen warnings are expanded.
   const kept=[];let length=0;for(const text of sentences){const size=words(text);if(length+size>120)break;kept.push(text);length+=size}return kept.join(' ');
  }
