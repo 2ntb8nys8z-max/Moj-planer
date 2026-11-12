@@ -47,17 +47,23 @@
   }
   const rows=details.rows.filter(r=>validClock(r.time)&&minutes(r.time)>=from&&Number.isFinite(r.temperature)).sort((a,b)=>minutes(a.time)-minutes(b.time));
   if(!rows.length)return {text:'Brak dalszej prognozy godzinowej na ten dzień.',available:false};
-  const place=details.place||'Twoja lokalizacja',text=[],first=rows[0],peak=rows.reduce((a,b)=>b.temperature>a.temperature?b:a),after=rows.filter(r=>minutes(r.time)>minutes(peak.time)),low=after.reduce((a,b)=>!a||b.temperature<a.temperature?b:a,null);
-  if(mode==='plan'){const min=Math.min(...rows.map(r=>r.temperature)),max=Math.max(...rows.map(r=>r.temperature));text.push('Temperatura od '+Math.round(min)+' do '+Math.round(max)+'°C.');}
-  if(low&&peak.temperature-low.temperature>=3){
-   text.push((mode==='remaining'&&peak.temperature-first.temperature<2?'Do '+low.time+' ochłodzi się z '+Math.round(first.temperature)+' do '+Math.round(low.temperature)+'°C.':'Około '+peak.time+' do '+Math.round(peak.temperature)+'°C, później spadek do '+Math.round(low.temperature)+'°C około '+low.time+'.'));
-  }else if(mode==='remaining'){
-   const min=Math.round(Math.min(...rows.map(r=>r.temperature))),max=Math.round(Math.max(...rows.map(r=>r.temperature)));
-   text.push(peak.temperature-first.temperature>=3?'Do '+peak.time+' ociepli się do '+Math.round(peak.temperature)+'°C.':rows.length===1?'Najbliższa prognoza: '+Math.round(first.temperature)+'°C.':'Bez dużej zmiany temperatury: '+(min===max?min:min+'–'+max)+'°C.');
+  // The headline describes waking hours, rather than overnight extrema.
+  // Keep night conditions available for a relevant warning, without calling them daytime weather.
+  const dayRows=rows.filter(r=>minutes(r.time)>=8*60&&minutes(r.time)<20*60),main=dayRows.length?dayRows:rows;
+  const place=details.place||'Twoja lokalizacja',text=[],first=main[0],peak=main.reduce((a,b)=>b.temperature>a.temperature?b:a),after=main.filter(r=>minutes(r.time)>minutes(peak.time)),low=after.reduce((a,b)=>!a||b.temperature<a.temperature?b:a,null);
+  const period=time=>{const n=minutes(time);return n===0?'o północy':n<5*60?'w nocy':n<7*60?'nad ranem':n<11*60?'rano':n<12*60?'przed południem':n<18*60?'po południu':n<22*60?'wieczorem':'późnym wieczorem'};
+  const min=Math.round(Math.min(...main.map(r=>r.temperature))),max=Math.round(Math.max(...main.map(r=>r.temperature))),range=min===max?min+'°C':'od '+min+' do '+max+'°C';
+  if(mode==='remaining'&&dayRows.length&&low&&peak.temperature-low.temperature>=3){
+   const when=period(low.time);text.push(when[0].toUpperCase()+when.slice(1)+' ochłodzi się z '+Math.round(peak.temperature)+' do '+Math.round(low.temperature)+'°C.');
+  }else if(mode==='remaining'&&dayRows.length&&peak.temperature-first.temperature>=3){
+   const when=period(peak.time);text.push(when[0].toUpperCase()+when.slice(1)+' ociepli się do '+Math.round(peak.temperature)+'°C.');
+  }else{
+   const label=dayRows.length?(mode==='plan'?'W dzień':'Do wieczora'):minutes(first.time)<7*60?'W nocy':'Wieczorem';text.push(label+' '+range+'.');
   }
-  const wet=rows.find(r=>Number.isFinite(r.rain)&&r.rain>=50||Number.isFinite(r.code)&&r.code>=51&&r.code<=99),wind=rows.reduce((a,b)=>(b.wind||0)>(a?.wind||0)?b:a,null);
-  if(wet){const kind=wet.code>=95?'burze':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'śnieg':'opady';text.push('Możliwe '+kind+(mode==='remaining'&&minutes(wet.time)<=now.getHours()*60?' w najbliższej godzinie':' około '+wet.time)+(Number.isFinite(wet.rain)?' (prawdopodobieństwo '+Math.round(wet.rain)+'%)':'')+'.');}
-  if(wind?.wind>=40)text.push('Wiatr do '+Math.round(wind.wind)+' km/h około '+wind.time+'.');
+  const isWet=r=>Number.isFinite(r.rain)&&r.rain>=50||Number.isFinite(r.code)&&r.code>=51&&r.code<=99;
+  const wet=dayRows.find(isWet)||rows.find(isWet),wind=rows.reduce((a,b)=>(b.wind||0)>(a?.wind||0)?b:a,null);
+  if(wet){const kind=wet.code>=95?'burze':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'śnieg':'opady';text.push('Możliwe '+kind+(mode==='remaining'&&minutes(wet.time)<=from?' w najbliższej godzinie':' '+period(wet.time))+'.');}
+  if(wind?.wind>=40)text.push('Wiatr do '+Math.round(wind.wind)+' km/h '+period(wind.time)+'.');
   const stale=!!details.stale,prefix=stale?'Zapisana prognoza z '+new Date(details.at).toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+'. ':'';
   return {available:true,place,stale,text:prefix+text.join(' ')};
  }

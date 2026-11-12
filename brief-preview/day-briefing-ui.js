@@ -12,7 +12,8 @@ window.OktiDayBriefUI=(()=>{
  .day-brief-section{padding:18px;border:1px solid #e0e4e7;border-radius:18px;background:#fff;color:#263743;overflow-wrap:anywhere;box-shadow:0 3px 14px #16202c06}
  .day-brief-section h3{margin:0 0 9px;font-size:19px;line-height:1.35}.day-brief-section p{margin:7px 0;font-size:17px;line-height:1.55}
  .day-brief-warning{border-left:4px solid #ac6545;background:#fffcf9}.day-brief-intro{margin:0;font-size:19px;line-height:1.55;color:#293e4b;overflow-wrap:anywhere}
- .day-brief-count{margin:0;padding:18px;color:#233b4b;font-size:22px;font-weight:750;line-height:1.4;background:#f4f5f6;border:1px solid #e8eaec;border-radius:18px}
+ #entryResultsModal.is-day-brief .day-brief-count{margin:0;padding:18px;color:#233b4b;font-size:22px;font-weight:750;line-height:1.4;background:#f4f5f6;border:1px solid #e8eaec;border-radius:18px}
+ button.day-brief-count{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;touch-action:manipulation;cursor:pointer}button.day-brief-count:active{background:#eceff1}.day-brief-count-arrow{flex:none;font-size:30px;line-height:1;color:#627783}
  .day-brief-read{box-sizing:border-box;min-height:52px;width:100%;margin:0;padding:13px 15px;font-size:17px;font-weight:700;line-height:1.4;border-radius:15px;white-space:normal;touch-action:manipulation}
  #entryResultsModal.is-day-brief .day-brief-primary{background:#274b5d;color:#fff;border:1px solid #274b5d;box-shadow:0 4px 10px #16202c12}
  #entryResultsModal.is-day-brief .entry-result{min-height:52px;font-size:17px}.is-day-brief .entry-result-meta{white-space:normal}
@@ -56,17 +57,16 @@ window.OktiDayBriefUI=(()=>{
  function render(state,{focus=false}={}){
   const model=state.model,brief=core.summary(model,{allWarnings:state.showAllWarnings}),scroll=modal.querySelector('.action-card').scrollTop;model.displayWarnings=brief.visibleWarnings;state.view='brief';
   showEntryResults([],model.title,'',true);decorate();list.replaceChildren();
-  document.getElementById('entryResultsCount').textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+(model.mode==='remaining'?'od '+core.clock(model.now):model.mode==='review'?'zapisany plan':'cały dzień')+(model.place?.label?'\nOstatnia lokalizacja: '+model.place.label:'');
-  if(model.narrative){const intro=document.createElement('p');intro.className='day-brief-intro';intro.dataset.briefIntro='';intro.textContent=model.narrative.intro.text;list.append(intro)}
-  const count=document.createElement('p');count.className='day-brief-count';count.dataset.briefCount='';count.textContent=brief.countText;list.append(count);
+  document.getElementById('entryResultsCount').textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(model.narrative?.intro?.text){const intro=document.createElement('p');intro.className='day-brief-intro';intro.dataset.briefIntro='';intro.textContent=model.narrative.intro.text;list.append(intro)}
+  const count=document.createElement(model.records.length?'button':'p');count.className='day-brief-count';count.dataset.briefCount='';count.textContent=brief.countText;
+  if(model.records.length){count.type='button';count.dataset.briefEvents='';count.setAttribute('aria-label',brief.countText+' Zobacz '+(model.records.length===1?'spotkanie.':'spotkania.'));count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow)}list.append(count);
   if(brief.visibleWarnings.length){const box=section('Zwróć uwagę',brief.visibleWarnings.map(w=>w.text),true);box.dataset.briefWarnings='';list.append(box)}
   if(brief.moreCount){const more=button('Pokaż pozostałe ostrzeżenia ('+brief.moreCount+')',()=>{if(owned(state)){state.showAllWarnings=true;render(state);window.OktiBriefLinks?.remember(model,state.session)}});more.dataset.briefMore='';list.append(more)}
-  if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda · '+model.weather.place,[model.weather.text]);box.dataset.briefWeather='';list.append(box)}
-  if(model.holidays?.items?.length){const box=section('Święto · '+model.holidays.countryLabel,model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
+  if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.weather.text]);box.dataset.briefWeather='';list.append(box)}
+  if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
   if(model.narrative?.insights?.length){const box=section('Wnioski na ten dzień',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
-  else if(brief.note)list.append(section('Organizacja dnia',[brief.note]));
   if(model.mode==='review')list.append(section('To zapisany plan',['Kalendarz nie potwierdza, czy spotkania rzeczywiście się odbyły.']));
-  if(model.records.length){const events=button('Zobacz spotkania ('+model.records.length+')',()=>meetings(state));events.dataset.briefEvents='';list.append(events)}
   state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));list.append(state.readButton);
   const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Przygotowuję krótką analizę AI…':model.narrative?'Analiza AI na podstawie danych · krótki odczyt':state.aiError||'Podsumowanie na podstawie danych · analiza AI jest niedostępna.';list.append(status);
   const sources=document.createElement('details');sources.className='day-brief-sources';const summary=document.createElement('summary');summary.textContent='Źródła i dostępność danych';sources.append(summary);
