@@ -23,12 +23,12 @@ const event=(id,time,endTime,fields={})=>({id,title:id,date,time,endTime,...fiel
  assert.equal(core.target({day:'tomorrow'},now).date,'2026-11-11');assert.equal(core.target({day:'yesterday'},now).mode,'review');
  process.env.TZ='America/Los_Angeles';assert.equal(core.target({day:'today'},new Date('2026-11-11T07:30:00Z')).date,'2026-11-10','Relative day comes from the phone, rather than the Worker UTC day');process.env.TZ='Europe/Warsaw';
  const forecast={place:'Warszawa',timezone:'Europe/Warsaw',at:+now,rows:[{time:'09:00',temperature:18,rain:95,code:95},{time:'15:00',temperature:12,rain:10,code:2},{time:'17:00',temperature:13,rain:10,code:3},{time:'20:00',temperature:6,rain:60,code:61},{time:'23:00',temperature:4,rain:70,code:61}]};
- const weather=core.weather(forecast,date,now);assert.match(weather.text,/ochłodzi/);assert.match(weather.text,/20:00/);assert.doesNotMatch(weather.text,/09:00|burze|18°C/,'Morning weather never enters the rest-of-day forecast');
+ const weather=core.weather(forecast,date,now);assert.match(weather.text,/od 12 do 13°C/);assert.match(weather.text,/Możliwe opady wieczorem/);assert.doesNotMatch(weather.text,/20:00|%|prawdopodobieństwo/);assert.doesNotMatch(weather.text,/09:00|burze|18°C/,'Morning weather never enters the rest-of-day forecast');
  assert.match(core.weather({...forecast,stale:true},date,now).text,/Zapisana prognoza/);
  assert.equal(core.weather(null,date,now).available,false);assert.equal(core.weather({...forecast,rows:[{time:'16:00',temperature:null}]},date,now).available,false);
  assert.equal(core.weather(forecast,date,new Date(date+'T23:45:00')).text.includes('ochłodzi'),false,'At night, do not compare with an expired daytime peak');
  assert.equal(core.weather({...forecast,timezone:'America/Los_Angeles'},date,new Date(date+'T01:00:00')).available,false,'Different local weather dates are not silently mixed');
- const tomorrowWeather=core.weather({...forecast,timezone:'Europe/Warsaw'},'2026-11-11',now,'plan');assert.match(tomorrowWeather.text,/od 4 do 18°C/);
+ const tomorrowWeather=core.weather({...forecast,timezone:'Europe/Warsaw'},'2026-11-11',now,'plan');assert.match(tomorrowWeather.text,/W dzień od 12 do 18°C/);assert.doesNotMatch(tomorrowWeather.text,/od 4|%|09:00/);
  const upcoming=[event('A','16:00','16:30',{location:'A'}),event('zajete','16:40','16:55'),event('B','17:00','17:30',{location:'B'}),event('C','18:00','18:30',{location:'C'})];
  const travelBefore=JSON.stringify(upcoming),records=core.events(upcoming,date,now),origin={latitude:52,longitude:13,checkedAt:+now,accuracy:15};let active=0,peak=0,calls=0;
  const route=async(from,to,options)=>{calls++;active++;peak=Math.max(peak,active);await Promise.resolve();active--;return {minutes:from.id==='@device'?45:from.id==='A'?20:10,distanceMeters:80000}};
