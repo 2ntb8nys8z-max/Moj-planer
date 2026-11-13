@@ -81,7 +81,7 @@
   if(wet){const kind=wet.code>=95?'burze':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'śnieg':'opady';text.push('Możliwe '+kind+(mode==='remaining'&&minutes(wet.time)<=from?' w najbliższej godzinie':' '+period(wet.time))+'.');}
   if(wind?.wind>=40)text.push('Wiatr do '+Math.round(wind.wind)+' km/h '+period(wind.time)+'.');
   const stale=!!details.stale,prefix=stale?'Zapisana prognoza z '+new Date(details.at).toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+'. ':'';
-  return {available:true,place,stale,date,rainAt:wet?date+'T'+wet.time:null,text:prefix+text.join(' ')};
+  return {available:true,place,stale,date,timezone:details.timezone||null,period:dayRows.length?'day':minutes(first.time)<7*60?'night':'evening',temperatureMin:min,temperatureMax:max,rain:wet?{kind:wet.code>=95?'storm':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'snow':'rain',at:date+'T'+wet.time}:null,wind:wind?.wind>=40?{kph:Math.round(wind.wind),at:date+'T'+wind.time}:null,rainAt:wet?date+'T'+wet.time:null,text:prefix+text.join(' ')};
  }
  function freeWindows(start,end,items,excluded=[]){
   if(end<=start)return [];
@@ -94,8 +94,9 @@
   const timed=records.filter(r=>!r.allDay),located=timed.filter(r=>location(r.item)),warnings=[],legs=[],notes=[];
   for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0){const minutes=Math.ceil(overlap/60000),unit=minutes===1?'minutę':minutes%10>=2&&minutes%10<=4&&(minutes%100<12||minutes%100>14)?'minuty':'minut';warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy wydarzeń „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+minutes+' '+unit+'.'});}}
   const validOrigin=origin&&Number.isFinite(origin.latitude)&&Math.abs(origin.latitude)<=90&&Number.isFinite(origin.longitude)&&Math.abs(origin.longitude)<=180&&Number.isFinite(origin.checkedAt)&&+now-origin.checkedAt<15*60000&&+now-origin.checkedAt>=0&&(!Number.isFinite(origin.accuracy)||origin.accuracy<=1000);
-  if(mode==='remaining'&&located.length&&validOrigin){const target=located[0],from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Twoja ostatnia lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
-  else if(mode==='remaining'&&located.length)notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
+  const next=timed.find(r=>r.status==='upcoming'&&r.start>+now);
+  if(mode==='remaining'&&next&&location(next.item)&&validOrigin){const target=next,from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Aktualna lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
+  else if(mode==='remaining'&&next&&location(next.item))notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
   for(let i=0;i<located.length-1;i++){const from=located[i],to=located[i+1];if(locationKey(location(from.item))===locationKey(location(to.item)))continue;legs.push({from:from.item,to:to.item,target:to,start:Math.max(from.end,mode==='remaining'?+now:from.end),end:to.start,mode:getMode(from.item,to.item)});}
   let requested=0,index=0;
   async function work(){while(index<legs.length){const leg=legs[index++];try{let value=cached(leg.from,leg.to,leg.mode);if(!value&&requested<maxRequests){requested++;value=await route(leg.from,leg.to,{mode:leg.mode,origin:leg.origin});}leg.route=value;}catch(_){leg.route=null}}}
@@ -144,7 +145,7 @@
    else if(warning.kind==='ongoing-travel')text='Spotkanie '+name(id)+' według planu już trwa.';
    else if(warning.kind==='overlap'){if(covered.has(warning))continue;rank=1;text='Nakładają się terminy wydarzeń '+ids.map(name).join(' i ')+'.'}
    else if(warning.kind==='tight'){rank=2;text='Dojazd na spotkanie '+name(id)+' może być na styk.'}
-   if(text)warnings.push({kind:warning.kind,eventIds:[...ids],text,rank});
+   if(text&&!warnings.some(w=>w.kind===warning.kind&&w.eventIds.join('|')===ids.join('|')))warnings.push({kind:warning.kind,eventIds:[...ids],text,rank});
   }
   warnings.sort((a,b)=>a.rank-b.rank||(starts.get(a.eventIds[0])||0)-(starts.get(b.eventIds[0])||0));
   const visibleWarnings=allWarnings?warnings:warnings.slice(0,2),moreCount=warnings.length-visibleWarnings.length;
