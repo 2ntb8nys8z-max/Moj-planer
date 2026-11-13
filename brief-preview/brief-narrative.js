@@ -17,8 +17,8 @@ const OktiBriefNarrative=(()=>{
   add('count','count',brief.countText,2);
   if(model.overview){const o=model.overview;add('day-load','load','Dotyczy tylko zapisów w kalendarzu, a nie wszystkich obowiązków użytkownika. Wpisy godzinowe ze znanym końcem: '+o.timedCount+'. Zajmują łącznie '+o.occupiedMinutes+' minut, bez podwójnego liczenia nakładających się terminów. Najdłuższa przerwa między nimi: '+o.longestGapMinutes+' minut; nie oznacza automatycznie czasu wolnego, bo trzeba uwzględnić dojazdy.'+(o.firstStart!=null?' Pierwszy początek w tym zakresie: '+new Date(o.firstStart).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'. Ostatni koniec: '+new Date(o.lastEnd).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})+'.':'')+' Wpisy całodniowe: '+o.allDayCount+'; nie znamy ich zajętości godzinowej. Wpisy bez godziny końca: '+o.unknownEndCount+'. Ustalony czas przejazdów: '+o.routeMinutes+' minut dla '+o.knownRouteCount+' odcinków; pozostałe mogą być nieznane.');}
   brief.warnings.slice(0,8).forEach((w,i)=>add('warning-'+i,'warning',w.text,i<2?3:1));
-  (model.records||[]).slice(0,12).forEach((r,i)=>add('event-'+i,'activity','W kalendarzu: „'+String(r.title).slice(0,150)+'”. '+(r.summaryMeta||'')+'. Status: '+r.status+'. To plan, bez potwierdzenia obecności.'));
-  if(model.mode==='review')add('review','review','Kalendarz opisuje zamiary. Nie potwierdza obecności, odbycia spotkań ani realizacji zadań.',3);
+  (model.records||[]).slice(0,12).forEach((r,i)=>add('event-'+i,'activity','W kalendarzu: „'+String(r.title).slice(0,150)+'”. '+(r.summaryMeta||'')+'. Status: '+r.status+'.'));
+  if(model.mode==='review')add('review','review','Opisuj wyłącznie wcześniejszy plan w kalendarzu, np. „'+brief.countText+'”. Nie wyciągaj wniosków o obecności ani wykonaniu. Ograniczenie stosuj w doborze słów, bez dodatkowego komunikatu dla użytkownika.');
   else{
    const legs=model.travel?.legs||[],known=legs.filter(l=>Number.isFinite(l.route?.minutes));
    if(known.length)add('travel-count','travel','Potwierdzono szacunki dla '+known.length+' '+(known.length===1?'odcinka podróży':'odcinków podróży')+'. To odcinki, a nie liczba spotkań.');
@@ -52,6 +52,7 @@ const OktiBriefNarrative=(()=>{
    if(numbers(s.text).some(n=>!allowed.has(n)))throw Error('AI podało liczbę spoza przekazanych faktów.');
    const attendance=/odby[łl]|uczestniczy[łl]|zrealizowa[łl]|zrobi[łl]e[śs]|by[łl]e[śs]/i.test(s.text),uncertain=/nie (?:wiem|wiemy|wiadomo|potwierdza(?:my|m)?|mam(?:y)? potwierdzenia)|bez potwierdzenia|brak (?:danych|potwierdzenia)/i.test(s.text);
    if(data.mode==='review'&&attendance&&!uncertain)throw Error('Plan nie potwierdza odbycia spotkań.');
+   if(data.mode!=='review'&&s.factIds.some(id=>['count','activity','load'].includes(byId.get(id).kind))&&/(?:^|[\s,.])(?:były|było|miałeś|miałaś)\s[^.!?]*(?:spotkani|wydarze|plan)/iu.test(s.text))throw Error('Aktualny plan nie może być opisany jako zakończone spotkania.');
    return {text:s.text.trim(),factIds:[...new Set(s.factIds)]};
   }
   if(!value||!Array.isArray(value.insights)||value.insights.length>5||!Array.isArray(value.spoken)||!value.spoken.length||value.spoken.length>7)throw Error('Nieprawidłowa odpowiedź AI.');
@@ -66,12 +67,11 @@ const OktiBriefNarrative=(()=>{
   const speech=spoken.map(s=>s.text).join(' ');
   if(!spoken.some(s=>s.factIds.includes('count'))||words(speech)>data.wordBudget||speech.length>3000)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');
   for(const fact of data.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(!spoken.some(s=>s.factIds.includes(fact.id)))throw Error('W głosie pominięto istotne ostrzeżenie.');
-  if(data.mode==='review'&&!spoken.some(s=>s.factIds.includes('review')))throw Error('Brak zastrzeżenia dotyczącego zapisanego planu.');
+  if(data.mode==='review'&&!spoken.some(s=>/plan|kalendarz/iu.test(s.text)))throw Error('Przegląd musi dotyczyć planu w kalendarzu.');
   return {intro,weather,inspiration,insights,spoken,speech:spoken.map(s=>s.text).join(' '),wordCount:words(spoken.map(s=>s.text).join(' '))};
  }
  function fallback(model,brief){
   const sentences=[brief.countText,...brief.warnings.slice(0,2).map(w=>w.text)];
-  if(model.mode==='review')sentences.push('To zapisany plan, bez potwierdzenia, czy spotkania się odbyły.');
   if(model.weather?.available&&!model.weather.stale)sentences.push(weatherText(model));
   const holiday=model.holidays?.items?.[0];if(holiday)sentences.push('Święto ustawowe: '+holiday.localName+'.');
   if(model.inspiration&&model.mode!=='review')sentences.push('Astrologiczna inspiracja z Kalendarza Jagi: '+model.inspiration.text);

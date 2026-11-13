@@ -48,6 +48,14 @@ window.OktiDayBriefUI=(()=>{
   for(const line of lines){const p=document.createElement('p');p.textContent=line;box.append(p)}return box;
  }
  function button(text,handler,primary=false){const b=document.createElement('button');b.type='button';b.className='secondary day-brief-read'+(primary?' day-brief-primary':'');b.textContent=text;b.onclick=handler;return b}
+ function unavailableWeather(state){
+  const model=state.model,box=section('Pogoda',[model.weatherIssue||(model.weatherEnabled?'Nie mam aktualnej prognozy dla tego dnia.':'Pogoda jest wyłączona. Możesz ją włączyć, aby dodać prognozę do podsumowania.')]);box.dataset.briefWeatherUnavailable='';
+  const label=model.weatherEnabled?'Odśwież pogodę':'Włącz pogodę',retry=button(label,async()=>{
+   if(!owned(state)||fingerprint()!==state.version)return;retry.disabled=true;retry.textContent='Sprawdzam pogodę…';
+   try{if(OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(true);else await OktiLocalWeather.enable();if(owned(state)&&fingerprint()===state.version)return show(state.action,state.session,{speak:false,refreshWeather:false});}
+   catch(_){if(owned(state)){box.querySelector('p').textContent='Nie udało się odświeżyć pogody. Spróbuj ponownie.';retry.disabled=false;retry.textContent=label}}
+  });retry.dataset.briefWeatherRetry='';box.append(retry);return box;
+ }
  function decorate(){modal.classList.add('is-day-brief');modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','entryResultsTitle')}
  function meetings(state){
   if(!owned(state)||fingerprint()!==state.version)return;
@@ -65,10 +73,10 @@ window.OktiDayBriefUI=(()=>{
   if(brief.visibleWarnings.length){const box=section('Zwróć uwagę',brief.visibleWarnings.map(w=>w.text),true);box.dataset.briefWarnings='';list.append(box)}
   if(brief.moreCount){const more=button('Pokaż pozostałe ostrzeżenia ('+brief.moreCount+')',()=>{if(owned(state)){state.showAllWarnings=true;render(state);window.OktiBriefLinks?.remember(model,state.session)}});more.dataset.briefMore='';list.append(more)}
   if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.narrative?.weather?.text||narrator?.weatherText(model)||model.weather.text]);box.dataset.briefWeather='';list.append(box)}
+  else if(model.mode!=='review')list.append(unavailableWeather(state));
   if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
   if(model.narrative?.insights?.length){const box=section('Warto pamiętać',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
   if(model.inspiration){const box=section('Inspiracja dnia',[model.narrative?.inspiration?.text||model.inspiration.text]);box.dataset.briefInspiration='';const source=document.createElement('p');source.className='day-brief-status';source.style.fontSize='16px';source.textContent=model.inspiration.attribution;box.querySelector('h3').after(source);list.append(box)}
-  if(model.mode==='review')list.append(section('To zapisany plan',['Kalendarz nie potwierdza, czy spotkania rzeczywiście się odbyły.']));
   modal.querySelector('[data-brief-footer]')?.remove();const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';
   state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
   const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Chwilę, układam podsumowanie…':'';footer.append(status);modal.querySelector('.action-card').append(footer);
@@ -93,7 +101,7 @@ window.OktiDayBriefUI=(()=>{
   try{const result=await plannerApiRequest('/briefing',{method:'POST',headers:{'Content-Type':'application/json'},signal:state.controller.signal,body:JSON.stringify({context})});if(!owned(state))return;model.narrative=narrator.validate(result.narrative,context);model.narrativeEventIds=[...new Set([...model.narrative.spoken,...model.narrative.insights,...(model.narrative.intro?[model.narrative.intro]:[])].flatMap(s=>s.factIds).filter(id=>/^event-\d+$/.test(id)).map(id=>model.records[Number(id.slice(6))]?.item.id).filter(id=>id!=null))]}
   finally{clearTimeout(timer)}
  }
- async function show(action,session=null,{speak:read=!!session&&session.inputSource==='audio'}={}){
+ async function show(action,session=null,{speak:read=!!session&&session.inputSource==='audio',refreshWeather=true}={}){
   const spec=core.target(action,new Date()),returnFocus=document.activeElement;
   if(session){if(JSON.stringify(voiceDialogueCurrent(session.channel,session.id))!==session.snapshot)return null;if(voiceDialogues[session.channel]&&voiceDialogues[session.channel]!==session)return null;voiceDialogues[session.channel]=session}
   cancel();showEntryResults([],spec.title,'Sprawdzam plan i dojazdy…',true);decorate();
@@ -101,7 +109,7 @@ window.OktiDayBriefUI=(()=>{
   const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
   const routeAdapter=window.OktiTravelRoutes;
   try{
-   if(spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(spec.mode==='remaining');
+   if(refreshWeather&&spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(spec.mode==='remaining');
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas sprawdzania. Poproś o podsumowanie ponownie.');
    let now=new Date();if(spec.mode==='remaining'&&core.dayKey(now)!==spec.date)throw Error('Zmienił się dzień. Poproś o aktualne podsumowanie.');
@@ -117,7 +125,7 @@ window.OktiDayBriefUI=(()=>{
    records=core.events(tasks,spec.date,now,spec.mode);if(spec.mode!=='review')journey=await core.travel(records,tasks,{...travelOptions,now,maxRequests:0});
    if(!owned(state)||fingerprint()!==state.version)return null;
    const weather=spec.mode!=='review'&&place?core.weather(OktiLocalWeather.details(new Date(spec.date+'T12:00:00')),spec.date,now,spec.mode):null;
-   const model=state.model={...spec,now,records,travel:journey,place,weather,holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
+   const model=state.model={...spec,now,records,travel:journey,place,weather,weatherEnabled:!!saved.enabled,weatherIssue:saved.error||'',holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
    try{if(narrator)await analyze(state)}catch(_){state.aiError='Analiza AI jest chwilowo niedostępna. Pokazuję sprawdzone dane kalendarza.'}finally{state.analyzing=false}
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas analizy. Poproś o podsumowanie ponownie.');
