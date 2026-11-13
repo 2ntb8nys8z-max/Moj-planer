@@ -7,6 +7,7 @@ import datetime as dt
 import hashlib
 import json
 import posixpath
+import re
 import sys
 import zipfile
 import xml.etree.ElementTree as ET
@@ -23,6 +24,8 @@ themes = {
     "dobry dzień na nowe początki": "start", "dobry dzień na finanse": "finances",
     "dobry dzień na rozmowy": "conversation", "dobry dzień na dom": "home",
 }
+boundary_path = Path(__file__).parent.parent / 'data/moon-phase-boundary.json'
+boundary = json.loads(boundary_path.read_text(encoding='utf-8')) if boundary_path.exists() else {"events": []}
 with zipfile.ZipFile(source) as archive:
     strings = []
     if "xl/sharedStrings.xml" in archive.namelist():
@@ -54,6 +57,7 @@ with zipfile.ZipFile(source) as archive:
     calendar = workbook.find("m:workbookPr", ns)
     base = dt.date(1904, 1, 1) if calendar is not None and calendar.attrib.get("date1904") == "1" else dt.date(1899, 12, 30)
     days = []
+    phase_events = []
     for record in raw[1:]:
         if not record.get("A"):
             continue
@@ -67,10 +71,36 @@ with zipfile.ZipFile(source) as archive:
         # Keep the original dated entries. These are attributed source material,
         # not predictions calculated by the app or instructions for its model.
         detail = {"phase": record.get("F") or "", "nextPhase": record.get("G") or "", "illumination": float(record["H"]) if record.get("H") else None, "moonAndBiodynamic": record.get("X") or "", "goodFor": record.get("Y") or "", "energy": record.get("Z") or "", "transits": record.get("AA") or ""}
+        detail["sourceText"] = {key: record.get(col) or "" for key, col in {"holiday": "C", "namedays": "I", "title": "N", "subtitle": "O", "story": "P", "practice": "Q", "extraTitle": "R", "extra": "S", "whisper": "T", "caution": "U", "bibliography": "V", "bookKey": "AB"}.items()}
+        detail["sourceRow"] = len(days) + 2
+        phase_match = re.fullmatch(r'(nów|pełnia|I kwadra|III kwadra) o (\d{2}:\d{2})', detail["phase"])
+        if phase_match:
+            phase_events.append({"date": date.isoformat(), "kind": phase_match[1], "time": phase_match[2], "source": "Księga Yagi"})
         days.append([date.isoformat(), theme, moon, phase, relax, detail])
+    # Additional dated book chapters are kept in full, with their own cautions.
+    book_sheet = next(s for s in workbook.findall("m:sheets/m:sheet", ns) if s.attrib["name"] == "Księga Jagi")
+    book_id = book_sheet.attrib["{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"]
+    book_target = next(r.attrib["Target"] for r in relationships if r.attrib["Id"] == book_id)
+    book_target = book_target.lstrip("/") if book_target.startswith("/") else posixpath.normpath("xl/" + book_target)
+    chapters = {}
+    for row in ET.fromstring(archive.read(book_target)).findall("m:sheetData/m:row", ns)[1:]:
+        cells = {}
+        for cell in row.findall("m:c", ns):
+            col = ''.join(c for c in cell.attrib['r'] if c.isalpha()); node = cell.find('m:v', ns)
+            value = node.text if node is not None else ''
+            if cell.attrib.get('t') == 's': value = strings[int(value)]
+            elif cell.attrib.get('t') == 'inlineStr':
+                inline = cell.find('m:is', ns)
+                value = ''.join(inline.itertext()) if inline is not None else ''
+            cells[col] = value
+        if cells.get('A'):
+            book_date = (base + dt.timedelta(days=int(float(cells['A'])))).isoformat()
+            chapters[book_date] = {key: cells.get(col, '') for key, col in {'title':'B','subtitle':'C','text':'D','caution':'E','quote':'F','bibliography':'G'}.items()}
 if len({row[0] for row in days}) != len(days) or any((dt.date.fromisoformat(b[0])-dt.date.fromisoformat(a[0])).days != 1 for a,b in zip(days,days[1:])):
     raise ValueError("Nieciągłe lub powtórzone daty inspiracji.")
-payload = {"schemaVersion": 1, "source": "Księga Yagi", "sourceTitle": "Czaromarownik", "author": "Zofia Rende", "interpretation": "astrology", "sourceTimeZone": "Europe/Warsaw", "sourceFileSha256": hashlib.sha256(source.read_bytes()).hexdigest(), "from": days[0][0], "to": days[-1][0], "days": days}
+phase_events.extend(boundary['events'])
+phase_events.sort(key=lambda e: (e['date'], e['time']))
+payload = {"schemaVersion": 1, "source": "Księga Yagi", "sourceTitle": "Czaromarownik", "author": "Zofia Rende", "interpretation": "astrology", "sourceTimeZone": "Europe/Warsaw", "sourceFileSha256": hashlib.sha256(source.read_bytes()).hexdigest(), "from": days[0][0], "to": days[-1][0], "days": days, "chapters": chapters, "phaseEvents": phase_events, "phaseBoundarySource": boundary.get('source')}
 content = "// Imported symbolic inspiration inputs. See scripts/import-inspiration.py.\n(function(root){const data=" + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";if(typeof module==='object'&&module.exports)module.exports=data;else root.OktiInspirationData=data;})(globalThis);\n"
 output.write_text(content, encoding="utf-8")
 print(f"Imported {len(days)} days: {days[0][0]}–{days[-1][0]}")

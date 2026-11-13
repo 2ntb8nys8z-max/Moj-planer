@@ -15,7 +15,7 @@ function response(data,answer){const c=context(data),weather=c.facts.find(f=>f.i
  if(data.schemaVersion===2)for(const f of c.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(![answer.intro,...answer.insights].filter(Boolean).some(s=>s.factIds.includes(f.id)))answer.insights.push({text:f.text,factIds:[f.id]});
  if(data.schemaVersion===2&&weather){answer.weather={text:weather.text,factIds:['weather']};answer.spoken=[answer.weather,...answer.spoken.filter(s=>!s.factIds.includes('weather'))]}
  const route=data.schemaVersion===2&&data.facts.find(f=>f.kind==='travel'&&f.values.current);
- if(route){const v=route.values,sentence={text:(v.gpsUpdated?'Sprawdziłem aktualną lokalizację. ':'')+'Dojazd do „'+v.to+'” zajmie około '+v.minutes+' minut.'+(v.leaveAt?' Wyjedź około '+v.leaveAt+'.':''),factIds:[route.id]};answer.insights.push(sentence);answer.spoken.push(sentence)}
+ if(route){const v=route.values,sentence={text:(v.gpsUpdated?'Sprawdziłem aktualną lokalizację. ':'')+(v.planning?'Jeśli ruszasz z obecnego miejsca, ':'')+'Dojazd do „'+v.to+'” zajmie około '+v.minutes+' minut.'+(v.leaveAt?' Wyjedź około '+v.leaveAt+'.':''),factIds:[route.id]};answer.insights.push(sentence);answer.spoken.push(sentence)}
  const yaga=c.facts.find(f=>f.id==='inspiration');if(yaga&&answer.inspiration==null){answer.inspiration={text:yaga.text,factIds:['inspiration']};const sentence={text:'Księga Yagi: '+(yaga.values?.phase||'inspiracja dnia')+'.',factIds:['inspiration']};if([...answer.spoken,sentence].map(s=>s.text).join(' ').split(/\s+/).length<=data.wordBudget)answer.spoken.push(sentence)}
  return Response.json({choices:[{message:{content:JSON.stringify(answer)}}]});
 }

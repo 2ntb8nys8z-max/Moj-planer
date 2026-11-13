@@ -11,7 +11,10 @@
  const locationKey=s=>s.toLocaleLowerCase('pl').replace(/\s+/g,' ').trim();
  function nextDay(day,shift=1){const d=new Date(day+'T12:00:00');d.setDate(d.getDate()+shift);return dayKey(d)}
  function target(action={},now=new Date()){
-  const date=action.date||nextDay(dayKey(now),action.day==='tomorrow'?1:action.day==='yesterday'?-1:0);
+  const weekdays=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'],weekday=weekdays.indexOf(action.day);
+  if(action.day&&!['today','tomorrow','yesterday',...weekdays].includes(action.day))throw Error('Nieprawidłowy dzień podsumowania.');
+  const shift=weekday<0?(action.day==='tomorrow'?1:action.day==='yesterday'?-1:0):action.briefMode==='review'?-((now.getDay()-weekday+7)%7):(weekday-now.getDay()+7)%7;
+  const date=action.date||nextDay(dayKey(now),shift);
   if(!validDay(date))throw Error('Nieprawidłowy dzień podsumowania.');
   const mode=action.briefMode||(date<dayKey(now)?'review':date>dayKey(now)?'plan':'remaining');
   if(!['remaining','plan','review'].includes(mode)||mode==='remaining'&&date!==dayKey(now)||mode==='review'&&date>dayKey(now))throw Error('Nieprawidłowy zakres podsumowania.');
@@ -95,8 +98,8 @@
   for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0){const minutes=Math.ceil(overlap/60000),unit=minutes===1?'minutę':minutes%10>=2&&minutes%10<=4&&(minutes%100<12||minutes%100>14)?'minuty':'minut';warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy wydarzeń „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+minutes+' '+unit+'.'});}}
   const validOrigin=origin&&Number.isFinite(origin.latitude)&&Math.abs(origin.latitude)<=90&&Number.isFinite(origin.longitude)&&Math.abs(origin.longitude)<=180&&Number.isFinite(origin.checkedAt)&&+now-origin.checkedAt<15*60000&&+now-origin.checkedAt>=0&&(!Number.isFinite(origin.accuracy)||origin.accuracy<=1000);
   const next=timed.find(r=>r.status==='upcoming'&&r.start>+now);
-  if(mode==='remaining'&&next&&location(next.item)&&validOrigin){const target=next,from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Aktualna lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
-  else if(mode==='remaining'&&next&&location(next.item))notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
+  if(mode!=='review'&&next&&location(next.item)&&validOrigin){const target=next,from={id:'@device',location:origin.latitude+','+origin.longitude,title:'Aktualna lokalizacja'};legs.push({from,to:target.item,target,origin:{latitude:origin.latitude,longitude:origin.longitude},current:true,start:+now,end:target.start,mode:getMode(null,target.item)});}
+  else if(mode!=='review'&&next&&location(next.item))notes.push('Brak aktualnej, dostatecznie dokładnej lokalizacji — nie oceniam dojazdu od Ciebie do pierwszego spotkania.');
   for(let i=0;i<located.length-1;i++){const from=located[i],to=located[i+1];if(locationKey(location(from.item))===locationKey(location(to.item)))continue;legs.push({from:from.item,to:to.item,target:to,start:Math.max(from.end,mode==='remaining'?+now:from.end),end:to.start,mode:getMode(from.item,to.item)});}
   let requested=0,index=0;
   async function work(){while(index<legs.length){const leg=legs[index++];try{let value=cached(leg.from,leg.to,leg.mode);if(!value&&requested<maxRequests){requested++;value=await route(leg.from,leg.to,{mode:leg.mode,origin:leg.origin});}leg.route=value;}catch(_){leg.route=null}}}
@@ -105,7 +108,7 @@
    const r=leg.route;if(!r||!Number.isFinite(r.minutes)||r.minutes<0){leg.text='Nie udało się ustalić czasu dojazdu do „'+title(leg.to)+'”.';continue;}
    const mins=Math.ceil(r.minutes),distance=Number.isFinite(r.distanceMeters)?', '+(r.distanceMeters>=10000?Math.round(r.distanceMeters/1000):Math.round(r.distanceMeters/100)/10)+' km':'';
    leg.text=(leg.current?(mode==='plan'?'Z dzisiejszej lokalizacji':'Z ostatniej lokalizacji')+' do „'+title(leg.to)+'”':'„'+title(leg.from)+'” → „'+title(leg.to)+'”')+': około '+duration(mins)+' '+(modeNames[leg.mode]||modeNames.drive)+distance+'.';
-   if(leg.current&&mode==='plan'){leg.risk='planning';continue;}
+   if(leg.current&&mode==='plan'){leg.risk='planning';leg.leaveAt=leg.target.start-(mins+10)*60000;continue;}
    if(leg.current&&leg.target.status==='ongoing'){leg.risk='ongoing';if(r.distanceMeters>2000)warnings.push({kind:'ongoing-travel',eventIds:[leg.to.id],text:'„'+title(leg.to)+'” według kalendarza już trwa. '+leg.text});continue;}
    const windows=freeWindows(leg.start,leg.end,all,[leg.from.id,leg.to.id]),available=Math.max(0,...windows.map(([a,b])=>(b-a)/60000));
    leg.availableMinutes=Math.floor(available);leg.risk=mins>available?'late':mins+10>available?'tight':'safe';
@@ -162,5 +165,5 @@
   const brief=summary(model,options);
   return [brief.countText,...brief.visibleWarnings.map(w=>w.text),brief.moreCount?'Pozostałe ostrzeżenia: '+brief.moreCount+'.':'',brief.note].filter(Boolean).join(' ');
  }
- return {target,interval,events,calendarContext,dayOverview,weather,travel,freeWindows,summary,speech,dayKey,clock,duration};
+ return {target,interval,events,calendarContext,dayOverview,weather,travel,freeWindows,summary,speech,dayKey,clock,duration,location};
 });
