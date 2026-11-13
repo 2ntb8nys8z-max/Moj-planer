@@ -1,7 +1,7 @@
 """Read an authorised Kalendarz XLSX and export only daily inspiration inputs.
 
 Usage: python3 scripts/import-inspiration.py source.xlsx [output.js]
-No workbook is modified. No herbal, medical, financial or contractual advice is copied.
+No workbook is modified. Only the requested dated astrology columns are copied as attributed source excerpts, never as instructions to the planner.
 """
 import datetime as dt
 import hashlib
@@ -48,7 +48,7 @@ with zipfile.ZipFile(source) as archive:
             record[col] = value
         raw.append(record)
     header = raw[0]
-    expected = {"A": "Data", "F": "Księżyc (faza)", "X": "Księżyc w znaku i dzień biodynamiczny", "Y": "Dobry dzień na…", "Z": "Energia dnia (niebo dnia)"}
+    expected = {"A": "Data", "F": "Księżyc (faza)", "G": "Do najbliższej fazy", "X": "Księżyc w znaku i dzień biodynamiczny", "Y": "Dobry dzień na…", "Z": "Energia dnia (niebo dnia)", "AA": "Tranzyty i wydarzenia na niebie"}
     if any(header.get(col) != label for col, label in expected.items()):
         raise ValueError("Nieznany układ kolumn inspiracji.")
     calendar = workbook.find("m:workbookPr", ns)
@@ -64,10 +64,13 @@ with zipfile.ZipFile(source) as archive:
         # Keep the Moon statement; omit all-day retrograde flags and bodily correspondences.
         moon = (record.get("X") or "").split(" · ")[0]
         phase = (record.get("F") or "").split(" o ")[0]
-        days.append([date.isoformat(), theme, moon, phase, relax])
+        # Keep the original dated entries. These are attributed source material,
+        # not predictions calculated by the app or instructions for its model.
+        detail = {"phase": record.get("F") or "", "nextPhase": record.get("G") or "", "illumination": float(record["H"]) if record.get("H") else None, "moonAndBiodynamic": record.get("X") or "", "goodFor": record.get("Y") or "", "energy": record.get("Z") or "", "transits": record.get("AA") or ""}
+        days.append([date.isoformat(), theme, moon, phase, relax, detail])
 if len({row[0] for row in days}) != len(days) or any((dt.date.fromisoformat(b[0])-dt.date.fromisoformat(a[0])).days != 1 for a,b in zip(days,days[1:])):
     raise ValueError("Nieciągłe lub powtórzone daty inspiracji.")
-payload = {"schemaVersion": 1, "source": "Kalendarz Jagi — Czaromarownik", "author": "Zofia Rende", "interpretation": "astrology", "sourceTimeZone": "Europe/Warsaw", "sourceFileSha256": hashlib.sha256(source.read_bytes()).hexdigest(), "from": days[0][0], "to": days[-1][0], "days": days}
+payload = {"schemaVersion": 1, "source": "Księga Yagi", "sourceTitle": "Czaromarownik", "author": "Zofia Rende", "interpretation": "astrology", "sourceTimeZone": "Europe/Warsaw", "sourceFileSha256": hashlib.sha256(source.read_bytes()).hexdigest(), "from": days[0][0], "to": days[-1][0], "days": days}
 content = "// Imported symbolic inspiration inputs. See scripts/import-inspiration.py.\n(function(root){const data=" + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";if(typeof module==='object'&&module.exports)module.exports=data;else root.OktiInspirationData=data;})(globalThis);\n"
 output.write_text(content, encoding="utf-8")
 print(f"Imported {len(days)} days: {days[0][0]}–{days[-1][0]}")

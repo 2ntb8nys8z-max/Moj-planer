@@ -2,6 +2,13 @@
 window.OktiDayBriefUI=(()=>{
  const core=window.OktiDayBriefing,narrator=window.OktiBriefNarrative,modal=document.getElementById('entryResultsModal'),list=document.getElementById('entryResults');
  let current=null,serial=0;
+ const prefix=typeof PREVIEW33_PREFIX==='string'?PREVIEW33_PREFIX:'',historyKey=prefix+'okti-brief-history-v2',voiceKey=prefix+'okti-brief-voice-v2';
+ const readSaved=key=>{try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(_){return {}}};
+ const historyFor=date=>readSaved(historyKey)[date]||{};
+ function rememberReport(model){try{const all=readSaved(historyKey),old=all[model.date]||{};all[model.date]={count:Math.min(1000,(old.count||0)+1),lastAt:+model.now};const kept=Object.fromEntries(Object.entries(all).sort((a,b)=>(b[1].lastAt||0)-(a[1].lastAt||0)).slice(0,40));localStorage.setItem(historyKey,JSON.stringify(kept))}catch(_){}}
+ function voiceBudget(){const rate=Number(readSaved(voiceKey).wordsPerMinute)||120;return Math.max(50,Math.min(105,Math.floor(rate*.72)))}
+ function learnVoice(words,seconds){if(seconds<5||seconds>150||words<8)return;const old=Number(readSaved(voiceKey).wordsPerMinute)||120,rate=Math.max(70,Math.min(190,words*60/seconds));try{localStorage.setItem(voiceKey,JSON.stringify({wordsPerMinute:Math.min(old,old*.35+rate*.65)}))}catch(_){}}
+
  const style=document.createElement('style');style.textContent=`
  #entryResultsModal.is-day-brief{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));align-items:center;justify-content:center;background:#14202e65}
  #entryResultsModal.is-day-brief .action-card{position:relative;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:min(100%,680px);max-width:680px;height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:980px;overflow:hidden;padding:0;border:1px solid #e1e4e7;border-radius:24px;background:#fff;box-shadow:0 22px 65px #16202c30;color:#23323e}
@@ -25,20 +32,20 @@ window.OktiDayBriefUI=(()=>{
  const fingerprint=()=>JSON.stringify(tasks);
  const owned=state=>current===state&&state.serial===serial&&!modal.classList.contains('hidden')&&(!state.session||voiceDialogues[state.session.channel]===state.session);
  function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent=state.readLabel||'Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
- function cancel({keepFooter=false}={}){serial++;if(current){stop(current);current.controller.abort()}current=null;if(!keepFooter)modal.querySelector('[data-brief-footer]')?.remove();modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
+ function cancel({keepFooter=false}={}){serial++;if(current){stop(current);current.controller.abort();if(current.view==='day-card')document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','false')}current=null;if(!keepFooter)modal.querySelector('[data-brief-footer]')?.remove();modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
  function close(){const state=current,card=modal.querySelector('.action-card');cancel({keepFooter:true});if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){modal.classList.add('is-day-brief');const motion=card.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(12px)'}],{duration:150,easing:'ease-in'});motion.onfinish=()=>{if(!current){modal.classList.add('hidden');modal.classList.remove('is-day-brief');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}}else{modal.classList.add('hidden');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}
  function speak(state){
   if(!owned(state)||!state.model||fingerprint()!==state.version||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
   if(state.speechToken){stop(state);return}
-  const text=state.speechText||state.model.narrative?.speech||narrator?.fallback(state.model,core.summary(state.model))||core.speech(state.model);
+  const text=state.speechText||state.model.narrative?.speech;if(!text){if(state.statusNode)state.statusNode.textContent='Najpierw przygotuj skrót do odczytu.';return;}
   const token=state.speechToken={},finish=message=>{if(state.speechToken!==token)return;stop(state);if(message&&owned(state)&&state.statusNode)state.statusNode.textContent=message};
   try{
    window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1;
    try{const voice=speechSynthesis.getVoices().find(v=>v.lang?.toLowerCase().startsWith('pl'));if(voice)u.voice=voice}catch(_){}
    if(state.readButton){state.readButton.textContent='Zatrzymaj odczyt';state.readButton.setAttribute('aria-busy','true')}
-   u.onstart=()=>{if(state.speechToken!==token)return;state.speaking=true;clearTimeout(state.speechStartTimer);state.readButton?.setAttribute('aria-busy','false');state.readButton?.setAttribute('aria-pressed','true')};
-   u.onend=()=>finish('');u.onerror=()=>finish('Czytanie nie wystartowało. Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby spróbować ponownie.');
-   state.speechStartTimer=setTimeout(()=>finish('Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby uruchomić głos.'),6000);state.speechEndTimer=setTimeout(()=>finish(''),60000);
+   u.onstart=()=>{if(state.speechToken!==token)return;state.speaking=true;state.voiceStartedAt=Date.now();clearTimeout(state.speechStartTimer);state.readButton?.setAttribute('aria-busy','false');state.readButton?.setAttribute('aria-pressed','true')};
+   u.onend=()=>{if(state.speechToken===token&&state.voiceStartedAt)learnVoice(text.trim().split(/\s+/).length,(Date.now()-state.voiceStartedAt)/1000);finish('')};u.onerror=()=>finish('Czytanie nie wystartowało. Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby spróbować ponownie.');
+   state.speechStartTimer=setTimeout(()=>finish('Dotknij „'+(state.readLabel||'Odczytaj podsumowanie')+'”, aby uruchomić głos.'),6000);state.speechEndTimer=setTimeout(()=>finish(''),180000);
    // Stay in the native button callback: Safari requires the tap for manual TTS.
    if(speechSynthesis.paused)speechSynthesis.resume?.();speechSynthesis.speak(u);
   }catch(_){finish('Nie udało się uruchomić odczytu. Spróbuj ponownie.')}
@@ -52,7 +59,8 @@ window.OktiDayBriefUI=(()=>{
   const model=state.model,box=section('Pogoda',[model.weatherIssue||(model.weatherEnabled?'Nie mam aktualnej prognozy dla tego dnia.':'Pogoda jest wyłączona. Możesz ją włączyć, aby dodać prognozę do podsumowania.')]);box.dataset.briefWeatherUnavailable='';
   const label=model.weatherEnabled?'Odśwież pogodę':'Włącz pogodę',retry=button(label,async()=>{
    if(!owned(state)||fingerprint()!==state.version)return;retry.disabled=true;retry.textContent='Sprawdzam pogodę…';
-   try{if(OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(true);else await OktiLocalWeather.enable();if(owned(state)&&fingerprint()===state.version)return show(state.action,state.session,{speak:false,refreshWeather:false});}
+   const beforeFix=OktiLocalWeather.snapshot().place?.fixId;
+   try{if(OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(true,{freshGPS:true});else await OktiLocalWeather.enable();const afterFix=OktiLocalWeather.snapshot().place?.fixId;if(owned(state)&&fingerprint()===state.version)return show(state.action,state.session,{speak:false,refreshWeather:false,gpsFixId:afterFix!==beforeFix?afterFix:null});}
    catch(_){if(owned(state)){box.querySelector('p').textContent='Nie udało się odświeżyć pogody. Spróbuj ponownie.';retry.disabled=false;retry.textContent=label}}
   });retry.dataset.briefWeatherRetry='';box.append(retry);return box;
  }
@@ -67,19 +75,22 @@ window.OktiDayBriefUI=(()=>{
   const model=state.model,brief=core.summary(model,{allWarnings:state.showAllWarnings}),scroll=list.scrollTop;model.displayWarnings=brief.visibleWarnings;state.view='brief';
   showEntryResults([],model.title,'',true);decorate();list.replaceChildren();
   const meta=document.getElementById('entryResultsCount'),date=document.createElement('span'),year=document.createElement('span'),calendar=model.calendar||core.calendarContext(model.date);date.className='day-brief-date';date.textContent=new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});year.className='day-brief-year';year.dataset.briefCalendar='';year.textContent=calendar.dayOfYear+'. dzień roku. Do końca roku '+(calendar.daysRemaining===1?'został 1 dzień.':'zostało '+calendar.daysRemaining+' dni.');meta.replaceChildren(date,year);
-  if(model.narrative?.intro?.text){const intro=document.createElement('p');intro.className='day-brief-intro';intro.dataset.briefIntro='';intro.textContent=model.narrative.intro.text;list.append(intro)}
-  const count=document.createElement(model.records.length?'button':'p');count.className='day-brief-count';count.dataset.briefCount='';count.textContent=brief.countText;
-  if(model.records.length){count.type='button';count.dataset.briefEvents='';count.setAttribute('aria-label',brief.countText+' Zobacz '+(model.records.length===1?'spotkanie.':'spotkania.'));count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow)}list.append(count);
-  if(brief.visibleWarnings.length){const box=section('Zwróć uwagę',brief.visibleWarnings.map(w=>w.text),true);box.dataset.briefWarnings='';list.append(box)}
-  if(brief.moreCount){const more=button('Pokaż pozostałe ostrzeżenia ('+brief.moreCount+')',()=>{if(owned(state)){state.showAllWarnings=true;render(state);window.OktiBriefLinks?.remember(model,state.session)}});more.dataset.briefMore='';list.append(more)}
-  if(model.weather?.available&&!model.weather.stale){const box=section('Pogoda',[model.narrative?.weather?.text||narrator?.weatherText(model)||model.weather.text]);box.dataset.briefWeather='';list.append(box)}
+  if(model.weather?.available&&!model.weather.stale){const w=model.weather,plain=Number.isFinite(w.temperatureMin)?(w.temperatureMin===w.temperatureMax?w.temperatureMin+'°C':w.temperatureMin+'–'+w.temperatureMax+'°C')+(w.rain?' · '+({rain:'Opady',snow:'Śnieg',storm:'Burze'}[w.rain.kind]||'Opady')+' '+w.rain.at.slice(11,16):''):'';const box=section('Pogoda',[model.narrative?.weather?.text||plain]);box.dataset.briefWeather='';list.append(box)}
   else if(model.mode!=='review')list.append(unavailableWeather(state));
+  if(model.narrative?.intro?.text){const intro=document.createElement('p');intro.className='day-brief-intro';intro.dataset.briefIntro='';intro.textContent=model.narrative.intro.text;list.append(intro)}
+  const n=model.records.length;
+  if(n>1){const count=document.createElement('button');count.className='day-brief-count';count.dataset.briefCount='';count.dataset.briefEvents='';count.type='button';count.textContent=brief.countText;count.setAttribute('aria-label',brief.countText+' Zobacz spotkania.');count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow);list.append(count)}
+  else if(n===1){const r=model.records[0],box=section(r.title,[r.summaryMeta]);box.dataset.briefSingle='';list.append(box)}
+  else if(!model.narrative?.intro){const empty=document.createElement('p');empty.className='day-brief-status';empty.dataset.briefEmpty='';empty.textContent=brief.countText;list.append(empty)}
+  if(brief.visibleWarnings.length){const lines=[...new Set(brief.visibleWarnings.map(w=>{const id='warning-'+brief.warnings.indexOf(w);return model.narrative?.insights?.find(s=>s.factIds.includes(id))?.text||(model.narrative?.intro?.factIds.includes(id)?null:w.text)}).filter(Boolean))];if(lines.length){const box=section('Zwróć uwagę',lines,true);box.dataset.briefWarnings='';list.append(box)}}
+  if(brief.moreCount){const more=button('Pokaż pozostałe ostrzeżenia ('+brief.moreCount+')',()=>{if(owned(state)){state.showAllWarnings=true;render(state);window.OktiBriefLinks?.remember(model,state.session)}});more.dataset.briefMore='';list.append(more)}
+  const insights=model.narrative?.insights?.filter(s=>!s.factIds.some(id=>/^warning-/.test(id)))||[];
+  if(insights.length){const box=section('Twój plan',insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
   if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
-  if(model.narrative?.insights?.length){const box=section('Warto pamiętać',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
-  if(model.inspiration&&model.inspiration.date===model.date){const box=section(narrator?.inspirationTitle?.(model)||'Inspiracja na '+new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long'}),[model.narrative?.inspiration?.text||model.inspiration.text]);box.dataset.briefInspiration='';box.dataset.briefInspirationDate=model.date;const source=document.createElement('p');source.className='day-brief-status';source.style.fontSize='16px';source.textContent=model.inspiration.attribution;box.querySelector('h3').after(source);list.append(box)}
+  if(model.presentation?.includeYaga&&model.inspiration?.date===model.date){const box=section(narrator.inspirationTitle(model),model.narrative?.inspiration?[model.narrative.inspiration.text]:[]);box.dataset.briefInspiration='';box.dataset.briefInspirationDate=model.date;if(window.OktiYagaCard)box.append(OktiYagaCard.render(model.inspiration));list.append(box)}
   modal.querySelector('[data-brief-footer]')?.remove();const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';
-  state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
-  const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Chwilę, układam podsumowanie…':'';footer.append(status);modal.querySelector('.action-card').append(footer);
+  state.readButton=button(state.speechToken?'Zatrzymaj odczyt':model.narrative?.speech?'Odczytaj podsumowanie':'Ponów analizę',async()=>{if(model.narrative?.speech)return speak(state);if(!owned(state)||state.analyzing)return;state.analyzing=true;render(state);try{await analyze(state);state.aiError=''}catch(_){state.aiError='Nie udało się przygotować opisu AI. Spróbuj ponownie.'}finally{state.analyzing=false;if(owned(state))render(state)}},true);state.readButton.disabled=state.analyzing&&!model.narrative?.speech;state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
+  const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Chwilę, układam podsumowanie…':state.aiError?'Opis AI jest chwilowo niedostępny. Możesz ponowić analizę.':'';footer.append(status);modal.querySelector('.action-card').append(footer);
   const sources=document.createElement('details');sources.className='day-brief-sources';const summary=document.createElement('summary');summary.textContent='Źródła i dostępność danych';sources.append(summary);
   const notes=[...(model.travel?.notes||[])];if(state.aiError)notes.push(state.aiError);
   if(!model.place)notes.push('Brak aktualnej lokalizacji.');
@@ -101,22 +112,22 @@ window.OktiDayBriefUI=(()=>{
   try{const result=await plannerApiRequest('/briefing',{method:'POST',headers:{'Content-Type':'application/json'},signal:state.controller.signal,body:JSON.stringify({context})});if(!owned(state))return;model.narrative=narrator.validate(result.narrative,context);model.narrativeEventIds=[...new Set([...model.narrative.spoken,...model.narrative.insights,...(model.narrative.intro?[model.narrative.intro]:[])].flatMap(s=>s.factIds).filter(id=>/^event-\d+$/.test(id)).map(id=>model.records[Number(id.slice(6))]?.item.id).filter(id=>id!=null))]}
   finally{clearTimeout(timer)}
  }
- async function show(action,session=null,{speak:read=!!session&&session.inputSource==='audio',refreshWeather=true}={}){
+ async function show(action,session=null,{speak:read=!!session&&session.inputSource==='audio',refreshWeather=true,gpsFixId=null}={}){
   const spec=core.target(action,new Date()),returnFocus=document.activeElement;
   if(session){if(JSON.stringify(voiceDialogueCurrent(session.channel,session.id))!==session.snapshot)return null;if(voiceDialogues[session.channel]&&voiceDialogues[session.channel]!==session)return null;voiceDialogues[session.channel]=session}
   cancel();showEntryResults([],spec.title,'Sprawdzam plan i dojazdy…',true);decorate();
   const state=current={serial,session,action,speaking:false,model:null,controller:new AbortController(),version:fingerprint(),returnFocus,view:'brief'};
   const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
-  const routeAdapter=window.OktiTravelRoutes;
+  const routeAdapter=window.OktiTravelRoutes,started=new Date(),initialRecords=core.events(tasks,spec.date,started,spec.mode),needsGPS=spec.mode==='remaining'&&initialRecords.some(r=>r.status==='upcoming'&&r.start>+started&&(r.item.location||r.item.googleData?.location)),fixBefore=OktiLocalWeather.snapshot().place?.fixId;
   try{
-   if(refreshWeather&&spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(spec.mode==='remaining');
+   if(refreshWeather&&spec.mode!=='review'&&OktiLocalWeather.snapshot().enabled)await OktiLocalWeather.refresh(needsGPS,{freshGPS:needsGPS});
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas sprawdzania. Poproś o podsumowanie ponownie.');
    let now=new Date();if(spec.mode==='remaining'&&core.dayKey(now)!==spec.date)throw Error('Zmienił się dzień. Poproś o aktualne podsumowanie.');
    let records=core.events(tasks,spec.date,now,spec.mode),journey=null;
    const saved=OktiLocalWeather.snapshot(),fresh=saved.enabled&&saved.place&&Number.isFinite(saved.place.checkedAt)&&+now-saved.place.checkedAt>=0&&+now-saved.place.checkedAt<15*60000;
-   const place=spec.mode!=='review'&&fresh?saved.place:null;
-   const travelOptions={now,mode:spec.mode,origin:spec.mode==='remaining'?place:null,route:(a,b,options)=>routeAdapter?.ensure(a,b,options),cached:(a,b,mode)=>routeAdapter?.get(a,b,mode),getMode:(a,b)=>routeAdapter?.mode(a,b)||'drive'};
+   const place=spec.mode!=='review'&&fresh?saved.place:null,gpsUpdated=!!needsGPS&&place?.fixId!=null&&(place.fixId!==fixBefore||place.fixId===gpsFixId);
+   const travelOptions={now,mode:spec.mode,origin:spec.mode==='remaining'&&gpsUpdated?place:null,route:(a,b,options)=>routeAdapter?.ensure(a,b,options),cached:(a,b,mode)=>routeAdapter?.get(a,b,mode),getMode:(a,b)=>routeAdapter?.mode(a,b)||'drive'};
    const holidayPromise=place&&window.OktiBriefHolidays?OktiBriefHolidays.get(spec.date,place,{signal:state.controller.signal}):Promise.resolve(null);
    const results=await Promise.all([spec.mode!=='review'?core.travel(records,tasks,travelOptions):null,holidayPromise]);journey=results[0];
    if(!owned(state))return null;
@@ -125,12 +136,12 @@ window.OktiDayBriefUI=(()=>{
    records=core.events(tasks,spec.date,now,spec.mode);if(spec.mode!=='review')journey=await core.travel(records,tasks,{...travelOptions,now,maxRequests:0});
    if(!owned(state)||fingerprint()!==state.version)return null;
    const weather=spec.mode!=='review'&&place?core.weather(OktiLocalWeather.details(new Date(spec.date+'T12:00:00')),spec.date,now,spec.mode):null;
-   const model=state.model={...spec,now,records,travel:journey,place,weather,weatherEnabled:!!saved.enabled,weatherIssue:saved.error||'',holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null};state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
+   const model=state.model={...spec,now,records,travel:journey,place,weather,weatherEnabled:!!saved.enabled,weatherIssue:saved.error||'',holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null,gpsUpdated,speechBudget:voiceBudget()};model.presentation=narrator.presentation(model,historyFor(spec.date),action.briefDetail||'auto',core.events(tasks,spec.date,now,'plan'));state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
    try{if(narrator)await analyze(state)}catch(_){state.aiError='Analiza AI jest chwilowo niedostępna. Pokazuję sprawdzone dane kalendarza.'}finally{state.analyzing=false}
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas analizy. Poproś o podsumowanie ponownie.');
    const finished=new Date();if(spec.mode==='remaining'&&(core.dayKey(finished)!==spec.date||JSON.stringify(core.events(tasks,spec.date,finished,spec.mode).map(r=>[r.item.id,r.status]))!==JSON.stringify(model.records.map(r=>[r.item.id,r.status]))))throw Error('Plan w międzyczasie się zmienił. Sprawdź aktualne podsumowanie.');
-   model.text=model.narrative?.speech||narrator?.fallback(model,core.summary(model))||core.speech(model);
+   model.text=model.narrative?.speech||'Podsumowanie planu dla '+model.date;rememberReport(model);
    if(session){session.history.push({role:'assistant',content:model.text});session.lastOperation={status:'day_brief_complete',date:model.date,briefMode:model.mode};if(session.dialogueState)session.dialogueState.lastOperation=session.lastOperation}
    if(state.view==='brief')render(state);window.OktiBriefLinks?.remember(model,session);if(read&&state.view==='brief'&&!state.speechToken)speak(state);return model;
   }catch(error){
@@ -145,7 +156,7 @@ window.OktiDayBriefUI=(()=>{
   const now=new Date(),state=current={serial,session,action,version:fingerprint(),controller:new AbortController(),returnFocus,view:'inspiration-search',model:{date:core.dayKey(now),mode:'plan',now,records:[]}};
   try{
    const result=source.search(action,tasks,now);state.result=result;state.speechText=source.message(result);state.model.text=state.speechText;
-   const meta=document.getElementById('entryResultsCount'),origin=document.createElement('span'),period=document.createElement('span');origin.className='day-brief-date';origin.textContent='Według astrologii · Kalendarz Jagi';period.className='day-brief-year';period.textContent=source.dateLabel(result.from)+' – '+source.dateLabel(result.to);meta.replaceChildren(origin,period);
+   const meta=document.getElementById('entryResultsCount'),origin=document.createElement('span'),period=document.createElement('span');origin.className='day-brief-date';origin.textContent='Według astrologii · Księga Yagi';period.className='day-brief-year';period.textContent=source.dateLabel(result.from)+' – '+source.dateLabel(result.to);meta.replaceChildren(origin,period);
    if(result.status!=='found')list.append(section('Sprawdzony zakres',[state.speechText]));
    for(const candidate of result.candidates){
     const reason=action.topic==='relax'&&candidate.inspiration.theme!=='rest'?'Wpis astrologiczny na ten dzień wymienia relaksujące aktywności.':'Motyw astrologiczny: '+candidate.inspiration.label+'.';
@@ -153,11 +164,21 @@ window.OktiDayBriefUI=(()=>{
    }
    if(result.missing)list.append(section('Dostępność danych',['W bazie są dane dla '+result.checked+' dni tego zakresu. Pozostałe daty pomijam.']));
    const details=document.createElement('details');details.className='day-brief-sources';const summary=document.createElement('summary');summary.textContent='Jak powstała propozycja';details.append(summary);
-   for(const text of ['Motyw pochodzi z astrologicznego Kalendarza Jagi autorstwa Zofii Rende. To symboliczna inspiracja, nie prognoza Twojej energii ani powodzenia.','Spośród pasujących dni pierwszeństwo ma dzień z dłuższą przerwą w zapisach. Przerwy liczone są od 08:00 do 22:00, dla dzisiaj od bieżącej chwili. Nie potwierdzają czasu wolnego od innych obowiązków i nie uwzględniają nieznanych dojazdów.','Nic nie jest zapisywane ani przesuwane.']){const p=document.createElement('p');p.textContent=text;details.append(p)}list.append(details);
+   for(const text of ['Motyw pochodzi z astrologicznej Księgi Yagi autorstwa Zofii Rende. To symboliczna inspiracja, nie prognoza Twojej energii ani powodzenia.','Spośród pasujących dni pierwszeństwo ma dzień z dłuższą przerwą między spotkaniami. Przerwy liczone są od 08:00 do 22:00, dla dzisiaj od bieżącej chwili. Nie potwierdzają czasu wolnego od innych obowiązków i nie uwzględniają nieznanych dojazdów.','Nic nie jest zapisywane ani przesuwane.']){const p=document.createElement('p');p.textContent=text;details.append(p)}list.append(details);
    const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';state.readLabel='Odczytaj propozycję';state.readButton=button(state.readLabel,()=>speak(state),true);state.readButton.setAttribute('aria-pressed','false');footer.append(state.readButton);state.statusNode=document.createElement('p');state.statusNode.className='day-brief-status';state.statusNode.setAttribute('role','status');footer.append(state.statusNode);modal.querySelector('.action-card').append(footer);list.scrollTop=0;
    if(session){session.history.push({role:'assistant',content:state.speechText});session.lastOperation={status:'inspiration_days_complete',topic:action.topic,...(action.fromDate?{fromDate:result.from,toDate:result.to}:{period:action.period||'this_week'})};if(session.dialogueState)session.dialogueState.lastOperation=session.lastOperation;}
    const heading=modal.querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});if(session?.inputSource==='audio')speak(state);return result;
   }catch(error){state.model=null;list.replaceChildren(section('Sprawdź zakres',[error.message||'Nie udało się sprawdzić inspiracji.']));return null;}
+ }
+ function showDay(date,{chooseDay=null}={}){
+  const spec=core.target({date},new Date()),source=window.OktiDayInspiration?.day(date),returnFocus=document.activeElement;
+  cancel();showEntryResults([],'Księga Yagi','',true);decorate();list.replaceChildren();document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','true');
+  const state=current={serial,session:null,controller:new AbortController(),version:fingerprint(),returnFocus,view:'day-card',model:{...spec,now:new Date(),records:[]}};
+  document.getElementById('entryResultsCount').textContent=new Date(date+'T12:00:00').toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(source&&window.OktiYagaCard)list.append(OktiYagaCard.render(source));else list.append(section('Księga Yagi',['Brak danych dla tego dnia w przekazanej księdze.']));
+  const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';footer.append(button('Zobacz plan tego dnia',()=>{if(owned(state))show({date},null,{speak:false})},true));
+  if(chooseDay)footer.append(button('Wybierz inny dzień',()=>{if(!owned(state))return;cancel();modal.classList.add('hidden');chooseDay()}));
+  modal.querySelector('.action-card').append(footer);list.scrollTop=0;const heading=modal.querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});return state;
  }
  modal.addEventListener('click',event=>{if(!current)return;if(event.target===modal||event.target.closest('#closeEntryResults')){event.preventDefault();event.stopImmediatePropagation();close()}else if(event.target.closest('.entry-result'))cancel()},true);
  document.addEventListener('keydown',event=>{
@@ -166,5 +187,5 @@ window.OktiDayBriefUI=(()=>{
   if(event.key==='Tab'){const focusable=[...modal.querySelectorAll('button,a[href],summary')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!focusable.includes(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}
  },true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&current)stop(current)});
- return {show,showInspiration,cancel,getState:()=>current};
+ return {show,showDay,showInspiration,cancel,getState:()=>current};
 })();

@@ -16,7 +16,7 @@
   home:{label:'dom i bliskość',text:'Zwróć uwagę na to, co daje Ci poczucie spokoju w domu. Wystarczy mały gest, który pasuje do Twojego dnia.'}
  };
  const rows=new Map((data?.days||[]).map(row=>[row[0],row])),dayKey=core.dayKey;
- function day(date){const row=rows.get(date);if(!row)return null;const theme=themes[row[1]];if(!theme)return null;return {date,theme:row[1],label:theme.label,text:theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Według astrologii · Kalendarz Jagi'};}
+ function day(date){const row=rows.get(date);if(!row)return null;const theme=themes[row[1]];if(!theme)return null;const detail=row[5]||{},next=kind=>{const found=(data.days||[]).find(r=>r[0]>=date&&new RegExp(kind,'iu').test(r[5]?.phase||r[3]));return found?{date:found[0],days:Math.round((Date.parse(found[0]+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:found[5]?.phase||found[3]}:null};return {date,theme:row[1],label:theme.label,text:theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Źródło: Księga Yagi · Zofia Rende',detail:{...detail,nextNewMoon:next('^nów(?:\\s|$)'),nextFullMoon:next('^pełnia(?:\\s|$)')}};}
  function shift(date,n){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return dayKey(d)}
  function validDate(date){return typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&dayKey(new Date(date+'T12:00:00'))===date;}
  function range(action={},now=new Date()){
@@ -53,7 +53,7 @@
   if(result.status==='no_data')return !data.from?'Dane inspiracji nie zostały wczytane. Odśwież aplikację, aby spróbować ponownie.':'Nie mam danych astrologicznych dla tego okresu. Kalendarz Jagi obejmuje okres od '+dateLabel(data.from)+' '+data.from.slice(0,4)+' do '+dateLabel(data.to)+' '+data.to.slice(0,4)+'.';
   if(result.status==='no_future_window')return 'Motyw astrologiczny pasuje do dzisiejszego dnia, ale sprawdzany zakres godzin już się skończył. Możesz zapytać o przyszły tydzień.';
   if(result.status==='no_match')return 'We wskazanym okresie nie znalazłem w Kalendarzu Jagi motywu pasującego do '+({work:'pracy',rest:'odpoczynku',relax:'relaksu'}[result.topic])+'. Możesz wybrać termin według własnych potrzeb i planu.';
-  return 'Według astrologicznego Kalendarza Jagi pasuje '+dateLabel(result.candidates[0].date)+'. '+calendarText(result.candidates[0].calendar);
+  return 'Według astrologicznej Księgi Yagi pasuje '+dateLabel(result.candidates[0].date)+'. '+calendarText(result.candidates[0].calendar);
  }
  return {day,search,range,availability,calendarText,dateLabel,message,coverage:{from:data.from,to:data.to},source:data.source};
 });
