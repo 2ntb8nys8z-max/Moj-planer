@@ -5,7 +5,7 @@ window.OktiDayBriefUI=(()=>{
  const prefix=typeof PREVIEW33_PREFIX==='string'?PREVIEW33_PREFIX:'',historyKey=prefix+'okti-brief-history-v2',voiceKey=prefix+'okti-brief-voice-v2';
  const readSaved=key=>{try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(_){return {}}};
  const historyFor=date=>readSaved(historyKey)[date]||{};
- function rememberReport(model){try{const all=readSaved(historyKey),old=all[model.date]||{};all[model.date]={count:Math.min(1000,(old.count||0)+1),lastAt:+model.now};const kept=Object.fromEntries(Object.entries(all).sort((a,b)=>(b[1].lastAt||0)-(a[1].lastAt||0)).slice(0,40));localStorage.setItem(historyKey,JSON.stringify(kept))}catch(_){}}
+ function rememberReport(model){try{const all=readSaved(historyKey),old=all[model.date]||{},sameDay=old.lastAt&&core.dayKey(new Date(old.lastAt))===core.dayKey(model.now);all[model.date]={count:Math.min(1000,(sameDay?old.count||0:0)+1),lastAt:+model.now};const kept=Object.fromEntries(Object.entries(all).sort((a,b)=>(b[1].lastAt||0)-(a[1].lastAt||0)).slice(0,40));localStorage.setItem(historyKey,JSON.stringify(kept))}catch(_){}}
  function voiceBudget(){const rate=Number(readSaved(voiceKey).wordsPerMinute)||120;return Math.max(50,Math.min(105,Math.floor(rate*.72)))}
  function learnVoice(words,seconds){if(seconds<5||seconds>150||words<8)return;const old=Number(readSaved(voiceKey).wordsPerMinute)||120,rate=Math.max(70,Math.min(190,words*60/seconds));try{localStorage.setItem(voiceKey,JSON.stringify({wordsPerMinute:Math.min(old,old*.35+rate*.65)}))}catch(_){}}
 

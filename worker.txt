@@ -676,7 +676,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="4b0172a449238ad4";
+const BUILD_ID="7b175f99c31d1a19";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1277,6 +1277,7 @@ const OktiBriefNarrative=(()=>{
  }
  function presentation(model,previous={},detail='auto',allRecords=model.records||[]){
   const now=model.now||new Date(),future=model.date>localDay(now),ended=allRecords.filter(r=>!r.allDay&&r.hasEnd&&r.end<=+now).length;
+  if(previous.lastAt&&localDay(new Date(previous.lastAt))!==localDay(now))previous={};
   const morning=now.getHours()<12&&(!allRecords.length||ended/allRecords.length<=.2),explicit=['full','yaga'].includes(detail);
   const includeYaga=model.mode!=='review'&&(explicit||detail!=='update'&&!previous.count&&(future||morning));
   return {kind:model.mode==='review'?'review':explicit?'full':includeYaga?(future?'future':'morning'):'update',includeYaga,previousCount:previous.count||0,lastReportedAt:previous.lastAt||null};

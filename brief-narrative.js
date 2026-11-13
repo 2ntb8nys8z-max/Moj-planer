@@ -46,6 +46,7 @@ const OktiBriefNarrative=(()=>{
  }
  function presentation(model,previous={},detail='auto',allRecords=model.records||[]){
   const now=model.now||new Date(),future=model.date>localDay(now),ended=allRecords.filter(r=>!r.allDay&&r.hasEnd&&r.end<=+now).length;
+  if(previous.lastAt&&localDay(new Date(previous.lastAt))!==localDay(now))previous={};
   const morning=now.getHours()<12&&(!allRecords.length||ended/allRecords.length<=.2),explicit=['full','yaga'].includes(detail);
   const includeYaga=model.mode!=='review'&&(explicit||detail!=='update'&&!previous.count&&(future||morning));
   return {kind:model.mode==='review'?'review':explicit?'full':includeYaga?(future?'future':'morning'):'update',includeYaga,previousCount:previous.count||0,lastReportedAt:previous.lastAt||null};
