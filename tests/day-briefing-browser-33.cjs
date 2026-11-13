@@ -5,8 +5,11 @@ const mime={'.html':'text/html','.js':'application/javascript','.webp':'image/we
 const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KEY:'dummy',GOOGLE_MAPS_API_KEY:'maps-fixture',API_LIMITS_DB:{prepare(){return{run:async()=>{},bind(){return this},first:async()=>({})}}}};
 (async()=>{
  const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default,nativeFetch=globalThis.fetch;
- let transcript='',modelCalls=0,briefCalls=0,routeCalls=[];
+ let transcript='',modelCalls=0,briefCalls=0,routeCalls=[],wrongDayReplies=0;
  globalThis.fetch=async(url,options={})=>{if(String(url).includes('/audio/transcriptions'))return Response.json({text:transcript});if(String(url).includes('routes.googleapis.com')){routeCalls.push(JSON.parse(options.body));return Response.json({routes:[{duration:'2700s',distanceMeters:65000}]})}const body=JSON.parse(options.body||'{}');if(body.messages?.at(-1)?.content==='Który dzień w tym tygodniu będzie dobry na pracę według gwiazd?'){modelCalls++;return Response.json({choices:[{message:{content:JSON.stringify({kind:'command',intent:'execute',action:'continue',reply:'Sprawdzam.',operations:[],focus:'',ambiguity:null,uiAction:{type:'inspiration_days',topic:'work',period:'this_week'}})}}]})}if(body.messages?.[0]?.content?.startsWith('Jesteś Okti, osobistym')){briefCalls++;const context=JSON.parse(body.messages.at(-1).content),count=context.facts.find(f=>f.id==='count'),required=context.facts.filter(f=>f.priority===3);
+    if(context.date==='2026-11-14'&&context.today==='2026-11-13'){
+     wrongDayReplies++;const inspiration={text:'Astrologiczna inspiracja na dziś: wybierz jedną sprawę, którą chcesz ruszyć do przodu, i zrób spokojny pierwszy krok.',factIds:['inspiration']};return Response.json({choices:[{message:{content:JSON.stringify({intro:null,inspiration,insights:[],spoken:[{text:count.text,factIds:['count']},inspiration]})}}]});
+    }
     if(context.facts.some(f=>f.kind==='activity'&&f.text.includes('Basen'))&&context.facts.some(f=>f.id==='day-load')){
      const intro={text:'Między planami zostaje sporo przestrzeni. Możesz spokojnie rozłożyć przygotowania do wyjścia.',factIds:['day-load']},weather={text:(context.mode==='remaining'?'Dzisiaj':'Jutro')+' w ciągu dnia będzie chłodno, od 3 do 5°C.'+(context.mode==='remaining'?'':' Opady są możliwe w nocy z czwartku na piątek.'),factIds:['weather']},route={text:'Na przejazd ze spotkania na basen zarezerwuj około 22 minuty.',factIds:['route-0']};
      return Response.json({choices:[{message:{content:JSON.stringify({intro,weather,insights:[route],spoken:[{text:count.text,factIds:['count']},intro,route,weather]})}}]});
@@ -19,7 +22,7 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
   browser=await engine.launch({headless:true,...(kind==='chromium'?{args:['--no-sandbox'],...(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{})}: {})});
   for(const width of [320,390,430]){
    // Every viewport has an independent planner session and provider counters.
-   modelCalls=0;briefCalls=0;routeCalls=[];
+   modelCalls=0;briefCalls=0;routeCalls=[];wrongDayReplies=0;
    const height=width===320?568:844,context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,timezoneId:'Europe/Warsaw',geolocation:{latitude:52.23,longitude:21.01},permissions:['geolocation']}),page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(20000);
    await page.addInitScript(()=>{
@@ -79,7 +82,7 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     window.realBriefApiInfo=getApiInfo;getApiInfo=async()=>({conversationFeatures:[]});await OktiDayBriefUI.show({day:'tomorrow',briefMode:'plan'});
    });
    assert.match(await page.locator('#entryResultsCount').textContent(),/piątek, 13 listopada 2026/);assert.doesNotMatch(await page.locator('#entryResultsCount').textContent(),/cały dzień|lokalizacja|Warszawa|Polska/);
-   assert.deepEqual(await list.locator('.day-brief-section h3').allTextContents(),['Pogoda','Inspiracja dnia']);assert.match(await list.locator('[data-brief-inspiration]').textContent(),/Według astrologii/);assert.equal(await list.locator('[data-brief-weather] p').textContent(),'W ciągu dnia będzie od 3 do 5°C. Możliwe opady w nocy z czwartku na piątek.');
+   assert.deepEqual(await list.locator('.day-brief-section h3').allTextContents(),['Pogoda','Inspiracja na jutro']);assert.match(await list.locator('[data-brief-inspiration]').textContent(),/Według astrologii/);assert.equal(await list.locator('[data-brief-weather] p').textContent(),'W ciągu dnia będzie od 3 do 5°C. Możliwe opady w nocy z czwartku na piątek.');
    await page.getByRole('button',{name:'Odczytaj podsumowanie',exact:true}).tap();const short=await page.evaluate(()=>testSpeech.at(-1));assert.match(short,/W ciągu dnia będzie od 3 do 5°C/);assert.match(short,/w nocy z czwartku na piątek/);assert.doesNotMatch(short,/dojazdów|Warszawa|Polska|cały dzień|%|00:00|65/);
    assert.equal(await list.locator('button[data-brief-count][data-brief-events]').count(),1);await page.screenshot({path:path.join(output,width+'-clean-tomorrow.png')});
    await list.locator('[data-brief-count]').tap();assert.equal(await list.locator('.entry-result').count(),1);await list.locator('.entry-result').tap();await page.waitForFunction(()=>activeTask?.id==='readable-one'&&!OktiEventMotion.getState());assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===readableBefore),true);
@@ -126,7 +129,17 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     if(!audio&&question==='Podsumuj dzisiejszy dzień'){await modal.locator('.action-card').evaluate(async n=>{await Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{})))});await page.screenshot({path:path.join(output,width+'-today-noon.png')});}
     await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
    }
-   assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': audio → Worker → mobile briefing, large readable report, grounded AI voice, weather and local holidays, no route metrics in speech, coordinate Routes and lateness, tomorrow/review, no task claims, explicit meeting details, native read/close/event-open, audio reference → precise event selection, async cancellation and unchanged planner passed (STT/GPS/Google/weather fixtures).');
+   // The same imported motif on Friday/Saturday must not carry a "today"
+   // label into Saturday's plan, even if the model supplies that wrong label.
+   await page.evaluate(()=>window.testNow=+new Date('2026-11-13T17:13:00+01:00'));
+   for(const audio of [false,true]){
+    await ask('Plan na jutro',audio);const inspiration=list.locator('[data-brief-inspiration]');assert.equal(await page.evaluate(()=>OktiDayBriefUI.getState().model.inspiration.date),'2026-11-14');assert.equal(await inspiration.getAttribute('data-brief-inspiration-date'),'2026-11-14');assert.equal(await inspiration.locator('h3').textContent(),'Inspiracja na jutro');assert.doesNotMatch(await inspiration.textContent(),/na dziś/);assert.equal(await page.evaluate(()=>!!OktiDayBriefUI.getState().aiError),false);
+    assert.equal(await page.evaluate(()=>OktiDayInspiration.day('2026-11-13').text===OktiDayInspiration.day('2026-11-14').text),true,'Shared source motifs are retained rather than inventing daily differences');assert.equal(await list.locator('[data-brief-weather]').count(),1);
+    if(!audio){await inspiration.scrollIntoViewIfNeeded();await modal.locator('.action-card').evaluate(async n=>{await Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{})))});await page.screenshot({path:path.join(output,width+'-tomorrow-inspiration.png')});}
+    await page.getByRole('button',{name:'Odczytaj podsumowanie',exact:true}).tap();assert.doesNotMatch(await page.evaluate(()=>testSpeech.at(-1)),/na dziś/);assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===humanBefore),true);await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
+   }
+   assert.equal(wrongDayReplies,2,'Both text and normalized audio exercised the model date guard');
+   assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': audio → Worker → mobile briefing, large readable report, grounded AI voice, weather and local holidays, date-bound inspiration and wrong-day AI filtering, no route metrics in speech, coordinate Routes and lateness, tomorrow/review, no task claims, explicit meeting details, native read/close/event-open, audio reference → precise event selection, async cancellation and unchanged planner passed (STT/GPS/Google/weather fixtures).');
   }
  }finally{await browser?.close();globalThis.fetch=nativeFetch}
 })().catch(error=>{console.error(error);process.exitCode=1});

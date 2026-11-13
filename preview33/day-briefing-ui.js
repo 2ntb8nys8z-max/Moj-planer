@@ -76,7 +76,7 @@ window.OktiDayBriefUI=(()=>{
   else if(model.mode!=='review')list.append(unavailableWeather(state));
   if(model.holidays?.items?.length){const box=section('Święto',model.holidays.items.map(h=>h.localName));box.dataset.briefHoliday='';list.append(box)}
   if(model.narrative?.insights?.length){const box=section('Warto pamiętać',model.narrative.insights.map(s=>s.text));box.dataset.briefInsights='';list.append(box)}
-  if(model.inspiration){const box=section('Inspiracja dnia',[model.narrative?.inspiration?.text||model.inspiration.text]);box.dataset.briefInspiration='';const source=document.createElement('p');source.className='day-brief-status';source.style.fontSize='16px';source.textContent=model.inspiration.attribution;box.querySelector('h3').after(source);list.append(box)}
+  if(model.inspiration&&model.inspiration.date===model.date){const box=section(narrator?.inspirationTitle?.(model)||'Inspiracja na '+new Date(model.date+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long'}),[model.narrative?.inspiration?.text||model.inspiration.text]);box.dataset.briefInspiration='';box.dataset.briefInspirationDate=model.date;const source=document.createElement('p');source.className='day-brief-status';source.style.fontSize='16px';source.textContent=model.inspiration.attribution;box.querySelector('h3').after(source);list.append(box)}
   modal.querySelector('[data-brief-footer]')?.remove();const footer=document.createElement('div');footer.className='day-brief-footer';footer.dataset.briefFooter='';
   state.readButton=button(state.speechToken?'Zatrzymaj odczyt':'Odczytaj podsumowanie',()=>speak(state),true);state.readButton.setAttribute('aria-pressed',String(!!state.speaking));state.readButton.setAttribute('aria-busy',String(!!state.speechToken&&!state.speaking));footer.append(state.readButton);
   const status=state.statusNode=document.createElement('p');status.className='day-brief-status';status.dataset.briefStatus='';status.setAttribute('role','status');status.textContent=state.analyzing?'Chwilę, układam podsumowanie…':'';footer.append(status);modal.querySelector('.action-card').append(footer);
@@ -94,7 +94,7 @@ window.OktiDayBriefUI=(()=>{
   if(focus){modal.querySelector('h2').tabIndex=-1;modal.querySelector('h2').focus({preventScroll:true})}
  }
  async function analyze(state){
-  const model=state.model,context={mode:model.mode,facts:narrator.facts(model,core.summary(model))};
+  const model=state.model,context=narrator.context(model,core.summary(model));
   const info=await getApiInfo();if(!owned(state))return;
   if(!info.conversationFeatures?.includes('day-brief-narrative-v1')){state.aiError='Podsumowanie na podstawie danych · serwer AI czeka na aktualizację.';return}
   const timer=setTimeout(()=>state.controller.abort(),22000);
