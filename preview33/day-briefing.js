@@ -31,10 +31,11 @@
   const start=+new Date(date+'T00:00:00'),end=+new Date(nextDay(date)+'T00:00:00'),stamp=+now;
   return items.flatMap(item=>{
    const span=interval(item);if(!span||span.start>=end||span.end<start||span.end===start&&span.start<start)return [];
+   if(mode==='review'&&date===dayKey(now)&&(span.hasEnd?span.end>stamp:span.start>stamp))return [];
    if(mode!=='review'&&(item.done||mode==='remaining'&&(span.hasEnd?span.end<=stamp:span.start<stamp)))return [];
    const status=span.allDay?'all-day':mode==='review'?'past':span.start<=stamp&&span.end>stamp?'ongoing':'upcoming';
    const finish=span.hasEnd&&!span.allDay?clock(new Date(span.end))+(dayKey(new Date(span.end))!==date?' ('+dayKey(new Date(span.end))+')':''):'',time=span.allDay?'Cały dzień':(dayKey(new Date(span.start))!==date?'od '+dayKey(new Date(span.start))+' ':'')+clock(new Date(span.start))+(finish?'–'+finish:'');
-   return [{type:'event',item,title:title(item),...span,status,summaryMeta:(status==='ongoing'?'Trwa · ':'')+time+(mode==='review'&&item.done?' · oznaczone jako wykonane':'')}];
+   return [{type:'event',item,title:title(item),...span,status,summaryMeta:(status==='ongoing'?'Trwa · ':'')+time}];
   }).sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start-b.start||a.title.localeCompare(b.title,'pl'));
  }
  function calendarContext(date){
@@ -126,7 +127,8 @@
   const {mode,date,records=[],travel:journey}=model,now=model.now||new Date(),n=records.length;
   const count=n+' '+(n===1?'spotkanie':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'spotkania':'spotkań');
   const when=date===nextDay(dayKey(now))?'jutro':date===dayKey(now)?'dzisiaj':'tego dnia';
-  const countText=mode==='review'?'W kalendarzu zaplanowano '+count+'. Oznaczone jako wykonane: '+records.filter(r=>r.item.done).length+'.':mode==='remaining'?(n?'Masz dziś jeszcze '+count+'.':'Na dziś nie masz już zaplanowanych spotkań.'):(n?'Masz '+when+' '+count+'.':'Nie masz '+when+' zaplanowanych spotkań.');
+  const pastWhen=date===nextDay(dayKey(now),-1)?'Wczoraj':date===dayKey(now)?'Wcześniej dzisiaj':'Tego dnia';
+  const countText=mode==='review'?pastWhen+' w kalendarzu zaplanowano '+count+'.':mode==='remaining'?(n?'Masz dziś jeszcze '+count+'.':'Na dziś nie masz już zaplanowanych spotkań.'):(n?'Masz '+when+' '+count+'.':'Nie masz '+when+' zaplanowanych spotkań.');
   const names=new Map(records.map(r=>[r.item.id,r.title])),starts=new Map(records.map(r=>[r.item.id,r.start]));
   const name=id=>{const text=String(names.get(id)||'Wydarzenie');return '„'+(text.length>80?text.slice(0,80).trimEnd()+'…':text)+'”'};
   const raw=journey?.warnings||[],overlaps=raw.filter(w=>w.kind==='overlap'),covered=new Set(),pairs=new Map();
