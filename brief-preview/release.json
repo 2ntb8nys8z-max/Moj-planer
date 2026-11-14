@@ -1,11 +1,11 @@
 {
-  "version": "2026.11.14.33.296-test",
+  "version": "2026.11.14.33.297-test",
   "source": "integration/conversation33/index.html",
-  "frontendBuildId": "8aa30d3daa2b4c0a",
+  "frontendBuildId": "a5ca45cd67ca52dd",
   "workerVersion": "2026.11.14.33.57-test",
   "workerBuildId": "97d0189588499086",
   "protocolVersion": 2,
   "apiUrl": "https://brief-27-moj-planer-api.yd7ynvj864.workers.dev",
-  "sourceCommit": "5102dd9e3043521e69a862f205bcacfa5b821cc5",
+  "sourceCommit": "389673166df3b44993323689d81bee8f88e0b06e",
   "productionWorkerUnchanged": true
 }
