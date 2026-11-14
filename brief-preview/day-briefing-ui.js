@@ -67,6 +67,23 @@ window.OktiDayBriefUI=(()=>{
  #entryResultsModal.is-day-brief[data-brief-layout=day] .day-brief-intro{font-size:17px;line-height:1.55}.brief-plan-limit{margin:16px 0 0}.brief-plan-limit h3{font-size:16px}.brief-plan-limit p{font-size:15px;line-height:1.5}.brief-plan-limit .day-brief-read{font-size:14px;min-height:44px;margin-top:10px}
  @media(max-width:360px){#entryResultsModal.is-day-brief[data-brief-layout=day] #entryResults{padding:8px 18px 24px}.brief-year-counters{gap:6px}.brief-year-counter{gap:7px}.brief-year-counter span.brief-counter-label{font-size:13px}.brief-travel-card{padding:8px}.brief-travel-card p{font-size:13px}}
  `;document.head.append(layoutStyle);
+ const ongoingStyle=document.createElement('style');ongoingStyle.textContent=`
+ #entryResultsModal.is-day-brief .brief-event-name{color:#182e3c!important;-webkit-text-fill-color:#182e3c!important}
+ #entryResultsModal.is-day-brief .brief-event-time{color:#182e3c;-webkit-text-fill-color:#182e3c}
+ #entryResultsModal.is-day-brief .brief-event-row.is-ongoing button.brief-event{position:relative;padding-top:34px}
+ #entryResultsModal.is-day-brief .brief-event-row.is-ongoing .brief-event-time{color:#066535;-webkit-text-fill-color:#066535}
+ #entryResultsModal.is-day-brief .brief-ongoing-label{position:absolute;top:0;left:68px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;background:#066535;color:#fff;-webkit-text-fill-color:#fff;font-size:12px;font-weight:800;line-height:1.4;letter-spacing:.2px;white-space:nowrap}
+ #entryResultsModal.is-day-brief .brief-ongoing-label[hidden]{display:none}.brief-ongoing-label .brief-icon{width:14px;height:14px}
+ .brief-event-row.is-ongoing:before{height:45px}.brief-event-row.is-ongoing.has-transfer:before{top:45px;height:auto}
+ .brief-transfer+.brief-event-row.is-ongoing:before{display:block;top:0;height:45px}.brief-transfer+.brief-event-row.is-ongoing.has-transfer:before{height:auto;bottom:0}
+ .brief-event-row.is-ongoing:after{left:53px;top:41px;width:11px;height:11px;z-index:2;background:radial-gradient(circle at 35% 28%,#16ae5a,#078644 65%,#05612f);box-shadow:0 0 0 4px #20ad5930;animation:brief-ongoing-shimmer 2.8s ease-in-out infinite}
+ .brief-event-pulse{display:none;position:absolute;z-index:1;top:39px;left:51px;width:15px;height:15px;box-sizing:border-box;border:1.5px solid #0d9f52;border-radius:50%;box-shadow:0 0 7px #23b56838;opacity:0;pointer-events:none;animation:brief-ongoing-ring 2.8s cubic-bezier(.2,.55,.35,1) infinite}
+ .brief-event-row.is-ongoing .brief-event-pulse{display:block}.brief-event-pulse.is-second{animation-delay:1.4s}
+ .brief-motion-paused .brief-event-pulse,.brief-motion-paused .brief-event-row.is-ongoing:after{animation-play-state:paused}
+ @keyframes brief-ongoing-ring{0%{transform:scale(.65);opacity:0}15%{opacity:.5}75%,100%{transform:scale(1.9);opacity:0}}
+ @keyframes brief-ongoing-shimmer{0%,100%{filter:brightness(1);box-shadow:0 0 0 4px #20ad5930}50%{filter:brightness(1.16);box-shadow:0 0 0 5px #20ad5938,0 0 9px #20ad5920}}
+ @media(prefers-reduced-motion:reduce){.brief-event-row.is-ongoing:after{animation:none}.brief-event-row.is-ongoing .brief-event-pulse{display:none;animation:none}}
+ `;document.head.append(ongoingStyle);
  const settingStyle=document.createElement('style');settingStyle.textContent=`
  #briefSummarySettings p{font-size:14px;line-height:1.55;color:#5c6e76}#briefSummarySettings .brief-yaga-toggle{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;margin:12px 0;border-top:1px solid #e2e8e6;border-bottom:1px solid #e2e8e6;color:#2d454b;cursor:pointer;-webkit-tap-highlight-color:transparent}#briefSummarySettings .brief-yaga-label{display:block;font-size:16px;line-height:1.45;font-weight:650}#briefSummarySettings .brief-yaga-description{display:block;font-size:13px;line-height:1.5;color:#667980;font-weight:400;margin-top:5px}#briefYagaEnabled{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:50px;height:30px;min-height:30px;margin:0;padding:0;border:1px solid #aab9b5;border-radius:18px;background:#d7dfdc;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s}#briefYagaEnabled:before{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #27443630;transition:transform .18s}#briefYagaEnabled:checked{background:#4c7e6e;border-color:#4c7e6e}#briefYagaEnabled:checked:before{transform:translateX(20px)}#briefYagaEnabled:focus-visible{outline:3px solid #76a798;outline-offset:4px}#briefSummarySettings #briefYagaStatus{font-size:13px;min-height:20px;margin:0 0 16px}@media(prefers-reduced-motion:reduce){#briefYagaEnabled,#briefYagaEnabled:before{transition:none}}
  `;document.head.append(settingStyle);
@@ -88,8 +105,19 @@ window.OktiDayBriefUI=(()=>{
  window.addEventListener('storage',event=>{if(event.key===prefix+yagaPreferenceKey||event.key===null)applyYagaPreference();if(event.key===prefix+travelBufferKey||event.key===null)applyTravelBuffer()});
  const fingerprint=()=>JSON.stringify(tasks);
  const owned=state=>current===state&&state.serial===serial&&!modal.classList.contains('hidden')&&(!state.session||voiceDialogues[state.session.channel]===state.session);
+ function updateOngoing(state){
+  clearTimeout(state.ongoingTimer);state.ongoingTimer=null;if(!owned(state)||state.view!=='brief'||!state.model)return;
+  modal.classList.toggle('brief-motion-paused',document.hidden);if(document.hidden)return;
+  const now=Date.now(),boundaries=[];
+  for(const row of list.querySelectorAll('[data-brief-event]')){
+   const start=Number(row.dataset.briefStart),end=Number(row.dataset.briefEnd),timed=state.model.mode!=='review'&&Number.isFinite(start)&&Number.isFinite(end)&&end>start;
+   const ongoing=timed&&start<=now&&now<end;row.classList.toggle('is-ongoing',ongoing);row.querySelector('[data-brief-ongoing]').hidden=!ongoing;
+   if(timed)for(const boundary of [start,end])if(boundary>now)boundaries.push(boundary);
+  }
+  if(boundaries.length)state.ongoingTimer=setTimeout(()=>updateOngoing(state),Math.min(60000,Math.max(25,Math.min(...boundaries)-now+25)));
+ }
  function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent=state.readLabel||'Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
- function cancel({keepFooter=false}={}){serial++;if(current){stop(current);current.controller.abort();if(current.view==='day-card')document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','false')}current=null;if(!keepFooter){modal.querySelector('[data-brief-footer]')?.remove();delete modal.dataset.briefLayout}modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
+ function cancel({keepFooter=false}={}){serial++;if(current){clearTimeout(current.ongoingTimer);current.ongoingTimer=null;stop(current);current.controller.abort();if(current.view==='day-card')document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','false')}current=null;if(!keepFooter){modal.querySelector('[data-brief-footer]')?.remove();delete modal.dataset.briefLayout}modal.classList.remove('is-day-brief');modal.removeAttribute('role');modal.removeAttribute('aria-modal');modal.removeAttribute('aria-labelledby')}
  function close(){const state=current,card=modal.querySelector('.action-card');cancel({keepFooter:true});if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){modal.classList.add('is-day-brief');const motion=card.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(12px)'}],{duration:150,easing:'ease-in'});motion.onfinish=()=>{if(!current){modal.classList.add('hidden');modal.classList.remove('is-day-brief');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}}else{modal.classList.add('hidden');modal.querySelector('[data-brief-footer]')?.remove();state?.returnFocus?.focus?.({preventScroll:true})}}
  function speak(state){
   if(!owned(state)||!state.model||fingerprint()!==state.version||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
@@ -182,11 +210,13 @@ window.OktiDayBriefUI=(()=>{
   for(const record of records){
    const currentLeg=legs.find(l=>l.current&&l.to.id===record.item.id),between=legs.find(l=>!l.current&&l.to.id===record.item.id),leg=currentLeg||between;
    if(leg&&(!leg.current||Number.isFinite(leg.route?.minutes)))flow.append(routeCard(leg,model));
-   const row=document.createElement('div');row.className='brief-event-row';row.dataset.briefEvent='';if(n===1)row.dataset.briefSingle='';const b=document.createElement('button');b.type='button';b.className='brief-event';b.onclick=()=>openBriefRecord(state,record);
+   const row=document.createElement('div');row.className='brief-event-row';row.dataset.briefEvent='';if(n===1)row.dataset.briefSingle='';if(!record.allDay&&record.hasEnd){row.dataset.briefStart=record.start;row.dataset.briefEnd=record.end}const b=document.createElement('button');b.type='button';b.className='brief-event';b.onclick=()=>openBriefRecord(state,record);
+   const label=document.createElement('span');label.className='brief-ongoing-label';label.dataset.briefOngoing='';label.hidden=true;label.append(icon('clock'),document.createTextNode('TRWA TERAZ'));b.append(label);
+   for(const second of [false,true]){const pulse=document.createElement('span');pulse.className='brief-event-pulse'+(second?' is-second':'');pulse.setAttribute('aria-hidden','true');row.append(pulse)}
    const time=document.createElement('span');time.className='brief-event-time'+(record.allDay?' is-all-day':'');time.textContent=record.allDay?'Cały dzień':core.clock(new Date(record.start));
    const content=document.createElement('span'),line=document.createElement('span'),name=document.createElement('span');content.className='brief-event-content';line.className='brief-event-line';name.className='brief-event-name';name.textContent=record.title;line.append(name);
    if(!record.allDay&&record.hasEnd){const duration=document.createElement('span');duration.className='brief-duration';const minutes=Math.round((record.end-record.start)/60000);duration.setAttribute('aria-label','Czas trwania: '+minutes+' minut');duration.append(icon('clock'),document.createTextNode(minutes+' min'));line.append(duration)}content.append(line);
-   const place=core.location(record.item),meta=[record.status==='ongoing'?'Trwa':null,!record.allDay&&core.dayKey(new Date(record.start))!==model.date?'Od '+new Date(record.start).toLocaleDateString('pl-PL',{day:'numeric',month:'long'}):null,place].filter(Boolean);if(meta.length){const p=document.createElement('span');p.className='brief-event-place';p.textContent=meta.join(' · ');content.append(p)}
+   const place=core.location(record.item),meta=[!record.allDay&&core.dayKey(new Date(record.start))!==model.date?'Od '+new Date(record.start).toLocaleDateString('pl-PL',{day:'numeric',month:'long'}):null,place].filter(Boolean);if(meta.length){const p=document.createElement('span');p.className='brief-event-place';p.textContent=meta.join(' · ');content.append(p)}
    b.append(time,content);row.append(b);flow.append(row);
   }
   for(const row of flow.querySelectorAll('.brief-event-row'))if(row.nextElementSibling?.classList.contains('brief-transfer'))row.classList.add('has-transfer');box.append(flow);
@@ -225,7 +255,7 @@ window.OktiDayBriefUI=(()=>{
   for(const text of [...new Set(notes)]){const p=document.createElement('p');p.textContent=text;sources.append(p)}
   for(const [label,url,show] of [['Pogoda: Open-Meteo','https://open-meteo.com/',model.weather?.available],['Święta: Nager.Date',model.holidays?.source,model.holidays?.available],['Trasy: Google Maps','https://maps.google.com/',model.travel?.legs?.some(l=>l.route)]])if(show){const p=document.createElement('p'),a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener noreferrer';p.append(a);sources.append(p)}
   for(const url of model.dayInfo?.sources||[])if(/^https:\/\//.test(url)){const p=document.createElement('p'),a=document.createElement('a');a.href=url;a.textContent='Kalendarz: '+new URL(url).hostname;a.target='_blank';a.rel='noopener noreferrer';p.append(a);sources.append(p)}
-  list.append(sources);list.scrollTop=focus?0:scroll;
+  list.append(sources);updateOngoing(state);list.scrollTop=focus?0:scroll;
   if(focus){modal.querySelector('h2').tabIndex=-1;modal.querySelector('h2').focus({preventScroll:true})}
  }
  async function analyze(state){
@@ -317,7 +347,7 @@ window.OktiDayBriefUI=(()=>{
   if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}
   if(event.key==='Tab'){const focusable=[...modal.querySelectorAll('button,a[href],summary')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!focusable.includes(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}
  },true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden&&current)stop(current)});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&current)stop(current);if(current?.view==='brief')updateOngoing(current)});
  installTravelSetting();installYagaSetting();
  return {show,showDay,showInspiration,cancel,isYagaEnabled,setYagaEnabled,getTravelBuffer,setTravelBuffer,getState:()=>current};
 })();
