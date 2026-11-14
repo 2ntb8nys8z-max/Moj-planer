@@ -4,7 +4,15 @@ function context(data){
  if(data.schemaVersion!==2)return data;
  return {...data,facts:data.facts.map(f=>{const v=f.values;let text='';
   if(f.kind==='count')text=v.meetings?(data.mode==='review'?'W kalendarzu zaplanowano ':data.relativeDay==='tomorrow'?'Masz jutro ':'Masz dziś jeszcze ')+v.meetings+' '+(v.meetings===1?'spotkanie.':v.meetings<5?'spotkania.':'spotkań.'):data.relativeDay==='tomorrow'?'Nie masz jutro zaplanowanych spotkań.':'Na dziś nie masz już zaplanowanych spotkań.';
-  else if(f.kind==='weather'){text=v.temperatureMax-v.temperatureMin>=6?'Wieczorem ochłodzi się z '+v.temperatureMax+' do '+v.temperatureMin+'°C.':(data.relativeDay==='tomorrow'?'Jutro':'Dzisiaj')+' w ciągu dnia będzie chłodno, od '+v.temperatureMin+' do '+v.temperatureMax+'°C.';if(v.rain){const day=new Date(v.rain.at.slice(0,10)+'T12:00:00').getDay(),night='w nocy z '+['soboty','niedzieli','poniedziałku','wtorku','środy','czwartku','piątku'][day]+' na '+['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'][day];text+=' Możliwe opady '+(v.rain.at.slice(11,13)==='00'?night:'wieczorem')+'.';}}
+  else if(f.kind==='weather'){
+   text=v.temperatureMax-v.temperatureMin>=6?'Wieczorem ochłodzi się z '+v.temperatureMax+' do '+v.temperatureMin+'°C.':(data.relativeDay==='tomorrow'?'Jutro':'Dzisiaj')+' w ciągu dnia będzie chłodno, od '+v.temperatureMin+' do '+v.temperatureMax+'°C.';
+   if(Number.isFinite(v.apparentMin)&&Number.isFinite(v.apparentMax))text+=' Odczuwalna od '+v.apparentMin+' do '+v.apparentMax+'°C.';
+   if(v.condition)text+=' '+v.condition.label+'.';
+   const p=v.rainPeriods?.find(p=>!p.night)||v.rainPeriods?.[0];
+   if(p){let when='';if(p.night){const last=new Date(v.date+'T12:00:00');if(p.night==='after')last.setDate(last.getDate()+1);const day=last.getDay();when=' w nocy z '+['soboty','niedzieli','poniedziałku','wtorku','środy','czwartku','piątku'][day]+' na '+['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'][day]}text+=' Możliwe '+(p.intensity==='light'?'słabe ':p.intensity==='heavy'?'silne ':'')+'opady'+when+', około '+p.from.slice(11)+'–'+p.to.slice(11)+'.';}
+   else if(v.rain){const day=new Date(v.rain.at.slice(0,10)+'T12:00:00').getDay(),night='w nocy z '+['soboty','niedzieli','poniedziałku','wtorku','środy','czwartku','piątku'][day]+' na '+['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'][day];text+=' Możliwe opady '+(v.rain.at.slice(11,13)==='00'?night:'wieczorem')+'.';}
+   else if(v.precipitationKnown)text+=' Bez opadów.';
+  }
   else if(f.kind==='warning')text=(v.risk==='overlap'?'Nakładają się terminy spotkań ':'Ryzyko spóźnienia na spotkanie ')+v.events.map(e=>'„'+e.title+'”').join(' i ')+'.';
   else if(f.kind==='activity')text=v.title;
   else if(f.kind==='travel')text='Dojazd do „'+v.to+'” zajmie około '+v.minutes+' minut.';
