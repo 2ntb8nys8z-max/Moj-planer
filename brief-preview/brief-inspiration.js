@@ -16,7 +16,58 @@
   home:{label:'dom i bliskość',text:'Zwróć uwagę na to, co daje Ci poczucie spokoju w domu. Wystarczy mały gest, który pasuje do Twojego dnia.'}
  };
  const rows=new Map((data?.days||[]).map(row=>[row[0],row])),dayKey=core.dayKey;
- function day(date){const row=rows.get(date);if(!row)return null;const theme=themes[row[1]];if(!theme)return null;const detail=row[5]||{},next=kind=>{const found=(data.days||[]).find(r=>r[0]>=date&&new RegExp(kind,'iu').test(r[5]?.phase||r[3]));return found?{date:found[0],days:Math.round((Date.parse(found[0]+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:found[5]?.phase||found[3]}:null};return {date,theme:row[1],label:theme.label,text:theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Źródło: Księga Yagi · Zofia Rende',detail:{...detail,nextNewMoon:next('^nów(?:\\s|$)'),nextFullMoon:next('^pełnia(?:\\s|$)')}};}
+ const carePhrases={
+  'zbytniej surowości wobec siebie':'Daj sobie więcej wyrozumiałości.',
+  'krytykowania siebie i innych':'Podejdź łagodniej do siebie i innych.',
+  'odkładania decyzji w nieskończoność':'Nie odkładaj decyzji w nieskończoność.',
+  'zazdrości i gier o władzę':'Zostaw miejsce na bliskość bez zazdrości i rywalizacji o władzę.',
+  'obietnic bez pokrycia':'Obiecuj tyle, ile możesz dotrzymać.',
+  'buntu dla buntu':'Wybieraj zmiany, które mają dla Ciebie sens, zamiast samego sprzeciwu.',
+  'ważnych podpisów i alkoholu':'Według Yagi to czas odpoczynku — bez alkoholu i ważnych podpisów.',
+  'pośpiechu i kłótni':'Daj sobie czas i unikaj kłótni.',
+  'wielkich zmian i upartego trzymania się swojego':'Nie naciskaj na wielkie zmiany i zostaw miejsce na inne zdanie.',
+  'rozpraszania się i plotek':'Chroń swoją uwagę przed rozproszeniem i plotkami.',
+  'rozdrapywania starych ran':'Nie wracaj do dawnych spraw tylko po to, by rozdrapywać rany.',
+  'pychy i obrażania się':'Zostaw miejsce na skromność i nie pielęgnuj urazy.'
+ };
+ const favorPhrases={
+  'pracę, sprawy urzędowe, plany długoterminowe i dyscyplinę':'Praca, formalności i długoterminowe planowanie.',
+  'porządki, zdrowe jedzenie, planowanie i pracę nad szczegółami':'Porządki, zdrowe jedzenie, planowanie i dopracowanie szczegółów.',
+  'rozmowy o związku, umowy, urodę i sztukę':'Rozmowy o związku, umowy, uroda i sztuka.',
+  'szczere rozmowy, terapię, bliskość i porządki w finansach':'Szczere rozmowy, terapia, bliskość i porządkowanie finansów.',
+  'podróże, naukę, spacer w plenerze i plany na przyszłość':'Podróże, nauka, spacer i plany na przyszłość.',
+  'spotkania z przyjaciółmi, nowe pomysły, technologię i wolontariat':'Spotkania z przyjaciółmi, nowe pomysły, technologia i wolontariat.',
+  'odpoczynek, sen, medytację, kąpiel, sztukę i pomoc innym':'Odpoczynek, sen, medytacja, kąpiel, sztuka i pomoc innym.',
+  'nowe początki, sport i szybkie załatwianie spraw':'Nowe początki, sport i sprawne załatwianie spraw.',
+  'finanse, gotowanie, masaż i pracę w ogrodzie':'Finanse, gotowanie, masaż i praca w ogrodzie.',
+  'rozmowy, telefony, naukę, pisanie i drobne sprawunki':'Rozmowy, telefony, nauka, pisanie i drobne sprawunki.',
+  'dom, rodzinę, gotowanie i odpoczynek':'Dom, rodzina, gotowanie i odpoczynek.',
+  'twórczość, randkę, występ i zabawę z dziećmi':'Twórczość, randka, występ i zabawa z dziećmi.'
+ };
+ function editorial(detail){
+  const raw=detail.sourceText||{},positive=detail.energy?.match(/Dobry dzień na ([^.]+)\./u)?.[1],avoid=detail.energy?.match(/Unikaj ([^.]+)\./u)?.[1];
+  return {inspiration:raw.whisper||null,favors:positive?(favorPhrases[positive]||'Dobry dzień na '+positive+'.'):null,care:avoid?(carePhrases[avoid]||'Unikaj '+avoid+'.'):null,evidence:{inspiration:raw.whisper?{column:'T',text:raw.whisper}:null,favors:positive?{column:'Z',text:'Dobry dzień na '+positive+'.'}:null,care:avoid?{column:'Z',text:'Unikaj '+avoid+'.'}:null}};
+ }
+ function sky(date,detail){
+  const events=[],other=[];let week=null;
+  for(const line of String(detail.transits||'').split('\n').filter(s=>s.trim())){
+   const match=line.match(/^(.*?) \((\d{2}:\d{2})\):\s*([\s\S]*)$/u);
+   if(!match){if(/\(tydzień\)/u.test(line))week=line.replace(/^.*?\(tydzień\):\s*/u,'');else other.push(line);continue}
+   const title=match[1].replace(/^[^A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+/u,''),phase=/^Nów\b/iu.test(title)?'nów':/^Pełnia\b/iu.test(title)?'pełnia':null,canonical=phase&&(data.phaseEvents||[]).find(e=>e.date===date&&e.kind===phase);
+   events.push({title,time:canonical?.time||match[2],interpretation:match[3],original:line,originalTime:match[2],source:'Księga Yagi'});
+  }
+  events.sort((a,b)=>a.time.localeCompare(b.time));return {events,week,other};
+ }
+ function day(date){
+  const row=rows.get(date);if(!row)return null;const theme=themes[row[1]];if(!theme)return null;
+  const detail=row[5]||{},next=kind=>{
+   const found=(data.phaseEvents||[]).find(e=>e.date>=date&&e.kind===kind);
+   if(found)return {...found,days:Math.round((Date.parse(found.date+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:found.kind+' o '+found.time};
+   const legacy=(data.days||[]).find(r=>r[0]>=date&&new RegExp('^'+kind+'(?:\\s|$)','iu').test(r[5]?.phase||r[3]));return legacy?{date:legacy[0],days:Math.round((Date.parse(legacy[0]+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:legacy[5]?.phase||legacy[3]}:null;
+  };
+  const guide=editorial(detail),celestial=sky(date,detail),biodynamic=detail.energy?.match(/Dzień (korzenia|liścia|kwiatu|owocu): ([^.]+)\./u);
+  return {date,theme:row[1],label:theme.label,text:guide.inspiration||theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Źródło: Księga Yagi · Zofia Rende',editorial:guide,sky:celestial,biodynamic:biodynamic?{kind:biodynamic[1],description:biodynamic[2]+'.'}:null,chapter:data.chapters?.[date]||null,detail:{...detail,nextNewMoon:next('nów'),nextFullMoon:next('pełnia')}};
+ }
  function shift(date,n){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return dayKey(d)}
  function validDate(date){return typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&dayKey(new Date(date+'T12:00:00'))===date;}
  function range(action={},now=new Date()){
@@ -55,5 +106,5 @@
   if(result.status==='no_match')return 'We wskazanym okresie nie znalazłem w Kalendarzu Jagi motywu pasującego do '+({work:'pracy',rest:'odpoczynku',relax:'relaksu'}[result.topic])+'. Możesz wybrać termin według własnych potrzeb i planu.';
   return 'Według astrologicznej Księgi Yagi pasuje '+dateLabel(result.candidates[0].date)+'. '+calendarText(result.candidates[0].calendar);
  }
- return {day,search,range,availability,calendarText,dateLabel,message,coverage:{from:data.from,to:data.to},source:data.source};
+ return {day,editorial,sky,search,range,availability,calendarText,dateLabel,message,coverage:{from:data.from,to:data.to},source:data.source};
 });
