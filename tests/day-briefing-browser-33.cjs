@@ -100,7 +100,7 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
    const fixedRead=page.getByRole('button',{name:'Odczytaj podsumowanie',exact:true});
    await modal.locator('.action-card').evaluate(async n=>{await Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{})))});
    const boxes=await modal.evaluate(n=>{const box=s=>{const r=n.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,bottom:r.bottom,right:r.right}};return {title:box('[data-brief-date-header]'),meta:box('[data-brief-calendar-info]'),body:box('#entryResults'),footer:box('[data-brief-footer]'),close:box('#closeEntryResults')}});
-   assert.ok(boxes.title.y>=boxes.body.y&&boxes.title.bottom<=boxes.meta.y&&boxes.body.bottom<=boxes.footer.y+1,'The date and calendar block scroll in order inside the body, above the separate footer');assert.ok(boxes.close.x>=width-100&&boxes.close.y<50,'Close stays in the top right without occupying a grid row');
+   assert.ok(boxes.title.y>=boxes.body.y&&boxes.title.bottom<=boxes.meta.y&&boxes.body.bottom<=boxes.footer.y+1,'The date and calendar block scroll in order inside the body, above the separate footer');assert.ok(boxes.close.x>=width-100&&boxes.close.y<50,'Close stays in the top right');assert.ok(boxes.close.bottom<=boxes.body.y,'Scrolling text never passes behind the close button');
    await page.screenshot({path:path.join(output,width+'-human-tomorrow.png')});
    await list.evaluate(n=>n.scrollTop=n.scrollHeight);const footer=await fixedRead.boundingBox();assert.ok(await list.evaluate(n=>n.scrollTop>0)&&footer.y+footer.height<=height,'The entire report scrolls while the read action remains in view');
    await fixedRead.tap();assert.match(await page.evaluate(()=>testSpeech.at(-1)),/Jutro w ciągu dnia będzie chłodno/);assert.ok((await page.evaluate(()=>testSpeech.at(-1))).split(/\s+/).length<=105);assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===humanBefore),true);
@@ -187,6 +187,10 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
    await list.locator('[data-yaga-toggle]').tap();assert.equal(await list.locator('[data-yaga-original]').isVisible(),true);assert.equal(await list.locator('[data-yaga-transits]').isVisible(),true,'Source transits remain outside the hidden details container');
    await list.locator('[data-yaga-toggle]').tap();assert.equal(await list.locator('[data-yaga-original]').isVisible(),false);assert.equal(await list.evaluate(n=>n.scrollWidth<=n.clientWidth+1),true,'No horizontal overflow at mobile widths');
    const travelGeometry=await transfer.locator('.brief-travel-card').evaluate(n=>({width:n.clientWidth,textWidth:Math.max(...[...n.querySelectorAll('p')].map(p=>p.scrollWidth)),font:parseFloat(getComputedStyle(n.querySelector('p')).fontSize)}));assert.ok(travelGeometry.textWidth<=travelGeometry.width,'Two travel lines fit without clipping: '+JSON.stringify(travelGeometry));assert.ok(travelGeometry.font<17);
+   assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===acceptedBefore),true,'Rendering, scrolling and expanding the report never modify calendar data');
+   // Match the initial suite fixture: event weather resolution has its own
+   // persistence tests and is independent of opening a report result.
+   await page.evaluate(()=>showPlannerWeather=async()=>{});
    await list.locator('.brief-event').last().tap();await page.waitForFunction(()=>activeTask?.id==='accepted-client'&&!OktiEventMotion.getState());assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===acceptedBefore),true);
    assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': accepted compact day layout and source expansion, saved optional Yaga switch, grounded voice, routes/risks, date-bound source material, native read/close/event-open, async cancellation and unchanged planner passed (STT/GPS/Google/weather/model fixtures).');
   }
