@@ -93,9 +93,9 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
    });
    assert.match(await page.locator('[data-brief-calendar]').textContent(),/317\. dzień roku\. Do końca roku zostało 48 dni/);
    assert.match(await list.locator('[data-brief-intro]').textContent(),/Przed wyjściem sprawdź/);
-   assert.match(await list.locator('[data-brief-weather-temperature]').textContent(),/Jutro.*3 do 5°C.*w nocy z czwartku na piątek/);
+   assert.match(await list.locator('[data-brief-weather-temperature]').textContent(),/od 3 do 5°C/);assert.match(await list.locator('[data-brief-weather-rain]').textContent(),/w nocy z czwartku na piątek.*23:00–00:00/);
    assert.equal(await list.locator('[data-brief-insights] h3').textContent(),'Twój plan');assert.match(await list.locator('[data-brief-insights]').textContent(),/22 minuty/);
-   assert.equal(await list.locator('[data-brief-intro]').evaluate(n=>getComputedStyle(n).fontSize),'22px');assert.equal(await list.locator('[data-brief-weather] p').evaluate(n=>getComputedStyle(n).fontSize),'19px');
+   assert.equal(await list.locator('[data-brief-intro]').evaluate(n=>getComputedStyle(n).fontSize),'22px');assert.equal(await list.locator('[data-brief-weather-temperature]').evaluate(n=>getComputedStyle(n).fontSize),'19px');
    const overview=await page.evaluate(()=>OktiDayBriefUI.getState().model.overview);assert.equal(overview.occupiedMinutes,120);assert.equal(overview.longestGapMinutes,120);assert.equal(overview.routeMinutes,22);
    const fixedRead=page.getByRole('button',{name:'Odczytaj podsumowanie',exact:true});
    await modal.locator('.action-card').evaluate(async n=>{await Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{})))});
