@@ -211,6 +211,22 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
     await page.getByRole('button',{name:'Odczytaj podsumowanie',exact:true}).tap();assert.ok((await page.evaluate(()=>testSpeech.at(-1))).includes(expected));assert.doesNotMatch(await page.evaluate(()=>testSpeech.at(-1)),/21:35|najpóźniej|graniczn/);
     assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===pickupBefore),true);await list.locator('[data-brief-plan]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,width+'-single-departure-buffer-'+buffer+'.png'),animations:'disabled'});await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
    }
+   await page.emulateMedia({colorScheme:'dark'});
+   await page.evaluate(async()=>{
+    window.testNow=+new Date('2026-11-14T20:49:00+01:00');
+    tasks=[{id:'active-home',title:'Wyjazd do domu',date:'2026-11-14',time:'20:15',endTime:'21:15',location:'Osowska 65C, Zielonka'},{id:'later-pickup',title:'Wyjazd po Ninę',date:'2026-11-14',time:'22:00',endTime:'23:00',location:'Widok 10, Warszawa'}];saveTasks();renderAll();window.ongoingBefore=JSON.stringify(PlannerData.snapshot());
+    await OktiDayBriefUI.show({date:'2026-11-14'},null,{refreshWeather:false,gpsFixId:'accepted-gps'});
+   });
+   const activeRow=list.locator('[data-brief-event]').first();assert.equal(await list.locator('.brief-event-row.is-ongoing').count(),1);assert.equal(await activeRow.locator('[data-brief-ongoing]').textContent(),'TRWA TERAZ');assert.equal(await activeRow.locator('[data-brief-ongoing]').isVisible(),true);assert.equal(await list.locator('[data-brief-event]').last().locator('[data-brief-ongoing]').isVisible(),false);
+   assert.equal(await activeRow.locator('.brief-event-name').evaluate(n=>getComputedStyle(n).color),'rgb(24, 46, 60)');assert.equal(await activeRow.locator('.brief-event-time').evaluate(n=>getComputedStyle(n).color),'rgb(6, 101, 53)');assert.equal(await activeRow.locator('[data-brief-ongoing]').evaluate(n=>getComputedStyle(n).color),'rgb(255, 255, 255)');
+   assert.equal(await activeRow.evaluate(n=>getComputedStyle(n,':after').animationName),'brief-ongoing-shimmer');
+   const pulse=activeRow.locator('.brief-event-pulse').first(),phase=async time=>pulse.evaluate((n,time)=>{const a=n.getAnimations()[0];a.pause();a.currentTime=time;return {transform:getComputedStyle(n).transform,opacity:getComputedStyle(n).opacity}},time);
+   const firstPhase=await phase(450),secondPhase=await phase(1250);assert.notDeepEqual(firstPhase,secondPhase,'The green halo changes shape/opacity across its cycle');
+   await list.locator('[data-brief-plan]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,width+'-ongoing-pulse.png')});
+   await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await activeRow.evaluate(n=>getComputedStyle(n,':after').animationName),'none');assert.equal(await pulse.evaluate(n=>getComputedStyle(n).display),'none');assert.equal(await activeRow.locator('[data-brief-ongoing]').isVisible(),true);await page.emulateMedia({reducedMotion:'no-preference'});
+   const callsBeforeStatus=briefCalls;
+   for(const [time,expected] of [['21:15',0],['22:00',1],['23:00',0]]){await page.evaluate(time=>{window.testNow=+new Date('2026-11-14T'+time+':00+01:00');document.dispatchEvent(new Event('visibilitychange'))},time);assert.equal(await list.locator('.brief-event-row.is-ongoing').count(),expected);if(expected)assert.match(await list.locator('.brief-event-row.is-ongoing .brief-event-name').textContent(),/Wyjazd po Ninę/)}
+   assert.equal(briefCalls,callsBeforeStatus,'Status transitions never request another AI report');assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===ongoingBefore),true);assert.equal(await page.evaluate(()=>OktiDayBriefUI.getState().ongoingTimer),null);await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
    assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': accepted compact day layout and source expansion, saved optional Yaga switch, grounded voice, routes/risks, date-bound source material, native read/close/event-open, async cancellation and unchanged planner passed (STT/GPS/Google/weather/model fixtures).');
   }
  }finally{await browser?.close();globalThis.fetch=nativeFetch}
