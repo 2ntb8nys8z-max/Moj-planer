@@ -131,6 +131,7 @@ window.OktiDayBriefUI=(()=>{
  function decorate(layout='default'){modal.classList.add('is-day-brief');modal.dataset.briefLayout=layout;modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','entryResultsTitle')}
  function meetings(state){
   if(!owned(state)||fingerprint()!==state.version)return;
+  if(state.model.records.length===1)return openBriefRecord(state,state.model.records[0]);
   showEntryResults(state.model.records,'Spotkania · '+new Date(state.model.date+'T12:00:00').toLocaleDateString('pl-PL'));
   state.serial=serial;state.controller=new AbortController();state.view='events';current=state;decorate();
   list.prepend(button('Wróć do podsumowania',()=>{if(owned(state))render(state)}));
@@ -157,7 +158,7 @@ window.OktiDayBriefUI=(()=>{
  function planInfo(state,brief){
   const model=state.model,records=model.records,n=records.length,box=document.createElement('section');box.className='brief-plan';box.dataset.briefPlan='';const heading=document.createElement('div'),title=document.createElement('h3');heading.className='brief-plan-heading';title.textContent=model.mode==='review'?'Zapisany plan':'Plan dnia';heading.append(title);box.append(heading);
   if(!n){const p=document.createElement('p');p.className='brief-empty';p.dataset.briefEmpty='';p.textContent=brief.countText;box.append(p);return box}
-  const count=document.createElement('button');count.type='button';count.className='brief-plan-count';count.dataset.briefCount='';count.dataset.briefEvents='';count.textContent=n+' '+(n===1?'spotkanie':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'spotkania':'spotkań');count.setAttribute('aria-label',brief.countText+' Zobacz spotkania.');count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow);heading.append(count);
+  const count=document.createElement('button');count.type='button';count.className='brief-plan-count';count.dataset.briefCount='';count.dataset.briefEvents='';count.textContent=n+' '+(n===1?'spotkanie':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'spotkania':'spotkań');count.setAttribute('aria-label',brief.countText+(n===1?' Przejdź do spotkania.':' Zobacz spotkania.'));count.onclick=()=>meetings(state);const arrow=document.createElement('span');arrow.className='day-brief-count-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='›';count.append(arrow);heading.append(count);
   const flow=document.createElement('div');flow.className='brief-event-list';const legs=model.travel?.legs||[];
   for(const record of records){
    const currentLeg=legs.find(l=>l.current&&l.to.id===record.item.id),between=legs.find(l=>!l.current&&l.to.id===record.item.id),leg=currentLeg||between;
