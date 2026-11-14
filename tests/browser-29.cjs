@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  const browser=await chromium.launch({headless:true});const page=await browser.newPage();const errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.route('**/*',async route=>{const u=route.request().url();if(u.startsWith('http://127.0.0.1:8080'))return route.continue();if(u.endsWith('/api-info'))return route.fulfill({contentType:'application/json',body:JSON.stringify({requiresAccess:true,protocolVersion:2,apiVersion:'2026.10.06.29'})});return route.abort();});
- await page.goto('http://127.0.0.1:8080/');await page.waitForFunction(()=>typeof PlannerSyncCore!=='undefined'&&typeof preparePlannerSave==='function');
+ await page.goto('http://127.0.0.1:8080/');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.waitForFunction(()=>typeof PlannerSyncCore!=='undefined'&&typeof preparePlannerSave==='function');
  await page.evaluate(()=>{
   tasks=[{id:123,title:'Test przeglądarki',date:'2026-10-06',time:'13:00',endTime:'13:15',notes:'',location:''}];saveTasks();renderAll();openEventActions(tasks[0]);
  });

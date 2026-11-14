@@ -1,0 +1,12 @@
+{
+  "source": {
+    "name": "US Naval Observatory",
+    "url": "https://aa.usno.navy.mil/calculated/moon/phases?year=2028",
+    "timeZone": "Europe/Warsaw",
+    "note": "Boundary phases only; daily interpretations remain those of Księga Yagi."
+  },
+  "events": [
+    {"date":"2028-01-12","kind":"pełnia","time":"05:03","source":"US Naval Observatory"},
+    {"date":"2028-01-26","kind":"nów","time":"16:12","source":"US Naval Observatory"}
+  ]
+}

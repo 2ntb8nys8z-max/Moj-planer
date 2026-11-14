@@ -11,6 +11,7 @@ const env={CLOUDFLARE_API_TOKEN:'test-token-that-must-never-appear-in-output',CL
 const settings={
   bindings:[
     {name:'OPENAI_API_KEY',type:'secret_text'},
+    {name:'GOOGLE_MAPS_API_KEY',type:'secret_text'},
     {name:'PLANNER_ACCESS_TOKEN',type:'secret_text'},
     {name:'OTHER_KEY',type:'secret_key'},
     {name:'API_LIMITS_DB',type:'d1',id:'existing-quota-database'},

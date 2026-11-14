@@ -7,10 +7,13 @@ import {JSDOM} from 'jsdom';
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
 const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KEY:'dummy',API_LIMITS_DB:{prepare(){return {run:async()=>{},bind(){return this},first:async()=>({})}}}};
 const nativeFetch=globalThis.fetch;
-let model,modelCalls=0,audioTranscript='';
-globalThis.fetch=async(url)=>{if(String(url).includes('/audio/transcriptions'))return new Response(JSON.stringify({text:audioTranscript}));modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(model)}}]}))};
+let model,modelCalls=0,audioTranscript='',modelResponses=[];
+globalThis.fetch=async(url)=>{if(String(url).includes('/audio/transcriptions'))return new Response(JSON.stringify({text:audioTranscript}));modelCalls++;return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(modelResponses.shift()||model)}}]}))};
 const command=(type,fields={},intent='execute')=>({reply:'Sprawdź ustalenia.',kind:'command',action:'continue',intent,operations:[],focus:'',ambiguity:null,uiAction:{type,...fields}});
+// Preserve coverage for installed clients using the original review-before-save contract.
+// Immediate creation is exercised end to end by immediate-events-33.mjs.
 async function post(payload){
+ if(payload.dialogueState)delete payload.dialogueState.eventCreationPolicy;
  const response=await worker.fetch(new Request('https://worker/',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.PLANNER_ACCESS_TOKEN},body:JSON.stringify(payload)}),env);
  assert.equal(response.status,200);return response.json();
 }
@@ -23,7 +26,7 @@ w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
 let lastPayload;
 w.testApi=async(path,options)=>{lastPayload=JSON.parse(options.body);return post(lastPayload)};
 for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
-run('plannerApiRequest=testApi;loadVoiceMemo=async()=>null;tasks=[];ideas=[]');
+run('plannerApiRequest=testApi;loadVoiceMemo=async()=>null;plannerAudioPayload=async()=>({base64:"YXVkaW8=",type:"audio/mp4"});tasks=[];ideas=[]');
 const read=s=>JSON.parse(JSON.stringify(run(s)));
 async function turn(text,answer){model=answer;w.testText=text;await run('requestVoiceDialogue(testSession,testText).then(r=>r&&applyVoiceDialogueResult(testSession,r))')}
 function begin(channel,entry={}){
@@ -33,6 +36,24 @@ function begin(channel,entry={}){
  else run("testSession=beginVoiceDialogue('main',null,null)");
 }
 try{
+ // Explicit 24-hour times in full typed/audio commands beat wrong model guesses.
+ for(const audio of [false,true])for(const [phrase,time] of [['trzynastą','13:00'],['13:00','13:00'],['23:10','23:10']]){
+  begin('main');model=command('open_create_event',{query:'Test',date:'2027-01-04',startTime:'01:00',durationMinutes:15});
+  w.testText='Dodaj wydarzenie jutro na '+phrase+' na 15 minut.';audioTranscript=w.testText;
+  await run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`);
+  assert.equal(run('pendingVoiceItem.startTime'),time);assert.equal(run('pendingVoiceItem.endTime'),time==='23:10'?'23:25':'13:15');
+ }
+ // A model-created ambiguity is rejected, then the same turn is retried with the known hour.
+ for(const audio of [false,true]){
+  begin('main');const good=command('open_create_event',{query:'Test',date:'2027-01-04',startTime:'13:00',durationMinutes:15});
+  modelResponses=[{reply:'Czy chodzi o 01:00 czy 13:00?',kind:'event',intent:'continue',action:'continue',operations:[],focus:'startTime',ambiguity:{field:'startTime',choices:['01:00','13:00']},uiAction:null},good];
+  const calls=modelCalls;model=good;w.testText='Dodaj wydarzenie jutro na godzinę trzynastą.';audioTranscript=w.testText;
+  await run(`requestVoiceDialogue(testSession,${audio?'{}':'testText'}).then(r=>r&&applyVoiceDialogueResult(testSession,r))`);
+  assert.equal(modelCalls,calls+2);assert.equal(run('pendingVoiceItem.startTime'),'13:00');assert.equal(run('voiceDialogues.main'),null);
+ }
+ // A short unambiguous follow-up preserves the existing draft and beats a wrong model hour.
+ begin('main');await turn('Dodaj wydarzenie jutro.',command('open_create_event',{query:'Test',date:'2027-01-04',durationMinutes:15}));
+ await turn('Na trzynastą.',command('open_create_event',{startTime:'01:00'}));assert.equal(run('pendingVoiceItem.startTime'),'13:00');
  // Audio -> normalized transcript -> Worker -> UI: colon does not settle spoken 1..12.
  for(const channel of ['main','idea']){
   begin(channel);

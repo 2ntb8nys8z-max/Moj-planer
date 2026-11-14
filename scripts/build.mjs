@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.04.33.198-integration';
-const PREVIEW_VERSION='2026.11.04.33.198-test';
+const APP_VERSION='2026.11.14.33.294-integration';
+const PREVIEW_VERSION='2026.11.14.33.294-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
-const WORKER_VERSION='2026.10.12.33.36-test';
-const WORKER_LABEL='Worker 33.36-test';
+const WORKER_VERSION='2026.11.14.33.56-test';
+const WORKER_LABEL='Worker 33.56-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -26,12 +26,12 @@ function output(path,content,normalize=true){
 }
 
 let worker=fs.readFileSync('worker.js','utf8');
-for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','prompts.js']]){
+for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','prompts.js'],['BRIEF NARRATIVE','brief-narrative.js']]){
   const start=worker.indexOf('// BEGIN '+name),end=worker.indexOf('// END '+name,start);
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.36-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.56-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
@@ -46,13 +46,22 @@ const skyBuildId=createHash('sha256').update(fs.readFileSync('header-sky.webp'))
 canonical=canonical.replace(/header-sky\.webp(?:\?v=[a-z0-9]+)?/g,'header-sky.webp?v='+skyBuildId);
 const sailboatBuildId=createHash('sha256').update(fs.readFileSync('header-sailboat.webp')).digest('hex').slice(0,16);
 canonical=canonical.replace(/header-sailboat\.webp(?:\?v=[a-z0-9]+)?/g,'header-sailboat.webp?v='+sailboatBuildId);
+const calendarArtDir='assets/calendar-art';
+const calendarArtCatalog=JSON.parse(fs.readFileSync(calendarArtDir+'/catalog.json','utf8'));
+for(const item of calendarArtCatalog.backgrounds){
+  const file=calendarArtDir+'/'+item.file,content=fs.readFileSync(file),hash=createHash('sha256').update(content).digest('hex');
+  if(hash!==item.sha256)throw Error('Calendar artwork and catalog differ: '+file);
+  canonical=canonical.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash.slice(0,16));
+  output('preview33/'+file,content,false);
+}
+output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
 const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
 let listening=fs.readFileSync('octi-listening.js','utf8');
 for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
 output('octi-listening.js',listening,false);
 const listeningBuildId=createHash('sha256').update(listening).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-listening\.js(?:\?v=[a-z0-9]+)?/g,'octi-listening.js?v='+listeningBuildId);
-for(const file of ['octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
+for(const file of ['octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
 }
@@ -70,13 +79,55 @@ planner=planner.replaceAll('localStorage.getItem(','PREVIEW33_STORE.getItem(').r
 preview=preview.slice(0,plannerStart)+planner+preview.slice(plannerEnd);
 for(const file of ['sync-core.js','google-calendar.js']){
   const content=fs.readFileSync(file,'utf8'),buildId=createHash('sha256').update(content).digest('hex').slice(0,16);
+  canonical=canonical.replace(new RegExp('src="'+file.replace('.',String.fromCharCode(92)+'.')+'[^" ]*"'),'src="'+file+'?v='+buildId+'"');
   preview=preview.replace(new RegExp('src="'+file.replace('.',String.fromCharCode(92)+'.')+'[^" ]*"'),'src="'+file+'?v='+buildId+'"');
   output('preview33/'+file,content,false);
 }
+const travelRoutes=fs.readFileSync('travel-routes.js','utf8');
+const travelRoutesBuildId=createHash('sha256').update(travelRoutes).digest('hex').slice(0,16);
+canonical=canonical.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
+preview=preview.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
+output('preview33/travel-routes.js',travelRoutes,false);
+const eventKeys=fs.readFileSync('event-keys.js','utf8');
+const eventKeysBuildId=createHash('sha256').update(eventKeys).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
+preview=preview.replace(/event-keys\.js(?:\?v=[a-z0-9]+)?/g,'event-keys.js?v='+eventKeysBuildId);
+output('preview33/event-keys.js',eventKeys,false);
+const eventWeather=fs.readFileSync('event-weather.js','utf8');
+const eventWeatherBuildId=createHash('sha256').update(eventWeather).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
+preview=preview.replace(/event-weather\.js(?:\?v=[a-z0-9]+)?/g,'event-weather.js?v='+eventWeatherBuildId);
+output('preview33/event-weather.js',eventWeather,false);
+const eventDelete=fs.readFileSync('event-delete.js','utf8');
+const eventDeleteBuildId=createHash('sha256').update(eventDelete).digest('hex').slice(0,16);
+canonical=canonical.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v='+eventDeleteBuildId);
+preview=preview.replace(/event-delete\.js(?:\?v=[a-z0-9]+)?/g,'event-delete.js?v='+eventDeleteBuildId);
+output('preview33/event-delete.js',eventDelete,false);
+
+
+for(const file of ['day-briefing.js','brief-inspiration-data.js','brief-inspiration.js','brief-narrative.js','brief-holidays.js','brief-day-card.js','day-briefing-ui.js','brief-event-links.js','device-permissions.js']){
+  const content=fs.readFileSync(file,'utf8'),hash=createHash('sha256').update(content).digest('hex').slice(0,16);
+  canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
+  preview=preview.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
+  output('preview33/'+file,content,false);
+}
+
+// Approved background collection: keep the integration preview byte-identical.
+const eventBackgroundDir='assets/event-backgrounds';
+const eventBackgroundCatalog=JSON.parse(fs.readFileSync(eventBackgroundDir+'/catalog.json','utf8'));
+for(const item of eventBackgroundCatalog.backgrounds){
+  const content=fs.readFileSync(eventBackgroundDir+'/'+item.file);
+  if(createHash('sha256').update(content).digest('hex')!==item.sha256)throw Error('Event background and catalog differ: '+item.file);
+  const file=eventBackgroundDir+'/'+item.file;
+  canonical=canonical.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+item.sha256.slice(0,16));
+  preview=preview.replace(new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+item.sha256.slice(0,16));
+  output('preview33/'+eventBackgroundDir+'/'+item.file,content,false);
+}
+for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgroundDir+'/'+file,fs.readFileSync(eventBackgroundDir+'/'+file),false);
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
-const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261012-33.36-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
+const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261114-33.56-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
 
 output('worker.js',worker);
 output('worker.txt',worker);
@@ -85,7 +136,7 @@ output('index.html',canonical);
 output('preview33/index.html',preview);
 output('release.json',release);
 output('preview33/release.json',release);
-for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

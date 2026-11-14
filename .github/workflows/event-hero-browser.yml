@@ -1,0 +1,108 @@
+name: Event header visual regression
+on:
+  push:
+    branches: [main, 'work/event-hero-*', 'work/route-menu-*', 'work/calendar-art-*']
+  pull_request:
+    paths: ['event-delete.js', 'travel-routes.js', 'tests/event-delete-browser-33.cjs', 'index.html', 'tests/event-hero-browser-33.cjs', '.github/workflows/event-hero-browser.yml']
+permissions:
+  contents: read
+concurrency:
+  group: event-hero-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify compact calendar cards
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/calendar-compact-browser-33.cjs
+      - name: Retain compact calendar preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compact-preview-${{ matrix.browser }}
+          path: test-results/calendar-compact-${{ matrix.browser }}/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Verify guarded event deletion
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/event-delete-browser-33.cjs
+      - name: Verify decorated calendar events and unchanged layout
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/calendar-art-browser-33.cjs
+      - name: Verify animated event header
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/event-hero-browser-33.cjs
+      - name: Verify transport menu and bicycle mode
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/route-menu-browser-33.cjs
+      - name: Wait for the tested production HTML
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/verify-event-hero-deployment.mjs
+      - name: Verify deployed compact calendar cards
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+        run: node tests/calendar-compact-browser-33.cjs
+      - name: Verify deployed delete gesture and glass controls
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+        run: node tests/event-delete-browser-33.cjs
+      - name: Verify the deployed application in an empty browser profile
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+          PLANNER_HERO_OUTPUT: test-results/deployed-${{ matrix.browser }}
+        run: node tests/event-hero-browser-33.cjs
+      - name: Verify the deployed transport menu
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+          PLANNER_ROUTE_OUTPUT: test-results/deployed-route-menu-${{ matrix.browser }}
+        run: node tests/route-menu-browser-33.cjs
+      - name: Verify the deployed calendar artwork
+        if: github.ref == 'refs/heads/main'
+        env:
+          TZ: Europe/Warsaw
+          PLANNER_BROWSER: ${{ matrix.browser }}
+          PLANNER_LIVE_URL: https://2ntb8nys8z-max.github.io/Moj-planer/
+          PLANNER_ART_OUTPUT: test-results/deployed-calendar-${{ matrix.browser }}
+        run: node tests/calendar-art-browser-33.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: event-hero-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 14

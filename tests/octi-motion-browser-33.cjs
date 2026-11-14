@@ -25,7 +25,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
  try{
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const page=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'}),errors=[];
-   page.on('pageerror',error=>errors.push(error.message));await routeFiles(page,false,false);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});
+   page.on('pageerror',error=>errors.push(error.message));await routeFiles(page,false,false);await page.goto('https://planner.test/preview33/index.html',{waitUntil:'domcontentloaded'});await require('./permission-fixture.cjs').dismissInitialPermissions(page);
    const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-listening-source');
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-rendered')});
    const before=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>v.currentTime)>before,'The actual decoded clip advances');
@@ -106,7 +106,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    if(failure==='blocked-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.reject(new DOMException('Autoplay denied','NotAllowedError'))}});
    if(failure==='hanging-autoplay')await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return new Promise(()=>{})}});
    if(failure==='stalled-playback')await page.addInitScript(()=>Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{configurable:true,get(){return 0},set(){}}));
-   await routeFiles(page,failure==='missing-media'?'missing-media':false);await page.goto('https://planner.test/preview33/index.html');
+   await routeFiles(page,failure==='missing-media'?'missing-media':false);await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
    const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-listening-media'),fallback=dock.locator('.octi-listening-fallback');
    await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-listening-media')?.classList.contains('is-fallback'),null,{timeout:10000});
    assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),false);assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));

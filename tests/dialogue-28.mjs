@@ -27,11 +27,11 @@ r=await post('Nazwij to wydarzenie Spotkanie z psami. Nie, nazwij to wydarzenie 
 r=await post('Zapisz tylko Wólka',original,[],null,{weatherContext:{location:'Wólka',candidates:[]}});assert.equal(r.weatherAction.action,'raw');
 model={...original,startTime:'19:00',changedFields:['startTime']};r=await post('Przesuń początek na dziewiętnastą');assert.equal(r.item.endTime,'19:15');
 console.log('Worker: duration, pending state, all-day, optional title, self-correction, raw location and duration preservation passed (model mocked).');
-// Frontend helper tests. Engine 3 owns location corrections; weather resolves only after approval.
+// Frontend helpers: older Workers without Google capability preserve raw locations.
 const html=fs.readFileSync('index.html','utf8');const f={URLSearchParams,Date,Set,Number,console};vm.createContext(f);
 const segment=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
-vm.runInContext(segment('function plannerWeatherRows','function plannerWeatherSymbol')+segment('function plannerWeatherCityQueries','async function showPlannerWeather')+segment('async function prepareVoiceLocation','async function applyVoiceDialogueResult'),f);
-f.iso=d=>d.toISOString().slice(0,10);f.plannerLocationKey=v=>String(v||'').toLowerCase().trim();f.plannerWeatherLabel=p=>[p.name,p.admin1,p.country].join(', ');f.voiceDialogueValid=s=>!s.cancelled;f.showVoiceClarification=(s,q)=>s.question=q;
+vm.runInContext(segment('function plannerWeatherRows','function plannerWeatherSymbol')+segment('function plannerWeatherCityQueries','async function showPlannerWeather')+segment('let plannerGooglePicker=null;','async function applyVoiceDialogueResult'),f);
+f.getApiInfo=async()=>({conversationFeatures:[]});f.plannerLocation=t=>String(t?.location||'').trim();f.iso=d=>d.toISOString().slice(0,10);f.plannerLocationKey=v=>String(v||'').toLowerCase().trim();f.plannerWeatherLabel=p=>[p.name,p.admin1,p.country].join(', ');f.voiceDialogueValid=s=>!s.cancelled;f.showVoiceClarification=(s,q)=>s.question=q;
 const times=['2026-10-06T11:00','2026-10-06T12:00','2026-10-06T13:00'];const task={date:'2026-10-06',time:''};assert.deepEqual(Array.from(f.plannerWeatherRows({time:times},task),x=>x.index),[0,1,2]);assert.equal(task.time,'');
 let session={currentItem:original},result={item:{...original,location:'Wólka',changedFields:['location']}};
 assert.equal(await f.prepareVoiceLocation(session,result),false);assert.equal(result.item.location,'Wólka');assert.equal(session.weatherContext,undefined);

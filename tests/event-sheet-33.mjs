@@ -14,12 +14,21 @@ w.HTMLMediaElement.prototype.pause=function(){};
 w.HTMLMediaElement.prototype.load=function(){};
 run(fs.readFileSync('sync-core.js','utf8'));
 for(const script of w.document.querySelectorAll('script'))if(!script.src)run(script.textContent);
+const realShowPlannerWeather=run('showPlannerWeather');
 
 try{
  w.document.querySelector('.app').inert=false;
  run(`tasks=[{id:'event-sheet',title:'Spotkanie projektowe',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Szczegóły wydarzenia'}];showPlannerWeather=async()=>{};openEventActions(tasks[0]);`);
  await settle();
  const sheet=get('eventModal').querySelector('.event-sheet'),header=get('eventHeader'),main=get('eventMainRegion'),content=get('eventContent'),panel=get('eventConversationPanel'),footer=get('eventFooter');
+ // A rendered video frame and animated menu hints must not rebuild controls
+ // while a finger is down. Header identity is necessary for Safari click delivery.
+ const timeIcon=get('eventTime').firstChild,dateText=get('eventDate').firstChild,locationText=get('eventLocationText').firstChild;
+ const stage=footer.querySelector('.octi-dock .stage');
+ for(let frame=0;frame<12;frame++){stage.classList.add('artwork-frame');await settle()}
+ assert.equal(get('eventTime').firstChild,timeIcon,'Artwork frames do not replace the time control');
+ assert.equal(get('eventDate').firstChild,dateText,'Artwork frames do not replace the date text');
+ assert.equal(get('eventLocationText').firstChild,locationText,'Artwork frames do not replace location text');
  assert.ok(sheet,'the event opens as a dedicated event sheet');
  assert.equal(get('eventModal').getAttribute('role'),'dialog');
  for(const node of [header,main,panel,footer])assert.equal(node.parentElement,sheet,'header, main, conversation and communication footer are separate sheet regions');
@@ -47,6 +56,15 @@ try{
  const originalHandlers=Object.fromEntries(['actionDone','actionEdit','actionTimer','actionDelete','eventVoice','eventRecordCancel','navigateBtn'].map(id=>[id,get(id).onclick]));
  for(const [id,handler] of Object.entries(originalHandlers))assert.equal(typeof handler,'function',`${id} retains its original actionable handler`);
  assert.equal(get('eventVoice').classList.contains('event-voice-idle'),true,'the idle microphone receives its presentation label');
+ const noteCard=get('eventNotesCards').firstElementChild,noteCopy=noteCard.querySelector('button');
+ const artwork=footer.querySelector('.octi-motion-media');
+ noteCopy.focus();
+ for(let frame=0;frame<5;frame++){artwork.classList.toggle('is-rendered',frame%2===0);await settle()}
+ assert.equal(get('eventNotesCards').firstElementChild,noteCard,'Artwork updates must not replace the note during touch');
+ assert.equal(w.document.activeElement,noteCopy,'Artwork updates preserve focused copy control');
+ run("activeTask.notes='Zmieniona notatka';renderEventContextDetails(activeTask)");await settle();
+ assert.match(get('eventNotesCards').textContent,/Zmieniona notatka/,'Real note changes still render');
+ assert.notEqual(get('eventNotesCards').firstElementChild,noteCard);
  get('eventVoice').textContent='Wyślij';get('eventVoice').classList.add('recording');await settle();
  assert.equal(get('eventVoice').classList.contains('event-voice-idle'),false,'the recording send button never displays the idle microphone label');
  get('eventVoice').classList.remove('recording');await settle();
@@ -122,5 +140,78 @@ try{
  assert.equal(get('eventActionsToggle').classList.contains('hidden'),false,'read-only Google tasks retain the history menu');assert.equal(get('eventActionsMenu').contains(get('eventHistory')),true,'read-only history stays reachable through more actions');get('eventActionsToggle').click();assert.equal(get('eventHistory').classList.contains('hidden'),false);get('eventHistory').click();assert.equal(get('historyModal').classList.contains('hidden'),false,'the original history handler still works for a read-only Google task');
  assert.equal(panel.classList.contains('hidden'),true);
  for(const id of ['actionDone','actionEdit','actionTimer','actionDelete'])assert.equal(get(id).classList.contains('hidden'),true,`${id} remains hidden for read-only Google tasks`);
- console.log('Event sheet 33.56: separate scrolling regions, fixed communication controls, preserved action IDs and handlers, navigation, idle/recording/send presentation, original dialogue/reply node relocation, close/reopen input and session preservation, new-message reveal, recurrence close without inert leak and read-only Google tasks passed.');
+ // The flight is presentation only. Closing releases the logical event now;
+ // a replacement opening cannot be hidden by an old animation's completion.
+ run("closeEventActions();tasks=[{id:'flight-one',title:'Wymiana opon',date:'2026-10-12',time:'17:00',endTime:'18:00'},{id:'flight-two',title:'Drugie',date:'2026-10-12',time:'19:00',endTime:'20:00'}];selected=new Date('2026-10-12T12:00:00');showView('day')");await settle();
+ const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height,x:left,y:top});
+ sheet.getBoundingClientRect=()=>rect(12,12,366,170);get('taskList').getBoundingClientRect=()=>rect(0,250,390,400);
+ for(const tile of get('taskList').querySelectorAll('[data-event-id]')){tile.getBoundingClientRect=()=>rect(80,400,180,67);for(const n of [...tile.querySelectorAll('.task-title,.task-time'),...(tile.nextElementSibling?.querySelectorAll('.phone-event-title-text,.phone-event-time')||[])])n.getBoundingClientRect=()=>rect(90,410,160,20)}
+ get('actionTitle').getBoundingClientRect=()=>rect(28,27,240,34);get('eventTime').getBoundingClientRect=()=>rect(28,110,130,36);
+ const animations=[];w.HTMLElement.prototype.animate=function(frames,options){let finish;const a={target:this,frames,options,finished:new Promise(resolve=>{finish=resolve}),cancel(){finish()},finish(){finish()}};animations.push(a);return a};
+ run('openEventActions(tasks[0])');assert.equal(w.OktiEventMotion.getState().closing,false);assert.ok(animations.some(a=>a.options.duration===1280));assert.ok(get('eventModal').querySelector('.okti-event-flight-label'));
+ get('eventModal').querySelector('.okti-event-dim').style.opacity='.4';run('closeEventActions()');assert.equal(animations.filter(a=>a.target.classList.contains('okti-event-dim')).at(-1).frames[0].opacity,.4,'Interrupted opening fades from its current shade');get('eventModal').querySelector('.okti-event-dim').style.opacity='';assert.equal(run('activeTask'),null);assert.equal(get('eventModal').classList.contains('hidden'),true);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),true);assert.equal(get('eventModal').inert,true);assert.equal(w.OktiEventMotion.getState().closing,true);
+ run('openEventActions(tasks[1])');await settle();assert.equal(run('activeTask.id'),'flight-two');assert.equal(get('eventModal').classList.contains('hidden'),false);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(!!get('eventModal').inert,false);
+ w.OktiEventMotion.stop();assert.equal(get('eventModal').querySelector('.okti-event-flight-label'),null);assert.equal(get('actionTitle').style.visibility,'');
+ // Accepted presentation contract: event identity controls the whole palette,
+ // and the last stage crossfades to the original nodes rather than swapping them.
+ const timing=animations.find(a=>a.target.classList.contains('okti-event-flight-band')&&a.frames.some(frame=>frame.opacity===.93));
+ assert.ok(timing&&timing.options.duration===280,'the dark title backing arrives at the start of the flight');
+ assert.ok(animations.some(a=>a.target.matches('[data-event-id]')&&a.options.delay===970&&a.options.duration===180),'the real tile receives a short handoff before the close completes');
+ const panelFlights=animations.filter(a=>a.target.classList.contains('okti-event-flight-panel')&&a.frames.some(frame=>frame.width));
+ assert.ok(panelFlights.length>0&&panelFlights.every(a=>a.frames.every(frame=>!frame.transform)),'rounded panel geometry must not be flattened by nonuniform scaling');
+ for(const [title,palette] of [['Śniadanie','sand'],['Spacer','blue'],['Telefon','rose'],['Obiad','sage']]){
+  w.colorSample={id:'palette-'+palette,title,date:'2026-10-12',time:'12:00',endTime:'13:00'};
+  run('openEventActions(colorSample)');assert.equal(get('eventModal').dataset.eventPalette,palette,'the event sheet must retain the tile color family');
+  run('closeEventActions()');assert.equal(run('activeTask'),null,'the longer exit never delays logical event cleanup');w.OktiEventMotion.stop();
+ }
+
+ run('openEventActions(tasks[1])');w.OktiEventMotion.stop();
+ // One main artwork controller stays visible through event context changes
+ // and follows the existing event recorder; the second renderer stays asleep.
+ const updates=[];w.createOctiListeningArtwork=()=>({update:s=>updates.push(s)});
+ run("artRoot=document.createElement('div');artRoot.dataset.channel='main';artRoot.dataset.mode='idle';document.body.append(artRoot);artRoot.getClientRects=()=>[{}];artUpdate=octiMotionArtwork(artRoot,artRoot,null);artUpdate()");assert.equal(updates.at(-1).visible,true);
+ run("plannerRecordings.event={mode:'recording'};artUpdate();plannerRecordings.event=null");assert.equal(updates.at(-1).isRecording,true);
+ run("artRoot.dataset.channel='event';artUpdate()");assert.equal(updates.at(-1).visible,false);
+ // Pin and reminder icons occupy the start of the row. The flying digits
+ // must land at the number span, including that reserved horizontal space.
+ run("closeEventActions();OktiEventMotion.stop();tasks=[{id:'located-flight',title:'Telefon',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',reminder:{minutesBefore:5}}];selected=new Date('2026-10-12T12:00:00');showView('day')");
+ const locatedTile=get('taskList').querySelector('[data-event-id="located-flight"]');
+ const locatedText=w.document.createElement('span');locatedText.className='phone-event-title';
+ locatedText.innerHTML='<span class="phone-event-title-text">Telefon</span><small class="phone-event-time"><span class="phone-event-reminder-icon">Bell</span><span class="phone-event-location-icon">Pin</span><span class="phone-event-time-range">12:00–13:00</span></small>';locatedTile.after(locatedText);
+ locatedTile.getBoundingClientRect=()=>rect(80,400,180,67);
+ locatedText.querySelector('.phone-event-title-text').getBoundingClientRect=()=>rect(90,410,150,18);
+ locatedText.querySelector('.phone-event-time').getBoundingClientRect=()=>rect(90,430,120,12);
+ locatedText.querySelector('.phone-event-time-range').getBoundingClientRect=()=>rect(116,430,94,12);
+ const nativeRect=w.HTMLElement.prototype.getBoundingClientRect;
+ w.HTMLElement.prototype.getBoundingClientRect=function(){
+  if(this.parentElement?.id==='eventTime'&&this.tagName==='SPAN')return rect(60,119,90,18);
+  if(this.classList.contains('okti-event-flight-label'))return rect(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,parseFloat(this.style.width)||90,parseFloat(this.style.height)||18);
+  return nativeRect.call(this);
+ };
+ run('openEventActions(tasks[0])');
+ assert.equal(get('eventLocationRow').classList.contains('hidden'),false,'the address is laid out before measuring the opening panel');
+ run('closeEventActions()');
+ const returningTime=animations.filter(a=>a.target.dataset.kind==='time'&&a.frames.some(frame=>frame.transform)).at(-1);
+ assert.ok(returningTime,'a located event retains its time flight');
+ assert.match(returningTime.frames.at(-1).transform,/^translate\(56px,311px\)/,'digits land after the icons rather than at the beginning of the row');
+ w.OktiEventMotion.stop();w.HTMLElement.prototype.getBoundingClientRect=nativeRect;
+
+ // A delayed forecast changes its contents, not the already measured frame.
+ w.realWeather=realShowPlannerWeather;let resolveForecast;
+ w.pendingForecast=new Promise(resolve=>{resolveForecast=resolve});
+ run("tasks=[{id:'rich-flight',title:'Spotkanie',date:iso(today()),time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',notes:'Notatka',weatherPlace:{location:'Rynek 1, Dresden',name:'Dresden',latitude:51,longitude:13,timezone:'Europe/Berlin'}}];showPlannerWeather=realWeather;plannerWeatherJson=()=>pendingForecast");
+ sheet.getBoundingClientRect=()=>rect(12,12,366,get('eventWeather').dataset.layout==='forecast'?500:170);
+ run('openEventActions(tasks[0])');
+ assert.equal(get('eventWeather').dataset.layout,'forecast','the loading forecast reserves its space synchronously');
+ assert.equal(get('eventLocationRow').classList.contains('hidden'),false);
+ const richFrame=animations.filter(a=>a.target.classList.contains('okti-event-flight-panel')&&a.frames.some(frame=>frame.height)).at(-1);
+ assert.equal(richFrame.frames.at(-1).height,'500px','the flight targets the rich layout from its first frame');
+ const forecastDate=run('tasks[0].date');
+ resolveForecast({timezone:'Europe/Berlin',hourly:{time:['11:00','12:00','13:00'].map(time=>forecastDate+'T'+time),temperature_2m:[12,13,14],precipitation_probability:[0,10,20],wind_speed_10m:[5,6,7],weather_code:[0,1,3]}});
+ await settle();await settle();
+ assert.equal(get('eventWeather').querySelectorAll('.weather-period').length,3,'the real deferred forecast fills the reserved card');
+ assert.equal(sheet.getBoundingClientRect().height,500);assert.equal(richFrame.frames.at(-1).height,'500px');
+ run('closeEventActions();OktiEventMotion.stop();showPlannerWeather=async()=>{}');
+ w.matchMedia=()=>({matches:true});run('closeEventActions();openEventActions(tasks[0]);closeEventActions()');assert.equal(w.OktiEventMotion.getState(),null);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(w.document.body.classList.contains('okti-event-transitioning'),false);
+ console.log('Event sheet: preserved controls/dialogue, artwork mutation isolation, notes, navigation, recorder lifecycle, shared-artwork ownership, flight/close/reopen interruption cleanup and reduced motion passed (animation geometry and graphics simulated).');
 }finally{dom.window.close()}

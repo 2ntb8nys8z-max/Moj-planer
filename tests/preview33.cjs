@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.04\.33\.198-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.04\.33\.198-test/);
+assert.match(root,/Aplikacja: 2026\.11\.14\.33\.294-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.14\.33\.294-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -36,9 +36,15 @@ for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.daybar h2:before\{[^}]*padding:3px[^}]*backdrop-filter:blur\(7px\)/,'the weather button must concentrate refraction in its glass rim');
   assert.match(page,/calendarMonth=document\.createElement\('span'\)/,'the month label must be plain text rather than a button');
   assert.match(page,/\.phone-layout \.phone-calendar-month\{[^}]*top:59px[^}]*border:0[^}]*background:none[^}]*font:750 21px/,'the larger plain month label must sit under the week bubble');
-  assert.match(page,/className='phone-day-speaker'/,'the day summary keeps a visible speaker control');
+  assert.match(page,/dateButton.id='phoneDateButton'/,'the left header half independently selects a date');
+  assert.match(page,/weatherButton.id='phoneWeatherButton'/,'the right header half independently opens weather');
+  assert.doesNotMatch(page,/className='phone-day-speaker'/,'the redundant speaker is removed from the header');
   assert.match(page,/\.phone-day-weather \.weather-icon\{width:52px;height:52px\}/,'the selected-day weather symbol must remain large and legible');
-  assert.match(page,/const cloudPath='M16 38\.5c-5\.8/,'weather artwork must use the recognizable three-lobed cloud silhouette');
+  assert.match(page,/#dayTitle \.phone-day-weekday\{[^}]*font-size:clamp\(20px,6vw,27px\)/,'the sliding weekday must keep its original large type');
+  assert.match(page,/#dayTitle \.phone-day-weather \.weather-icon\{width:52px;height:52px/,'the sliding weather artwork must keep its original 52px size');
+  assert.match(page,/#dayTitle \.phone-day-temperature\{font-size:27px;min-width:42px/,'the sliding temperature must keep its original size');
+  assert.match(page,/function plannerWeatherArtwork\(kind,day=true\)\{return oktiWeatherArtwork\(kind,day\)\}/,'event and header weather share the approved icon family');
+  assert.match(page,/function oktiWeatherArtwork\(kind,day=true\)/,'shaded icon renderer must be published in both builds');
   assert.match(page,/background:linear-gradient\(145deg,#fffdfa,#e8ecef\);color:#17366b/,'the nested speaker must use pearl silver with a restrained navy glyph');
   assert.match(page,/#dayView \.daybar>\.navbutton:not\(#todayBtn\)\{display:none\}/,'the redundant day arrows must stay hidden');
   assert.match(page,/\.phone-layout \.app\{background:#fbfaf8\}/,'the planning area must use the calm warm-white production surface');
@@ -72,11 +78,11 @@ assert.match(root,/shopping-list/);
 assert.match(root,/historyModal/);
 assert.equal(rootWorkerText,worker,'root worker.txt must exactly match canonical worker.js');
 assert.equal(previewWorkerText,worker,'published test Worker must exactly match canonical worker.js');
-assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.36-TEST — CONVERSATION 33/);
-assert.match(worker,/apiVersion:"2026\.10\.12\.33\.36-test"/);
+assert.match(worker,/^\/\/ MÓJ PLANER — WORKER 33\.56-TEST — CONVERSATION 33/);
+assert.match(worker,/apiVersion:"2026\.11\.14\.33\.56-test"/);
 assert.match(worker,new RegExp(`const BUILD_ID="${release.workerBuildId}"`));
-assert.equal(release.version,'2026.11.04.33.198-test');
-assert.equal(release.workerVersion,'2026.10.12.33.36-test');
+assert.equal(release.version,'2026.11.14.33.294-test');
+assert.equal(release.workerVersion,'2026.11.14.33.56-test');
 assert.ok(preview.includes("EXPECTED_WORKER_VERSION='"+release.workerVersion+"'"));
 assert.ok(preview.includes("EXPECTED_WORKER_BUILD_ID='"+release.workerBuildId+"'"));
 assert.equal(release.source,'integration/conversation33/index.html');
@@ -86,5 +92,12 @@ assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
 assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-glass-33-184.png').equals(fs.readFileSync('octi-glass-33-184.png')),'The approved pale-blue glass sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-caustic-33-196.svg').equals(fs.readFileSync('octi-caustic-33-196.svg')),'The bright lens caustic must be published with the UI');
-console.log('Preview 33.198: recognizable weather artwork, pearl day control and restrained nested speaker verified.');
+console.log('Preview 33.294: readable day report and grounded AI narrative verified.');
 
+
+assert.equal(fs.readFileSync('preview33/event-weather.js','utf8'),fs.readFileSync('event-weather.js','utf8'),'Event weather is published with its matching frontend');
+
+assert.equal(fs.readFileSync('preview33/event-delete.js','utf8'),fs.readFileSync('event-delete.js','utf8'),'Event deletion is published with its matching frontend');
+assert.match(root,/event-delete\.js\?v=[a-f0-9]{16}/);
+
+for(const file of ['brief-inspiration-data.js','brief-inspiration.js'])assert.equal(fs.readFileSync('preview33/'+file,'utf8'),fs.readFileSync(file,'utf8'),'Source and test inspiration assets match');
