@@ -22,20 +22,34 @@ window.OktiYagaCard=(()=>{
   if(value.sky?.events?.length||value.sky?.other?.length){
    const sky=document.createElement('section');sky.className='yaga-transits';sky.dataset.yagaTransits='';
    const events=document.createElement('ol');events.className='yaga-sky-list';
-   for(const event of value.sky.events||[]){const li=document.createElement('li');li.className='yaga-sky-event';const title=document.createElement('h4'),p=document.createElement('p');title.textContent=event.title;p.textContent=event.interpretation;li.append(title,p);events.append(li)}
+   for(const event of value.sky.events||[]){const li=document.createElement('li');li.className='yaga-sky-event';const title=document.createElement('h4'),p=document.createElement('p');title.textContent=event.title;p.textContent=event.explanation??event.interpretation;li.append(title);if(p.textContent)li.append(p);events.append(li)}
    if(events.childElementCount)sky.append(events);for(const text of value.sky.other||[]){const p=document.createElement('p');p.textContent=text;sky.append(p)}box.append(sky);
   }
-  const guides=document.createElement('div');guides.className='yaga-guides';field(guides,'Sprzyja',guide.favors,'yagaGood',{className:'yaga-guide',column:'Z'});
-  if(guide.care||guide.attention?.length){const care=document.createElement('section');care.className='yaga-guide';care.dataset.yagaCare='';care.dataset.sourceColumn='Z';const h=document.createElement('h4');h.textContent='Zwróć uwagę';care.append(h);
-   for(const advice of guide.attention||[]){const p=document.createElement('p');p.className='yaga-practical';p.dataset.yagaPractical='';if(advice.period){const period=document.createElement('strong');period.textContent=advice.period;p.append(period)}p.append(document.createTextNode(advice.text));care.append(p)}
-   if(guide.care){const p=document.createElement('p');p.textContent=guide.care;care.append(p)}guides.append(care);
+  const guides=document.createElement('div');guides.className='yaga-guides';
+  if(Array.isArray(value.guidance)){
+   for(const [kind,label,key] of [['favor','Sprzyja','yagaGood'],['attention','Zwróć uwagę','yagaCare']]){
+    const items=value.guidance.filter(i=>i.kind===kind&&i.review.status==='approved'&&i.placement.startsWith('main'));if(!items.length)continue;
+    const section=document.createElement('section');section.className='yaga-guide';section.dataset[key]='';const h=document.createElement('h4');h.textContent=label;section.append(h);
+    for(const item of items){const p=document.createElement('p');p.dataset.yagaGuidance=item.id;if(['void','retro'].includes(item.origin)){p.className='yaga-practical';p.dataset.yagaPractical=''}if(item.period){const period=document.createElement('strong');period.textContent=item.period;p.classList.add('yaga-practical');p.append(period)}p.append(document.createTextNode(item.body||item.text));section.append(p)}guides.append(section);
+   }
+  }else{
+   field(guides,'Sprzyja',guide.favors,'yagaGood',{className:'yaga-guide',column:'Z'});
+   if(guide.care||guide.attention?.length){const care=document.createElement('section');care.className='yaga-guide';care.dataset.yagaCare='';const h=document.createElement('h4');h.textContent='Zwróć uwagę';care.append(h);
+    for(const advice of guide.attention||[]){const p=document.createElement('p');p.dataset.yagaPractical='';if(advice.period){const strong=document.createElement('strong');strong.textContent=advice.period;p.append(strong)}p.append(document.createTextNode(advice.text));care.append(p)}if(guide.care){const p=document.createElement('p');p.textContent=guide.care;care.append(p)}guides.append(care);
+   }
   }if(guides.childElementCount)box.append(guides);
   const original=document.createElement('div');original.id='yaga-details-'+(++cardId);original.className='yaga-original';original.dataset.yagaOriginal='';original.hidden=!expanded;
+  if(value.guidanceReview?.length||value.guidanceConflicts?.length)field(original,'Pełny materiał źródłowy','Poniżej zachowano oryginalne teksty autorki, także symbolikę, rytuały i fragmenty wymagające uzgodnienia. Sprzeczne oraz niejednoznaczne zalecenia nie są samodzielnymi wskazówkami w głównym widoku. Treści zielarskie nie są indywidualną poradą medyczną.','yagaReviewNote');
+  for(const issue of value.sourceIssues||[])field(original,'Rozbieżność w materiale źródłowym',issue.reason,'yagaSourceIssue');
+  for(const conflict of value.guidanceConflicts||[])field(original,'Do uzgodnienia z autorką',conflict.reason,'yagaConflict');
+  for(const ref of value.referenceWarnings||[])field(original,'Powiązana uwaga autorki · '+ref.date,ref.text,'yagaReferenceWarning');
   if(value.sky?.week)field(original,'Tydzień pod niebem',value.sky.week,'yagaWeek');
-  field(original,'Inspiracja dnia',inspirationText||guide.inspiration,'yagaInspiration',{className:'yaga-field yaga-inspiration',column:'T'});
+  field(original,'Inspiracja dnia',Array.isArray(value.guidance)?guide.inspiration:(inspirationText||guide.inspiration),'yagaInspiration',{className:'yaga-field yaga-inspiration',column:'T'});
   if(value.biodynamic)field(original,'Dzień biodynamiczny','Dzień '+value.biodynamic.kind+'. '+value.biodynamic.description,'yagaBiodynamic');
+  field(original,'Podtytuł',raw.subtitle,'yagaSubtitle',{column:'O'});
   for(const [label,text,column,key] of [[raw.title||'Tekst Yagi',raw.story,'P','yagaStory'],['Praktyka dnia',raw.practice,'Q','yagaPractice'],[raw.extraTitle||'Z Księgi Yagi',raw.extra,'S',null],['Uwagi autorki',raw.caution,'U',null],['Księżyc',[d.phase,d.nextPhase].filter(Boolean).join(' · '),'F',null],['Księżyc w znaku i dzień biodynamiczny',d.moonAndBiodynamic,'X',null],['Dobry dzień na…',d.goodFor,'Y',null],['Energia dnia',d.energy,'Z','yagaEnergy'],['Tranzyty i wydarzenia na niebie',d.transits,'AA',null],['Materiały źródłowe',raw.bibliography,'V',null]]){const item=field(original,label,text,key,{column});if(column==='U'&&item)item.classList.add('yaga-author-caution')}
-  if(value.chapter){const c=value.chapter;field(original,c.title,c.text,'yagaChapter');field(original,'Uwagi do hasła',c.caution,null);field(original,'Źródła hasła',c.bibliography,null)}
+  field(original,'Oświetlenie Księżyca',d.illumination,null,{column:'H'});
+  if(value.chapter){const c=value.chapter;field(original,c.title,c.text,'yagaChapter');field(original,'Podtytuł hasła',c.subtitle,null);field(original,'Cytat',c.quote,'yagaChapterQuote');field(original,'Uwagi do hasła',c.caution,null);field(original,'Źródła hasła',c.bibliography,null)}
   const source=document.createElement('p');source.className='yaga-source';source.textContent='Księga Yagi · Zofia Rende · '+new Date(value.date+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+'. Godziny dla Polski.';original.append(source);box.append(original);
   const toggle=document.createElement('button');toggle.type='button';toggle.className='yaga-toggle';toggle.dataset.yagaToggle='';toggle.setAttribute('aria-controls',original.id);
   const sync=()=>{toggle.setAttribute('aria-expanded',String(!original.hidden));toggle.textContent=original.hidden?'Rozwiń Księgę Yagi':'Zwiń Księgę Yagi'};sync();toggle.onclick=()=>{original.hidden=!original.hidden;sync();onToggle?.(!original.hidden)};box.append(toggle);

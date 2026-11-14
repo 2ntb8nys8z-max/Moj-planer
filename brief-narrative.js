@@ -65,7 +65,7 @@ const OktiBriefNarrative=(()=>{
   if(model.weather?.available&&!model.weather.stale){const w=model.weather;add('weather','weather',{date:model.date,timezone:w.timezone||null,period:w.period,temperatureMin:w.temperatureMin,temperatureMax:w.temperatureMax,apparentMin:w.apparentMin??null,apparentMax:w.apparentMax??null,condition:w.condition||null,rain:w.rain||null,rainPeriods:(w.rainPeriods||[]).map(p=>({kind:p.kind,intensity:p.intensity,from:p.from,to:p.to,night:p.night})),precipitationKnown:w.precipitationKnown??null,wind:w.wind||null});}
   (model.holidays?.items||[]).forEach((h,i)=>add('holiday-'+i,'holiday',{name:h.localName,country:model.holidays.countryLabel,source:'Nager.Date'}));
   if(model.dayInfo)add('calendar-day','holiday',{date:model.date,namedays:model.dayInfo.namedays,items:model.dayInfo.items.map(i=>({name:i.name,kind:i.kind,source:i.source,...(i.country?{country:i.country}:{})}))});
-  if(model.yagaEnabled!==false&&model.presentation?.includeYaga&&model.inspiration?.date===model.date){const i=model.inspiration;add('inspiration','inspiration',{date:model.date,source:'Księga Yagi',theme:i.label,...i.detail,editorial:i.editorial?{inspiration:i.editorial.inspiration,favors:i.editorial.favors,care:i.editorial.care}:null,skyEvents:i.sky?.events||[]});}
+  if(model.yagaEnabled!==false&&model.presentation?.includeYaga&&model.inspiration?.date===model.date){const i=model.inspiration;add('inspiration','inspiration',Array.isArray(i.guidance)?{date:model.date,source:'Księga Yagi',author:'Zofia Rende',guidanceContract:2,phase:i.detail.phase,nextNewMoon:i.detail.nextNewMoon,nextFullMoon:i.detail.nextFullMoon,guidance:i.guidance.filter(g=>g.review.status==='approved'&&g.placement.startsWith('main')).map(g=>({id:g.id,text:g.text,kind:g.kind,priority:g.priority,validity:{scope:g.validity.scope,originalText:g.validity.originalText}})),skyEvents:(i.sky?.events||[]).map(e=>({title:e.title,explanation:e.explanation}))}:{date:model.date,source:'Księga Yagi',theme:i.label,...i.detail,editorial:i.editorial?{inspiration:i.editorial.inspiration,favors:i.editorial.favors,care:i.editorial.care}:null,skyEvents:i.sky?.events||[]});}
   return result;
  }
  function context(model,brief){let display=model.presentation||presentation(model);if(model.yagaEnabled===false)display={...display,includeYaga:false};return {schemaVersion:2,mode:model.mode,date:model.date,today:localDay(model.now||new Date()),presentation:display,speechBudget:model.speechBudget||90,facts:structuredFacts({...model,presentation:display},brief)}}
@@ -127,6 +127,14 @@ const OktiBriefNarrative=(()=>{
    for(const f of data.facts.filter(f=>f.kind==='warning'&&f.priority===3))if(!visible.some(s=>s.factIds.includes(f.id)))throw Error('Pomięto ważne ostrzeżenie na ekranie.');
    const fix=byId.has('location')&&JSON.parse(byId.get('location').text).freshFix;
    if(!fix&&[...visible,...spoken].some(s=>/(?:sprawdziłem|zaktualizowałem|odświeżyłem)[^.!?]*(?:pozycj|lokalizacj)/iu.test(s.text)))throw Error('Brak potwierdzenia aktualizacji GPS.');
+  }
+  // Source guidance is spoken as complete units. A shorter voice may omit an
+  // entire optional tip, but never remove its condition, negation or time scope.
+  const sourceGuidance=data.schemaVersion===2&&byId.has('inspiration')?JSON.parse(byId.get('inspiration').text):null;
+  if(sourceGuidance?.guidanceContract===2){
+   const calendarSpeech=spoken.filter(s=>!s.factIds.includes('inspiration'));spoken.splice(0,spoken.length,...calendarSpeech);
+   const candidates=[...(sourceGuidance.guidance||[])].sort((a,b)=>Number(b.kind==='attention')-Number(a.kind==='attention')||b.priority-a.priority);
+   let selected=0;for(const tip of candidates){if(selected>=2)break;const text='Księga Yagi: '+(data.relativeDay==='today'?tip.text:tip.text.replace(/\b(?:dziś|dzisiaj)(?=\s|[.,;:]|$)/giu,'w opisywanym dniu')),used=words(spoken.map(s=>s.text).join(' '));if(used+words(text)>data.wordBudget)continue;spoken.push({text,factIds:['inspiration']});selected++}
   }
   const speech=spoken.map(s=>s.text).join(' ');
   if(!spoken.some(s=>s.factIds.includes('count'))||words(speech)>data.wordBudget||speech.length>3000)throw Error('Zbyt długie lub niepełne podsumowanie głosowe.');

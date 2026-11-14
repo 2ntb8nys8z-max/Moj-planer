@@ -1,0 +1,1428 @@
+{
+  "sourceAudit": "Ksiega_Yagi_analiza_i_zalecenia.html",
+  "author": "Zofia Rende",
+  "excerpts": [
+    {
+      "id": "R01",
+      "date": "2026-11-14",
+      "sheet": "Kalendarz",
+      "cell": "Z15",
+      "column": "Z",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Księżyc bez kursu od 19:55 do nocy: nie zaczynaj wtedy nowych spraw i nie podpisuj ważnych umów.",
+      "sourceStart": 224,
+      "sourceEndExclusive": 320,
+      "text": "Od 19:55 do nocy nie zaczynaj nowych spraw i nie podpisuj ważnych umów.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Od 19:55 do nocy; koniec liczbowy nieznany",
+      "note": ""
+    },
+    {
+      "id": "R02",
+      "date": "2026-11-15",
+      "sheet": "Kalendarz",
+      "cell": "Z16",
+      "column": "Z",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Księżyc bez kursu do 10:24: nie zaczynaj wtedy nowych spraw i nie podpisuj ważnych umów.",
+      "sourceStart": 250,
+      "sourceEndExclusive": 338,
+      "text": "Do 10:24 nie zaczynaj nowych spraw i nie podpisuj ważnych umów.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Do 10:24; źródło nie podaje początku",
+      "note": ""
+    },
+    {
+      "id": "R03",
+      "date": "2026-12-11",
+      "sheet": "Kalendarz",
+      "cell": "Z42",
+      "column": "Z",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Cały dzień Księżyc jest bez kursu: nie zaczynaj wtedy nowych spraw i nie podpisuj ważnych umów.",
+      "sourceStart": 224,
+      "sourceEndExclusive": 319,
+      "text": "Przez cały dzień nie zaczynaj nowych spraw i nie podpisuj ważnych umów.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Cały dzień, jawnie w źródle",
+      "note": "W tym samym dniu AA42 sprzyja umowom. Nie publikować samodzielnej zachęty do podpisu."
+    },
+    {
+      "id": "R04",
+      "date": "2026-11-03",
+      "sheet": "Kalendarz",
+      "cell": "Z4",
+      "column": "Z",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Księżyc bez kursu od 01:10 do 09:27: nie zaczynaj wtedy nowych spraw i nie podpisuj ważnych umów.",
+      "sourceStart": 247,
+      "sourceEndExclusive": 344,
+      "text": "Od 01:10 do 09:27 nie zaczynaj nowych spraw i nie podpisuj ważnych umów.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "01:10–09:27",
+      "note": ""
+    },
+    {
+      "id": "R05",
+      "date": "2026-11-01",
+      "sheet": "Kalendarz",
+      "cell": "Z2",
+      "column": "Z",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Merkury jest retro: sprawdzaj wiadomości dwa razy.",
+      "sourceStart": 219,
+      "sourceEndExclusive": 269,
+      "text": "Sprawdzaj wiadomości dwa razy.",
+      "placement": "Zwróć uwagę",
+      "transformation": "D",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Wskazówka występuje w 80 datowanych wpisach. Nie wyliczać jej ze znaczka retro."
+    },
+    {
+      "id": "R06",
+      "date": "2026-11-14",
+      "sheet": "Kalendarz",
+      "cell": "AA15",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "decyzje o związku i dużych zakupach podejmuj teraz spokojniej.",
+      "sourceStart": 121,
+      "sourceEndExclusive": 183,
+      "text": "Decyzje o związku i dużych zakupach podejmuj spokojniej.",
+      "placement": "Zwróć uwagę",
+      "transformation": "H",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Treść wprost w źródle; zachować autorstwo. „Teraz” bez mierzalnego przedziału. Nie traktować jako porady finansowej aplikacji."
+    },
+    {
+      "id": "R07",
+      "date": "2026-11-16",
+      "sheet": "Kalendarz",
+      "cell": "AA17",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "wykorzystaj energię na sport i ważny projekt.",
+      "sourceStart": 240,
+      "sourceEndExclusive": 285,
+      "text": "Sport i praca nad ważnym projektem.",
+      "placement": "Sprzyja",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "To dodatkowa rada z opisu tranzytu, poza Z17."
+    },
+    {
+      "id": "R08",
+      "date": "2026-11-16",
+      "sheet": "Kalendarz",
+      "cell": "AA17",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "nie obiecuj ponad siły.",
+      "sourceStart": 293,
+      "sourceEndExclusive": 316,
+      "text": "Nie obiecuj ponad siły.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R09",
+      "date": "2026-11-13",
+      "sheet": "Kalendarz",
+      "cell": "AA14",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "wyślij to, co czekało, ale daj sobie dwa, trzy dni zapasu.",
+      "sourceStart": 131,
+      "sourceEndExclusive": 189,
+      "text": "Wyślij to, co czekało, ale zostaw sobie dwa–trzy dni zapasu.",
+      "placement": "Sprzyja",
+      "transformation": "P",
+      "validity": "Dwa–trzy dni zapasu; nie jest to godzina końca tranzytu",
+      "note": ""
+    },
+    {
+      "id": "R10",
+      "date": "2026-11-25",
+      "sheet": "Kalendarz",
+      "cell": "AA26",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "zostaw sobie margines czasu.",
+      "sourceStart": 209,
+      "sourceEndExclusive": 237,
+      "text": "Zostaw sobie margines czasu.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R11",
+      "date": "2026-12-04",
+      "sheet": "Kalendarz",
+      "cell": "AA35",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "zwolnij przy maszynach i na drodze, nie decyduj w złości.",
+      "sourceStart": 525,
+      "sourceEndExclusive": 582,
+      "text": "Zwolnij przy maszynach i na drodze. Nie podejmuj decyzji w złości.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R12",
+      "date": "2027-02-08",
+      "sheet": "Kalendarz",
+      "cell": "AA101",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "bądź elastyczna i miej plan B.",
+      "sourceStart": 368,
+      "sourceEndExclusive": 398,
+      "text": "Zachowaj elastyczność i miej plan B.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R13",
+      "date": "2027-02-09",
+      "sheet": "Kalendarz",
+      "cell": "AA102",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "sprawdzaj dwa razy, nie podpisuj w pośpiechu, rób kopie.",
+      "sourceStart": 193,
+      "sourceEndExclusive": 249,
+      "text": "Sprawdzaj dwa razy, nie podpisuj w pośpiechu i rób kopie.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Opis mówi „przez trzy tygodnie”; brak dokładnej daty końca",
+      "note": "Nie rozszerzać automatycznie na 21 następnych dat. Takie rozszerzenie wymaga uzgodnienia z autorką i reguły okresów."
+    },
+    {
+      "id": "R14",
+      "date": "2027-04-11",
+      "sheet": "Kalendarz",
+      "cell": "AA163",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "nie podpisuj umów.",
+      "sourceStart": 212,
+      "sourceEndExclusive": 230,
+      "text": "Nie podpisuj umów.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Wskazówka przy tej dacie; brak godzin jej obowiązywania",
+      "note": "19:54 jest godziną tranzytu. Nie znaczy „dopiero od 19:54”."
+    },
+    {
+      "id": "R15",
+      "date": "2027-05-11",
+      "sheet": "Kalendarz",
+      "cell": "AA193",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "nie wysyłaj maila w emocjach.",
+      "sourceStart": 108,
+      "sourceEndExclusive": 137,
+      "text": "Nie wysyłaj maila w emocjach.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R16",
+      "date": "2027-09-10",
+      "sheet": "Kalendarz",
+      "cell": "AA315",
+      "column": "AA",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "nie ryzykuj pieniędzmi pod wpływem chwili.",
+      "sourceStart": 226,
+      "sourceEndExclusive": 268,
+      "text": "Według Yagi: nie ryzykuj pieniędzmi pod wpływem chwili.",
+      "placement": "Zwróć uwagę",
+      "transformation": "H",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Finanse: przegląd redakcyjny, zachowane autorstwo, bez rekomendacji transakcji."
+    },
+    {
+      "id": "R17",
+      "date": "2026-11-15",
+      "sheet": "Kalendarz",
+      "cell": "Q16",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "• Pomyśl o kimś, kto w twoim życiu potrzebuje ochrony.\n• Zadzwoń albo napisz do niego dziś.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 91,
+      "text": "Odezwij się dziś do osoby, która potrzebuje troski.",
+      "placement": "Sprzyja",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Dwa punkty tworzą jedną wskazówkę. Czerwona nitka pozostaje osobnym rytuałem w rozwinięciu."
+    },
+    {
+      "id": "R18",
+      "date": "2026-11-09",
+      "sheet": "Kalendarz",
+      "cell": "P10",
+      "column": "P",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "dobrze jest przewietrzyć dom i zacząć od czystego powietrza.",
+      "sourceStart": 271,
+      "sourceEndExclusive": 331,
+      "text": "Przewietrz dom.",
+      "placement": "Sprzyja",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Zalecenie zapisane w opowieści; potwierdza je Q10 z czasem dziesięciu minut. Nie dodawać twierdzenia, że okadzanie leczy."
+    },
+    {
+      "id": "R19",
+      "date": "2026-11-09",
+      "sheet": "Kalendarz",
+      "cell": "S10",
+      "column": "S",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Nie myl jałowca pospolitego z jałowcem sabińskim.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 49,
+      "text": "Według uwagi autorki nie należy mylić jałowca pospolitego z sabińskim.",
+      "placement": "Zwróć uwagę",
+      "transformation": "H",
+      "validity": "Tylko przy treściach o rozpoznawaniu lub użyciu jałowca",
+      "note": "Nie skracać pełnego ostrzeżenia do samodzielnej instrukcji zbioru. Powiązać z U10 i Księga Jagi!E9."
+    },
+    {
+      "id": "R20",
+      "date": "2026-12-20",
+      "sheet": "Kalendarz",
+      "cell": "P51",
+      "column": "P",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Zaplanuj nie tylko, co ugotujesz, ale jak chcesz żyć.",
+      "sourceStart": 271,
+      "sourceEndExclusive": 324,
+      "text": "Planując święta, uwzględnij również sposób, w jaki chcesz je spędzić.",
+      "placement": "Sprzyja",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R21",
+      "date": "2026-12-20",
+      "sheet": "Kalendarz",
+      "cell": "Q51",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Zostaw w kalendarzu jeden zupełnie pusty dzień.",
+      "sourceStart": 117,
+      "sourceEndExclusive": 164,
+      "text": "Zostaw w kalendarzu jeden zupełnie pusty dzień.",
+      "placement": "Sprzyja",
+      "transformation": "D",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Propozycja autorki. Nie rezerwować dnia ani nie usuwać spotkań automatycznie."
+    },
+    {
+      "id": "R22",
+      "date": "2026-12-31",
+      "sheet": "Kalendarz",
+      "cell": "S62",
+      "column": "S",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Zwierzęta źle znoszą huk petard. Zostań z nimi w domu albo wybierz ciche świętowanie.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 85,
+      "text": "Jeśli masz zwierzęta, wybierz ciche świętowanie albo zostań z nimi w domu.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Kontekst sylwestrowy i zwierzęta",
+      "note": "Istotne zastrzeżenie z S62, którego nie wolno zgubić przy hałaśliwej praktyce Q62."
+    },
+    {
+      "id": "R23",
+      "date": "2027-02-05",
+      "sheet": "Kalendarz",
+      "cell": "Q98",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Sprawdź baterię w czujniku dymu.",
+      "sourceStart": 100,
+      "sourceEndExclusive": 132,
+      "text": "Sprawdź baterię w czujniku dymu.",
+      "placement": "Zwróć uwagę",
+      "transformation": "D",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R24",
+      "date": "2027-03-13",
+      "sheet": "Kalendarz",
+      "cell": "Q134",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Jeśli jedziesz wieczorem przy stawach, zwolnij.",
+      "sourceStart": 2,
+      "sourceEndExclusive": 49,
+      "text": "Jeśli jedziesz wieczorem przy stawach, zwolnij.",
+      "placement": "Zwróć uwagę",
+      "transformation": "D",
+      "validity": "Wieczorem, jeśli jedziesz przy stawach",
+      "note": ""
+    },
+    {
+      "id": "R25",
+      "date": "2027-04-01",
+      "sheet": "Kalendarz",
+      "cell": "Q153",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Sprawdź dziś jedną wiadomość, zanim ją podasz dalej.",
+      "sourceStart": 59,
+      "sourceEndExclusive": 111,
+      "text": "Sprawdź wiadomość, zanim podasz ją dalej.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": ""
+    },
+    {
+      "id": "R26",
+      "date": "2027-04-28",
+      "sheet": "Kalendarz",
+      "cell": "P180",
+      "column": "P",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Nie wysyłaj go.",
+      "sourceStart": 171,
+      "sourceEndExclusive": 186,
+      "text": "List opisany w praktyce jest dla Ciebie — nie wysyłaj go.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Dotyczy listu pisanego do lęku, żalu lub osoby, która nie przeprosiła",
+      "note": "Zaimek „go” wymaga kontekstu poprzedniego zdania. Nie tworzyć zakazu wysyłania wszystkich wiadomości."
+    },
+    {
+      "id": "R27",
+      "date": "2027-05-12",
+      "sheet": "Kalendarz",
+      "cell": "Q194",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "• Sprawdź prognozę na najbliższe noce.\n• Okryj rośliny na balkonie lub w ogrodzie, jeśli zapowiadają przymrozek.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 112,
+      "text": "Sprawdź prognozę na najbliższe noce. Jeśli zapowiadany jest przymrozek, okryj rośliny na balkonie lub w ogrodzie.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Warunek: prognozowany przymrozek",
+      "note": "To wskazówka sezonowa, a nie potwierdzenie faktycznej prognozy pogody."
+    },
+    {
+      "id": "R28",
+      "date": "2027-06-06",
+      "sheet": "Kalendarz",
+      "cell": "U219",
+      "column": "U",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Unikaj słońca między 11 a 15. Pij wodę.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 39,
+      "text": "Według praktycznej uwagi Yagi: unikaj słońca między 11:00 a 15:00 i pij wodę.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "11–15, kontekst południowego upału",
+      "note": "Nie dopisywać, że tego dnia będzie upał. W metadanych zachować dosłowne „11 a 15”; zapis HH:MM jest redakcyjnym ujednoliceniem."
+    },
+    {
+      "id": "R29",
+      "date": "2027-06-10",
+      "sheet": "Kalendarz",
+      "cell": "Q223",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Nie wchodź do wody po alkoholu.",
+      "sourceStart": 68,
+      "sourceEndExclusive": 99,
+      "text": "Jeśli idziesz nad wodę, nie wchodź do niej po alkoholu.",
+      "placement": "Zwróć uwagę",
+      "transformation": "P",
+      "validity": "Kontekst wyjścia nad wodę",
+      "note": ""
+    },
+    {
+      "id": "R30",
+      "date": "2027-10-10",
+      "sheet": "Kalendarz",
+      "cell": "Q345",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "• Pomyśl o umowie, którą zawarłaś, a która cię męczy.\n• Przeczytaj ją jeszcze raz uważnie.\n• Zastanów się, czy możesz ją renegocjować.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 134,
+      "text": "Przeczytaj ponownie umowę, która Cię obciąża, i zastanów się nad możliwością renegocjacji.",
+      "placement": "Sprzyja",
+      "transformation": "H",
+      "validity": "Data wpisu; godziny nieokreślone",
+      "note": "Refleksja nad umową, bez porady prawnej i bez obietnicy, że renegocjacja jest możliwa."
+    },
+    {
+      "id": "R31",
+      "date": "2027-10-22",
+      "sheet": "Kalendarz",
+      "cell": "U357",
+      "column": "U",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Sprawdź czujnik czadu przed sezonem grzewczym.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 46,
+      "text": "Sprawdź czujnik czadu przed sezonem grzewczym.",
+      "placement": "Zwróć uwagę",
+      "transformation": "D",
+      "validity": "Przed sezonem grzewczym; brak godziny",
+      "note": ""
+    },
+    {
+      "id": "R32",
+      "date": "2026-11-06",
+      "sheet": "Kalendarz",
+      "cell": "U7",
+      "column": "U",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Dziurawiec osłabia działanie wielu leków (m.in. antykoncepcji) i uwrażliwia skórę na słońce. Do picia tylko po rozmowie z lekarzem.",
+      "sourceStart": 0,
+      "sourceEndExclusive": 131,
+      "text": "Zachować pełną uwagę autorki przy materiale o dziurawcu.",
+      "placement": "Przy powiązanej praktyce / w rozwinięciu",
+      "transformation": "H",
+      "validity": "Dotyczy dziurawca; nie całego dnia",
+      "note": "U7 jest krótsze niż Księga Jagi!E6. W rozdziale zachować dodatkowe, odrębne przeciwwskazania. Nie tworzyć automatycznej porady leczenia."
+    },
+    {
+      "id": "R33",
+      "date": "2027-03-16",
+      "sheet": "Kalendarz",
+      "cell": "U137",
+      "column": "U",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Patrz uwaga przy pokrzywie (1 III).",
+      "sourceStart": 0,
+      "sourceEndExclusive": 35,
+      "text": "Rozwinąć odesłanie do uwagi o pokrzywie z 1 marca 2027.",
+      "placement": "Przy powiązanej praktyce / w rozwinięciu",
+      "transformation": "H",
+      "validity": "Dotyczy zupy z pokrzywy",
+      "note": "Źródło docelowe: Kalendarz!U122. Cytat i oba adresy zachować razem; nie przenosić porady z innego dnia bez jawnego odesłania."
+    },
+    {
+      "id": "R34",
+      "date": "2026-12-04",
+      "sheet": "Księga Jagi",
+      "cell": "D13",
+      "column": "D",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Jeśli jesień była ciepła i nie było mrozu, połóż gałązki na noc w chłodnym miejscu albo zanurz je na kilka godzin w zimnej wodzie.",
+      "sourceStart": 1490,
+      "sourceEndExclusive": 1620,
+      "text": "Jeśli jesień była ciepła i bez mrozu, przygotuj gałązki zgodnie z opisem autorki.",
+      "placement": "Rozwinięcie",
+      "transformation": "P",
+      "validity": "Warunek: ciepła jesień i brak mrozu; noc lub kilka godzin",
+      "note": "Nie dziedziczyć tej praktyki na inne daty i nie usuwać wariantów. Pełne kroki pozostają w rozdziale."
+    },
+    {
+      "id": "R35",
+      "date": "2027-09-02",
+      "sheet": "Kalendarz",
+      "cell": "Q307",
+      "column": "Q",
+      "sourceFile": "Czaromarownik_dane_XI2026-XII2027.xlsx",
+      "quote": "Zaplanuj płatności na jutro rano, nie na wieczór.",
+      "sourceStart": 76,
+      "sourceEndExclusive": 125,
+      "text": "Autorka proponuje zaplanowanie płatności na następny poranek.",
+      "placement": "Rozwinięcie",
+      "transformation": "H",
+      "validity": "Jutro rano względem 2.09.2027, czyli 3.09.2027 rano",
+      "note": "Kontekst przesądu o pieniądzach po zmroku. Nie zamieniać go w zalecenie finansowe ani nie przesuwać terminów płatności."
+    }
+  ],
+  "storyReviewCandidates": [
+    {
+      "date": "2026-11-02",
+      "cell": "P3",
+      "text": "Dziś nie zamykaj drzwi na głucho."
+    },
+    {
+      "date": "2026-11-02",
+      "cell": "P3",
+      "text": "Dawniej zostawiano im na stole kaszę, chleb i miód."
+    },
+    {
+      "date": "2026-11-02",
+      "cell": "P3",
+      "text": "Nie wylewano wody za próg, żeby nie oblać niewidzialnych gości, i nie przędzono, żeby nie splątać im drogi."
+    },
+    {
+      "date": "2026-11-04",
+      "cell": "P5",
+      "text": "Pomyśl, co nosisz za długo: urazę, nawyk, cudzą sprawę."
+    },
+    {
+      "date": "2026-11-04",
+      "cell": "P5",
+      "text": "Dziś możesz to oddać."
+    },
+    {
+      "date": "2026-11-05",
+      "cell": "P6",
+      "text": "Bezpieczna była tylko ta, która trzymała w ustach skórkę chleba, a na koniec kreśliła nad przędzą krzyż."
+    },
+    {
+      "date": "2026-11-05",
+      "cell": "P6",
+      "text": "Nocą nie zostawiano niedokończonej roboty."
+    },
+    {
+      "date": "2026-11-08",
+      "cell": "P9",
+      "text": "Jedni mówili, że wskazują bezpieczną drogę."
+    },
+    {
+      "date": "2026-11-09",
+      "cell": "P10",
+      "text": "Gdy ciemność jest pełna, dobrze jest przewietrzyć dom i zacząć od czystego powietrza."
+    },
+    {
+      "date": "2026-11-09",
+      "cell": "S10",
+      "text": "Ten drugi jest silnie trujący i w zielnikach miał osobne, ostrzegawcze nazwy."
+    },
+    {
+      "date": "2026-11-10",
+      "cell": "P11",
+      "text": "Nikt nie gotuje, nikt nie dodaje octu, a warzywa same zmieniają się w coś kwaśnego, żywego i trwałego."
+    },
+    {
+      "date": "2026-11-12",
+      "cell": "P13",
+      "text": "Trzeba go jednak karmić i szanować."
+    },
+    {
+      "date": "2026-11-13",
+      "cell": "P14",
+      "text": "Szeptuchy nie leczyły rękami, tylko słowem."
+    },
+    {
+      "date": "2026-11-15",
+      "cell": "P16",
+      "text": "Pomyśl, kogo dziś ty możesz otoczyć swoją czerwoną nicią."
+    },
+    {
+      "date": "2026-11-17",
+      "cell": "S18",
+      "text": "łyżeczka rozpuszczona w ciepłej (nie gorącej) wodzie"
+    },
+    {
+      "date": "2026-11-20",
+      "cell": "P21",
+      "text": "Nie potrzebujesz złotych amuletów."
+    },
+    {
+      "date": "2026-11-22",
+      "cell": "P23",
+      "text": "Puch unosił się w świetle łuczywa jak śnieg, który nie chciał spaść."
+    },
+    {
+      "date": "2026-11-28",
+      "cell": "P29",
+      "text": "Lipa daje wszystko, o nic nie prosząc."
+    },
+    {
+      "date": "2026-12-01",
+      "cell": "P32",
+      "text": "Ciasto z miodem, mąką i korzennymi przyprawami odstawia się w chłodne miejsce i zostawia w spokoju na długie tygodnie."
+    },
+    {
+      "date": "2026-12-01",
+      "cell": "P32",
+      "text": "Niektóre rzeczy trzeba zacząć wcześnie, żeby były gotowe na czas."
+    },
+    {
+      "date": "2026-12-03",
+      "cell": "P34",
+      "text": "Była przestrzenią, w której można usłyszeć to, czego za dnia nie słychać."
+    },
+    {
+      "date": "2026-12-05",
+      "cell": "P36",
+      "text": "Jemioła rośnie wysoko, nie dotykając ziemi, i zostaje zielona, gdy całe drzewo śpi."
+    },
+    {
+      "date": "2026-12-06",
+      "cell": "P37",
+      "text": "Najpiękniejsze dary nie mają podpisu."
+    },
+    {
+      "date": "2026-12-06",
+      "cell": "P37",
+      "text": "Zostawiają tylko ciepło i pytanie: kto mnie tak dobrze zna?"
+    },
+    {
+      "date": "2026-12-06",
+      "cell": "S37",
+      "text": "Komu mogę dać coś, nie oczekując podziękowania?"
+    },
+    {
+      "date": "2026-12-07",
+      "cell": "P38",
+      "text": "W ziołolecznictwie od wieków służył tym, których noc nie chciała przyjąć."
+    },
+    {
+      "date": "2026-12-09",
+      "cell": "P40",
+      "text": "To pora ziaren, które leżą w zamarzniętej ziemi i niczego nie udowadniają."
+    },
+    {
+      "date": "2026-12-10",
+      "cell": "P41",
+      "text": "Upiór nie przejdzie obok rozsypanego maku, dopóki nie policzy wszystkich ziarenek."
+    },
+    {
+      "date": "2026-12-10",
+      "cell": "P41",
+      "text": "Tak wierzono, więc mak sypano na progu, wokół domu i do trumny tego, kto mógł nie zaznać spokoju."
+    },
+    {
+      "date": "2026-12-10",
+      "cell": "S41",
+      "text": "Jedna odchodziła po śmierci, druga zostawała."
+    },
+    {
+      "date": "2026-12-11",
+      "cell": "P42",
+      "text": "Nie pożyczano go sąsiadom, zwłaszcza przed świętami, bo razem z żarem mogło wyjść szczęście."
+    },
+    {
+      "date": "2026-12-14",
+      "cell": "P45",
+      "text": "Niektórzy ludzie są jak tarnina: trzeba poczekać na pierwszy chłód, by poznać ich słodycz."
+    },
+    {
+      "date": "2026-12-20",
+      "cell": "P51",
+      "text": "Zaplanuj nie tylko, co ugotujesz, ale jak chcesz żyć."
+    },
+    {
+      "date": "2026-12-20",
+      "cell": "S51",
+      "text": "Co chcę zostawić w starym roku, a co zabrać ze sobą?"
+    },
+    {
+      "date": "2026-12-22",
+      "cell": "P53",
+      "text": "Na Wigilię jej łyżkę zostawiano na noc przodkom, a czasem rzucano kutię pod sufit."
+    },
+    {
+      "date": "2026-12-23",
+      "cell": "P54",
+      "text": "Przy stole zostawiano wolne nakrycie: dla zbłąkanego wędrowca albo dla tych, którzy odeszli."
+    },
+    {
+      "date": "2026-12-26",
+      "cell": "P57",
+      "text": "Pomyśl, komu w tym roku przestaniesz służyć."
+    },
+    {
+      "date": "2026-12-29",
+      "cell": "S60",
+      "text": "Było słabe i bezpieczniejsze niż woda ze studni."
+    },
+    {
+      "date": "2026-12-30",
+      "cell": "P61",
+      "text": "Co udało się zebrać, co trzeba było oddać, czego nauczył cię ten rok, choć wcale o to nie prosiłaś."
+    },
+    {
+      "date": "2026-12-31",
+      "cell": "S62",
+      "text": "Zostań z nimi w domu albo wybierz ciche świętowanie."
+    },
+    {
+      "date": "2027-01-01",
+      "cell": "P63",
+      "text": "Nie pożyczano nic z domu, by nie oddać szczęścia."
+    },
+    {
+      "date": "2027-01-03",
+      "cell": "P65",
+      "text": "Jedna odchodziła po śmierci, druga zostawała w ciele i nie dawała mu spokoju."
+    },
+    {
+      "date": "2027-01-05",
+      "cell": "P67",
+      "text": "Owies zalewano wodą i zostawiano, by skisł, potem gotowano, aż zgęstniał."
+    },
+    {
+      "date": "2027-01-13",
+      "cell": "P75",
+      "text": "Właśnie dlatego warto mu wyjść na spotkanie."
+    },
+    {
+      "date": "2027-01-14",
+      "cell": "P76",
+      "text": "Nie wymawiano jego imienia na głos, mówiono „on”, „szary”, żeby go nie przywołać."
+    },
+    {
+      "date": "2027-01-14",
+      "cell": "P76",
+      "text": "Dziś wilki wracają do polskich lasów, ostrożne i rzadko widziane."
+    },
+    {
+      "date": "2027-01-18",
+      "cell": "P80",
+      "text": "Rośnie wysoko, na brzozach, topolach i jabłoniach, nie dotykając ziemi."
+    },
+    {
+      "date": "2027-01-22",
+      "cell": "P84",
+      "text": "Zobacz dziś to, czego za dnia nie chcesz widzieć."
+    },
+    {
+      "date": "2027-01-24",
+      "cell": "P86",
+      "text": "Z Mrozem trzeba było się dogadać, bo walczyć się nie dało."
+    },
+    {
+      "date": "2027-01-28",
+      "cell": "P90",
+      "text": "Gospodynie sypały ziarno na parapet, bo głodny ptak przy chacie był znakiem, że i ludziom trzeba się dzielić."
+    },
+    {
+      "date": "2027-01-29",
+      "cell": "P91",
+      "text": "Znak napisany kredą na Trzech Króli powoli blednie, ale nie powinno się go zmywać."
+    },
+    {
+      "date": "2027-02-07",
+      "cell": "P100",
+      "text": "Budzisz się w nocy i nie możesz się ruszyć, jakby ktoś siedział ci na piersi."
+    },
+    {
+      "date": "2027-02-12",
+      "cell": "P105",
+      "text": "Ogień zostawiał po sobie ochronę nawet wtedy, gdy wygasł."
+    },
+    {
+      "date": "2027-02-17",
+      "cell": "P110",
+      "text": "Kiedy zapiszesz myśli, przestają krążyć w głowie i stają się czymś, co można obejrzeć."
+    },
+    {
+      "date": "2027-02-19",
+      "cell": "P112",
+      "text": "Odsyłały chorobę do wody, do lasu, na kamień, który nie czuje bólu."
+    },
+    {
+      "date": "2027-02-21",
+      "cell": "P114",
+      "text": "Ostrzegano dzieci, by nie wchodziły na zamarzniętą wodę."
+    },
+    {
+      "date": "2027-03-03",
+      "cell": "P124",
+      "text": "Wierzono, że siać trzeba przy przybywającym Księżycu, a nasiona trzymać przedtem w ciepłej dłoni."
+    },
+    {
+      "date": "2027-03-07",
+      "cell": "P128",
+      "text": "Stąd przysłowie: nie wywołuj licha z lasu."
+    },
+    {
+      "date": "2027-03-07",
+      "cell": "P128",
+      "text": "I jeszcze jedno: licho nie śpi, więc trzeba uważać nawet wtedy, gdy wszystko idzie dobrze."
+    },
+    {
+      "date": "2027-03-10",
+      "cell": "P131",
+      "text": "Śmieci wynoszono przez próg, nigdy nie zamiatano ich w stronę izby, by nie zmieść szczęścia."
+    },
+    {
+      "date": "2027-03-14",
+      "cell": "P135",
+      "text": "Zostawiano mu na noc miseczkę mleka albo kaszy."
+    },
+    {
+      "date": "2027-03-22",
+      "cell": "P143",
+      "text": "Jest piękny, ale trujący, nie do jedzenia ani do herbat."
+    },
+    {
+      "date": "2027-03-23",
+      "cell": "P144",
+      "text": "W kuchni panowała cisza, drzwi się nie otwierały, mężczyźni nie wchodzili, by ciasto nie opadło."
+    },
+    {
+      "date": "2027-03-26",
+      "cell": "P147",
+      "text": "Nikt nie pracował w polu, panowała cisza i post."
+    },
+    {
+      "date": "2027-03-28",
+      "cell": "P149",
+      "text": "Śniadanie wielkanocne zaczynało się od podzielenia się jajkiem i życzeń, tak jak opłatkiem w Wigilię."
+    },
+    {
+      "date": "2027-04-01",
+      "cell": "P153",
+      "text": "Dzień kłamstewek przypomina, że warto sprawdzać, zanim się uwierzy."
+    },
+    {
+      "date": "2027-04-02",
+      "cell": "P154",
+      "text": "Gałązka wierzby zostawała w domu aż do następnej Niedzieli Palmowej."
+    },
+    {
+      "date": "2027-04-03",
+      "cell": "P155",
+      "text": "Zawilec jest piękny i trujący."
+    },
+    {
+      "date": "2027-04-03",
+      "cell": "P155",
+      "text": "Pokazuje, że w lesie wszystko ma swój czas, i trzeba się spieszyć, gdy przychodzi."
+    },
+    {
+      "date": "2027-04-07",
+      "cell": "P159",
+      "text": "Wybierz ziarno i intencję i posadź je razem."
+    },
+    {
+      "date": "2027-04-13",
+      "cell": "S165",
+      "text": "Czosnek niedźwiedzi łatwo pomylić z trującą konwalią i zimowitem."
+    },
+    {
+      "date": "2027-04-14",
+      "cell": "P166",
+      "text": "Wiosną wynoszono pierzyny i poduszki na płot, by przewietrzyć je na słońcu."
+    },
+    {
+      "date": "2027-04-16",
+      "cell": "P168",
+      "text": "Dziś wiemy, że dzwonienie podczas burzy było dla dzwonników niebezpieczne, ale wiara w moc głosu została."
+    },
+    {
+      "date": "2027-04-21",
+      "cell": "P173",
+      "text": "Zielarki zostawiały na noc wodę w szklanym naczyniu na parapecie, by nasiąknęła światłem Księżyca."
+    },
+    {
+      "date": "2027-04-21",
+      "cell": "P173",
+      "text": "To rytuał, który niczego nie obiecuje, ale daje chwilę skupienia."
+    },
+    {
+      "date": "2027-04-24",
+      "cell": "P176",
+      "text": "Pięknie wyglądają w wazonie, ale są trujące i mogą podrażniać skórę."
+    },
+    {
+      "date": "2027-04-24",
+      "cell": "S176",
+      "text": "Kaczeniec należy do rodziny jaskrowatych, tak jak zawilec i jaskier."
+    },
+    {
+      "date": "2027-04-24",
+      "cell": "S176",
+      "text": "Wszystkie są trujące."
+    },
+    {
+      "date": "2027-04-25",
+      "cell": "P177",
+      "text": "Kapłan święcił zasiewy, a gospodarze zatykali w ziemię poświęcone gałązki, by chronić zboże przed gradem i szkodnikami."
+    },
+    {
+      "date": "2027-04-27",
+      "cell": "P179",
+      "text": "Sezon trwa tylko do świętego Jana, więc trzeba się nimi nacieszyć."
+    },
+    {
+      "date": "2027-04-28",
+      "cell": "P180",
+      "text": "Nie wysyłaj go."
+    },
+    {
+      "date": "2027-04-28",
+      "cell": "P180",
+      "text": "Spal w bezpiecznym miejscu albo podrzyj i wyrzuć."
+    },
+    {
+      "date": "2027-05-03",
+      "cell": "P185",
+      "text": "W medycynie była ważnym ziołem na serce, ale tylko w rękach znawców, bo jest silnie trująca."
+    },
+    {
+      "date": "2027-05-06",
+      "cell": "P188",
+      "text": "W Wniebowstąpienie nie pracowano w polu ani w ogrodzie."
+    },
+    {
+      "date": "2027-05-13",
+      "cell": "P195",
+      "text": "Mówiono, że zimni ogrodnicy to trzech świętych, którzy pilnują, by wiosna nie przyszła za szybko."
+    },
+    {
+      "date": "2027-05-13",
+      "cell": "P195",
+      "text": "Dopiero po zimnej Zośce można było bezpiecznie sadzić ogórki i fasolę."
+    },
+    {
+      "date": "2027-05-13",
+      "cell": "P195",
+      "text": "Dziś pierwsza kwadra: czas, gdy rośnie, ale jeszcze trzeba poczekać."
+    },
+    {
+      "date": "2027-05-18",
+      "cell": "S200",
+      "text": "Liście rabarbaru są trujące, bo zawierają dużo kwasu szczawiowego."
+    },
+    {
+      "date": "2027-05-19",
+      "cell": "P201",
+      "text": "Stopy czują ziemię, a ziemia mówi rzeczy, których nie słychać w butach."
+    },
+    {
+      "date": "2027-05-26",
+      "cell": "P208",
+      "text": "Możesz go wysłać albo zostawić dla siebie."
+    },
+    {
+      "date": "2027-05-27",
+      "cell": "P209",
+      "text": "Po procesji ludzie zabierali gałązki z ołtarzy do domu i ogrodu, by chroniły przed piorunem i szkodnikami."
+    },
+    {
+      "date": "2027-05-29",
+      "cell": "P211",
+      "text": "Jaskry są piękne, ale trujące, a krowy omijają je na pastwisku."
+    },
+    {
+      "date": "2027-06-02",
+      "cell": "P215",
+      "text": "Nie zrywa się wszystkiego, zostawia się część, by roślina odrosła."
+    },
+    {
+      "date": "2027-06-03",
+      "cell": "P216",
+      "text": "Pajęczyny w oborze zostawiano, bo łapały muchy, a w ranach dawniej używano ich do tamowania krwi."
+    },
+    {
+      "date": "2027-06-06",
+      "cell": "P219",
+      "text": "Południca uczy, że w najgorętszej porze trzeba odpocząć w cieniu."
+    },
+    {
+      "date": "2027-06-06",
+      "cell": "S219",
+      "text": "Gdzie pracuję w największym upale, choć mogłabym odpocząć?"
+    },
+    {
+      "date": "2027-06-15",
+      "cell": "S228",
+      "text": "Zsiadłe mleko robiono, zostawiając świeże mleko w cieple na noc."
+    },
+    {
+      "date": "2027-06-20",
+      "cell": "P233",
+      "text": "Wiedza bywała niebezpieczna dla tych, które ją miały."
+    },
+    {
+      "date": "2027-06-23",
+      "cell": "P236",
+      "text": "Najkrótsza noc roku należy do ognia i wody."
+    },
+    {
+      "date": "2027-07-01",
+      "cell": "S244",
+      "text": "Trzeba stać plecami do słońca."
+    },
+    {
+      "date": "2027-07-03",
+      "cell": "P246",
+      "text": "Las jest pełen życia, które trzeba umieć zobaczyć."
+    },
+    {
+      "date": "2027-07-04",
+      "cell": "S247",
+      "text": "Gdzie kręcę się w kółko, bo nie zatrzymałam się, by pomyśleć?"
+    },
+    {
+      "date": "2027-07-05",
+      "cell": "P248",
+      "text": "Nagietek sadzono przy warzywach, bo odstrasza szkodniki."
+    },
+    {
+      "date": "2027-07-13",
+      "cell": "P256",
+      "text": "Ogórki układa się w słoju z koprem, czosnkiem, chrzanem i liśćmi wiśni lub dębu, zalewa solanką i zostawia w cieple."
+    },
+    {
+      "date": "2027-07-15",
+      "cell": "P258",
+      "text": "Ale dzieciom mówiono: nie licz gwiazd, bo wyrosną ci kurzajki."
+    },
+    {
+      "date": "2027-07-17",
+      "cell": "S260",
+      "text": "Liczbę sekund między błyskawicą a grzmotem podziel przez trzy."
+    },
+    {
+      "date": "2027-07-25",
+      "cell": "P268",
+      "text": "Dobry dzień, by pomyśleć o drodze."
+    },
+    {
+      "date": "2027-07-29",
+      "cell": "P272",
+      "text": "Trzeba było splunąć przez lewe ramię, zawrócić albo poczekać, aż ktoś inny przejdzie pierwszy."
+    },
+    {
+      "date": "2027-08-03",
+      "cell": "S277",
+      "text": "Na zakwasie chleb żytni nie potrzebuje drożdży."
+    },
+    {
+      "date": "2027-08-05",
+      "cell": "P279",
+      "text": "Na końcu żniw zostawiano na polu kępkę niezżętego zboża."
+    },
+    {
+      "date": "2027-08-12",
+      "cell": "P286",
+      "text": "Dawniej wierzono, że spadająca gwiazda to dusza, która właśnie odchodzi, i trzeba za nią westchnąć modlitwą."
+    },
+    {
+      "date": "2027-08-12",
+      "cell": "P286",
+      "text": "Trzeba zdążyć, zanim gwiazda zgaśnie, i nikomu go nie zdradzać."
+    },
+    {
+      "date": "2027-08-16",
+      "cell": "S290",
+      "text": "Ziarna są bezpieczne, ale niedojrzałe makówki zawierają alkaloidy."
+    },
+    {
+      "date": "2027-08-31",
+      "cell": "P305",
+      "text": "Duże ogórki układa się w beczce albo kamionkowym garnku z koprem, czosnkiem, chrzanem, liśćmi wiśni i dębu, zalewa solanką i zostawia na kilka tygodni."
+    },
+    {
+      "date": "2027-08-31",
+      "cell": "P305",
+      "text": "Mówiono, że kisić trzeba przy nowiu, bo ogórki są wtedy twardsze."
+    },
+    {
+      "date": "2027-09-02",
+      "cell": "P307",
+      "text": "Po zachodzie słońca nie oddawano długów ani nie pożyczano pieniędzy."
+    },
+    {
+      "date": "2027-09-02",
+      "cell": "P307",
+      "text": "Nie wolno też było liczyć pieniędzy w nocy ani zostawiać pustego portfela."
+    },
+    {
+      "date": "2027-09-02",
+      "cell": "S307",
+      "text": "Zwyczaj zostawiania monety w nowym portfelu, gdy się go komuś daje w prezencie, jest znany do dziś."
+    },
+    {
+      "date": "2027-09-04",
+      "cell": "P309",
+      "text": "Stare odmiany mają smaki, których nie znajdziesz w supermarkecie."
+    },
+    {
+      "date": "2027-09-05",
+      "cell": "P310",
+      "text": "Bies nie atakuje silnych."
+    },
+    {
+      "date": "2027-09-06",
+      "cell": "P311",
+      "text": "Owoce trzeba ugotować, bo surowe są trujące."
+    },
+    {
+      "date": "2027-09-10",
+      "cell": "S315",
+      "text": "Syrop z cebuli był jednym z najpopularniejszych domowych leków na kaszel w Polsce."
+    },
+    {
+      "date": "2027-09-15",
+      "cell": "P320",
+      "text": "Ty też możesz zrobić swoje dożynki."
+    },
+    {
+      "date": "2027-09-15",
+      "cell": "P320",
+      "text": "Zapisz, co zebrałaś tego lata: doświadczenia, ludzi, chwile, nauki."
+    },
+    {
+      "date": "2027-09-16",
+      "cell": "P321",
+      "text": "Księżyc wschodzi wtedy kilka wieczorów z rzędu niemal o tej samej porze, zaraz po zachodzie Słońca."
+    },
+    {
+      "date": "2027-09-16",
+      "cell": "P321",
+      "text": "Wierzono, że przy pełni nie należy zaczynać nowych spraw, tylko je kończyć."
+    },
+    {
+      "date": "2027-09-17",
+      "cell": "P322",
+      "text": "Orzech włoski był drzewem silnym i niebezpiecznym."
+    },
+    {
+      "date": "2027-09-24",
+      "cell": "P329",
+      "text": "Trzeba go nosić tak długo, aż zrobi się twardy i pomarszczony."
+    },
+    {
+      "date": "2027-09-24",
+      "cell": "P329",
+      "text": "Nie ma na to dowodów, ale kasztan w dłoni to dobre przypomnienie o jesieni i o tym, że warto się poruszać."
+    },
+    {
+      "date": "2027-09-27",
+      "cell": "P332",
+      "text": "Wrzos jest symbolem samotności i wytrwałości: rośnie tam, gdzie inne rośliny nie chcą."
+    },
+    {
+      "date": "2027-09-29",
+      "cell": "P334",
+      "text": "Mówiono, że od świętego Michała noce są zimne i trzeba palić w piecu."
+    },
+    {
+      "date": "2027-10-01",
+      "cell": "P336",
+      "text": "Nazywano go kurzym bożkiem, bo wieszano go w kurnikach, by zmora nie męczyła kur, a kury dobrze się niosły."
+    },
+    {
+      "date": "2027-10-02",
+      "cell": "P337",
+      "text": "Mgła uczy, że nie trzeba widzieć całej drogi, by iść."
+    },
+    {
+      "date": "2027-10-03",
+      "cell": "P338",
+      "text": "Mieszkał w ciemnych kątach, na strychu i w piwnicy, porywał dzieci, które nie słuchały albo chodziły same po zmroku."
+    },
+    {
+      "date": "2027-10-03",
+      "cell": "P338",
+      "text": "Bebok był sposobem dorosłych, by dzieci nie wchodziły tam, gdzie mogło być niebezpiecznie: do studni, na strych, do lasu."
+    },
+    {
+      "date": "2027-10-07",
+      "cell": "P342",
+      "text": "Kot, który nie chciał wejść do domu, ostrzegał przed złym."
+    },
+    {
+      "date": "2027-10-07",
+      "cell": "S342",
+      "text": "Koty myją się często po jedzeniu i przed snem."
+    },
+    {
+      "date": "2027-10-08",
+      "cell": "P343",
+      "text": "Ale nie wolno było zamiatać po zmroku ani w stronę drzwi, by nie wymieść szczęścia."
+    },
+    {
+      "date": "2027-10-16",
+      "cell": "P351",
+      "text": "Robią setki kryjówek, a wielu z nich nigdy nie znajdą."
+    },
+    {
+      "date": "2027-10-16",
+      "cell": "S351",
+      "text": "Wiewiórki pamiętają większość swoich kryjówek, ale nie wszystkie."
+    },
+    {
+      "date": "2027-10-21",
+      "cell": "P356",
+      "text": "Kiedy ogień nie chciał się rozpalić, był to zły znak."
+    },
+    {
+      "date": "2027-10-22",
+      "cell": "P357",
+      "text": "Na ogień nie pluto, nie rzucano śmieci, nie deptano węgli."
+    },
+    {
+      "date": "2027-10-24",
+      "cell": "P359",
+      "text": "Rozstaje dróg były miejscem niebezpiecznym."
+    },
+    {
+      "date": "2027-10-24",
+      "cell": "P359",
+      "text": "Tam też zostawiano przedmioty po chorych, by choroba przeszła na kogoś, kto je podniesie."
+    },
+    {
+      "date": "2027-10-27",
+      "cell": "P362",
+      "text": "Dawniej mówiono, że w te dni dusze wracają, więc trzeba przygotować dla nich miejsce."
+    },
+    {
+      "date": "2027-10-28",
+      "cell": "P363",
+      "text": "Dobry dzień, by nie tracić nadziei."
+    },
+    {
+      "date": "2027-10-29",
+      "cell": "P364",
+      "text": "Zostawiano dla nich jedzenie na stole i nie zamykano drzwi na noc."
+    },
+    {
+      "date": "2027-10-29",
+      "cell": "P364",
+      "text": "Nie wolno było wylewać wody przez okno ani prząść, by nie skaleczyć wracających dusz."
+    },
+    {
+      "date": "2027-10-30",
+      "cell": "P365",
+      "text": "Drzewa nie umierają."
+    },
+    {
+      "date": "2027-11-03",
+      "cell": "P369",
+      "text": "Zostawił łuk i zmienił życie."
+    },
+    {
+      "date": "2027-11-07",
+      "cell": "P373",
+      "text": "Dusza pokutująca błąkała się po świecie, bo za życia zostawiła coś niezałatwionego: dług, krzywdę, przesuniętą miedzę, niedotrzymaną obietnicę."
+    },
+    {
+      "date": "2027-11-07",
+      "cell": "P373",
+      "text": "W tych opowieściach kryje się prosta mądrość: niezałatwione sprawy nie dają spokoju."
+    },
+    {
+      "date": "2027-11-15",
+      "cell": "P381",
+      "text": "Wierzono, że kminek zatrzymuje: miłość, złodzieja i kury, by nie uciekały."
+    },
+    {
+      "date": "2027-11-15",
+      "cell": "S381",
+      "text": "Kminek należy do najstarszych przypraw Europy."
+    },
+    {
+      "date": "2027-11-17",
+      "cell": "P383",
+      "text": "Zrób listę ludzi, których chcesz odwiedzić albo do których chcesz zadzwonić, zanim przyjdą długie noce."
+    },
+    {
+      "date": "2027-11-17",
+      "cell": "P383",
+      "text": "Bliskość też trzeba przygotować na zimę."
+    },
+    {
+      "date": "2027-11-20",
+      "cell": "P386",
+      "text": "Te ptaki są niezwykle inteligentne: pamiętają twarze ludzi, używają narzędzi i rozmawiają ze sobą."
+    },
+    {
+      "date": "2027-11-20",
+      "cell": "S386",
+      "text": "Badania pokazują, że wrony pamiętają twarz człowieka, który je skrzywdził, przez wiele lat."
+    },
+    {
+      "date": "2027-11-24",
+      "cell": "P390",
+      "text": "Woskowe świece były cenniejsze od łojowych, bo nie kopciły i pachniały miodem."
+    },
+    {
+      "date": "2027-11-26",
+      "cell": "P392",
+      "text": "Jest piękny, ale trujący, zwłaszcza owoce."
+    },
+    {
+      "date": "2027-12-01",
+      "cell": "P397",
+      "text": "Ale możesz zrobić własny, dla dorosłych: zamiast czekoladek, dwadzieścia cztery małe gesty."
+    },
+    {
+      "date": "2027-12-06",
+      "cell": "P402",
+      "text": "Mikołaj nie chciał podziękowań."
+    },
+    {
+      "date": "2027-12-09",
+      "cell": "P405",
+      "text": "Śniegiem nacierano odmrożenia, choć dziś wiemy, że to szkodzi."
+    },
+    {
+      "date": "2027-12-12",
+      "cell": "P408",
+      "text": "Trzeba było paść na ziemię i zakryć oczy."
+    },
+    {
+      "date": "2027-12-17",
+      "cell": "P413",
+      "text": "Wierzono, że zwierzęta są świadkami narodzin Jezusa w stajni i należy im się udział w święcie."
+    },
+    {
+      "date": "2027-12-23",
+      "cell": "P419",
+      "text": "Dlatego dzień przed nią kończono kłótnie, oddawano długi, sprzątano dom i niczego nie pożyczano z domu w samą Wigilię."
+    },
+    {
+      "date": "2027-12-24",
+      "cell": "P420",
+      "text": "Każdej potrawy trzeba spróbować, by w każdym miesiącu było dobrze."
+    },
+    {
+      "date": "2027-12-27",
+      "cell": "P423",
+      "text": "Dobry dzień, by zapytać, co cię truje, i to pobłogosławić albo wylać."
+    },
+    {
+      "date": "2027-12-29",
+      "cell": "P425",
+      "text": "Możesz czytać je w trudne dni albo za rok w ostatnim tygodniu grudnia."
+    },
+    {
+      "date": "2027-12-29",
+      "cell": "P425",
+      "text": "Słoik dobrych chwil to przetwór, który nie psuje się nigdy."
+    },
+    {
+      "date": "2027-12-30",
+      "cell": "P426",
+      "text": "Dlatego oddawano długi, by nie mieć ich przez cały rok, sprzątano dom, by nie wnosić bałaganu w nowy czas, i przygotowywano pełną spiżarnię."
+    },
+    {
+      "date": "2027-12-31",
+      "cell": "P427",
+      "text": "Zapisz to, zanim wybije północ."
+    }
+  ]
+}
