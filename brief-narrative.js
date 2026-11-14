@@ -41,14 +41,14 @@ const OktiBriefNarrative=(()=>{
   if(model.weather?.stale)add('weather-limit','limitation','Prognoza pogody jest nieaktualna; pomijam wskazówki pogodowe.');
   (model.holidays?.items||[]).slice(0,4).forEach((h,i)=>add('holiday-'+i,'holiday','Święto ustawowe w '+model.holidays.countryLabel+': '+h.localName+'. Źródło: Nager.Date. Święto nie oznacza automatycznie, że użytkownik ma wolne.'));
   if(model.holidays?.regionalUnknown)add('holiday-limit','limitation','Nie ustalono regionu; uwzględniono tylko święta ogólnokrajowe.');
-  if(model.inspiration&&model.inspiration.date===model.date&&model.mode!=='review'){const i=model.inspiration;add('inspiration','inspiration','Symboliczna inspiracja według astrologii. Źródło: '+i.source+'. Data: '+i.date+'. Motyw: '+i.label+'. Według źródła: '+i.moon+', '+i.phase+'. Propozycja: '+i.text+' To ogólny motyw kalendarza, nie osobisty horoskop ani prognoza kondycji, zdrowia lub powodzenia.');}
+  if(model.yagaEnabled!==false&&model.inspiration&&model.inspiration.date===model.date&&model.mode!=='review'){const i=model.inspiration;add('inspiration','inspiration','Symboliczna inspiracja według astrologii. Źródło: '+i.source+'. Data: '+i.date+'. Motyw: '+i.label+'. Według źródła: '+i.moon+', '+i.phase+'. Propozycja: '+i.text+' To ogólny motyw kalendarza, nie osobisty horoskop ani prognoza kondycji, zdrowia lub powodzenia.');}
   return result;
  }
  function presentation(model,previous={},detail='auto',allRecords=model.records||[]){
   const now=model.now||new Date(),future=model.date>localDay(now),ended=allRecords.filter(r=>!r.allDay&&r.hasEnd&&r.end<=+now).length;
   if(previous.lastAt&&localDay(new Date(previous.lastAt))!==localDay(now))previous={};
   const morning=now.getHours()<12&&(!allRecords.length||ended/allRecords.length<=.2),explicit=['full','yaga'].includes(detail);
-  const includeYaga=model.mode!=='review'&&(explicit||detail!=='update'&&!previous.count&&(future||morning));
+  const includeYaga=model.yagaEnabled!==false&&model.mode!=='review'&&(explicit||detail!=='update'&&!previous.count&&(future||morning));
   return {kind:model.mode==='review'?'review':explicit?'full':includeYaga?(future?'future':'morning'):'update',includeYaga,previousCount:previous.count||0,lastReportedAt:previous.lastAt||null};
  }
  function structuredFacts(model,brief){
@@ -63,10 +63,10 @@ const OktiBriefNarrative=(()=>{
   (model.travel?.legs||[]).filter(l=>Number.isFinite(l.route?.minutes)).slice(0,6).forEach((l,i)=>add('route-'+i,'travel',{from:l.current?'currentGPS':l.from.title,to:l.to.title,minutes:Math.ceil(l.route.minutes),mode:l.mode,current:!!l.current,planning:!!l.current&&model.mode==='plan',gpsUpdated:!!l.current&&model.gpsUpdated===true,availableMinutes:l.availableMinutes,risk:l.risk,start:time(l.target?.start),leaveAt:time(l.leaveAt),leaveBy:time(l.target?.start-Math.ceil(l.route.minutes)*60000),bufferMinutes:l.leaveAt?10:0}));
   if(model.weather?.available&&!model.weather.stale){const w=model.weather;add('weather','weather',{date:model.date,timezone:w.timezone||null,period:w.period,temperatureMin:w.temperatureMin,temperatureMax:w.temperatureMax,rain:w.rain||null,wind:w.wind||null});}
   (model.holidays?.items||[]).slice(0,4).forEach((h,i)=>add('holiday-'+i,'holiday',{name:h.localName,country:model.holidays.countryLabel,source:'Nager.Date'}));
-  if(model.presentation?.includeYaga&&model.inspiration?.date===model.date){const i=model.inspiration;add('inspiration','inspiration',{date:model.date,source:'Księga Yagi',theme:i.label,...i.detail,editorial:i.editorial?{inspiration:i.editorial.inspiration,favors:i.editorial.favors,care:i.editorial.care}:null,skyEvents:i.sky?.events||[]});}
+  if(model.yagaEnabled!==false&&model.presentation?.includeYaga&&model.inspiration?.date===model.date){const i=model.inspiration;add('inspiration','inspiration',{date:model.date,source:'Księga Yagi',theme:i.label,...i.detail,editorial:i.editorial?{inspiration:i.editorial.inspiration,favors:i.editorial.favors,care:i.editorial.care}:null,skyEvents:i.sky?.events||[]});}
   return result;
  }
- function context(model,brief){const display=model.presentation||presentation(model);return {schemaVersion:2,mode:model.mode,date:model.date,today:localDay(model.now||new Date()),presentation:display,speechBudget:model.speechBudget||90,facts:structuredFacts({...model,presentation:display},brief)}}
+ function context(model,brief){let display=model.presentation||presentation(model);if(model.yagaEnabled===false)display={...display,includeYaga:false};return {schemaVersion:2,mode:model.mode,date:model.date,today:localDay(model.now||new Date()),presentation:display,speechBudget:model.speechBudget||90,facts:structuredFacts({...model,presentation:display},brief)}}
  // Only values are sent to the writer: legacy UI phrases are never examples
  // or candidate prose for a current briefing.
  function forModel(value){const data=input(value);return data.schemaVersion===2?{...data,facts:data.facts.map(f=>({id:f.id,kind:f.kind,values:JSON.parse(f.text),priority:f.priority}))}:data;}
@@ -135,7 +135,7 @@ const OktiBriefNarrative=(()=>{
   const sentences=[brief.countText,...brief.warnings.slice(0,2).map(w=>w.text)];
   if(model.weather?.available&&!model.weather.stale)sentences.push(weatherText(model));
   const holiday=model.holidays?.items?.[0];if(holiday)sentences.push('Święto ustawowe: '+holiday.localName+'.');
-  if(model.inspiration&&model.inspiration.date===model.date&&model.mode!=='review')sentences.push('Astrologiczna '+inspirationTitle(model).toLocaleLowerCase('pl-PL')+' z Kalendarza Jagi: '+model.inspiration.text);
+  if(model.yagaEnabled!==false&&model.inspiration&&model.inspiration.date===model.date&&model.mode!=='review')sentences.push('Astrologiczna '+inspirationTitle(model).toLocaleLowerCase('pl-PL')+' z Kalendarza Jagi: '+model.inspiration.text);
   // The voice stays concise even after all on-screen warnings are expanded.
   const kept=[];let length=0;for(const text of sentences){const size=words(text);if(length+size>120)break;kept.push(text);length+=size}return kept.join(' ');
  }

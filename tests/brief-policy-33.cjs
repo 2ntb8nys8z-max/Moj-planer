@@ -15,3 +15,8 @@ const fullContext=narrator.context({...future,presentation:narrator.presentation
 const dated={intro:null,weather,inspiration:{text:'Według Księgi Yagi pełnia przypada 24 listopada, za 10 dni.',factIds:['inspiration']},insights:[],spoken:[weather,{text:'Nie masz jutro zaplanowanych spotkań.',factIds:['count']}]};
 assert.ok(narrator.validate(dated,fullContext).inspiration);assert.throws(()=>narrator.validate({...dated,inspiration:{text:'Pełnia przypada 11 grudnia.',factIds:['inspiration']}},fullContext));
 const nextMorning={...future,mode:'remaining',now:new Date('2026-11-14T08:00:00+01:00')};assert.equal(narrator.presentation(nextMorning,{count:3,lastAt:+now}).kind,'morning','Yesterday\'s plan for tomorrow must not suppress the new morning ritual');assert.equal(narrator.presentation(nextMorning,{count:1,lastAt:+nextMorning.now-60000}).kind,'update');
+const optedOut={...future,yagaEnabled:false,presentation:{kind:'full',includeYaga:true}};
+for(const detail of ['auto','full','yaga'])assert.equal(narrator.presentation(optedOut,{},detail).includeYaga,false,'Explicit requests respect the saved opt-out');
+const optedOutBrief=core.summary(optedOut),optedOutContext=narrator.context(optedOut,optedOutBrief);
+assert.equal(optedOutContext.presentation.includeYaga,false);assert.ok(!optedOutContext.facts.some(f=>f.kind==='inspiration'));assert.ok(!narrator.structuredFacts(optedOut,optedOutBrief).some(f=>f.kind==='inspiration'));assert.ok(!narrator.facts(optedOut,optedOutBrief).some(f=>f.kind==='inspiration'));assert.doesNotMatch(narrator.fallback(optedOut,optedOutBrief),/Yagi|Jagi|astrolog/);
+assert.equal(optedOutContext.facts.find(f=>f.id==='count').text,fullContext.facts.find(f=>f.id==='count').text,'Meeting facts remain part of the core report');

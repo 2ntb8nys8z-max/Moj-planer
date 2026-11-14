@@ -4,6 +4,16 @@ window.OktiDayBriefUI=(()=>{
  let current=null,serial=0;
  const prefix=typeof PREVIEW33_PREFIX==='string'?PREVIEW33_PREFIX:'',historyKey=prefix+'okti-brief-history-v2',voiceKey=prefix+'okti-brief-voice-v2';
  const readSaved=key=>{try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(_){return {}}};
+ const yagaPreferenceKey='okti-brief-yaga-v1',preferenceStore=()=>window.PlannerData?.storage||localStorage;
+ function isYagaEnabled(){try{return preferenceStore().getItem(yagaPreferenceKey)==='true'}catch(_){return false}}
+ let observedYagaPreference=isYagaEnabled();
+ function syncYagaSetting(){const input=document.getElementById('briefYagaEnabled'),status=document.getElementById('briefYagaStatus'),enabled=isYagaEnabled();if(input)input.checked=enabled;if(status)status.textContent=enabled?'Włączone w podsumowaniu i odczycie głosowym.':'Wyłączone w podsumowaniu i odczycie głosowym.'}
+ function applyYagaPreference(){
+  const enabled=isYagaEnabled(),changed=enabled!==observedYagaPreference;observedYagaPreference=enabled;syncYagaSetting();if(!changed||!current)return;
+  const state=current;cancel();modal.classList.add('hidden');
+  if(state.view==='brief')show({...state.action,...(enabled?{briefDetail:'full'}:{})},state.session,{speak:false,refreshWeather:false,gpsFixId:state.model?.gpsUpdated?state.model.place?.fixId:null});
+ }
+ function setYagaEnabled(value){preferenceStore().setItem(yagaPreferenceKey,String(value===true));applyYagaPreference();return isYagaEnabled()}
  const historyFor=date=>readSaved(historyKey)[date]||{};
  function rememberReport(model){try{const all=readSaved(historyKey),old=all[model.date]||{},sameDay=old.lastAt&&core.dayKey(new Date(old.lastAt))===core.dayKey(model.now);all[model.date]={count:Math.min(1000,(sameDay?old.count||0:0)+1),lastAt:+model.now};const kept=Object.fromEntries(Object.entries(all).sort((a,b)=>(b[1].lastAt||0)-(a[1].lastAt||0)).slice(0,40));localStorage.setItem(historyKey,JSON.stringify(kept))}catch(_){}}
  function voiceBudget(){const rate=Number(readSaved(voiceKey).wordsPerMinute)||120;return Math.max(50,Math.min(105,Math.floor(rate*.72)))}
@@ -30,6 +40,16 @@ window.OktiDayBriefUI=(()=>{
  #entryResultsModal.is-day-brief button:focus-visible,#entryResultsModal.is-day-brief summary:focus-visible{outline:3px solid #567889;outline-offset:3px}
  @media(max-width:360px){#entryResultsModal.is-day-brief .action-card{border-radius:20px}#entryResultsModal.is-day-brief h2{padding-left:18px}#entryResultsModal.is-day-brief #entryResultsCount{padding-left:18px;padding-right:18px}#entryResultsModal.is-day-brief #entryResults{padding:20px 18px}.day-brief-footer{padding:12px 18px 14px}}
  `;document.head.append(style);
+ const settingStyle=document.createElement('style');settingStyle.textContent=`
+ #briefSummarySettings p{font-size:14px;line-height:1.55;color:#5c6e76}#briefSummarySettings .brief-yaga-toggle{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;margin:12px 0;border-top:1px solid #e2e8e6;border-bottom:1px solid #e2e8e6;color:#2d454b;cursor:pointer}#briefSummarySettings .brief-yaga-label{display:block;font-size:16px;line-height:1.45;font-weight:650}#briefSummarySettings .brief-yaga-description{display:block;font-size:13px;line-height:1.5;color:#667980;font-weight:400;margin-top:5px}#briefYagaEnabled{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:50px;height:30px;min-height:30px;margin:0;padding:0;border:1px solid #aab9b5;border-radius:18px;background:#d7dfdc;box-shadow:none;cursor:pointer;transition:background .18s,border-color .18s}#briefYagaEnabled:before{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #27443630;transition:transform .18s}#briefYagaEnabled:checked{background:#4c7e6e;border-color:#4c7e6e}#briefYagaEnabled:checked:before{transform:translateX(20px)}#briefYagaEnabled:focus-visible{outline:3px solid #76a798;outline-offset:4px}#briefSummarySettings #briefYagaStatus{font-size:13px;min-height:20px;margin:0 0 16px}#briefSummarySettings #daySummary{margin:0!important;width:100%;min-height:48px}@media(prefers-reduced-motion:reduce){#briefYagaEnabled,#briefYagaEnabled:before{transition:none}}
+ `;document.head.append(settingStyle);
+ function installYagaSetting(){
+  const host=document.querySelector('#phoneSettingsModal .phone-settings');if(!host)return;
+  const box=document.createElement('section');box.id='briefSummarySettings';box.className='card';box.innerHTML='<h2>Podsumowanie dnia</h2><p>Plan dnia i dojazdy są zawsze częścią podsumowania.</p><label class="brief-yaga-toggle" for="briefYagaEnabled"><span><span class="brief-yaga-label" id="briefYagaLabel">Inspiracje z Księgi Yagi</span><span class="brief-yaga-description" id="briefYagaDescription">Astrologia, dni biodynamiczne, tradycje i wskazówki autorki.</span></span><input id="briefYagaEnabled" type="checkbox" role="switch" aria-labelledby="briefYagaLabel" aria-describedby="briefYagaDescription briefYagaStatus"></label><p id="briefYagaStatus" role="status"></p>';
+  const summaryButton=document.getElementById('daySummary');if(summaryButton){summaryButton.textContent='Zobacz podsumowanie dnia';box.append(summaryButton)}host.prepend(box);syncYagaSetting();
+  document.getElementById('briefYagaEnabled').onchange=event=>{try{setYagaEnabled(event.target.checked)}catch(_){syncYagaSetting();document.getElementById('briefYagaStatus').textContent='Nie udało się zapisać ustawienia. Spróbuj ponownie.'}};
+ }
+ window.addEventListener('storage',event=>{if(event.key===prefix+yagaPreferenceKey||event.key===null)applyYagaPreference()});
  const fingerprint=()=>JSON.stringify(tasks);
  const owned=state=>current===state&&state.serial===serial&&!modal.classList.contains('hidden')&&(!state.session||voiceDialogues[state.session.channel]===state.session);
  function stop(state){if(!state)return;const active=state.speechToken;state.speechToken=null;clearTimeout(state.speechStartTimer);clearTimeout(state.speechEndTimer);if(active)try{window.speechSynthesis?.cancel()}catch(_){}state.speaking=false;if(state.readButton){state.readButton.textContent=state.readLabel||'Odczytaj podsumowanie';state.readButton.setAttribute('aria-pressed','false');state.readButton.setAttribute('aria-busy','false')}}
@@ -154,7 +174,7 @@ window.OktiDayBriefUI=(()=>{
    records=core.events(tasks,spec.date,now,spec.mode);if(spec.mode!=='review')journey=await core.travel(records,tasks,{...travelOptions,now,maxRequests:0});
    if(!owned(state)||fingerprint()!==state.version)return null;
    const weather=spec.mode!=='review'&&place?core.weather(OktiLocalWeather.details(new Date(spec.date+'T12:00:00')),spec.date,now,spec.mode):null;
-   const model=state.model={...spec,now,records,travel:journey,place,weather,weatherEnabled:!!saved.enabled,weatherIssue:saved.error||'',gpsIssue:gpsIssue||saved.error||'',holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),inspiration:spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null,gpsUpdated,speechBudget:voiceBudget()};model.presentation=narrator.presentation(model,historyFor(spec.date),action.briefDetail||'auto',core.events(tasks,spec.date,now,'plan'));state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
+   const yagaEnabled=isYagaEnabled(),model=state.model={...spec,now,records,travel:journey,place,weather,weatherEnabled:!!saved.enabled,weatherIssue:saved.error||'',gpsIssue:gpsIssue||saved.error||'',holidays:results[1],calendar:core.calendarContext(spec.date),overview:core.dayOverview({...spec,now,records,travel:journey}),yagaEnabled,inspiration:yagaEnabled&&spec.mode!=='review'?window.OktiDayInspiration?.day(spec.date)||null:null,gpsUpdated,speechBudget:voiceBudget()};model.presentation=narrator.presentation(model,historyFor(spec.date),action.briefDetail||'auto',core.events(tasks,spec.date,now,'plan'));state.analyzing=!!narrator;render(state,{focus:true});window.OktiBriefLinks?.remember(model,session);
    try{if(narrator)await analyze(state)}catch(_){state.aiError='Analiza AI jest chwilowo niedostępna. Pokazuję sprawdzone dane kalendarza.'}finally{state.analyzing=false}
    if(!owned(state))return null;
    if(fingerprint()!==state.version)throw Error('Plan zmienił się podczas analizy. Poproś o podsumowanie ponownie.');
@@ -172,6 +192,7 @@ window.OktiDayBriefUI=(()=>{
   const returnFocus=document.activeElement;cancel();showEntryResults([],'Dobry moment na '+({work:'pracę',rest:'odpoczynek',relax:'relaks'}[action.topic]||'Twój plan'),'',true);decorate();list.replaceChildren();
   const card=modal.querySelector('.action-card');if(card.animate&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)card.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
   const now=new Date(),state=current={serial,session,action,version:fingerprint(),controller:new AbortController(),returnFocus,view:'inspiration-search',model:{date:core.dayKey(now),mode:'plan',now,records:[]}};
+  if(!isYagaEnabled()){state.speechText='Inspiracje z Księgi Yagi są wyłączone. Możesz je włączyć w Ustawieniach, w sekcji Podsumowanie dnia.';state.model.text=state.speechText;list.append(section('Inspiracje są wyłączone',[state.speechText]));if(session)session.history.push({role:'assistant',content:state.speechText});if(session?.inputSource==='audio')speak(state);return {status:'disabled'}}
   try{
    const result=source.search(action,tasks,now);state.result=result;state.speechText=source.message(result);state.model.text=state.speechText;
    const meta=document.getElementById('entryResultsCount'),origin=document.createElement('span'),period=document.createElement('span');origin.className='day-brief-date';origin.textContent='Według astrologii · Księga Yagi';period.className='day-brief-year';period.textContent=source.dateLabel(result.from)+' – '+source.dateLabel(result.to);meta.replaceChildren(origin,period);
@@ -189,6 +210,7 @@ window.OktiDayBriefUI=(()=>{
   }catch(error){state.model=null;list.replaceChildren(section('Sprawdź zakres',[error.message||'Nie udało się sprawdzić inspiracji.']));return null;}
  }
  function showDay(date,{chooseDay=null,openCalendar=null}={}){
+  if(!isYagaEnabled()){if(chooseDay){chooseDay();return null}return show({date},null,{speak:false})}
   const spec=core.target({date},new Date()),source=window.OktiDayInspiration?.day(date),returnFocus=document.activeElement;
   cancel();showEntryResults([],'Karta dnia','',true);decorate();list.replaceChildren();document.getElementById('phoneDateButton')?.setAttribute('aria-expanded','true');
   const state=current={serial,session:null,controller:new AbortController(),version:fingerprint(),returnFocus,view:'day-card',model:{...spec,now:new Date(),records:[]}};
@@ -207,5 +229,6 @@ window.OktiDayBriefUI=(()=>{
   if(event.key==='Tab'){const focusable=[...modal.querySelectorAll('button,a[href],summary')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!focusable.includes(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}
  },true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&current)stop(current)});
- return {show,showDay,showInspiration,cancel,getState:()=>current};
+ installYagaSetting();
+ return {show,showDay,showInspiration,cancel,isYagaEnabled,setYagaEnabled,getState:()=>current};
 })();
