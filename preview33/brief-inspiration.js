@@ -44,9 +44,21 @@
   'dom, rodzinę, gotowanie i odpoczynek':'Dom, rodzina, gotowanie i odpoczynek.',
   'twórczość, randkę, występ i zabawę z dziećmi':'Twórczość, randka, występ i zabawa z dziećmi.'
  };
+ function practicalAdvice(energy){
+  const advice=[],seen=new Set(),clock='(?:[01]\\d|2[0-3]):[0-5]\\d',timed=new RegExp('^Księżyc bez kursu ((?:od '+clock+' do (?:'+clock+'|nocy)|do '+clock+')):\\s*(.+)$','u');
+  for(const part of String(energy||'').match(/[^.!?]+[.!?]?/gu)||[]){
+   const sentence=part.trim();let period=null,text=null;const window=sentence.match(timed),allDay=sentence.match(/^Cały dzień Księżyc jest bez kursu:\s*(.+)$/u),check=sentence.match(/^Merkury jest retro:\s*(.+)$/u);
+   if(window){period=window[1][0].toLocaleUpperCase('pl-PL')+window[1].slice(1);text=window[2]}
+   else if(allDay){period='Cały dzień';text=allDay[1]}
+   else if(check)text=check[1];
+   if(!text)continue;const key=(period||'')+'|'+text;if(seen.has(key))continue;seen.add(key);
+   advice.push({period,text:text[0].toLocaleUpperCase('pl-PL')+text.slice(1),evidence:{column:'Z',text:sentence}});
+  }
+  return advice;
+ }
  function editorial(detail){
   const raw=detail.sourceText||{},positive=detail.energy?.match(/Dobry dzień na ([^.]+)\./u)?.[1],avoid=detail.energy?.match(/Unikaj ([^.]+)\./u)?.[1];
-  return {inspiration:raw.whisper||null,favors:positive?(favorPhrases[positive]||'Dobry dzień na '+positive+'.'):null,care:avoid?(carePhrases[avoid]||'Unikaj '+avoid+'.'):null,evidence:{inspiration:raw.whisper?{column:'T',text:raw.whisper}:null,favors:positive?{column:'Z',text:'Dobry dzień na '+positive+'.'}:null,care:avoid?{column:'Z',text:'Unikaj '+avoid+'.'}:null}};
+  return {inspiration:raw.whisper||null,favors:positive?(favorPhrases[positive]||'Dobry dzień na '+positive+'.'):null,care:avoid?(carePhrases[avoid]||'Unikaj '+avoid+'.'):null,attention:practicalAdvice(detail.energy),evidence:{inspiration:raw.whisper?{column:'T',text:raw.whisper}:null,favors:positive?{column:'Z',text:'Dobry dzień na '+positive+'.'}:null,care:avoid?{column:'Z',text:'Unikaj '+avoid+'.'}:null}};
  }
  function sky(date,detail){
   const events=[],other=[];let week=null;
