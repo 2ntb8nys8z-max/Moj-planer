@@ -20,3 +20,12 @@ for(const detail of ['auto','full','yaga'])assert.equal(narrator.presentation(op
 const optedOutBrief=core.summary(optedOut),optedOutContext=narrator.context(optedOut,optedOutBrief);
 assert.equal(optedOutContext.presentation.includeYaga,false);assert.ok(!optedOutContext.facts.some(f=>f.kind==='inspiration'));assert.ok(!narrator.structuredFacts(optedOut,optedOutBrief).some(f=>f.kind==='inspiration'));assert.ok(!narrator.facts(optedOut,optedOutBrief).some(f=>f.kind==='inspiration'));assert.doesNotMatch(narrator.fallback(optedOut,optedOutBrief),/Yagi|Jagi|astrolog/);
 assert.equal(optedOutContext.facts.find(f=>f.id==='count').text,fullContext.facts.find(f=>f.id==='count').text,'Meeting facts remain part of the core report');
+
+const pickupNow=new Date(date+'T20:00:00+01:00'),pickup={id:'pickup',title:'Wyjazd po Ninę',date,time:'22:00',endTime:'23:00',location:'Widok 10, Warszawa'};
+const pickupRecords=core.events([pickup],date,pickupNow),pickupLeg={current:true,from:{title:'Aktualna lokalizacja'},to:pickup,target:pickupRecords[0],route:{minutes:25},mode:'drive',leaveAt:+new Date(date+'T21:25:00+01:00'),bufferMinutes:10};
+const pickupModel={date,now:pickupNow,mode:'remaining',records:pickupRecords,travel:{legs:[pickupLeg],warnings:[],notes:[]},yagaEnabled:false},pickupContext=narrator.context(pickupModel,core.summary(pickupModel));
+const routeValues=narrator.forModel(pickupContext).facts.find(f=>f.kind==='travel').values;assert.equal(routeValues.leaveAt,'21:25');assert.equal(routeValues.bufferMinutes,10);assert.equal(Object.hasOwn(routeValues,'leaveBy'),false,'The writer receives a single buffered departure time');
+const pickupCount={text:'Masz dziś jeszcze 1 spotkanie.',factIds:['count']},pickupRoute={text:'Dojazd zajmie 25 minut. Wyjedź o 21:25, z 10 minutami zapasu.',factIds:['route-0']},pickupAnswer={intro:pickupRoute,insights:[],spoken:[pickupCount,pickupRoute]};
+assert.match(narrator.validate(pickupAnswer,pickupContext).speech,/21:25/);
+for(const text of ['Dojazd zajmie 25 minut. Wyjedź o 21:35.','Dojazd zajmie 25 minut. Wyjedź o 21:25, graniczna godzina to 22:00.','Dojazd zajmie 25 minut. Najpóźniej wyjedź o 21:25.','Dojazd zajmie 25 minut.'])assert.throws(()=>narrator.validate({...pickupAnswer,spoken:[pickupCount,{text,factIds:['route-0']}]},pickupContext),'Reject missing, unbuffered or duplicate deadline departures');
+console.log('Departure policy: one proposed time with ten-minute buffer, no unbuffered deadline supplied to the writer, grounded hour required in speech, and deadline wording rejected.');

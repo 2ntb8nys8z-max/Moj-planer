@@ -121,7 +121,8 @@
  }
  const modeNames={drive:'samochodem',walk:'pieszo',bicycle:'rowerem',transit:'komunikacją'};
  const duration=n=>n>=60?Math.floor(n/60)+' godz.'+(n%60?' '+n%60+' min':''):n+' min';
- async function travel(records,all,{now=new Date(),mode='remaining',origin=null,route=async()=>null,cached=()=>null,getMode=()=> 'drive',maxRequests=8}={}){
+ async function travel(records,all,{now=new Date(),mode='remaining',bufferMinutes=10,origin=null,route=async()=>null,cached=()=>null,getMode=()=> 'drive',maxRequests=8}={}){
+  const buffer=[5,10,15].includes(Number(bufferMinutes))?Number(bufferMinutes):10;
   const timed=records.filter(r=>!r.allDay),located=timed.filter(r=>location(r.item)),warnings=[],legs=[],notes=[];
   for(let i=0;i<timed.length;i++)for(let j=i+1;j<timed.length&&timed[j].start<timed[i].end;j++)if(timed[i].hasEnd&&timed[j].hasEnd){const overlap=Math.min(timed[i].end,timed[j].end)-Math.max(timed[i].start,timed[j].start);if(overlap>0){const minutes=Math.ceil(overlap/60000),unit=minutes===1?'minutę':minutes%10>=2&&minutes%10<=4&&(minutes%100<12||minutes%100>14)?'minuty':'minut';warnings.push({kind:'overlap',eventIds:[timed[i].item.id,timed[j].item.id],text:'Terminy wydarzeń „'+timed[i].title+'” i „'+timed[j].title+'” nakładają się o '+minutes+' '+unit+'.'});}}
   const validOrigin=origin&&Number.isFinite(origin.latitude)&&Math.abs(origin.latitude)<=90&&Number.isFinite(origin.longitude)&&Math.abs(origin.longitude)<=180&&Number.isFinite(origin.checkedAt)&&+now-origin.checkedAt<15*60000&&+now-origin.checkedAt>=0&&(!Number.isFinite(origin.accuracy)||origin.accuracy<=1000);
@@ -136,10 +137,16 @@
    const r=leg.route;if(!r||!Number.isFinite(r.minutes)||r.minutes<0){leg.text='Nie udało się ustalić czasu dojazdu do „'+title(leg.to)+'”.';continue;}
    const mins=Math.ceil(r.minutes),distance=Number.isFinite(r.distanceMeters)?', '+(r.distanceMeters>=10000?Math.round(r.distanceMeters/1000):Math.round(r.distanceMeters/100)/10)+' km':'';
    leg.text=(leg.current?(mode==='plan'?'Z dzisiejszej lokalizacji':'Z ostatniej lokalizacji')+' do „'+title(leg.to)+'”':'„'+title(leg.from)+'” → „'+title(leg.to)+'”')+': około '+duration(mins)+' '+(modeNames[leg.mode]||modeNames.drive)+distance+'.';
-   if(leg.current&&mode==='plan'){leg.risk='planning';leg.leaveAt=leg.target.start-(mins+10)*60000;continue;}
    if(leg.current&&leg.target.status==='ongoing'){leg.risk='ongoing';if(r.distanceMeters>2000)warnings.push({kind:'ongoing-travel',eventIds:[leg.to.id],text:'„'+title(leg.to)+'” według kalendarza już trwa. '+leg.text});continue;}
    const windows=freeWindows(leg.start,leg.end,all,[leg.from.id,leg.to.id]),available=Math.max(0,...windows.map(([a,b])=>(b-a)/60000));
-   leg.availableMinutes=Math.floor(available);leg.risk=mins>available?'late':mins+10>available?'tight':'safe';
+   leg.availableMinutes=Math.floor(available);
+   const window=windows.filter(([a,b])=>b-a>=(mins+buffer)*60000).at(-1)||windows.filter(([a,b])=>b-a>=mins*60000).at(-1);
+   if(window&&(leg.current||interval(leg.from)?.hasEnd)){
+    leg.leaveAt=Math.max(window[0],window[1]-(mins+buffer)*60000);
+    leg.bufferMinutes=Math.max(0,Math.min(buffer,Math.floor((window[1]-leg.leaveAt)/60000)-mins));
+   }
+   if(leg.current&&mode==='plan'){leg.risk='planning';continue;}
+   leg.risk=mins>available?'late':mins+buffer>available?'tight':'safe';
    if(leg.risk==='late'){
     const overlap=!leg.current&&warnings.some(w=>w.kind==='overlap'&&w.eventIds.includes(leg.from.id)&&w.eventIds.includes(leg.to.id));
     const reason=overlap?'terminy wydarzeń się nakładają, a dojazd potrwa około ':'za mało czasu na dojazd, który potrwa około ';
@@ -147,7 +154,7 @@
     warnings.push({kind:'travel',eventIds:[leg.to.id],text:'Ryzyko spóźnienia na spotkanie „'+title(leg.to)+'”: '+reason+travelDuration+'.'});
    }
    else if(leg.risk==='tight')warnings.push({kind:'tight',eventIds:[leg.to.id],text:'Mały zapas przed „'+title(leg.to)+'”: po dojeździe zostaje około '+Math.max(0,Math.floor(available-mins))+' min.'});
-   if(leg.current&&leg.risk!=='late'){const window=windows.filter(([a,b])=>b-a>=mins*60000).at(-1);if(window){const leave=window[1]-(mins+10)*60000;leg.leaveAt=Math.max(+now,leave);leg.text+=' '+(leave<=+now?'Warto wyruszyć teraz.':'Zaplanuj wyjazd około '+clock(new Date(leave))+' (z 10 min zapasu).');}}
+   if(leg.current&&leg.leaveAt!=null)leg.text+=' '+(leg.leaveAt<=+now?'Warto wyruszyć teraz.':'Zaplanuj wyjazd około '+clock(new Date(leg.leaveAt))+' (z '+leg.bufferMinutes+' min zapasu).');
   }
   if(timed.some(r=>!location(r.item)))notes.push('Wydarzenia bez lokalizacji ograniczają ocenę tras.');
   if(legs.some(l=>!l.route||!Number.isFinite(l.route.minutes)))notes.push('Nie wszystkie dojazdy zostały ustalone.');

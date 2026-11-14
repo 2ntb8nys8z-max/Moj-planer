@@ -2,10 +2,10 @@ import fixture from './brief-fixture.cjs';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {JSDOM} from 'jsdom';
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync('worker.js','utf8')).toString('base64'))).default;
 const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KEY:'dummy',GOOGLE_MAPS_API_KEY:'maps-fixture',API_LIMITS_DB:{prepare(){return {run:async()=>{},bind(){return this},first:async()=>({})}}}};
-const originalFetch=globalThis.fetch;let transcript='',modelCalls=0,routeCalls=[],briefCalls=0,model,lastPayload,inspirationOverride=null;
+const originalFetch=globalThis.fetch;let transcript='',modelCalls=0,routeCalls=[],briefCalls=0,model,lastPayload,inspirationOverride=null,routeDuration='2700s';
 globalThis.fetch=async(url,options={})=>{
  if(String(url).includes('/audio/transcriptions'))return Response.json({text:transcript});
- if(String(url).includes('routes.googleapis.com')){const body=JSON.parse(options.body);routeCalls.push(body);return Response.json({routes:[{duration:'2700s',distanceMeters:65000}]})}
+ if(String(url).includes('routes.googleapis.com')){const body=JSON.parse(options.body);routeCalls.push(body);return Response.json({routes:[{duration:routeDuration,distanceMeters:65000}]})}
  const request=JSON.parse(options.body||'{}');if(request.messages?.[0]?.content?.startsWith('Jesteś Okti, osobistym')){briefCalls++;writerPayload=JSON.parse(request.messages.at(-1).content);const rawData=JSON.parse(request.messages.at(-1).content),data=fixture.context(rawData),count=data.facts.find(f=>f.id==='count'),required=data.facts.filter(f=>f.priority===3),spoken=[count,...required].map(f=>({text:f.text,factIds:[f.id]})),inspiration=inspirationOverride?{text:inspirationOverride,factIds:['inspiration']}:null;if(inspiration)spoken.push(inspiration);return fixture.response(rawData,{intro:{text:count.text,factIds:['count']},inspiration,insights:[],spoken})}
  modelCalls++;return Response.json({choices:[{message:{content:JSON.stringify(model)}}]});
 };
@@ -128,6 +128,27 @@ try{
  run("tasks=[{id:'ended-a',title:'Rano',date:'2026-11-13',time:'09:00',endTime:'10:00'},{id:'ongoing-a',title:'Teraz',date:'2026-11-13',time:'16:30',endTime:'17:30',location:'Warszawa'},{id:'next-a',title:'Później',date:'2026-11-13',time:'18:00',endTime:'19:00',location:'Łódź'}];saveTasks();renderAll()");
  await turn('Jakie jeszcze mam dziś spotkania?',true);current=w.OktiDayBriefUI.getState();assert.deepEqual(Array.from(current.model.records,r=>r.item.id),['ongoing-a','next-a']);assert.equal(current.model.presentation.includeYaga,false);assert.equal(current.model.travel.legs.find(l=>l.current).to.id,'next-a');assert.equal(current.model.gpsUpdated,true);
  const afternoonSnapshot=run('JSON.stringify(PlannerData.snapshot())');get('closeEntryResults').click();gpsDenied=true;now+=60000;await turn('Jakie jeszcze mam dziś spotkania?');current=w.OktiDayBriefUI.getState();assert.equal(current.model.gpsUpdated,false);assert.ok(!current.model.travel.legs.some(l=>l.current),'A failed refresh cannot reuse the earlier fix as a new departure point');assert.doesNotMatch(current.model.narrative.speech,/Sprawdziłem aktualną lokalizację/);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),afternoonSnapshot);gpsDenied=false;get('closeEntryResults').click();
+ // The user's pickup: persisted slider, compact screen, retained voice and a shared departure.
+ const beforePickupNow=now;now=+new Date('2026-11-14T20:02:00+01:00');routeDuration='1500s';
+ run("tasks=[{id:'pickup-buffer',title:'Wyjazd po Ninę',date:'2026-11-14',time:'22:00',endTime:'23:00',location:'Widok 10, Warszawa'}];saveTasks();renderAll()");const beforePickup=run('JSON.stringify(PlannerData.snapshot())'),bufferSlider=get('travelBufferMinutes');
+ assert.equal(w.OktiDayBriefUI.getTravelBuffer(),10);assert.equal(bufferSlider.min,'5');assert.equal(bufferSlider.max,'15');assert.equal(bufferSlider.step,'5');
+ for(const buffer of [5,10,15]){
+  bufferSlider.value=buffer;bufferSlider.dispatchEvent(new w.Event('input'));assert.equal(get('travelBufferValue').textContent,buffer+' min');bufferSlider.dispatchEvent(new w.Event('change'));assert.equal(w.OktiDayBriefUI.getTravelBuffer(),buffer);assert.equal(w.PlannerData.storage.getItem('okti-travel-buffer-v1'),String(buffer));
+  const expected='21:'+String(35-buffer).padStart(2,'0');
+  for(const audio of [false,true]){
+   await turn('Jakie jeszcze mam dziś spotkania?',audio);current=w.OktiDayBriefUI.getState();
+   assert.equal(get('entryResults').querySelectorAll('[data-brief-intro],[data-brief-insights]').length,0);assert.equal(get('entryResults').querySelector('[data-brief-departure]').textContent,'Wyjazd o '+expected);
+   const routeFact=writerPayload.facts.find(f=>f.kind==='travel'&&f.values.current);assert.equal(routeFact.values.minutes,25);assert.equal(routeFact.values.leaveAt,expected);assert.equal(routeFact.values.bufferMinutes,buffer);assert.equal(Object.hasOwn(routeFact.values,'leaveBy'),false);
+   current.readButton.click();assert.ok(spoken.at(-1).includes(expected));assert.match(spoken.at(-1),/25 minut/);assert.doesNotMatch(spoken.at(-1),/21:35|graniczn|najpóźniej/);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),beforePickup);get('closeEntryResults').click();
+  }
+ }
+ // Replacing an open report stops old speech and refreshes without auto-reading.
+ await turn('Jakie jeszcze mam dziś spotkania?');current=w.OktiDayBriefUI.getState();current.readButton.click();const beforeBufferSpeech=spoken.length,beforeBufferCancels=speechCancels;
+ bufferSlider.value='10';bufferSlider.dispatchEvent(new w.Event('input'));bufferSlider.dispatchEvent(new w.Event('change'));
+ await waitPreference(()=>w.OktiDayBriefUI.getState()?.model&&!w.OktiDayBriefUI.getState().analyzing);assert.ok(speechCancels>beforeBufferCancels);assert.equal(spoken.length,beforeBufferSpeech);assert.equal(get('entryResults').querySelector('[data-brief-departure]').textContent,'Wyjazd o 21:25');get('closeEntryResults').click();
+ const saveBuffer=w.PlannerData.storage.setItem;w.PlannerData.storage.setItem=()=>{throw Error('storage unavailable')};bufferSlider.value='5';bufferSlider.dispatchEvent(new w.Event('change'));assert.equal(bufferSlider.value,'10');assert.match(get('travelBufferStatus').textContent,/Nie udało się zapisać/);w.PlannerData.storage.setItem=saveBuffer;
+ w.PlannerData.storage.setItem('okti-travel-buffer-v1','15');w.dispatchEvent(new w.StorageEvent('storage',{key:'okti-travel-buffer-v1',newValue:'15'}));assert.equal(bufferSlider.value,'15');w.OktiDayBriefUI.setTravelBuffer(10);assert.equal(run('JSON.stringify(PlannerData.snapshot())'),beforePickup);
+ now=beforePickupNow;routeDuration='2700s';
  run("tasks=[];saveTasks();renderAll()");const emptyGPS=gps;now+=1000;await turn('Co jeszcze dziś?');assert.equal(get('entryResults').querySelector('[data-brief-events]'),null);assert.equal(get('entryResults').querySelector('[data-brief-count]'),null);assert.equal(get('entryResults').querySelector('[data-brief-single]'),null);assert.equal(gps,emptyGPS);get('closeEntryResults').click();
  run("tasks=[{id:'single-a',title:'Jedno spotkanie',date:'2026-11-13',time:'20:00',endTime:'21:00'}];saveTasks();renderAll()");await turn('Jakie jeszcze mam dziś spotkania?');assert.match(get('entryResults').querySelector('[data-brief-single]').textContent,/Jedno spotkanie/);assert.ok(get('entryResults').querySelector('[data-brief-events]'));get('closeEntryResults').click();
  const beforeCard=run('JSON.stringify(PlannerData.snapshot())'),speechBeforeCard=spoken.length;run("selected=new Date('2026-11-14T12:00:00');renderDay()");get('phoneDateButton').click();assert.equal(w.OktiDayBriefUI.getState().view,'day-card');assert.equal(get('entryResults').querySelector('[data-yaga-date]').dataset.yagaDate,'2026-11-14');assert.match(get('entryResults').querySelector('[data-yaga-transits]').textContent,/Wenus/);assert.equal(spoken.length,speechBeforeCard,'Opening the date card does not read astrology automatically');
