@@ -145,7 +145,7 @@ window.OktiDayBriefUI=(()=>{
  function openBriefRecord(state,record){
   if(!owned(state)||fingerprint()!==state.version)return;
   const matches=tasks.filter(item=>item.id===record.item.id);if(matches.length!==1||JSON.stringify(matches[0])!==JSON.stringify(record.item))return;
-  cancel();modal.classList.add('hidden');showView('day');selected=new Date(record.item.date+'T12:00:00');document.getElementById('date').value=record.item.date;renderAll();openEventActions(matches[0]);
+  cancel();modal.classList.add('hidden');if(activeIdea)closeIdeaActions();showView('day');selected=new Date(record.item.date+'T12:00:00');document.getElementById('date').value=record.item.date;renderAll();openEventActions(matches[0]);
  }
  function routeCard(leg,model){
   const wrap=document.createElement('div');wrap.className='brief-transfer'+(leg.current?' is-current':'');wrap.dataset.briefRoute='';if(leg.current)wrap.dataset.briefTravel='';const card=document.createElement('div');card.className='brief-travel-card';const title=document.createElement('p');
