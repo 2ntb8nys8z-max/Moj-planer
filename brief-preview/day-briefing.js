@@ -57,10 +57,10 @@
  }
  function weather(details,date,now=new Date(),mode='remaining'){
   if(!details||!Array.isArray(details.rows))return {text:'Brak aktualnej prognozy dla Twojej lokalizacji.',available:false};
-  let from=mode==='remaining'?now.getHours()*60:0;
+  let from=mode==='remaining'?now.getHours()*60:0,nowMinute=mode==='remaining'?now.getHours()*60+now.getMinutes():0;
   if(mode==='remaining'&&details.timezone){
    try{const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:details.timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now).map(p=>[p.type,p.value]));
-    if(p.year+'-'+p.month+'-'+p.day!==date)return {text:'Prognoza dotyczy innej daty miejscowej. Sprawdź pogodę dla swojej lokalizacji.',available:false};from=Number(p.hour)*60;
+    if(p.year+'-'+p.month+'-'+p.day!==date)return {text:'Prognoza dotyczy innej daty miejscowej. Sprawdź pogodę dla swojej lokalizacji.',available:false};from=Number(p.hour)*60;nowMinute=from+Number(p.minute);
    }catch(_){}
   }
   const rows=details.rows.filter(r=>validClock(r.time)&&minutes(r.time)>=from&&Number.isFinite(r.temperature)).sort((a,b)=>minutes(a.time)-minutes(b.time));
@@ -79,12 +79,40 @@
   }else{
    const label=dayRows.length?(mode==='plan'?'W dzień':'Do wieczora'):minutes(first.time)<7*60?'W nocy':'Wieczorem';text.push(label+' '+range+'.');
   }
-  const isWet=r=>Number.isFinite(r.rain)&&r.rain>=50||Number.isFinite(r.code)&&r.code>=51&&r.code<=99;
+  const isWet=r=>Number.isFinite(r.rain)&&r.rain>=50||Number.isFinite(r.amount)&&r.amount>=.1||Number.isFinite(r.code)&&r.code>=51&&r.code<=99;
   const wet=dayRows.find(isWet)||rows.find(isWet),wind=rows.reduce((a,b)=>(b.wind||0)>(a?.wind||0)?b:a,null);
-  if(wet){const kind=wet.code>=95?'burze':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'śnieg':'opady';text.push('Możliwe '+kind+(mode==='remaining'&&minutes(wet.time)<=from?' w najbliższej godzinie':' '+period(wet.time))+'.');}
+  const feels=main.filter(r=>Number.isFinite(r.apparent)).map(r=>r.apparent),apparentMin=feels.length?Math.round(Math.min(...feels)):null,apparentMax=feels.length?Math.round(Math.max(...feels)):null;
+  const counts=new Map();for(const row of main)if(Number.isFinite(row.code))counts.set(row.code,(counts.get(row.code)||0)+1);const conditionCode=[...counts].sort((a,b)=>b[1]-a[1])[0]?.[0]??null;
+  const condition=conditionCode===null?null:conditionCode===0?{code:0,kind:'sun',label:dayRows.length?'Słonecznie':'Bezchmurnie'}:conditionCode===1?{code:1,kind:'partly',label:'Małe zachmurzenie'}:conditionCode===2?{code:2,kind:'partly',label:'Umiarkowane zachmurzenie'}:conditionCode===3?{code:3,kind:'cloud',label:'Duże zachmurzenie'}:[45,48].includes(conditionCode)?{code:conditionCode,kind:'fog',label:'Mgła'}:{code:conditionCode,kind:conditionCode>=95?'storm':[71,73,75,77,85,86].includes(conditionCode)?'snow':'rain',label:conditionCode>=95?'Możliwe burze':[71,73,75,77,85,86].includes(conditionCode)?'Opady śniegu':'Opady i zachmurzenie'};
+  const stamp=n=>{const shift=Math.floor(n/1440),minute=((n%1440)+1440)%1440;return nextDay(date,shift)+'T'+pad(Math.floor(minute/60))+':'+pad(minute%60)};
+  const kindFor=r=>r.code>=95?'storm':[71,73,75,77,85,86].includes(r.code)?'snow':[68,69,83,84].includes(r.code)?'sleet':[66,67].includes(r.code)?'freezing-rain':[51,53,55,56,57].includes(r.code)?'drizzle':r.code>=61&&r.code<=82?'rain':'precipitation';
+  const intensityFor=r=>[51,56,61,66,71,80,85].includes(r.code)?1:[53,63,73,81].includes(r.code)?2:[55,57,65,67,75,82,86].includes(r.code)?3:null;
+  const samples=[...rows.map(r=>({...r,minute:minutes(r.time)})),...(details.nextNight?.date===nextDay(date)&&Array.isArray(details.nextNight?.rows)?details.nextNight.rows.filter(r=>validClock(r.time)&&minutes(r.time)<8*60).map(r=>({...r,minute:1440+minutes(r.time)})):[])].sort((a,b)=>a.minute-b.minute),groups=[];
+  for(const r of samples){
+   if(!isWet(r))continue;
+   // Amounts and probabilities describe the preceding hour in Open-Meteo.
+   // A code-only sample is instantaneous and is shown as an approximate hour.
+   const preceding=Number.isFinite(r.amount)||Number.isFinite(r.rain),start=r.minute-(preceding?60:0),end=r.minute+(preceding?0:60);
+   if(mode==='remaining'&&end<=nowMinute)continue;
+   const clipped=mode==='remaining'?Math.max(start,nowMinute):start,kind=kindFor(r),intensity=intensityFor(r),night=clipped<7*60?'before':clipped>=20*60?'after':null,last=groups.at(-1);
+   if(last&&last.kind===kind&&last.night===night&&clipped<=last.end){last.end=Math.max(last.end,end);last.intensity=last.intensity==null?intensity:intensity==null?last.intensity:Math.max(last.intensity,intensity)}
+   else groups.push({start:clipped,end,kind,intensity,night,at:stamp(r.minute)});
+  }
+  const nightName=after=>{const end=new Date(nextDay(date,after?1:0)+'T12:00:00').getDay();return 'w nocy z '+['soboty','niedzieli','poniedziałku','wtorku','środy','czwartku','piątku'][end]+' na '+['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'][end]};
+  const rainPeriods=groups.map(g=>{
+   const from=stamp(g.start),to=stamp(g.end),adjective=g.intensity===1?'słaby ':g.intensity===2?'umiarkowany ':g.intensity===3?'silny ':'';
+   const description=g.kind==='snow'?'Możliwe '+(g.intensity===1?'słabe ':g.intensity===2?'umiarkowane ':g.intensity===3?'intensywne ':'')+'opady śniegu':g.kind==='drizzle'?'Możliwa '+(g.intensity===1?'słaba ':g.intensity===2?'umiarkowana ':g.intensity===3?'gęsta ':'')+'mżawka':g.kind==='storm'?'Możliwe burze':g.kind==='sleet'?'Możliwy deszcz ze śniegiem':g.kind==='freezing-rain'?'Możliwy '+adjective+'marznący deszcz':g.kind==='rain'?'Możliwy '+adjective+'deszcz':'Możliwe opady';
+   const when=g.night?nightName(g.night==='after')+(g.start%1440>=4*60&&g.start%1440<7*60&&g.end%1440<=7*60?' nad ranem':''):period(from.slice(11));
+   return {kind:g.kind,intensity:g.intensity===1?'light':g.intensity===2?'moderate':g.intensity===3?'heavy':null,from,to,night:g.night,at:g.at,label:description+' '+when+', około '+from.slice(11)+'–'+to.slice(11)+'.'};
+  });
+  const precipitationKnown=samples.length>0&&samples.every(r=>Number.isFinite(r.code)||Number.isFinite(r.rain)||Number.isFinite(r.amount));
+  if(apparentMin!==null)text.push('Odczuwalna '+(apparentMin===apparentMax?apparentMin+'°C':'od '+apparentMin+' do '+apparentMax+'°C')+'.');
+  if(condition)text.push(condition.label+'.');
+  if(rainPeriods.length)text.push(...rainPeriods.map(p=>p.label));else text.push(precipitationKnown?'Bez opadów w prognozie.':'Brak danych o opadach.');
   if(wind?.wind>=40)text.push('Wiatr do '+Math.round(wind.wind)+' km/h '+period(wind.time)+'.');
   const stale=!!details.stale,prefix=stale?'Zapisana prognoza z '+new Date(details.at).toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+'. ':'';
-  return {available:true,place,stale,date,timezone:details.timezone||null,period:dayRows.length?'day':minutes(first.time)<7*60?'night':'evening',temperatureMin:min,temperatureMax:max,rain:wet?{kind:wet.code>=95?'storm':wet.code>=71&&wet.code<=77||wet.code===85||wet.code===86?'snow':'rain',at:date+'T'+wet.time}:null,wind:wind?.wind>=40?{kph:Math.round(wind.wind),at:date+'T'+wind.time}:null,rainAt:wet?date+'T'+wet.time:null,text:prefix+text.join(' ')};
+  const rain=rainPeriods.find(p=>!p.night)||rainPeriods[0];
+  return {available:true,place,stale,date,timezone:details.timezone||null,period:dayRows.length?'day':minutes(first.time)<7*60?'night':'evening',temperatureMin:min,temperatureMax:max,trendText:/ochłodzi|ociepli/u.test(text[0])?text[0]:null,apparentMin,apparentMax,condition,rainPeriods,precipitationKnown,rain:rain?{kind:rain.kind,at:rain.at}:null,wind:wind?.wind>=40?{kph:Math.round(wind.wind),at:date+'T'+wind.time}:null,rainAt:rain?.at||null,text:prefix+text.join(' ')};
  }
  function freeWindows(start,end,items,excluded=[]){
   if(end<=start)return [];

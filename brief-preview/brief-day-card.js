@@ -26,7 +26,6 @@ window.OktiYagaCard=(()=>{
  function render(value,{inspirationText=null}={}){
   const box=document.createElement('section');box.className='yaga-card';box.dataset.yagaDate=value.date;
   const d=value.detail||{},raw=d.sourceText||{};if(d.sourceRow)box.dataset.sourceRow=d.sourceRow;
-  if(raw.holiday||raw.namedays){const context=document.createElement('div');context.className='yaga-context';if(raw.holiday){const p=document.createElement('p');p.className='yaga-holiday';p.dataset.yagaHoliday='';p.textContent=raw.holiday;context.append(p)}if(raw.namedays){const p=document.createElement('p');p.dataset.yagaNamedays='';p.textContent='Imieniny: '+raw.namedays;context.append(p)}box.append(context)}
   const moon=document.createElement('div');moon.className='yaga-moon';moon.append(moonArt(d.illumination,/ubywający|III kwadra/iu.test(value.phase)));
   const body=document.createElement('div'),eyebrow=document.createElement('p'),title=document.createElement('h3');eyebrow.className='yaga-eyebrow';eyebrow.textContent='Księżyc';title.textContent=d.phase||value.phase;body.append(eyebrow,title);
   const sign=String(d.moonAndBiodynamic||value.moon||'').split(' · ')[0].replace(/^☽\s*/u,'');if(sign){const p=document.createElement('p');p.dataset.yagaMoon='';p.textContent=sign;body.append(p)}
