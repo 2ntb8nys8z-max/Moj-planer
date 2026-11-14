@@ -1,5 +1,5 @@
 // Symbolic day guidance. Selection and calendar calculations remain read-only.
-(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./brief-inspiration-data.js'):root.OktiInspirationData,node?require('./day-briefing.js'):root.OktiDayBriefing);if(node)module.exports=api;else root.OktiDayInspiration=api;})(globalThis,(data,core)=>{
+(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./brief-inspiration-data.js'):root.OktiInspirationData,node?require('./day-briefing.js'):root.OktiDayBriefing,node?require('./brief-guidance.js'):root.OktiYagaGuidance);if(node)module.exports=api;else root.OktiDayInspiration=api;})(globalThis,(data,core,guidance)=>{
  data=data?.schemaVersion===1?data:{source:'Kalendarz Jagi',from:null,to:null,days:[]};
  const themes={
   creative:{label:'twórczość',text:'Znajdź chwilę na własny pomysł. Pierwsza próba nie musi być idealna.'},
@@ -77,8 +77,8 @@
    if(found)return {...found,days:Math.round((Date.parse(found.date+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:found.kind+' o '+found.time};
    const legacy=(data.days||[]).find(r=>r[0]>=date&&new RegExp('^'+kind+'(?:\\s|$)','iu').test(r[5]?.phase||r[3]));return legacy?{date:legacy[0],days:Math.round((Date.parse(legacy[0]+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000),phase:legacy[5]?.phase||legacy[3]}:null;
   };
-  const guide=editorial(detail),celestial=sky(date,detail),biodynamic=detail.energy?.match(/Dzień (korzenia|liścia|kwiatu|owocu): ([^.]+)\./u);
-  return {date,theme:row[1],label:theme.label,text:guide.inspiration||theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Źródło: Księga Yagi · Zofia Rende',editorial:guide,sky:celestial,biodynamic:biodynamic?{kind:biodynamic[1],description:biodynamic[2]+'.'}:null,chapter:data.chapters?.[date]||null,detail:{...detail,nextNewMoon:next('nów'),nextFullMoon:next('pełnia')}};
+  const guide=editorial(detail),celestial=sky(date,detail),chapter=data.chapters?.[date]||null,extracted=guidance?.build(date,detail,chapter,celestial,{favors:guide.favors,care:guide.care,lookup:key=>rows.get(key)?.[5]});if(extracted)celestial.events=extracted.events;const biodynamic=detail.energy?.match(/Dzień (korzenia|liścia|kwiatu|owocu): ([^.]+)\./u);
+  return {date,theme:row[1],label:theme.label,text:guide.inspiration||theme.text,moon:row[2],phase:row[3],relax:row[4]===true,source:data.source,attribution:'Źródło: Księga Yagi · Zofia Rende',editorial:guide,...(extracted?{guidance:extracted.guidance,guidanceReview:extracted.review,guidanceConflicts:extracted.conflicts,guidanceCoverage:extracted.coverage,sourceIssues:extracted.sourceIssues,sourceFile:extracted.sourceFile,sourceMetadata:extracted.metadata,referenceWarnings:extracted.referenceWarnings}:{}),sky:celestial,biodynamic:biodynamic?{kind:biodynamic[1],description:biodynamic[2]+'.'}:null,chapter:data.chapters?.[date]||null,detail:{...detail,nextNewMoon:next('nów'),nextFullMoon:next('pełnia')}};
  }
  function shift(date,n){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return dayKey(d)}
  function validDate(date){return typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&dayKey(new Date(date+'T12:00:00'))===date;}
