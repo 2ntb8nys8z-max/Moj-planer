@@ -41,12 +41,20 @@ jobs:
       - name: Verify mobile day report
         working-directory: source
         run: npm run test:brief-browser
+      - name: Install Safari browser engine
+        working-directory: source
+        run: npx playwright install --with-deps webkit
+      - name: Verify mobile day report in WebKit
+        working-directory: source
+        env:
+          PLANNER_BROWSER: webkit
+        run: npm run test:brief-browser
       - name: Retain mobile screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: day-brief-mobile
-          path: source/test-results/day-briefing-chromium/*.png
+          path: source/test-results/day-briefing-*/*.png
           if-no-files-found: ignore
       - name: Upload test Worker version without deployment
         working-directory: source

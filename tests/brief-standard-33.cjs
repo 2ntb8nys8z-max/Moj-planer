@@ -2,6 +2,7 @@ const assert=require('node:assert/strict'),calendar=require('../brief-calendar.j
 process.env.TZ='Europe/Warsaw';
 assert.equal(Object.keys(data.namedays).length,365);
 for(const year of [2026,2027])for(let day=new Date(year,0,1,12);day.getFullYear()===year;day.setDate(day.getDate()+1))assert.ok(calendar.get(core.dayKey(day)).namedays);
+const november15=calendar.get('2026-11-15');assert.equal(november15.items.length,3);assert.ok(november15.items.some(i=>i.name.includes('Wypadków Drogowych')));assert.ok(november15.items.some(i=>i.name==='Dzień Uwięzionego Pisarza'));assert.ok(calendar.get('2027-11-21').items.some(i=>i.name.includes('Wypadków Drogowych')));assert.ok(!calendar.get('2027-11-15').items.some(i=>i.name.includes('Wypadków Drogowych')));assert.ok(calendar.get('2026-11-16').items.some(i=>i.name.includes('Diety Śródziemnomorskiej')));
 const diabetes=calendar.get('2026-11-14');assert.equal(diabetes.namedays,'Rogera, Serafiny');assert.ok(diabetes.items.some(i=>i.name==='Światowy Dzień Cukrzycy'));assert.ok(diabetes.items.some(i=>i.name.includes('Handlu Dobrami Kultury')));
 assert.equal(calendar.get('2026-11-11',{countryCode:'PL',source:'public fixture',items:[{localName:'Narodowe Święto Niepodległości'}]}).items.filter(i=>i.name==='Narodowe Święto Niepodległości').length,1);
 for(const date of ['2027-01-06','2027-03-29','2027-08-15'])assert.equal(calendar.get(date).items.filter(i=>i.kind==='public').length,1,'A public feast is merged with its common calendar name');

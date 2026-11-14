@@ -41,6 +41,11 @@ for key in ["unesco", "onz"]:
         if not match or name in moving_names: continue
         fixed.append({"day": f"{months.index(match[2])+1:02d}-{int(match[1]):02d}", "name": name, "source": urls[key]})
 fixed.append({"day": "11-14", "name": "Światowy Dzień Cukrzycy", "source": urls["who"]})
+fixed.extend([
+    {"day": "11-15", "name": "Międzynarodowy Dzień Zapobiegania i Zwalczania Wszelkich Form Międzynarodowej Przestępczości Zorganizowanej", "source": "https://www.un.org/en/observances/fight-against-transnational-crime-day"},
+    {"day": "11-15", "name": "Dzień Uwięzionego Pisarza", "source": "https://www.pen-international.org/campaigns-protecting-imprisoned-writers"},
+    {"day": "11-16", "name": "Międzynarodowy Dzień Diety Śródziemnomorskiej", "source": "https://www.un.org/en/observances/international-days-and-weeks"},
+])
 rules = [
     [11, 4, 1, "Międzynarodowy Dzień Przeciwdziałania Przemocy i Znęcaniu się w Szkole, w tym Cyberprzemocy", urls["unesco"]],
     [11, 4, 3, "Światowy Dzień Filozofii", urls["unesco"]],
@@ -48,6 +53,7 @@ rules = [
     [4, 4, 4, "Międzynarodowy Dzień Dziewcząt w ICT", "https://www.itu.int/women-and-girls/girls-in-ict/about-international-girls-in-ict-day/"],
     [9, 4, -1, "Światowy Dzień Morski", "https://www.imo.org/en/about/events/pages/world-maritime-theme-2026-2027.aspx"],
     [7, 6, 1, "Międzynarodowy Dzień Spółdzielczości", "https://www.un.org/en/node/95054"],
+    [11, 0, 3, "Światowy Dzień Pamięci Ofiar Wypadków Drogowych", "https://www.un.org/en/observances/road-traffic-victims-day"],
 ]
 code = (root / "brief-inspiration-data.js").read_text()
 original = json.loads(code.split("const data=", 1)[1].split(";if(typeof", 1)[0])
