@@ -18,7 +18,9 @@ async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=f
 }
 const state=page=>page.locator('#state').innerText().then(JSON.parse);
 const rendered=page=>page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent||'{}');return s.rendering&&s.ready;},null,{timeout:15000});
-async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4);if(s.renderer==='webgl')canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);let blue=0,white=0;const arm=[];for(let y=0;y<n;y++)for(let x=0;x<n;x++){const q=(y*n+x)*4;if(p[q+3]>100&&p[q+2]-p[q]>70)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;if(x/n>.13&&x/n<.32&&y/n>.25&&y/n<.8)arm.push(...p.slice(q,q+4));}return {n,blue,white,arm};});}
+// The approaching, tilted GPU head reaches the inner left arms. Compare the
+// outer tips, which remain exposed in both poses, and require actual blue tips.
+async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4);if(s.renderer==='webgl')canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);let blue=0,white=0,armBlue=0;const arm=[];for(let y=0;y<n;y++)for(let x=0;x<n;x++){const q=(y*n+x)*4,isBlue=p[q+3]>100&&p[q+2]-p[q]>70;if(isBlue)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;if(x/n>.13&&x/n<.21&&y/n>.25&&y/n<.8){arm.push(...p.slice(q,q+4));if(isBlue)armBlue++;}}return {n,blue,white,armBlue,arm};});}
 (async()=>{
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{} )});
  fs.mkdirSync('test-results/okti-listening',{recursive:true});
@@ -26,10 +28,10 @@ async function pixels(page){return page.locator('.octi-listening-canvas').evalua
   for(const noGL of [false,true]){
    const {page,errors}=await fixture(browser,{noGL});try{
     await rendered(page);const renderer=(await state(page)).renderer;if(noGL)assert.equal(renderer,'canvas2d');
-    await page.locator('.octi-listening-source').evaluate(v=>v.pause());await page.waitForTimeout(150);const idle=await pixels(page);
+    await page.locator('.octi-listening-source').evaluate(v=>v.pause());await page.waitForTimeout(150);const idle=await pixels(page);await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-idle.png`});
     await page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===1);
-    const listening=await pixels(page);assert.ok(listening.blue>idle.blue*1.15,'The separate head visibly approaches in the actual small button');assert.ok(listening.white>10,'Microphone marks remain visible');
-    assert.equal(idle.arm.length,listening.arm.length);const difference=idle.arm.reduce((sum,v,i)=>sum+Math.abs(v-listening.arm[i]),0)/idle.arm.length;assert.ok(difference<.1,`Tentacles retain their original size and position (${difference})`);
+    const listening=await pixels(page);await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-head-only.png`});assert.ok(listening.blue>idle.blue*1.15,'The separate head visibly approaches in the actual small button');assert.ok(listening.white>10,'Microphone marks remain visible');
+    assert.equal(idle.arm.length,listening.arm.length);const difference=idle.arm.reduce((sum,v,i)=>sum+Math.abs(v-listening.arm[i]),0)/idle.arm.length;console.log(JSON.stringify({kind,renderer,idleBlue:idle.blue,listeningBlue:listening.blue,armBlue:idle.armBlue,armDifference:difference}));assert.ok(idle.armBlue>10,'The stationary comparison contains visible blue arm tips');assert.ok(difference<.1,`Tentacles retain their original size and position (${difference})`);
     assert.equal(await page.locator('.octi-listening-canvas').evaluate(c=>c.getBoundingClientRect().width),160,'The check uses the real button size');
     await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-head-only.png`});
     await page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===0);

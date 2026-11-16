@@ -27,18 +27,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:generated
+      - name: Verify head-only rendering and recovery with actual browser pixels
+        env:
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/octi-listening-recovery-browser-33.cjs && node tests/event-note-octopus-browser-33.cjs
+      - name: Verify the existing recorder, artwork and action controls
+        if: matrix.browser == 'chromium'
+        run: npm run test:logo-browser && npm run test:journal-browser
       - name: Run complete application regression suite
         if: matrix.browser == 'chromium'
         env:
           TZ: Europe/Warsaw
         run: npm test
-      - name: Verify the existing recorder, artwork and action controls
-        if: matrix.browser == 'chromium'
-        run: npm run test:logo-browser && npm run test:journal-browser
-      - name: Verify head-only rendering and recovery with actual browser pixels
-        env:
-          PLANNER_BROWSER: ${{ matrix.browser }}
-        run: node tests/octi-listening-recovery-browser-33.cjs && node tests/event-note-octopus-browser-33.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
