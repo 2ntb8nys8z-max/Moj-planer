@@ -36,7 +36,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    await page.evaluate(i=>openEventActions(tasks[i]),i);
    const mic=page.locator('#eventVoice'),plus=page.locator('.octi-dock[data-channel=event] .action-bubble');
    await mic.tap();await page.waitForFunction(()=>plannerRecordings.event?.mode==='recording');
-   await mic.tap();await page.locator('#eventChangeConfirm').tap();
+   // The current confirmation appears in the shared decision dialog. Exercise
+   // its real touch target rather than the covered legacy compatibility button.
+   await mic.tap();await page.locator('#oktiDecision').getByRole('button',{name:'Tak',exact:true}).tap();
    await page.waitForFunction(()=>!plannerRecordings.event&&!voiceDialogues.event?.busy&&activeTask.notes==='Test kodu po zapisaniu notatki.');
    const geometry=await page.evaluate(()=>{
     const mic=$('eventVoice'),r=mic.getBoundingClientRect(),footer=$('eventFooter'),panel=$('eventConversationPanel');
@@ -48,7 +50,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    assert.equal(await page.evaluate(()=>window.noteMicStarts),starts+1,'A real touch requests the microphone again');
    await plus.tap();await page.waitForFunction(()=>!plannerRecordings.event);
    await plus.tap();assert.equal(await plus.getAttribute('aria-expanded'),'true');await plus.tap();
-   await page.locator('#closeEvent').tap();assert.equal(await page.locator('#eventModal').isVisible(),false);
+   await page.locator('#closeEvent').tap();
+   await page.waitForFunction(()=>{const modal=document.querySelector('#eventModal');return modal.classList.contains('hidden')&&!modal.classList.contains('okti-event-exiting')},null,{timeout:5000});
+   assert.equal(await page.locator('#eventModal').isVisible(),false);
   }
   await page.close();
  }

@@ -30,8 +30,10 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    const dock=page.locator('.octi-dock[data-channel=main]'),video=dock.locator('video.octi-listening-source');
    await page.waitForFunction(()=>{const v=document.querySelector('.octi-dock[data-channel=main] video');return v.readyState>=2&&!v.paused&&v.parentElement.classList.contains('is-rendered')});
    const before=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(250);assert.ok(await video.evaluate(v=>v.currentTime)>before,'The actual decoded clip advances');
-   const geometry=await dock.evaluate(root=>{const b=root.querySelector('.voice'),r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),app=document.querySelector('.app');return {hit:hit===b||b.contains(hit),width:r.width,bottom:r.bottom,overflow:document.documentElement.scrollWidth>innerWidth,verticalOverflow:app.scrollHeight-app.clientHeight,muted:root.querySelector('video').muted,inline:root.querySelector('video').playsInline}});
-   assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,0,'Decorative video margins cannot create scrollable app overflow');assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
+   const geometry=await dock.evaluate(root=>{const b=root.querySelector('.voice'),r=b.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),app=document.querySelector('.app'),verticalOverflow=app.scrollHeight-app.clientHeight,art=[...root.querySelectorAll('.octi-listening-media,.octi-motion-media')],display=art.map(n=>n.style.display);for(const n of art)n.style.display='none';const withoutArtwork=app.scrollHeight-app.clientHeight;art.forEach((n,i)=>n.style.display=display[i]);return {hit:hit===b||b.contains(hit),width:r.width,bottom:r.bottom,overflow:document.documentElement.scrollWidth>innerWidth,verticalOverflow,withoutArtwork,muted:root.querySelector('video').muted,inline:root.querySelector('video').playsInline}});
+   // Short landscape screens can scroll their calendar content. Artwork must
+   // add no scroll range of its own, measured against the same undecorated UI.
+   assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,geometry.withoutArtwork,'Decorative video margins cannot add scrollable app overflow: '+JSON.stringify(geometry));assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
    // Holding the real button must not dim, shrink or shift either artwork layer.
    const voice=dock.locator('.voice'),pressStyles=()=>voice.evaluate(button=>{
@@ -109,13 +111,13 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    if(failure==='stalled-playback')await page.addInitScript(()=>Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{configurable:true,get(){return 0},set(){}}));
    await routeFiles(page,failure==='missing-media'?'missing-media':false);await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
    const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-listening-media'),fallback=dock.locator('.octi-listening-fallback');
-   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-listening-media')?.classList.contains('is-fallback'),null,{timeout:10000});
-   assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),false);assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
+   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening?.getState();return s?.renderer==='canvas2d'&&s.rendering},null,{timeout:15000});
+   assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),true,'Media failures retain the separate animated head');assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-listening-source[src]').count(),0,'Hidden contexts do not load duplicate clips');
-   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] video').paused);
+   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.querySelector('video').paused&&root.querySelector('.octi-listening-media').classList.contains('is-fallback')});
    assert.equal(await layer.evaluate(el=>el.classList.contains('is-fallback')),true,'Reduced motion keeps the approved static Okti artwork');
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
-   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: static fallback and working controls passed.`);
+   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: software listening, reduced motion and working controls passed.`);
   }
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1});
