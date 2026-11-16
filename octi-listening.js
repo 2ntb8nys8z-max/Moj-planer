@@ -55,8 +55,8 @@ function createSoftwareRenderer(canvas,video,head,poster){
  for(const c of [body,matte,headLayer,edge])c.width=c.height=size;
  const bodyCtx=body.getContext('2d',{willReadFrequently:true}),matteCtx=matte.getContext('2d',{willReadFrequently:true}),headCtx=headLayer.getContext('2d'),edgeCtx=edge.getContext('2d');
  if(!bodyCtx||!matteCtx||!headCtx||!edgeCtx)throw Error('Canvas unavailable');
- const removeHead=new Float32Array(size*size),fade=edgeCtx.createImageData(size,size);
- for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=y*size+x,px=(x+.5)*544/size,py=(y+.5)*544/size,dist=Math.hypot(px-272,py-Math.max(205,Math.min(251,py)));removeHead[i]=1-(1-smooth((dist-50)/2))*(1-smooth((py-290)/15));fade.data[i*4+3]=255*(1-smooth((Math.hypot(px-272,py-274)-180)/14));}
+ const removeHead=new Float32Array(size*size),headClip=new Float32Array(size*size),fade=edgeCtx.createImageData(size,size);
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=y*size+x,px=(x+.5)*544/size,py=(y+.5)*544/size,dist=Math.hypot(px-272,py-Math.max(205,Math.min(251,py)));removeHead[i]=1-(1-smooth((dist-50)/2))*(1-smooth((py-290)/15));headClip[i]=Math.max(0,Math.min(1,49-dist));fade.data[i*4+3]=255*(1-smooth((Math.hypot(px-272,py-274)-180)/14));}
  edgeCtx.putImageData(fade,0,0);
  function atlas(image,target){
   const w=image.videoWidth||image.naturalWidth||image.width,h=image.videoHeight||image.naturalHeight||image.height;
@@ -66,8 +66,8 @@ function createSoftwareRenderer(canvas,video,head,poster){
   for(let i=0;i<size*size;i++)rgb.data[i*4+3]=255*smooth((alpha[i*4]/255-.03)/.94);
   return rgb;
  }
- headCtx.putImageData(atlas(head,headCtx),0,0);
- let lastTime=-1,lastVideo=false,haveBody=false;
+ const headPixels=atlas(head,headCtx),headAlpha=new Uint8ClampedArray(size*size);for(let i=0;i<size*size;i++)headAlpha[i]=headPixels.data[i*4+3];
+ let lastTime=-1,lastVideo=false,haveBody=false,lastApproach=-1;
  return {kind:'canvas2d',draw(state){
   const live=state.videoAvailable&&video.readyState>=2&&!video.error;
   if(!haveBody||live!==lastVideo||live&&video.currentTime!==lastTime){
@@ -76,7 +76,8 @@ function createSoftwareRenderer(canvas,video,head,poster){
   }
   const output=Math.max(128,Math.min(256,Math.round(canvas.getBoundingClientRect().width*(devicePixelRatio||1))));if(canvas.width!==output)canvas.width=canvas.height=output;
   ctx.setTransform(output/544,0,0,output/544,0,0);ctx.clearRect(0,0,544,544);ctx.drawImage(body,0,0,544,544);
-  const a=state.approach;ctx.save();ctx.translate(272+38*a,298+134*a);ctx.rotate(11*Math.PI/180*a);ctx.scale(1+1.65*a,1+1.16*a);ctx.translate(-272,-298);ctx.drawImage(headLayer,0,0,544,544);
+  const a=state.approach;if(a!==lastApproach){for(let i=0;i<size*size;i++)headPixels.data[i*4+3]=headAlpha[i]*(1-a)+Math.min(headAlpha[i],255*headClip[i])*a;headCtx.putImageData(headPixels,0,0);lastApproach=a;}
+  ctx.save();ctx.translate(272+38*a,298+134*a);ctx.rotate(-11*Math.PI/180*a);ctx.scale(1+1.65*a,1+1.16*a);ctx.translate(-272,-298);ctx.drawImage(headLayer,0,0,544,544);
   const rest=[.55,.85,.55],base=[.58,.75,.58],amplitude=[.22,.18,.22],rates=[4,3,5],phases=[0,1.5,3.2];ctx.fillStyle='#fff';
   for(let i=0;i<3;i++){const level=Math.max(.30,Math.min(.95,base[i]+amplitude[i]*Math.sin(rates[i]/4.8*state.clock*2*Math.PI+phases[i])+.035*Math.sin(state.clock*2*Math.PI/4.8))),height=53*(rest[i]*(1-a)+level*a);ctx.beginPath();ctx.roundRect(249.1+i*20,232-height/2,5.8,height,2.9);ctx.fill();}
   ctx.restore();ctx.globalCompositeOperation='destination-in';ctx.drawImage(edge,0,0,544,544);ctx.globalCompositeOperation='source-over';

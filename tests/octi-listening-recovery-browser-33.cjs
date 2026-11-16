@@ -24,7 +24,7 @@ const rendered=page=>page.waitForFunction(()=>{const s=JSON.parse(document.query
 async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{
  const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4),gpu=s.renderer==='webgl';
  if(gpu)canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);
- const distance=(x,y)=>Math.hypot(x-272,y-Math.max(205,Math.min(251,y))),angle=(gpu?1:-1)*11*Math.PI/180,c=Math.cos(angle),sn=Math.sin(angle);
+ const distance=(x,y)=>Math.hypot(x-272,y-Math.max(205,Math.min(251,y))),angle=11*Math.PI/180,c=Math.cos(angle),sn=Math.sin(angle);
  let blue=0,white=0,armBlue=0;const arm=[];
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
   const q=(y*n+x)*4,isBlue=p[q+3]>100&&p[q+2]-p[q]>70;if(isBlue)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;
