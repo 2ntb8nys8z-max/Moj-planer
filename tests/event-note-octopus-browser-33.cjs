@@ -36,7 +36,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    await page.evaluate(i=>openEventActions(tasks[i]),i);
    const mic=page.locator('#eventVoice'),plus=page.locator('.octi-dock[data-channel=event] .action-bubble');
    await mic.tap();await page.waitForFunction(()=>plannerRecordings.event?.mode==='recording');
-   await mic.tap();await page.locator('#eventChangeConfirm').tap();
+   // The current confirmation appears in the shared decision dialog. Exercise
+   // its real touch target rather than the covered legacy compatibility button.
+   await mic.tap();await page.locator('#oktiDecision').getByRole('button',{name:'Tak',exact:true}).tap();
    await page.waitForFunction(()=>!plannerRecordings.event&&!voiceDialogues.event?.busy&&activeTask.notes==='Test kodu po zapisaniu notatki.');
    const geometry=await page.evaluate(()=>{
     const mic=$('eventVoice'),r=mic.getBoundingClientRect(),footer=$('eventFooter'),panel=$('eventConversationPanel');
