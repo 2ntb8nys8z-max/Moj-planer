@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium',base=path.resolve('.');
 async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=false,width=390,height=844}={}){
- const page=await browser.newPage({viewport:{width,height}});const errors=[];let headBlocked=missingHead;page.on('pageerror',e=>errors.push(e.message));
+ const page=await browser.newPage({viewport:{width,height}});page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);const errors=[];let headBlocked=missingHead;page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(({noGL,blocked})=>{window.qaBlocked=blocked;if(noGL){const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl'?null:get.call(this,type,...args)}}const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){return window.qaBlocked?Promise.reject(new DOMException('Autoplay denied','NotAllowedError')):play.call(this)}},{noGL,blocked});
  await page.route('**/*',route=>{
   const url=new URL(route.request().url());let file=path.resolve(base,url.pathname.slice(1));if(url.pathname==='/qa-listening.html')file=path.join(base,'tests/fixtures/octi-listening.html');
@@ -51,19 +51,23 @@ async function pixels(page){return page.locator('.octi-listening-canvas').evalua
     assert.deepEqual(errors,[]);
    }finally{await page.close();}
   }
+  console.log(kind+': GPU and software head pixels passed');
   const blocked=await fixture(browser,{blocked:true});try{
    await rendered(blocked.page);assert.equal((await state(blocked.page)).renderer,'canvas2d');await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===1);
    assert.ok((await pixels(blocked.page)).blue>1000,'Autoplay failure retains a real animated head, not a scaled idle image');
    await blocked.page.evaluate(()=>window.qaBlocked=false);await blocked.page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>!document.querySelector('.octi-listening-source').paused);
    assert.ok((await state(blocked.page)).lastError,'The original failure is retained for diagnosis');assert.deepEqual(blocked.errors,[]);
   }finally{await blocked.page.close();}
+  console.log(kind+': blocked autoplay recovery passed');
   const network=await fixture(browser,{missingHead:true});try{
    await network.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent||'{}').lastError?.stage==='artwork-init');
    await network.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();assert.equal(await network.page.locator('.octi-listening-fallback').evaluate(img=>new DOMMatrix(getComputedStyle(img).transform).a),1,'The last-resort image never enlarges the whole actor');network.allowHead();await rendered(network.page);assert.deepEqual(network.errors,[]);
   }finally{await network.page.close();}
+  console.log(kind+': transient image recovery passed');
   if(kind==='chromium'){
-   const lost=await fixture(browser);try{await rendered(lost.page);assert.equal((await state(lost.page)).renderer,'webgl');await lost.page.locator('canvas').evaluate(c=>c.getContext('webgl').getExtension('WEBGL_lose_context').loseContext());await lost.page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent);return s.renderer==='canvas2d'&&s.rendering;});assert.equal((await state(lost.page)).lastError.stage,'context-lost');await lost.page.getByRole('button',{name:'Ukryj kontekst',exact:true}).click();await lost.page.getByRole('button',{name:'Pokaż kontekst',exact:true}).click();await rendered(lost.page);assert.deepEqual(lost.errors,[]);}finally{await lost.page.close();}
+   const lost=await fixture(browser);try{await rendered(lost.page);assert.equal((await state(lost.page)).renderer,'webgl');await lost.page.locator('canvas').evaluate(c=>c.getContext('webgl').getExtension('WEBGL_lose_context').loseContext());await lost.page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent);return s.renderer==='canvas2d'&&s.rendering;});const failure=(await state(lost.page)).lastError;assert.ok(['context-lost','webgl-draw'].includes(failure.stage),'Context loss is detected by either the draw call or the asynchronous GPU event');assert.equal(failure.message,'WebGL context lost');await lost.page.getByRole('button',{name:'Ukryj kontekst',exact:true}).click();await lost.page.getByRole('button',{name:'Pokaż kontekst',exact:true}).click();await rendered(lost.page);assert.deepEqual(lost.errors,[]);}finally{await lost.page.close();}
   }
+  console.log(kind+': renderer recovery passed; opening full application');
   for(const [width,height] of [[320,568],[390,844],[430,932]]){
    const event=await fixture(browser,{app:true,width,height});const {page}=event;
    try{
@@ -78,8 +82,8 @@ async function pixels(page){return page.locator('.octi-listening-canvas').evalua
      await page.screenshot({path:`test-results/okti-listening/${kind}-event-${width}-${attempt}.png`});
      await page.evaluate(()=>plannerRecordings.event=null);await page.locator('#closeEvent').click();await page.waitForFunction(()=>!document.body.classList.contains('okti-event-transitioning')&&document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);
     }
-    assert.deepEqual(event.errors,[]);
-   }finally{await page.close();}
+    assert.deepEqual(event.errors,[]);console.log(kind+': event '+width+'px open/record/close/reopen passed');
+   }finally{await page.screenshot({path:`test-results/okti-listening/${kind}-event-${width}-last.png`}).catch(()=>{});await page.close();}
   }
   console.log(`Okti listening ${kind}: real head-only pixels, fixed tentacles, GPU loss, autoplay recovery and transient asset failures passed.`);
  }finally{await browser.close();}
