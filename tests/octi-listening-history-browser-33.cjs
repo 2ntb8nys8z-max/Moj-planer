@@ -23,11 +23,14 @@ assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),referen
    const image=src=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src});
    const [head,background,poster]=await Promise.all(['octi-listening-head.webp','octi-listening-background.webp','octi-actor-poster.webp'].map(image));
    const video=document.createElement('video');video.muted=true;video.playsInline=true;video.loop=true;video.src='octi-listening-body.mp4';document.body.append(video);await video.play();video.pause();video.currentTime=0;await new Promise(resolve=>video.seeking?video.addEventListener('seeked',resolve,{once:true}):resolve());
+   // WebKit may finish a decoded-frame swap after seeked, even while paused.
+   // All three renderers must sample the same immutable decoded texels.
+   const frozen=document.createElement('canvas');frozen.width=video.videoWidth;frozen.height=video.videoHeight;frozen.getContext('2d').drawImage(video,0,0);Object.assign(frozen,{videoWidth:frozen.width,videoHeight:frozen.height,readyState:4,currentTime:0});
    const make=label=>{const figure=document.createElement('figure'),caption=document.createElement('figcaption'),c=document.createElement('canvas');caption.textContent=label;figure.append(c,caption);document.body.append(figure);return c};
    const historical=make('Oryginał 33.239'),current=make('Przywrócony ruch'),software=make('Tryb awaryjny');
    const atlas=document.createElement('canvas');atlas.width=1088;atlas.height=544;const ctx=atlas.getContext('2d');ctx.drawImage(poster,0,0,544,544);const rgba=ctx.getImageData(0,0,544,544).data,opaque=ctx.createImageData(1088,544);
    for(let y=0;y<544;y++)for(let x=0;x<544;x++){const a=(y*544+x)*4,b=(y*1088+x)*4;for(let i=0;i<3;i++){opaque.data[b+i]=rgba[a+i];opaque.data[b+544*4+i]=rgba[a+3];}opaque.data[b+3]=opaque.data[b+544*4+3]=255;}ctx.putImageData(opaque,0,0);
-   window.historyQA={historical,current,software,video,head,background,poster,atlas,original:createApprovedOktiRenderer(historical,video,head,background),gpu:createCurrentOktiRenderer(current,video,head),cpu:createSoftwareOktiRenderer(software,video,head,poster)};
+   window.historyQA={historical,current,software,video:frozen,head,background,poster,atlas,original:createApprovedOktiRenderer(historical,frozen,head,background),gpu:createCurrentOktiRenderer(current,frozen,head),cpu:createSoftwareOktiRenderer(software,frozen,head,poster)};
   });
   for(const [a,lag,g,clock] of [[0,0,0,0],[.35,.25,0,1.1],[1,.98,.2,1.8],[1,1,1,2.6],[.5,.6,.35,3.7]]){
    const metrics=await page.evaluate(({a,lag,g,clock})=>{
