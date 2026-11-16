@@ -227,19 +227,20 @@ const env={PLANNER_ACCESS_TOKEN:'test-only-token-1234567890123456',OPENAI_API_KE
    const callsBeforeStatus=briefCalls;
    for(const [time,expected] of [['21:15',0],['22:00',1],['23:00',0]]){await page.evaluate(time=>{window.testNow=+new Date('2026-11-14T'+time+':00+01:00');document.dispatchEvent(new Event('visibilitychange'))},time);assert.equal(await list.locator('.brief-event-row.is-ongoing').count(),expected);if(expected)assert.match(await list.locator('.brief-event-row.is-ongoing .brief-event-name').textContent(),/Wyjazd po Ninę/)}
    assert.equal(briefCalls,callsBeforeStatus,'Status transitions never request another AI report');assert.equal(await page.evaluate(()=>JSON.stringify(PlannerData.snapshot())===ongoingBefore),true);assert.equal(await page.evaluate(()=>OktiDayBriefUI.getState().ongoingTimer),null);await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
-   // All eight source-audit dates use the same card. The dates, expansions,
+   // All eight source-audit dates and the reported duplicate use the same card. The dates, expansions,
    // source-only event descriptions and held conflicts also work on mobile.
    await page.emulateMedia({colorScheme:'light'});
    await page.evaluate(()=>OktiDayBriefUI.setYagaEnabled(true));
-   for(const date of ['2026-11-06','2026-11-14','2026-11-15','2026-11-16','2026-12-11','2027-02-08','2027-06-06','2027-10-22']){
+   for(const date of ['2026-11-06','2026-11-14','2026-11-15','2026-11-16','2026-11-19','2026-12-11','2027-02-08','2027-06-06','2027-10-22']){
     await page.evaluate(date=>OktiDayBriefUI.showDay(date),date);const card=list.locator('[data-yaga-date]');assert.equal(await card.getAttribute('data-yaga-date'),date);assert.equal(await card.locator('[data-yaga-original]').isVisible(),false);const main=await card.evaluate(n=>[...n.children].filter(x=>!x.matches('.yaga-original,.yaga-toggle')).map(x=>x.textContent).join(' '));
     if(date==='2026-11-14'){assert.match(main,/19:55 do nocy/);assert.doesNotMatch(main,/01:27|23:59/)}
     if(date==='2026-11-15'){assert.match(main,/Do 10:24/);assert.equal(await card.locator('[data-yaga-transits]').count(),0)}
     if(date==='2026-11-16'){assert.match(main,/Sport i praca nad ważnym projektem/);assert.match(main,/Nie obiecuj ponad siły/)}
+    if(date==='2026-11-19'){assert.equal(main.match(/odważne decyzje, sport i ruszanie spraw z miejsca/giu)?.length,1);assert.equal(main.match(/Uważaj na złość, rywalizację i przeforsowanie się/giu)?.length,1);assert.doesNotMatch(main,/Opowiedz im|Można je wykorzystać/);assert.equal(await card.locator('[data-yaga-transits] p').textContent(),'Napięcie między planetami.')}
     if(date==='2026-12-11'){assert.match(main,/Cały dzień/);assert.doesNotMatch(await card.locator('[data-yaga-good]').textContent(),/umow|podpis/iu)}
     if(date==='2027-02-08')assert.equal(await card.locator('.yaga-sky-event').count(),3);
     if(date==='2027-10-22'){for(const p of [/19:29 do 21:02/,/wiadomości dwa razy/,/czujnik czadu/])assert.match(main,p)}
-    await card.locator('[data-yaga-good]').scrollIntoViewIfNeeded();if(['2026-11-14','2026-11-16','2027-02-08','2027-10-22'].includes(date))await page.screenshot({path:path.join(output,width+'-source-'+date+'.png'),animations:'disabled'});
+    await card.locator('[data-yaga-good]').scrollIntoViewIfNeeded();if(['2026-11-14','2026-11-16','2026-11-19','2027-02-08','2027-10-22'].includes(date))await page.screenshot({path:path.join(output,width+'-source-'+date+'.png'),animations:'disabled'});
     await card.locator('[data-yaga-toggle]').tap();assert.equal(await card.locator('[data-yaga-original]').isVisible(),true);assert.equal(await list.evaluate(n=>n.scrollWidth<=n.clientWidth+1),true);await card.locator('[data-yaga-toggle]').tap();assert.equal(await card.locator('[data-yaga-original]').isVisible(),false);await page.locator('#closeEntryResults').tap();await modal.waitFor({state:'hidden'});
    }
    assert.deepEqual(errors,[]);await context.close();console.log(kind+' '+width+': accepted compact day layout and source expansion, saved optional Yaga switch, grounded voice, routes/risks, date-bound source material, native read/close/event-open, async cancellation and unchanged planner passed (STT/GPS/Google/weather/model fixtures).');
