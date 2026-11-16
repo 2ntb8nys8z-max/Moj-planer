@@ -31,19 +31,45 @@ jobs:
         env:
           PLANNER_BROWSER: ${{ matrix.browser }}
         run: node tests/octi-listening-recovery-browser-33.cjs && node tests/event-note-octopus-browser-33.cjs
-      - name: Verify the existing recorder, artwork and action controls
-        if: matrix.browser == 'chromium'
-        run: npm run test:logo-browser && npm run test:journal-browser
-      - name: Run complete application regression suite
-        if: matrix.browser == 'chromium'
-        env:
-          TZ: Europe/Warsaw
-        run: npm test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: okti-listening-${{ matrix.browser }}
-          path: |
-            test-results/okti-listening/
-            test-output/cancel-bubble-*.png
+          path: test-results/okti-listening/
           retention-days: 7
+  controls:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check:generated
+      - name: Verify the existing recorder, artwork and action controls
+        run: npm run test:logo-browser && npm run test:journal-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: okti-listening-controls
+          path: test-output/
+          retention-days: 7
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Run complete application regression suite
+        env:
+          TZ: Europe/Warsaw
+        run: npm test
