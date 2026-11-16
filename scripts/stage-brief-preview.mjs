@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+const worker=JSON.parse(fs.readFileSync('test-artifacts/brief-worker.json','utf8'));
+if(worker.productionUnchanged!==true||worker.url!=='https://brief-27-moj-planer-api.yd7ynvj864.workers.dev')throw Error('Brak zweryfikowanego testowego API.');
+const output='test-artifacts/brief-preview';fs.mkdirSync(output,{recursive:true});fs.cpSync('preview33',output,{recursive:true});
+const before=fs.readFileSync(output+'/index.html','utf8'),old='API_URL="https://moj-planer-api.yd7ynvj864.workers.dev"';
+if(before.split(old).length!==2)throw Error('Nie znaleziono jednoznacznego adresu API.');
+const html=before.replace(old,'API_URL="'+worker.url+'"');fs.writeFileSync(output+'/index.html',html);
+const release=JSON.parse(fs.readFileSync(output+'/release.json','utf8'));release.frontendBuildId=createHash('sha256').update(html).digest('hex').slice(0,16);release.apiUrl=worker.url;release.sourceCommit=process.env.GITHUB_SHA||'';release.productionWorkerUnchanged=true;fs.writeFileSync(output+'/release.json',JSON.stringify(release,null,2)+'\n');
+console.log('Przygotowano kompletny podgląd: '+output);

@@ -7,7 +7,7 @@ window.OktiBriefLinks=(()=>{
   session=session||(voiceDialogues.main&&voiceDialogueValid(voiceDialogues.main)?voiceDialogues.main:null);
   if(session&&session.channel!=='main')return;
   const referenced=model.displayWarnings||(model.travel?.warnings||[]).slice(0,3);
-  const warningIds=[...new Set(referenced.flatMap(w=>w.eventIds||[]))];
+  const warningIds=[...new Set([...referenced.flatMap(w=>w.eventIds||[]),...(model.narrativeEventIds||[])])];
   const records=model.records.filter(r=>r.type==='event'&&r.item?.id!=null);
   const ordered=[...records.filter(r=>warningIds.includes(r.item.id)),...records.filter(r=>!warningIds.includes(r.item.id))].slice(0,12);
   const entries=ordered.map((r,i)=>({key:'b'+i,id:r.item.id,snapshot:JSON.stringify(r.item),record:r}));

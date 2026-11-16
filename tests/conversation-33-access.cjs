@@ -44,6 +44,14 @@ const release=JSON.parse(fs.readFileSync('release.json','utf8'));
   assert.equal(conversationCalls,3,'one rejected call, its retry, and the next conversation call are expected');
   assert.deepEqual(Array.from(vm.runInContext('apiInfoCache.conversationEngines',ctx)),[2,3]);
 
+  // Keep the exact current production release usable while the new backend propagates.
+  vm.runInContext("apiInfoCache={...apiInfoCache,apiVersion:'2026.11.10.33.47-test',buildId:'efe8501394c50ac1'}",ctx);
+  assert.equal((await vm.runInContext(request,ctx)).engine,3);
+  const productionCalls=conversationCalls;
+  vm.runInContext('apiInfoCache.protocolVersion=1',ctx);
+  await assert.rejects(()=>vm.runInContext(request,ctx),/Wersja Workera nie pasuje/);
+  assert.equal(conversationCalls,productionCalls,'The previous production build still requires protocol 2');
+  vm.runInContext('apiInfoCache.protocolVersion=2',ctx);
   // Keep the exact previous release usable until the Google-enabled Worker is deployed.
   vm.runInContext("apiInfoCache={...apiInfoCache,apiVersion:'2026.10.12.33.36-test',buildId:'23c0806de3a19eeb'}",ctx);
   assert.equal((await vm.runInContext(request,ctx)).engine,3);

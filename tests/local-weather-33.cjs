@@ -5,7 +5,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  const date=new Date(),tomorrow=new Date(date);tomorrow.setDate(date.getDate()+1);const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,day=iso(date),next=iso(tomorrow);
  const hourly={time:[day+'T12:00',next+'T12:00',next+'T14:00',next+'T15:00',next+'T16:00'],temperature_2m:[9,10,17,18,16],weather_code:[2,3,2,2,3],precipitation_probability:[10,20,10,10,20],wind_speed_10m:[5,6,7,8,9]};
  const previous=new Date(date);previous.setDate(previous.getDate()-1);const past=iso(previous);
- hourly.apparent_temperature=[7.1,8.2,15,16,14];hourly.relative_humidity_2m=[65,60,58,56,55];
+ hourly.precipitation=[0,0,0,0,0];hourly.cloud_cover=[35,90,40,30,80];hourly.apparent_temperature=[7.1,8.2,15,16,14];hourly.relative_humidity_2m=[65,60,58,56,55];
  for(const [name,value] of Object.entries({time:past+'T12:00',temperature_2m:6,weather_code:2,precipitation_probability:20,wind_speed_10m:9,apparent_temperature:3.2,relative_humidity_2m:77}))hourly[name].push(value);
  Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,matchMedia:()=>({matches:true}),confirm:()=>true,alert(){},fetch:async value=>{
   const url=String(value);requests.push(url);
@@ -206,6 +206,9 @@ assert(firstFlight.some(a=>a.element.classList.contains('okti-weather-build-pane
   assert.equal(w.document.querySelector('.phone-day-temperature').style.visibility,'','Interrupted opening restores the original temperature');
   animations.at(-1).finish();assert.equal(w.document.querySelector('#dayWeatherModal').open,false);
   w.Element.prototype.getBoundingClientRect=rect;
+  const weatherQuery=new URL(requests.find(u=>u.includes('api.open-meteo.com/v1/forecast'))).searchParams;
+  for(const field of ['apparent_temperature','precipitation','cloud_cover'])assert.ok(weatherQuery.get('hourly').split(',').includes(field));
+  const enriched=run("OktiLocalWeather.details(new Date('"+next+"T12:00:00'))");assert.equal(enriched.rows.find(r=>r.time==='12:00').apparent,8.2);assert.equal(enriched.rows.find(r=>r.time==='12:00').amount,0);assert.ok(enriched.nextNight.date>next);
   // A fresh old-format cache must be upgraded without another GPS prompt.
   const saved=JSON.parse(w.localStorage.getItem('okti-local-weather-v1'));delete saved.forecast.schema;
   let upgraded=0;
