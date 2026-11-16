@@ -17,8 +17,8 @@ for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-ma
 for(const page of [root,preview])assert.doesNotMatch(page,/shopping-paper-tape|shopping-top-tape|shopping-paper-curl|shopping-curl-band|shopping-paper-roll-up/);
 assert.equal(fs.existsSync('preview33/shopping-top-tape-v2.webp'),false,'unused top tape must not be published');
 assert.equal(fs.existsSync('preview33/shopping-pencil.webp'),false,'the removed pencil must not be published');
-assert.match(root,/Aplikacja: 2026\.11\.16\.33\.307-integration/);
-assert.match(preview,/Aplikacja: 2026\.11\.16\.33\.307-test/);
+assert.match(root,/Aplikacja: 2026\.11\.17\.33\.308-integration/);
+assert.match(preview,/Aplikacja: 2026\.11\.17\.33\.308-test/);
 for(const page of [root,preview]){
   assert.match(page,/\.phone-layout \.app\{padding-bottom:0\}/,'the scrolling views must continue through the full height of the glass navigation');
   assert.doesNotMatch(page,/\.phone-layout \.app\{padding-bottom:calc\(88px \+ max\(0px,var\(--phone-bottom-inset\)\)\)\}/,'the app must not insert an opaque bar-height layer above the navigation');
@@ -92,7 +92,7 @@ assert.match(preview,/src="octi-listening\.js\?v=[a-f0-9]{16}"/);
 assert.ok(fs.readFileSync('preview33/octi-liquid-sphere-33-182.png').equals(fs.readFileSync('octi-liquid-sphere-33-182.png')),'The smooth transparent liquid sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-glass-33-184.png').equals(fs.readFileSync('octi-glass-33-184.png')),'The approved pale-blue glass sphere must be published with the UI');
 assert.ok(fs.readFileSync('preview33/octi-caustic-33-196.svg').equals(fs.readFileSync('octi-caustic-33-196.svg')),'The bright lens caustic must be published with the UI');
-console.log('Preview 33.308: head-only listening recovery, dated day card, Yaga opt-in, ornament and read-only navigation verified.');
+console.log('Preview 33.308: historical listening pose and media recovery, dated day card, Yaga opt-in, ornament and read-only navigation verified.');
 
 
 assert.equal(fs.readFileSync('preview33/event-weather.js','utf8'),fs.readFileSync('event-weather.js','utf8'),'Event weather is published with its matching frontend');

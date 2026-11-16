@@ -38,7 +38,7 @@ assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),referen
    },{a,lag,g,clock});
    console.log(kind+': historical pose '+JSON.stringify(metrics));
    await page.screenshot({path:`test-results/okti-listening/history/${kind}-approach-${a}-gesture-${g}.png`});
-   assert.ok(metrics.gpuDifference<.1,'The restored GPU pose must match the historical renderer pixel for pixel');assert.ok(metrics.softwareDifference<3,'The software renderer must retain the historical complete silhouette and head projection');
+   assert.ok(metrics.gpuDifference<.1,'The restored GPU pose must match the historical renderer pixel for pixel');assert.ok(metrics.softwareDifference<.5,'The software renderer must retain the historical complete silhouette and head projection');
   }
   const poster=await page.evaluate(()=>{
    const q=historyQA,canvas=document.createElement('canvas');canvas.style.width='160px';document.body.append(canvas);const cpu=createSoftwareOktiRenderer(canvas,q.video,q.head,q.poster);
@@ -47,7 +47,7 @@ assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),referen
    const refCanvas=document.createElement('canvas');refCanvas.style.width='160px';document.body.append(refCanvas);const old=createApprovedOktiRenderer(refCanvas,q.atlas,q.head,q.background),state={approach:1,lag:1,gesture:1,clock:2.6,phase:0,videoAvailable:false};old.draw(state);cpu.draw(state);
    const gl=refCanvas.getContext('webgl'),n=refCanvas.width,raw=new Uint8Array(n*n*4);gl.readPixels(0,0,n,n,gl.RGBA,gl.UNSIGNED_BYTE,raw);const rgba=canvas.getContext('2d').getImageData(0,0,n,n).data;let sum=0;for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4,j=((n-1-y)*n+x)*4;for(let k=0;k<3;k++)sum+=Math.abs(Math.round(rgba[i+k]*rgba[i+3]/255)-raw[j+k]);sum+=Math.abs(rgba[i+3]-raw[j+3]);}old.destroy();cpu.destroy();return sum/raw.length;
   });
-  assert.ok(poster<3,'A blocked video retains the same approved silhouette, using the transparent poster');console.log(kind+': historical poster fallback mean difference '+poster);
+  assert.ok(poster<.5,'A blocked video retains the same approved silhouette, using the transparent poster');console.log(kind+': historical poster fallback mean difference '+poster);
   await page.close();console.log('Historical Okti '+kind+': recovered GPU pose, perspective, arm fan and software recovery match the 33.239 reference.');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
