@@ -109,13 +109,13 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    if(failure==='stalled-playback')await page.addInitScript(()=>Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{configurable:true,get(){return 0},set(){}}));
    await routeFiles(page,failure==='missing-media'?'missing-media':false);await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
    const dock=page.locator('.octi-dock[data-channel=main]'),layer=dock.locator('.octi-listening-media'),fallback=dock.locator('.octi-listening-fallback');
-   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] .octi-listening-media')?.classList.contains('is-fallback'),null,{timeout:10000});
-   assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),false);assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
+   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening?.getState();return s?.renderer==='canvas2d'&&s.rendering},null,{timeout:15000});
+   assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),true,'Media failures retain the separate animated head');assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-listening-source[src]').count(),0,'Hidden contexts do not load duplicate clips');
    await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] video').paused);
    assert.equal(await layer.evaluate(el=>el.classList.contains('is-fallback')),true,'Reduced motion keeps the approved static Okti artwork');
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
-   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: static fallback and working controls passed.`);
+   assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: software listening, reduced motion and working controls passed.`);
   }
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1});

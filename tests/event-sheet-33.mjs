@@ -166,12 +166,13 @@ try{
  }
 
  run('openEventActions(tasks[1])');w.OktiEventMotion.stop();
- // One main artwork controller stays visible through event context changes
- // and follows the existing event recorder; the second renderer stays asleep.
+ // The foreground event owns both the actor and glass. Keeping the actor in
+ // the background calendar lets the event's refractive glass blur it.
  const updates=[];w.createOctiListeningArtwork=()=>({update:s=>updates.push(s)});
- run("artRoot=document.createElement('div');artRoot.dataset.channel='main';artRoot.dataset.mode='idle';document.body.append(artRoot);artRoot.getClientRects=()=>[{}];artUpdate=octiMotionArtwork(artRoot,artRoot,null);artUpdate()");assert.equal(updates.at(-1).visible,true);
- run("plannerRecordings.event={mode:'recording'};artUpdate();plannerRecordings.event=null");assert.equal(updates.at(-1).isRecording,true);
- run("artRoot.dataset.channel='event';artUpdate()");assert.equal(updates.at(-1).visible,false);
+ run("artRoot=document.createElement('div');artRoot.dataset.channel='main';artRoot.dataset.mode='idle';document.body.append(artRoot);artRoot.getClientRects=()=>[{}];artUpdate=octiMotionArtwork(artRoot,artRoot,null);artUpdate()");assert.equal(updates.at(-1).visible,false,'The calendar actor pauses behind an open event');
+ run("artRoot.dataset.channel='event';artRoot.dataset.mode='recording';artUpdate()");assert.equal(updates.at(-1).visible,true);assert.equal(updates.at(-1).isRecording,true,'The foreground actor follows the event recorder');
+ run("artRoot.dataset.mode='idle';closeEventActions();artUpdate()");assert.equal(updates.at(-1).visible,true,'The foreground actor remains with its glass through the exit transition');assert.equal(updates.at(-1).isRecording,false);
+ run("OktiEventMotion.stop();artUpdate()");assert.equal(updates.at(-1).visible,false);run("artRoot.dataset.channel='main';artUpdate();artRoot.remove()");assert.equal(updates.at(-1).visible,true,'The calendar actor resumes after the event has closed');
  // Pin and reminder icons occupy the start of the row. The flying digits
  // must land at the number span, including that reserved horizontal space.
  run("closeEventActions();OktiEventMotion.stop();tasks=[{id:'located-flight',title:'Telefon',date:'2026-10-12',time:'12:00',endTime:'13:00',location:'Rynek 1, Dresden',reminder:{minutesBefore:5}}];selected=new Date('2026-10-12T12:00:00');showView('day')");
@@ -213,5 +214,5 @@ try{
  assert.equal(sheet.getBoundingClientRect().height,500);assert.equal(richFrame.frames.at(-1).height,'500px');
  run('closeEventActions();OktiEventMotion.stop();showPlannerWeather=async()=>{}');
  w.matchMedia=()=>({matches:true});run('closeEventActions();openEventActions(tasks[0]);closeEventActions()');assert.equal(w.OktiEventMotion.getState(),null);assert.equal(get('eventModal').classList.contains('okti-event-exiting'),false);assert.equal(w.document.body.classList.contains('okti-event-transitioning'),false);
- console.log('Event sheet: preserved controls/dialogue, artwork mutation isolation, notes, navigation, recorder lifecycle, shared-artwork ownership, flight/close/reopen interruption cleanup and reduced motion passed (animation geometry and graphics simulated).');
+ console.log('Event sheet: preserved controls/dialogue, artwork mutation isolation, notes, navigation, recorder lifecycle, foreground artwork ownership, flight/close/reopen interruption cleanup and reduced motion passed (animation geometry and graphics simulated).');
 }finally{dom.window.close()}
