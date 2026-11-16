@@ -56,6 +56,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
     assert(held.y+held.height/2>rest.y+rest.height/2+1,width+': '+label+' sinks into the frame');
     assert.deepEqual(await opposite.boundingBox(),still,width+': the other half stays still');
     assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false,'Holding never opens the date selector');
+    assert.equal(await page.locator('#entryResultsModal').isVisible(),false,'Holding never opens the day card');
     assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false,'Holding never opens the forecast');
     if(width===390)await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-'+label+'-pressed.png'});
     await page.mouse.up();
@@ -65,15 +66,16 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
      assert(Math.abs(up.at(-1)[n].height-rest.height)<.2,width+': release returns to the original geometry');
     }
    }
-   const saved=await page.evaluate(()=>JSON.stringify(tasks));await pressOpen(date,weather,'date');await page.locator('#phoneDateModal').waitFor({state:'visible'});assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);assert.equal(await date.getAttribute('aria-expanded'),'true');
+   async function enterDatePicker(){await page.locator('#entryResultsModal').waitFor({state:'visible'});assert.equal(await page.evaluate(()=>OktiDayBriefUI.getState().view),'day-card');assert.equal(await page.locator('.yaga-card').count(),0,'The standard day card is available without opting into Yaga');await page.getByRole('button',{name:'Wybierz inny dzień',exact:true}).click();await page.locator('#phoneDateModal').waitFor({state:'visible'})}
+   const saved=await page.evaluate(()=>JSON.stringify(tasks));await pressOpen(date,weather,'date');await enterDatePicker();assert.equal(await page.locator('#dayWeatherModal').evaluate(n=>n.open),false);assert.equal(await date.getAttribute('aria-expanded'),'true');
    await page.locator('.phone-date-prev').click();await page.locator('.phone-date-grid [data-date="2026-10-10"]').click();
    await page.locator('#phoneDateModal').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>iso(selected)),'2026-10-10');assert.equal(await page.locator('#date').inputValue(),'2026-10-10');assert.equal(await page.evaluate(()=>document.activeElement.id),'phoneDateButton');assert.equal(await page.evaluate(()=>document.querySelector('.app').inert),false);
    await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
    await pressOpen(weather,date,'weather');await page.locator('#dayWeatherModal').waitFor({state:'visible'});assert.equal(await page.locator('#phoneDateModal').evaluate(n=>n.open),false);assert.equal(await weather.getAttribute('aria-expanded'),'true');assert.equal(await date.getAttribute('aria-expanded'),'false');
    assert.equal(await date.locator('.phone-day-weekday').evaluate(n=>getComputedStyle(n).visibility),'visible','The date stays outside the weather flight');
    await page.keyboard.press('Escape');await page.locator('#dayWeatherModal').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>document.activeElement.id),'phoneWeatherButton');
-   await date.focus();await page.keyboard.press('Space');await page.locator('#phoneDateModal').waitFor({state:'visible'});await page.locator('.phone-date-card').evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-date-picker.png'});await page.keyboard.press('Escape');await page.locator('#phoneDateModal').waitFor({state:'hidden'});
-   const actualToday=await page.evaluate(()=>iso(new Date()));await date.click();await page.locator('.phone-date-today').click();assert.equal(await page.evaluate(()=>iso(selected)),actualToday,'Today follows the real local date rather than the fixture date');assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved,'Header controls never mutate event data');
+   await date.focus();await page.keyboard.press('Space');await enterDatePicker();await page.locator('.phone-date-card').evaluate(n=>Promise.all(n.getAnimations().map(a=>a.finished.catch(()=>{}))));await page.screenshot({path:'test-results/shared-header-'+name+'/'+width+'-date-picker.png'});await page.keyboard.press('Escape');await page.locator('#phoneDateModal').waitFor({state:'hidden'});
+   const actualToday=await page.evaluate(()=>iso(new Date()));await date.click();await enterDatePicker();await page.locator('.phone-date-today').click();assert.equal(await page.evaluate(()=>iso(selected)),actualToday,'Today follows the real local date rather than the fixture date');assert.equal(await page.evaluate(()=>JSON.stringify(tasks)),saved,'Header controls never mutate event data');
    await page.evaluate(()=>{selected=new Date('2026-11-30T12:00:00');renderDay()});
    const weekdayFits=await page.locator('#phoneDateButton .phone-day-weekday').evaluate(n=>({text:n.textContent,fits:n.scrollWidth<=n.clientWidth}));assert.equal(weekdayFits.fits,true,width+': '+weekdayFits.text+' fits the left half');
    if(width===390){
@@ -103,7 +105,7 @@ const types={'.html':'text/html','.js':'application/javascript','.webp':'image/w
      assert(Math.abs((await face.boundingBox()).height-faceRest.height)<.2,'Touch cancellation restores the glass');
      await cdp.detach();
     }
-    for(const [target,id] of [[date,'#phoneDateModal'],[weather,'#dayWeatherModal']]){
+    for(const [target,id] of [[date,'#entryResultsModal'],[weather,'#dayWeatherModal']]){
      const r=await target.boundingBox();await page.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);
      await page.locator(id).waitFor({state:'visible'});await page.keyboard.press('Escape');await page.locator(id).waitFor({state:'hidden'});
      await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
