@@ -25,11 +25,8 @@ vec4 mantle(vec2 p){vec2 source=p;float baseline=headAlpha(p),alpha=baseline;vec
  }else color=atlasColor(headMap,source);
  color=mix(clamp(color,0.0,1.0),vec3(1.0),bars(source));return vec4(color,alpha);
 }
-void main(){float a=approach;vec2 p=vec2(uv.x,1.0-uv.y)*544.0-.5;float wave=2.0*PI*phase/4.8;vec2 breathe=vec2(1.0+.009*sin(wave),1.0+.006*sin(wave+.6));p=(p-vec2(272.0,274.0+1.7*sin(wave)))/breathe+vec2(272.0,274.0);
- // The body stays in its idle coordinates. Only the separate head approaches.
- vec2 armUV=p;float sy=armUV.y;float oldHead=(1.0-smoothstep(50.0,52.0,capsuleDistance(armUV)))*(1.0-smoothstep(290.0,305.0,sy));float armAlpha=atlasAlpha(bodyMap,armUV)*(1.0-oldHead);
- float angle=11.0*PI/180.0*a;vec2 root=vec2(272.0+38.0*a,298.0+134.0*a);vec2 q=tiltPoint(p,angle,root);vec2 headUV=(q-root)/vec2(1.0+1.65*a,1.0+1.16*a)+vec2(272.0,298.0);vec4 head=mantle(headUV);
- float radius=length(p-vec2(272.0,274.0));float edge=clamp((194.0-radius)/1.3,0.0,1.0)*(1.0-smoothstep(180.0,194.0,radius));float alpha=(armAlpha+head.a*(1.0-armAlpha))*edge;vec3 rgb=atlasColor(bodyMap,armUV)*armAlpha*(1.0-head.a)+head.rgb*head.a;gl_FragColor=vec4(rgb*edge,alpha);}`;
+// Approved coupled pose from 058ddbf (33.239), before the 33.307 geometry change.
+void main(){float a=approach;vec2 p=vec2(uv.x,1.0-uv.y)*544.0-.5;float wave=2.0*PI*phase/4.8;vec2 breathe=vec2(1.0+.009*sin(wave),1.0+.006*sin(wave+.6));p=(p-vec2(272.0,274.0+1.7*sin(wave)))/breathe+vec2(272.0,274.0);float camera=1.0+.40*a;vec2 view=(p-vec2(272.0,274.0))/camera+vec2(272.0,274.0);float angle=11.0*PI/180.0*a;vec2 rear=vec2(272.0+12.0*a,298.0+62.0*a);vec2 q=tiltPoint(view,angle*.55,rear);float sx=(q.x-rear.x)/(1.0+.06*a+.03*lag)+272.0;float arch=27.0*a*pow(clamp(abs(sx-272.0)/150.0,0.0,1.2),1.6);float sy=(q.y-rear.y+arch)/(1.0-.05*a)+298.0;float tip=pow(clamp(length(vec2(sx-272.0,sy-298.0))/135.0,0.0,1.0),1.5);float sweep=7.0*(a-lag)+3.5*a*sin(clock*2.0*PI/2.4);sx-=sign(sx-272.0)*tip*sweep;sy-=tip*5.0*lag;vec2 armUV=vec2(sx,sy);float oldHead=(1.0-smoothstep(50.0,52.0,capsuleDistance(armUV)))*(1.0-smoothstep(290.0,305.0,sy));float margin=(1.0-smoothstep(60.0,67.0,abs(sx-272.0)))*(1.0-smoothstep(292.0,310.0,sy));float armAlpha=atlasAlpha(bodyMap,armUV)*(1.0-max(oldHead,a*margin));vec2 root=vec2(272.0+38.0*a/camera,274.0+(298.0+134.0*a-274.0)/camera);q=tiltPoint(view,angle,root);vec2 headUV=(q-root)/(vec2(1.0+1.65*a,1.0+1.16*a)/camera)+vec2(272.0,298.0);vec4 head=mantle(headUV);float radius=length(p-vec2(272.0,274.0));float inside=clamp((194.0-radius)/1.3,0.0,1.0);float alpha=(armAlpha+head.a*(1.0-armAlpha))*inside*(1.0-smoothstep(180.0,194.0,radius));vec3 rgb=atlasColor(bodyMap,armUV)*armAlpha*(1.0-head.a)+head.rgb*head.a;gl_FragColor=vec4(rgb*inside*(1.0-smoothstep(180.0,194.0,radius)),alpha);}`;
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
 function matrices(g){
  const angles=[8,-3,-2].map(v=>v*g*Math.PI/180),[y,p,r]=angles,cy=Math.cos(y),sy=Math.sin(y),cp=Math.cos(p),sp=Math.sin(p),cr=Math.cos(r),sr=Math.sin(r);
@@ -47,41 +44,63 @@ function createRenderer(canvas,video,head){
  return {kind:'webgl',draw(state){const size=Math.max(128,Math.min(384,Math.round(canvas.getBoundingClientRect().width*(devicePixelRatio||1))));if(canvas.width!==size){canvas.width=canvas.height=size;gl.viewport(0,0,size,size)}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[0]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);for(const name of ['approach','lag','gesture','clock','phase'])gl.uniform1f(uniforms[name],state[name]);const [rotation,inverse]=matrices(state.gesture);gl.uniformMatrix3fv(uniforms.rotation,false,rotation);gl.uniformMatrix3fv(uniforms.inverseRotation,false,inverse);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);if(gl.isContextLost())throw Error('WebGL context lost');},destroy(){for(const t of textures)gl.deleteTexture(t);gl.deleteBuffer(buffer);gl.deleteProgram(program);}};
 }
 function loadImage(src,retry=0){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Artwork unavailable'));image.src=src+(retry?'&retry='+retry:'')})}
-// A separate 2D head keeps the listening gesture usable after GPU loss or a
-// blocked video. It never scales the complete actor and uses the same artwork.
+// CPU evaluation of the same approved pose and capsule used by the GPU. This
+// keeps the historical silhouette when iOS cannot use WebGL or decode video.
 function createSoftwareRenderer(canvas,video,head,poster){
- const size=256,ctx=canvas.getContext('2d'),body=document.createElement('canvas'),matte=document.createElement('canvas'),headLayer=document.createElement('canvas'),edge=document.createElement('canvas');
- if(!ctx)throw Error('Canvas unavailable');
- for(const c of [body,matte,headLayer,edge])c.width=c.height=size;
- const bodyCtx=body.getContext('2d',{willReadFrequently:true}),matteCtx=matte.getContext('2d',{willReadFrequently:true}),headCtx=headLayer.getContext('2d'),edgeCtx=edge.getContext('2d');
- if(!bodyCtx||!matteCtx||!headCtx||!edgeCtx)throw Error('Canvas unavailable');
- const removeHead=new Float32Array(size*size),headClip=new Float32Array(size*size),fade=edgeCtx.createImageData(size,size);
- for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=y*size+x,px=(x+.5)*544/size,py=(y+.5)*544/size,dist=Math.hypot(px-272,py-Math.max(205,Math.min(251,py)));removeHead[i]=1-(1-smooth((dist-50)/2))*(1-smooth((py-290)/15));headClip[i]=Math.max(0,Math.min(1,49-dist));fade.data[i*4+3]=255*(1-smooth((Math.hypot(px-272,py-274)-180)/14));}
- edgeCtx.putImageData(fade,0,0);
- function atlas(image,target){
-  const w=image.videoWidth||image.naturalWidth||image.width,h=image.videoHeight||image.naturalHeight||image.height;
-  target.clearRect(0,0,size,size);target.drawImage(image,0,0,w/2,h,0,0,size,size);
-  matteCtx.clearRect(0,0,size,size);matteCtx.drawImage(image,w/2,0,w/2,h,0,0,size,size);
-  const rgb=target.getImageData(0,0,size,size),alpha=matteCtx.getImageData(0,0,size,size).data;
-  for(let i=0;i<size*size;i++)rgb.data[i*4+3]=255*smooth((alpha[i*4]/255-.03)/.94);
-  return rgb;
+ const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),read=staging.getContext('2d',{willReadFrequently:true});
+ if(!ctx||!read)throw Error('Canvas unavailable');
+ function capture(image,atlas){const w=image.videoWidth||image.naturalWidth||image.width||768,h=image.videoHeight||image.naturalHeight||image.height||384;staging.width=w;staging.height=h;read.clearRect(0,0,w,h);read.drawImage(image,0,0,w,h);return {data:read.getImageData(0,0,w,h).data,w,h,atlas};}
+ const headMap=capture(head,true),posterMap=capture(poster,false);let bodyMap=posterMap,lastTime=-1,lastLive=false,output=null,coordinates=null;
+ const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+ function sample(map,x,y,out){
+  const valid=x>=0&&y>=0&&x<=543&&y<=543,u=(clamp(x,0,543)+.5)/544,v=(clamp(y,0,543)+.5)/544;
+  const fx=clamp(u*(map.atlas?map.w/2:map.w)-.5,0,map.w-1),fy=clamp(v*map.h-.5,0,map.h-1),ix=Math.floor(fx),iy=Math.floor(fy),jx=Math.min(ix+1,map.w-1),jy=Math.min(iy+1,map.h-1),dx=fx-ix,dy=fy-iy;
+  const weights=[(1-dx)*(1-dy),dx*(1-dy),(1-dx)*dy,dx*dy],indices=[(iy*map.w+ix)*4,(iy*map.w+jx)*4,(jy*map.w+ix)*4,(jy*map.w+jx)*4],d=map.data;
+  for(let c=0;c<3;c++)out[c]=d[indices[0]+c]*weights[0]+d[indices[1]+c]*weights[1]+d[indices[2]+c]*weights[2]+d[indices[3]+c]*weights[3];
+  const offset=map.atlas?map.w*2:3;let alpha=(d[indices[0]+offset]*weights[0]+d[indices[1]+offset]*weights[1]+d[indices[2]+offset]*weights[2]+d[indices[3]+offset]*weights[3])/255;
+  out[3]=valid?(map.atlas?smooth((alpha-.03)/.94):alpha):0;
  }
- const headPixels=atlas(head,headCtx),headAlpha=new Uint8ClampedArray(size*size);for(let i=0;i<size*size;i++)headAlpha[i]=headPixels.data[i*4+3];
- let lastTime=-1,lastVideo=false,haveBody=false,lastApproach=-1;
+ const bodyPixel=new Float64Array(4),headPixel=new Float64Array(4),projected=new Float64Array(4);
+ const capsule=(x,y)=>Math.hypot(x-272,y-clamp(y,205,251));
+ function headSample(x,y,a,out){sample(headMap,x,y,out);out[3]=out[3]*(1-a)+Math.min(out[3],clamp(49-capsule(x,y),0,1))*a;}
+ function hit(ox,oy,oz,dx,dy,dz,cy,cylinder){
+  const y=oy-cy,aa=dx*dx+dz*dz/.5184+(cylinder?0:dy*dy),bb=2*(ox*dx+oz*dz/.5184+(cylinder?0:y*dy)),cc=ox*ox+oz*oz/.5184-2304+(cylinder?0:y*y),disc=bb*bb-4*aa*cc;
+  if(disc<0)return 10000;const t=(-bb-Math.sqrt(Math.max(disc,0)))/(2*aa),py=oy+t*dy;
+  return t<0||cylinder&&Math.abs(py)>23||!cylinder&&(cy>0&&py<23||cy<0&&py> -23)?10000:t;
+ }
+ const lightLength=Math.hypot(-.48,-.52,.75),lx=-.48/lightLength,ly=-.52/lightLength,lz=.75/lightLength,halfLength=Math.hypot(lx,ly,lz+1),vx=lx/halfLength,vy=ly/halfLength,vz=(lz+1)/halfLength;
  return {kind:'canvas2d',draw(state){
   const live=state.videoAvailable&&video.readyState>=2&&!video.error;
-  if(!haveBody||live!==lastVideo||live&&video.currentTime!==lastTime){
-   let pixels;if(live)pixels=atlas(video,bodyCtx);else{bodyCtx.clearRect(0,0,size,size);bodyCtx.drawImage(poster,0,0,size,size);pixels=bodyCtx.getImageData(0,0,size,size);}
-   for(let i=0;i<size*size;i++)pixels.data[i*4+3]*=removeHead[i];bodyCtx.putImageData(pixels,0,0);lastTime=video.currentTime;lastVideo=live;haveBody=true;
+  if(live&&(!lastLive||video.currentTime!==lastTime)){bodyMap=capture(video,true);lastTime=video.currentTime;}else if(!live)bodyMap=posterMap;lastLive=live;
+  const size=Math.max(128,Math.min(256,Math.round(canvas.getBoundingClientRect().width*(devicePixelRatio||1))));
+  if(!output||canvas.width!==size){canvas.width=canvas.height=size;output=ctx.createImageData(size,size);coordinates=Float64Array.from({length:size},(_,i)=>(i+.5)*544/size-.5);}else output.data.fill(0);
+  const a=state.approach,lag=state.lag,g=state.gesture,wave=2*Math.PI*state.phase/4.8,bx=1+.009*Math.sin(wave),by=1+.006*Math.sin(wave+.6),bob=1.7*Math.sin(wave),camera=1+.40*a,angle=11*Math.PI/180*a,ca=Math.cos(angle),sa=Math.sin(angle),cb=Math.cos(angle*.55),sb=Math.sin(angle*.55),rearX=272+12*a,rearY=298+62*a,rootX=272+38*a/camera,rootY=274+(298+134*a-274)/camera,sweep=7*(a-lag)+3.5*a*Math.sin(state.clock*2*Math.PI/2.4),m=matrices(g)[1],dx=-m[6],dy=-m[7],dz=-m[8],blend=smooth(g),levels=[.55,.85,.55].map((rest,i)=>rest*(1-a)+clamp([.58,.75,.58][i]+[.22,.18,.22][i]*Math.sin([4,3,5][i]/4.8*state.clock*2*Math.PI+[0,1.5,3.2][i])+.035*Math.sin(state.clock*2*Math.PI/4.8),.30,.95)*a);
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+   const px=(coordinates[x]-272)/bx+272,py=(coordinates[y]-274-bob)/by+274,radius=Math.hypot(px-272,py-274),edge=clamp((194-radius)/1.3,0,1)*(1-smooth((radius-180)/14));if(!edge)continue;
+   const viewX=(px-272)/camera+272,viewY=(py-274)/camera+274,rx=viewX-rearX,ry=viewY-rearY;
+   let sx=(cb*rx-sb*ry)/(1+.06*a+.03*lag)+272,sy=(sb*rx+cb*ry+27*a*Math.pow(clamp(Math.abs(sx-272)/150,0,1.2),1.6))/(1-.05*a)+298;
+   const tip=Math.pow(clamp(Math.hypot(sx-272,sy-298)/135,0,1),1.5);sx-=Math.sign(sx-272)*tip*sweep;sy-=tip*5*lag;sample(bodyMap,sx,sy,bodyPixel);
+   const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin)),hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
+   let headAlpha=0,red=0,green=0,blue=0,sourceX=hx,sourceY=hy;
+   if(hx>180&&hx<365&&hy>130&&hy<345){
+    headSample(hx,hy,a,headPixel);headAlpha=headPixel[3];red=headPixel[0];green=headPixel[1];blue=headPixel[2];
+    if(g>.00001){
+     const ox=m[0]*(hx-272)+m[3]*(hy-228)+m[6]*180,oy=m[1]*(hx-272)+m[4]*(hy-228)+m[7]*180,oz=m[2]*(hx-272)+m[5]*(hy-228)+m[8]*180,t=Math.min(hit(ox,oy,oz,dx,dy,dz,0,true),hit(ox,oy,oz,dx,dy,dz,23,false),hit(ox,oy,oz,dx,dy,dz,-23,false)),visible=t<=9999,pointX=ox+dx*Math.min(t,180),pointY=oy+dy*Math.min(t,180),pointZ=oz+dz*Math.min(t,180);
+     if(visible){sourceX=pointX+272;sourceY=pointY+228;}headSample(sourceX,sourceY,a,projected);headAlpha=headAlpha*(1-blend)+(visible?projected[3]:0)*blend;red=projected[0];green=projected[1];blue=projected[2];
+     if(visible){
+      let nx=pointX,ny=Math.sign(pointY)*Math.max(Math.abs(pointY)-23,0),nz=pointZ/.5184;const length=Math.hypot(nx,ny,nz);nx/=length;ny/=length;nz/=length;
+      const wx=m[0]*nx+m[1]*ny+m[2]*nz,wy=m[3]*nx+m[4]*ny+m[5]*nz,wz=m[6]*nx+m[7]*ny+m[8]*nz,diffuse=clamp((.48+.52*Math.max(wx*lx+wy*ly+wz*lz,0))/(.48+.52*Math.max(nx*lx+ny*ly+nz*lz,0)),.72,1.28),spec=(Math.pow(Math.max(wx*vx+wy*vy+wz*vz,0),28)-Math.pow(Math.max(nx*vx+ny*vy+nz*vz,0),28))*65;
+      red=red*diffuse+spec;green=green*diffuse+spec;blue=blue*diffuse+spec;
+     }
+    }
+    let bars=0;for(let i=0;i<3;i++){const qx=Math.abs(sourceX-(252+i*20));if(qx>4)continue;const qy=Math.abs(sourceY-232)-Math.max(0,53*levels[i]/2-2.9),distance=Math.hypot(qx,Math.max(qy,0))-2.9;bars=Math.max(bars,1-smooth((distance+.55)/1.1));}
+    red=clamp(red,0,255)*(1-bars)+255*bars;green=clamp(green,0,255)*(1-bars)+255*bars;blue=clamp(blue,0,255)*(1-bars)+255*bars;
+   }
+   const opacity=armAlpha+headAlpha*(1-armAlpha);if(!opacity)continue;const q=(y*size+x)*4,bodyWeight=armAlpha*(1-headAlpha);
+   output.data[q]=(bodyPixel[0]*bodyWeight+red*headAlpha)/opacity;output.data[q+1]=(bodyPixel[1]*bodyWeight+green*headAlpha)/opacity;output.data[q+2]=(bodyPixel[2]*bodyWeight+blue*headAlpha)/opacity;output.data[q+3]=255*opacity*edge;
   }
-  const output=Math.max(128,Math.min(256,Math.round(canvas.getBoundingClientRect().width*(devicePixelRatio||1))));if(canvas.width!==output)canvas.width=canvas.height=output;
-  ctx.setTransform(output/544,0,0,output/544,0,0);ctx.clearRect(0,0,544,544);ctx.drawImage(body,0,0,544,544);
-  const a=state.approach;if(a!==lastApproach){for(let i=0;i<size*size;i++)headPixels.data[i*4+3]=headAlpha[i]*(1-a)+Math.min(headAlpha[i],255*headClip[i])*a;headCtx.putImageData(headPixels,0,0);lastApproach=a;}
-  ctx.save();ctx.translate(272+38*a,298+134*a);ctx.rotate(-11*Math.PI/180*a);ctx.scale(1+1.65*a,1+1.16*a);ctx.translate(-272,-298);ctx.drawImage(headLayer,0,0,544,544);
-  const rest=[.55,.85,.55],base=[.58,.75,.58],amplitude=[.22,.18,.22],rates=[4,3,5],phases=[0,1.5,3.2];ctx.fillStyle='#fff';
-  for(let i=0;i<3;i++){const level=Math.max(.30,Math.min(.95,base[i]+amplitude[i]*Math.sin(rates[i]/4.8*state.clock*2*Math.PI+phases[i])+.035*Math.sin(state.clock*2*Math.PI/4.8))),height=53*(rest[i]*(1-a)+level*a);ctx.beginPath();ctx.roundRect(249.1+i*20,232-height/2,5.8,height,2.9);ctx.fill();}
-  ctx.restore();ctx.globalCompositeOperation='destination-in';ctx.drawImage(edge,0,0,544,544);ctx.globalCompositeOperation='source-over';
- },destroy(){for(const c of [body,matte,headLayer,edge])c.width=c.height=1;}};
+  ctx.putImageData(output,0,0);
+ },destroy(){staging.width=staging.height=1;bodyMap=null;output=null;coordinates=null;}};
 }
 window.createOctiListeningArtwork=function(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-listening-media';layer.setAttribute('aria-hidden','true');
