@@ -50,7 +50,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    assert.equal(await page.evaluate(()=>window.noteMicStarts),starts+1,'A real touch requests the microphone again');
    await plus.tap();await page.waitForFunction(()=>!plannerRecordings.event);
    await plus.tap();assert.equal(await plus.getAttribute('aria-expanded'),'true');await plus.tap();
-   await page.locator('#closeEvent').tap();assert.equal(await page.locator('#eventModal').isVisible(),false);
+   await page.locator('#closeEvent').tap();
+   await page.waitForFunction(()=>{const modal=document.querySelector('#eventModal');return modal.classList.contains('hidden')&&!modal.classList.contains('okti-event-exiting')},null,{timeout:5000});
+   assert.equal(await page.locator('#eventModal').isVisible(),false);
   }
   await page.close();
  }
