@@ -18,9 +18,22 @@ async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=f
 }
 const state=page=>page.locator('#state').innerText().then(JSON.parse);
 const rendered=page=>page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent||'{}');return s.rendering&&s.ready;},null,{timeout:15000});
-// The approaching, tilted GPU head reaches the inner left arms. Compare the
-// outer tips, which remain exposed in both poses, and require actual blue tips.
-async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4);if(s.renderer==='webgl')canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);let blue=0,white=0,armBlue=0;const arm=[];for(let y=0;y<n;y++)for(let x=0;x<n;x++){const q=(y*n+x)*4,isBlue=p[q+3]>100&&p[q+2]-p[q]>70;if(isBlue)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;if(x/n>.13&&x/n<.21&&y/n>.25&&y/n<.8){arm.push(...p.slice(q,q+4));if(isBlue)armBlue++;}}return {n,blue,white,armBlue,arm};});}
+// Compare body pixels outside both head silhouettes: the enlarged head can
+// occlude inner arms without moving them. The 55px capsule includes a margin
+// around the original 49px head, its small 3D turn and idle breathing.
+async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{
+ const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4),gpu=s.renderer==='webgl';
+ if(gpu)canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);
+ const distance=(x,y)=>Math.hypot(x-272,y-Math.max(205,Math.min(251,y))),angle=(gpu?1:-1)*11*Math.PI/180,c=Math.cos(angle),sn=Math.sin(angle);
+ let blue=0,white=0,armBlue=0;const arm=[];
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+  const q=(y*n+x)*4,isBlue=p[q+3]>100&&p[q+2]-p[q]>70;if(isBlue)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;
+  const px=(x+.5)*544/n,py=(gpu?1-(y+.5)/n:(y+.5)/n)*544,dx=px-310,dy=py-432,hx=(c*dx-sn*dy)/2.65+272,hy=(sn*dx+c*dy)/2.16+298;
+  if(distance(px,py)>55&&distance(hx,hy)>55){arm.push(...p.slice(q,q+4));if(isBlue)armBlue++;}
+ }
+ return {n,blue,white,armBlue,arm};
+ });}
+
 (async()=>{
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{} )});
  fs.mkdirSync('test-results/okti-listening',{recursive:true});
