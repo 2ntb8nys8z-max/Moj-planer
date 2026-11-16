@@ -16,6 +16,8 @@ concurrency:
 jobs:
   verify-and-publish:
     if: github.ref == 'refs/heads/integration/conversation33'
+    env:
+      TZ: Europe/Warsaw
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
