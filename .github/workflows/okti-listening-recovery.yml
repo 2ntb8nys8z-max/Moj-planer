@@ -52,7 +52,13 @@ jobs:
       - run: npm ci
       - run: npm run check:generated
       - name: Verify the existing recorder, artwork and action controls
-        run: npm run test:logo-browser && npm run test:journal-browser
+        run: node tests/octi-motion-browser-33.cjs
+      - name: Verify the existing listening fixture
+        if: success() || failure()
+        run: node tests/octi-listening-browser-33.cjs
+      - name: Verify journal and shopping controls
+        if: success() || failure()
+        run: npm run test:journal-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:

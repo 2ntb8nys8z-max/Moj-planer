@@ -114,7 +114,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening?.getState();return s?.renderer==='canvas2d'&&s.rendering},null,{timeout:15000});
    assert.equal(await layer.evaluate(el=>el.classList.contains('is-rendered')),true,'Media failures retain the separate animated head');assert.ok(await fallback.evaluate(img=>img.complete&&img.naturalWidth>0));
    assert.equal(await page.locator('.octi-dock:not([data-channel=main]) .octi-listening-source[src]').count(),0,'Hidden contexts do not load duplicate clips');
-   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main] video').paused);
+   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]');return root.querySelector('video').paused&&root.querySelector('.octi-listening-media').classList.contains('is-fallback')});
    assert.equal(await layer.evaluate(el=>el.classList.contains('is-fallback')),true,'Reduced motion keeps the approved static Okti artwork');
    await dock.locator('.menu-toggle').click();assert.equal(await dock.locator('.menu-toggle').getAttribute('aria-expanded'),'true','Media failure never blocks the action menu');
    assert.deepEqual(errors,[]);await page.close();console.log(`Okti motion ${failure}: software listening, reduced motion and working controls passed.`);
