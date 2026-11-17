@@ -6,6 +6,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
  let release;const listeningGate=holdListening?new Promise(resolve=>{release=resolve}):Promise.resolve();
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url()),file=path.resolve(base,url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));
+  if(url.protocol==='blob:')return route.continue();
   if(url.origin==='https://planner.test'&&file.startsWith(base+'/')&&fs.existsSync(file)&&fs.statSync(file).isFile()){
    const bytes=fs.readFileSync(file),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'};
    if(file.endsWith('octi-water-motion.webp')&&failMedia==='all-media-fail')return route.fulfill({status:404,body:'missing animated image'});

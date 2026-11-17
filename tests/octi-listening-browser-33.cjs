@@ -3,6 +3,7 @@ const {chromium}=require('playwright');
 const base=path.resolve('.');
 async function routeFiles(page){await page.route('**/*',route=>{
  const url=new URL(route.request().url());let file=path.resolve(base,url.pathname.slice(1));
+ if(url.protocol==='blob:')return route.continue();
  if(url.pathname.endsWith('/qa-octi-listening.html'))file=path.join(base,'tests/fixtures/octi-listening.html');
  if(url.origin!=='https://planner.test'||!file.startsWith(base+'/')||!fs.existsSync(file))return route.fulfill({status:404,body:'missing'});
  const bytes=fs.readFileSync(file),types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.mp4':'video/mp4'};

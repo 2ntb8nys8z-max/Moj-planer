@@ -5,6 +5,7 @@ async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=f
  await page.addInitScript(({noGL,blocked})=>{window.qaBlocked=blocked;if(noGL){const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl'?null:get.call(this,type,...args)}}const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){return window.qaBlocked?Promise.reject(new DOMException('Autoplay denied','NotAllowedError')):play.call(this)}},{noGL,blocked});
  await page.route('**/*',route=>{
   const url=new URL(route.request().url());let file=path.resolve(base,url.pathname.slice(1));if(url.pathname==='/qa-listening.html')file=path.join(base,'tests/fixtures/octi-listening.html');
+  if(url.protocol==='blob:')return route.continue();
   if(url.origin!=='https://planner.test')return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
   if(!file.startsWith(base+'/')||!fs.existsSync(file))return route.fulfill({status:404,body:'missing'});
   if(headBlocked&&file.endsWith('octi-listening-head.webp'))return route.fulfill({status:404,body:'temporary image error',headers:{'cache-control':'no-store'}});
