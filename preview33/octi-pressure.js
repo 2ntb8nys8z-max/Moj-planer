@@ -58,7 +58,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const glass=root.querySelector('.octi-motion-media'),canvas=document.createElement('canvas');
  if(!glass)return {reset(){}};
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
- const ctx=canvas.getContext('2d');let texture=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
  const output=ctx?.createImageData(SIZE,SIZE);
  const value=()=>Number.parseFloat(getComputedStyle(floating).getPropertyValue('--okti-pressure'))||0;
  function draw(p){

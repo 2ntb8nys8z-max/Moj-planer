@@ -73,11 +73,11 @@ async function settled(page,channel='main'){
     const exactOriginal=await page.locator('.octi-dock[data-channel=main]').evaluate(async root=>{
      const canvas=root.querySelector('.octi-pressure-canvas'),ref=document.createElement('canvas');ref.width=ref.height=384;
      const image=new Image();image.src=root.octiPressure.getState().source;await image.decode();
-     const ctx=ref.getContext('2d');ctx.drawImage(image,0,0,384,384);
+     const ctx=ref.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,384,384);
      const expected=ctx.getImageData(0,0,384,384).data,actual=canvas.getContext('2d').getImageData(0,0,384,384).data;
-     return expected.every((value,i)=>value===actual[i]);
+     let differences=0,maxDelta=0;const first=[];for(let i=0;i<expected.length;i++)if(expected[i]!==actual[i]){differences++;maxDelta=Math.max(maxDelta,Math.abs(expected[i]-actual[i]));if(first.length<8)first.push({i,expected:expected[i],actual:actual[i],alpha:expected[i-i%4+3]})}return {exact:!differences,differences,maxDelta,first};
     });
-    assert.equal(exactOriginal,true,'At rest the rendered glass is pixel-identical to the original image');
+    assert.equal(exactOriginal.exact,true,'At rest the rendered glass is pixel-identical to the original image: '+JSON.stringify(exactOriginal));
     assert.equal(await page.locator('.octi-key-seat').count(),0,'The extra glass mount has been removed');
     assert.ok(Math.abs(resting.glass.width/resting.target.width-1.28)<.002,'Restore the original full-size bubble');
     await hold(page);const pressed=await read(page);
