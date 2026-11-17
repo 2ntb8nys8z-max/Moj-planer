@@ -1,7 +1,7 @@
 name: Okti listening recovery
 on:
   push:
-    branches: [main, 'work/okti-listening-*']
+    branches: [main, 'work/okti-listening-*', 'work/okti-bubble-press-*']
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +27,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:generated
+      - name: Verify elastic bubble feedback
+        env:
+          PLANNER_BROWSER: ${{ matrix.browser }}
+        run: node tests/octi-pressure-browser-33.cjs
       - name: Verify historical artwork fidelity and recovery with actual browser pixels
         env:
           PLANNER_BROWSER: ${{ matrix.browser }}
