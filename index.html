@@ -4427,7 +4427,7 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
 <script src="octi-pressure.js?v=68c205ca5bebfaba"></script>
-<script src="octi-listening.js?v=23524c5bda60af97"></script>
+<script src="octi-listening.js?v=e0547bbcb960816b"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6180,6 +6180,13 @@ window.OktiEventMotion=(()=>{
 <style id="okti-bubble-pressure-33-321">
 .octi-dock .octi-listening-media.is-native-idle .octi-listening-canvas{opacity:0}
 .octi-dock .octi-listening-media.is-native-idle .octi-listening-fallback{opacity:1}
+/* On high-density software rendering, sampling the whole page behind the
+   fixed navigation and header consumes display frames even outside the dock. */
+@media (min-resolution:2dppx){
+ .phone-layout:has(.octi-listening-media.uses-software-renderer.is-active) :is(.phone-bottom-bar,.phone-bottom-bar>button.active,.phone-day-glass>span){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ .phone-layout:has(.octi-listening-media.uses-software-renderer.is-active) #dayTitle::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ .phone-layout:has(.octi-listening-media.uses-software-renderer.is-active) .phone-bottom-bar{background-color:#e7edf2ed}
+}
 /* Move the shared artwork on the compositor instead of recalculating
    inherited custom properties throughout the dock on every idle frame. */
 .octi-dock .water-float{
