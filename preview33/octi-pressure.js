@@ -60,7 +60,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
  const output=ctx?.createImageData(SIZE,SIZE);
- let driftLock=null,hoverAnimation=null;
+ let driftLock=null,hoverAnimation=null,drawCount=0,lastDrawMs=0;
  function lockDrift(){
   if(driftLock)return;
   hoverAnimation=floating.getAnimations().find(run=>run.animationName==='okti-hover-physics');
@@ -79,9 +79,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const value=()=>Number.parseFloat(getComputedStyle(floating).getPropertyValue('--okti-pressure'))||0;
  function draw(p){
   if(!texture||!ctx||p===lastPressure||p!==0&&p!==1&&Math.abs(p-lastPressure)<.0005)return;
-  lastPressure=p;
-  if(Math.abs(p)<.00001){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE);return}
-  deformTexture(texture.pixels,output.data,p);ctx.putImageData(output,0,0);
+  const drawStart=performance.now();lastPressure=p;
+  if(Math.abs(p)<.00001){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE);drawCount++;lastDrawMs=performance.now()-drawStart;return}
+  deformTexture(texture.pixels,output.data,p);ctx.putImageData(output,0,0);drawCount++;lastDrawMs=performance.now()-drawStart;
  }
  function paint(){
   const p=value(),effective=motion?.matches?Math.max(0,p)*.14:p;draw(effective);
@@ -91,7 +91,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function tick(time){raf=0;if(time-lastPaint>=30){paint();lastPaint=time}if(animation)raf=requestAnimationFrame(tick)}
  function stop(){if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
- function animate(peaks,duration){
+ function animate(peaks,duration,easing=smooth){
   stop();floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
   if(motion?.matches||typeof floating.animate!=='function'){
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));
@@ -102,7 +102,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   for(let segment=0;segment<peaks.length-1;segment++){
    const [start,from]=peaks[segment],[end,to]=peaks[segment+1],steps=Math.max(1,Math.ceil((end-start)/16));
    for(let i=segment?1:0;i<=steps;i++){
-    const f=i/steps;keyframes.push({'--okti-pressure':String(from+(to-from)*smooth(f)),offset:(start+(end-start)*f)/duration});
+    const f=i/steps;keyframes.push({'--okti-pressure':String(from+(to-from)*easing(f)),offset:(start+(end-start)*f)/duration});
    }
   }
   const run=floating.animate(keyframes,{duration,easing:'linear',fill:'forwards'});animation=run;
@@ -121,7 +121,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function begin(input){
   if(button.disabled||active)return;
   lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
-  floating.dataset.pressState='held';animate([[0,from],[160,1]],160);
+  floating.dataset.pressState='held';animate([[0,from],[480,1]],480,t=>1-(1-t)**3);
   if(!texture)prepare();
  }
  function release(){
@@ -159,7 +159,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
  button.addEventListener('blur',reset);window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getState:()=>({...paint(),ready:!!texture&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
+ const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!texture&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
  root.octiPressure=controls;prepare();return controls;
 };
 })();

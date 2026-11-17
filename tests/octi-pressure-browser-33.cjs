@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium',base=path.resolve('.');
 async function fixture(browser,width=390,height=844){
- const page=await browser.newPage({viewport:{width,height},hasTouch:true}),errors=[];
+ const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),file=path.resolve(base,u.pathname==='/'?'preview33/index.html':u.pathname.slice(1));
@@ -24,6 +24,13 @@ async function visualOnly(page,channel='main'){
   button.addEventListener('pointerdown',event=>{
    window.pressPointer=event.pointerId;const root=button.closest('.octi-dock'),r=root.querySelector('.octi-motion-media').getBoundingClientRect();
    root.pressStart={x:r.x+r.width/2,y:r.y+r.height/2};
+   const start=performance.now();root.onsetFrames=[];
+   function sample(time){
+    const box=root.querySelector('.octi-motion-media').getBoundingClientRect(),paint=root.octiPressure.getPaintState();
+    root.onsetFrames.push({t:time-start,width:box.width,height:box.height,paint});
+    if(time-start<700&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
+   }
+   requestAnimationFrame(sample);
   });
  });
 }
@@ -35,7 +42,7 @@ function read(page,channel='main'){
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
   let edgeAlpha=0,edgeInk=0;
   for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<172){const q=(y*384+x)*4,a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState};
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
  });
 }
 async function samples(page,channel='main'){
@@ -118,7 +125,15 @@ async function settled(page,channel='main'){
     assert.ok(Math.abs(held.glass.width-pressed.glass.width)<.01,'Holding never starts the return animation');
     assert.ok(Math.abs(center(held.glass).x-center(pressed.glass).x)<.05&&Math.abs(center(held.glass).y-center(pressed.glass).y)<.05,'A long hold stays fixed under the fingertip');
     assert.equal(await page.evaluate(()=>getSelection().toString()),'','A long hold does not select page content');
-    if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
+    assert.equal(held.background,'none','A legacy CSS lens cannot add a second glass outline');
+    assert.equal(held.shadow,'none','A separate inset frame cannot appear during pressure');
+    assert.equal(held.extraGlint,'none','The original image carries all moving highlights');
+    const onset=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.onsetFrames);
+    const intermediate=onset.filter(f=>f.paint.pressure>.05&&f.paint.pressure<.95);
+    assert.ok(new Set(intermediate.map(f=>f.paint.count)).size>=5,'Native onset must actually paint at least five intermediate glass surfaces: '+JSON.stringify(onset));
+    const full=onset.find(f=>f.paint.pressure>=.99999);
+    assert.ok(full&&full.t>=360,'Expansion must remain visible over time rather than snapping to an extra rim: '+JSON.stringify(onset));
+    if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
@@ -147,8 +162,11 @@ async function settled(page,channel='main'){
      await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v.pressure<-.08));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
-    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} centered whole-bubble expansion, native long-press protection, fixed actor/target, hold/release, higher rebound and cancellation passed.`);
-   }finally{await page.close()}
+    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} visible real-time surface expansion, no duplicate frame, centered hold, native long-press protection and elastic release passed.`);
+   }finally{
+    const recording=page.video();await page.close();
+    if(recording){const source=await recording.path(),target=`test-results/okti-listening/${kind}-pressure-realtime.webm`;await recording.saveAs(target);if(path.resolve(source)!==path.resolve(target))fs.unlinkSync(source)}
+   }
   }
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
