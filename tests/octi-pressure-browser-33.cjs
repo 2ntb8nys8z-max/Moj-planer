@@ -5,11 +5,12 @@ const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium'
 // that observer overhead; request a separate recording only for visual review.
 const recordVideo=process.env.PLANNER_PRESSURE_VIDEO==='1';
 async function fixture(browser,width=390,height=844,{blockOptics=false}={}){
- const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];let atlasRequests=0;
+ const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];let atlasRequests=0,lightRequests=0;
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),file=path.resolve(base,u.pathname==='/'?'preview33/index.html':u.pathname.slice(1));
   if(u.pathname.endsWith('/octi-pressure-33-311.webp')){atlasRequests++;if(blockOptics)return route.fulfill({status:404,body:'unavailable artwork'})}
+  if(u.pathname.endsWith('/octi-pressure-lights-33-319.webp')){lightRequests++;if(blockOptics)return route.fulfill({status:404,body:'unavailable lighting'})}
   if(u.origin!=='https://planner.test')return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
   if(!file.startsWith(base+'/')||!fs.existsSync(file)||!fs.statSync(file).isFile())return route.fulfill({status:404,body:'missing'});
   const body=fs.readFileSync(file),type={'.html':'text/html','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'}[path.extname(file)]||'application/json';
@@ -21,9 +22,9 @@ async function fixture(browser,width=390,height=844,{blockOptics=false}={}){
  // The initial poster is visible before video decoding and shader compilation.
  // Measure a finger gesture only after the actual artwork is drawing, rather
  // than counting the renderer's first-start compilation as press animation.
- await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas'),video=root?.querySelector('.octi-listening-source');return state?.ready&&state.rendering&&!state.fallback&&canvas?.width===canvas?.height&&video?.currentTime>.25&&root.octiPressure?.getState().ready});
+ await page.waitForFunction(blockOptics=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas'),video=root?.querySelector('.octi-listening-source'),pressure=root?.octiPressure?.getState();return state?.ready&&state.rendering&&!state.fallback&&canvas?.width===canvas?.height&&video?.currentTime>.25&&pressure?.ready&&(blockOptics||pressure.lightingReady)},blockOptics);
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- return {page,errors,get atlasRequests(){return atlasRequests}};
+ return {page,errors,get atlasRequests(){return atlasRequests},get lightRequests(){return lightRequests}};
 }
 // This fixture isolates visual feedback. The existing recorder/browser suites
 // exercise actual recorder handlers with their explicit microphone/provider mocks.
@@ -134,6 +135,24 @@ async function observeTap(page,channel='main'){
      let differences=0,maxDelta=0;const first=[];for(let i=0;i<expected.length;i++)if(expected[i]!==actual[i]){differences++;maxDelta=Math.max(maxDelta,Math.abs(expected[i]-actual[i]));if(first.length<8)first.push({i,expected:expected[i],actual:actual[i],alpha:expected[i-i%4+3]})}return {exact:!differences,differences,maxDelta,first};
     });
     assert.equal(exactOriginal.exact,true,'At rest the rendered glass is pixel-identical to the original image: '+JSON.stringify(exactOriginal));
+    const lighting=await page.locator('.octi-dock[data-channel=main]').evaluate(async root=>{
+     const image=new Image();image.src=root.octiPressure.getState().lightSource;await image.decode();
+     const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+     let tinted=0,center=0,rim=0,white=0,dark=0;const poses=Array(6).fill(0);
+     for(let y=0;y<384;y++)for(let x=0;x<2304;x++){
+      const q=(y*2304+x)*4,alpha=pixels[q+3],r=Math.hypot(x%384-191.5,y-191.5)/384;
+      if(pixels[q]!==pixels[q+1]||pixels[q+1]!==pixels[q+2])tinted++;
+      if(r<.075)center+=alpha;if(r>.365)rim+=alpha;
+      poses[Math.floor(x/384)]+=alpha;if(pixels[q]>128)white+=alpha;else dark+=alpha;
+     }
+     return {width:image.width,height:image.height,tinted,center,rim,white,dark,poses};
+    });
+    assert.deepEqual([lighting.width,lighting.height],[2304,384]);
+    assert.equal(lighting.tinted,0,'Every lighting pixel is neutral; the blue material cannot acquire another tint');
+    assert.equal(lighting.center,0,'The fingertip center remains clear inside its surrounding reflections');
+    assert.equal(lighting.rim,0,'The lighting leaves the original blue outer rim clear');
+    assert.ok(lighting.white>100000&&lighting.dark>100000&&lighting.poses.every(v=>v>100000),'Each rendered indentation contains curved reflections and their relief shadows');
     assert.equal(await page.locator('.octi-key-seat').count(),0,'The extra glass mount has been removed');
     assert.ok(Math.abs(resting.glass.width/resting.target.width-1.28)<.002,'Restore the original full-size bubble');
     await hold(page);const pressed=await read(page);
@@ -159,7 +178,9 @@ async function observeTap(page,channel='main'){
     assert.equal(pressed.pixelHash,resting.pixelHash,'All original RGBA material pixels stay unchanged during pressure');
     assert.equal(pressed.materialFilter,resting.materialFilter,'No pressure-dependent hue, saturation or material filter is applied');
     assert.ok(pressed.lightStyles.some(s=>s.opacity>.5),'Neutral surface reflections change visibly');
-    for(const style of pressed.lightStyles){const colors=[...style.background.matchAll(/rgba?\(([^)]+)\)/g)];assert.ok(colors.length);for(const color of colors){const [r,g,b]=color[1].split(',').map(Number);assert.equal(r,g,'Surface light is neutral');assert.equal(g,b,'Surface light cannot replace the blue material with another tint')}}
+    assert.equal(pressed.lightStyles.length,6,'Six actual reflection shapes follow the indentation');
+    for(const style of pressed.lightStyles)assert.match(style.background,/octi-pressure-lights-33-319\.webp/);
+    assert.ok(Math.abs(pressed.lightStyles.reduce((sum,s)=>sum+s.opacity,0)-1)<.001,'Adjacent light poses never add an opaque replacement material');
     assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
     assert.notEqual(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The transmitted shadow expands with the same contact');
     assert.notEqual(pressed.causticTransform,resting.causticTransform,'The transmitted light changes with the pressed membrane');
@@ -180,7 +201,7 @@ async function observeTap(page,channel='main'){
     assert.equal(await page.evaluate(()=>getSelection().toString()),'','A long hold does not select page content');
     assert.equal(held.background,'none','A legacy CSS lens cannot add a second glass outline');
     assert.equal(held.shadow,'none','A separate inset frame cannot appear during pressure');
-    assert.equal(held.extraGlint,'none','The original image carries all moving highlights');
+    assert.equal(held.extraGlint,'none','Legacy pseudo-element glints cannot duplicate the rendered reflections');
     const onset=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.onsetFrames);
     // RAF sampling shares the actor's main thread; software GL on CI can block
     // that observer for over a second while compositor animations keep running.
@@ -205,6 +226,7 @@ async function observeTap(page,channel='main'){
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
     assert.equal((await read(page)).transmittedShadow.transform,resting.transmittedShadow.transform,'The shadow recovers its original shape after release');
     assert.equal((await read(page)).interiorAlpha,resting.interiorAlpha,'The decoded resting glass is restored exactly after the optical animation');
+    assert.ok((await read(page)).lightStyles.every(s=>s.opacity===0),'All indentation reflections return completely after release');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
     // Observe the real animation instead of seeking its timeline: even a very
     // short native tap must show the same full pressed pose as a long hold.
@@ -281,6 +303,8 @@ async function observeTap(page,channel='main'){
   try{
    await visualOnly(unavailable.page);const resting=await read(unavailable.page);
    assert.equal(unavailable.atlasRequests,0,'No colored atlas is requested, even when that former asset is unavailable');
+   assert.ok(unavailable.lightRequests>0,'The optional neutral reflection asset was actually blocked');
+   assert.equal(resting.pressureState.lightingReady,false);
    await hold(unavailable.page);const held=await read(unavailable.page);
    assert.equal(held.pressureState.rendering,true);assert.equal(held.pressureState.holding,true);
    assert.ok(held.glass.width>resting.glass.width*1.15);

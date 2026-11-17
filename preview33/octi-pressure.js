@@ -1,9 +1,16 @@
 /* One immutable blue material; native transforms and neutral light only. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=600,RETURN=1750;
+const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',LIGHTS='octi-pressure-lights-33-319.webp?v=38ea712472ff432d',LIGHT_POSES=6,SIZE=384,CONTACT=600,RETURN=1750;
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(10+v*(-15+6*v));};
-let texturePromise=null;
+let texturePromise=null,lightPromise=null;
+function loadLights(){
+ if(!lightPromise)lightPromise=new Promise(resolve=>{
+  const image=new Image();image.decoding='async';
+  image.onload=()=>resolve(true);image.onerror=()=>{lightPromise=null;resolve(false)};image.src=LIGHTS;
+ });
+ return lightPromise;
+}
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
   const image=new Image();image.decoding='async';
@@ -31,16 +38,22 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const canvas=document.createElement('canvas');canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,pendingTexture=null,drawCount=0,lastDrawMs=0;
  function layer(parent,name){const node=document.createElement('span');node.className=name;node.setAttribute('aria-hidden','true');parent.append(node);return node}
- const lights=layer(glass,'octi-pressure-lights'),dent=layer(lights,'octi-pressure-dent'),reflection=layer(lights,'octi-pressure-reflection'),sheen=layer(lights,'octi-pressure-sheen');
+ const lights=layer(glass,'octi-pressure-lights'),lightPoses=Array.from({length:LIGHT_POSES},(_,i)=>{
+  const pose=layer(lights,'octi-pressure-light-pose');pose.style.backgroundImage=`url("${LIGHTS}")`;pose.style.backgroundPosition=`${i/(LIGHT_POSES-1)*100}% 0%`;return pose;
+ });
+ lights.style.visibility='hidden';let lightingReady=false,pendingLights=false;
  const shadow=layer(floating,'octi-pressure-shadow'),caustic=layer(floating,'octi-pressure-caustic');
  floating.classList.add('has-composited-pressure');
  let active=null,curve=null,records=[],primary=null,settledPressure=0,phase='idle',base=null,driftLock=null,hoverAnimation=null;
  const fallbackStyles=[];
  function value(){return curve&&primary?sample(curve,Math.max(0,Math.min(curve.duration,Number(primary.currentTime)||0))):settledPressure}
  function installTexture(){
-  if(!pendingTexture||!ctx||value()!==0)return;
-  const start=performance.now();ctx.putImageData(pendingTexture,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
-  glass.prepend(canvas);glass.classList.add('is-pressure-ready');
+  if(value()!==0)return;
+  if(pendingTexture&&ctx){
+   const start=performance.now();ctx.putImageData(pendingTexture,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
+   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
+  }
+  if(pendingLights){lightingReady=true;pendingLights=false;lights.style.visibility='visible'}
  }
  function lockDrift(){
   if(driftLock)return;
@@ -69,9 +82,13 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const terms=p=>{p=motion?.matches?Math.max(0,p)*.14:p;return {p,load:smooth(Math.max(0,p)),recoil:smooth(Math.max(0,-p))}};
   return [
    [glass,p=>{const t=terms(p);return {transform:`translate(-50%,-50%) scale(${1+t.p*.16},${1+t.load*.10+t.recoil*.40})`,translate:`${base.x}px ${base.y-t.recoil*base.size*.08}px`}}],
-   [dent,p=>{const t=terms(p);return {opacity:String(t.load*.64+t.recoil*.12),transform:`translate(${t.load*-1}%,${t.load*2}%) scale(${1-t.load*.12},${1-t.load*.16})`}}],
-   [reflection,p=>{const t=terms(p);return {opacity:String(t.load*.56+t.recoil*.10),transform:`translate(${t.load*17}%,${t.load*32}%) rotate(${-18+t.load*24}deg) scale(${1-t.load*.18},${1-t.load*.25})`}}],
-   [sheen,p=>{const t=terms(p);return {opacity:String(t.load*.72+t.recoil*.14),transform:`translate(${t.load*-22}%,${t.load*-15}%) rotate(${12-t.load*26}deg) scale(${1+t.load*.13},${1-t.load*.16})`}}],
+   // Adjacent rendered light poses blend on the native clock. No material
+   // crossfade, animated background position, Canvas redraw or JS frame loop.
+   ...lightPoses.map((node,i)=>[node,p=>{
+    const position=Math.max(0,terms(p).p)*LIGHT_POSES,lo=Math.floor(position),fraction=smooth(position-lo);
+    const opacity=(i===lo-1?1-fraction:0)+(i===lo?fraction:0);
+    return {opacity:String(opacity),transform:'translate(0,0)'};
+   }]),
    [shadow,p=>{const t=terms(p);return {transform:`translate(-50%,-50%) rotate(-12deg) scale(${1+t.load*.24-t.recoil*.17},${1+t.load*.16-t.recoil*.16})`,translate:`${base.x-t.load*base.size*.06}px ${base.y*-.65-t.load*base.size*.07+t.recoil*base.size*.04}px`,opacity:String(Math.max(0,Math.min(1,base.shadowOpacity+t.load*.14-t.recoil*.3)))}}],
    [caustic,p=>{const t=terms(p);return {transform:`translate(-50%,-50%) rotate(-12deg) scale(${1+t.load*.24-t.recoil*.12},${1-t.load*.15+t.recoil*.2})`,opacity:String(1-t.load*.28-t.recoil*.5)}}]
   ];
@@ -116,7 +133,10 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    curve=next;phase='tap';floating.dataset.pressState='tap';
   }else start({from,contact:0,releaseAt:0,duration:RETURN},'release');
  }
- function prepare(){loadTexture().then(asset=>{if(asset){pendingTexture=asset;installTexture()}})}
+ function prepare(){
+  loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;installTexture()}});
+  loadLights().then(ready=>{if(ready&&!lightingReady){pendingLights=true;installTexture()}});
+ }
  button.draggable=false;
  button.addEventListener('contextmenu',event=>event.preventDefault());button.addEventListener('selectstart',event=>event.preventDefault());
  button.addEventListener('pointerdown',event=>{if(event.isPrimary===false||event.pointerType==='mouse'&&event.button!==0)return;begin({pointerId:event.pointerId})},{passive:true});
@@ -127,7 +147,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
  button.addEventListener('blur',()=>{if(button.disabled&&!active&&['tap','release'].includes(phase))return;reset()});window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?Math.max(0,value())*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
+ const controls={reset,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?Math.max(0,value())*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,lightSource:LIGHTS,lightingReady,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
  root.octiPressure=controls;prepare();return controls;
 };
 })();
