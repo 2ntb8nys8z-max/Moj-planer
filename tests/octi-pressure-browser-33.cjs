@@ -30,9 +30,9 @@ function read(page,channel='main'){
   const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media'),actor=root.querySelector('.octi-listening-media');
   const canvas=root.querySelector('.octi-listening-canvas'),pressureState=root.octiPressure.getState();
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
-  let edgeAlpha=0;
-  for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<180)edgeAlpha+=pixels[(y*384+x)*4+3]}
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,membraneOpacity:Number(getComputedStyle(root.querySelector('.octi-pressure-media')).opacity),edgeAlpha,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
+  let edgeAlpha=0,edgeInk=0;
+  for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<172){const q=(y*384+x)*4,a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
  });
 }
 async function samples(page,channel='main'){
@@ -57,7 +57,7 @@ async function samples(page,channel='main'){
 async function hold(page,channel='main'){
  const voice=page.locator(`.octi-dock[data-channel=${channel}] .voice`),b=await voice.boundingBox();
  await page.mouse.move(b.x+b.width/2,b.y+b.height*.4);await page.mouse.down();
- await page.waitForFunction(channel=>Number(getComputedStyle(document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`)).getPropertyValue('--okti-pressure'))>.95,channel);
+ await page.waitForFunction(channel=>{const float=document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`);return Number(getComputedStyle(float).getPropertyValue('--okti-pressure'))>.99999&&!float.getAnimations().some(a=>a.effect.getKeyframes().some(k=>'--okti-pressure' in k))},channel);
  return voice;
 }
 async function settled(page,channel='main'){
@@ -70,14 +70,27 @@ async function settled(page,channel='main'){
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const {page,errors}=await fixture(browser,width,height);try{
     await visualOnly(page);const resting=await read(page);
+    const exactOriginal=await page.locator('.octi-dock[data-channel=main]').evaluate(async root=>{
+     const canvas=root.querySelector('.octi-pressure-canvas'),ref=document.createElement('canvas');ref.width=ref.height=384;
+     const image=new Image();image.src=root.octiPressure.getState().source;await image.decode();
+     const ctx=ref.getContext('2d');ctx.drawImage(image,0,0,384,384);
+     const expected=ctx.getImageData(0,0,384,384).data,actual=canvas.getContext('2d').getImageData(0,0,384,384).data;
+     return expected.every((value,i)=>value===actual[i]);
+    });
+    assert.equal(exactOriginal,true,'At rest the rendered glass is pixel-identical to the original image');
     assert.equal(await page.locator('.octi-key-seat').count(),0,'The extra glass mount has been removed');
     assert.ok(Math.abs(resting.glass.width/resting.target.width-1.28)<.002,'Restore the original full-size bubble');
     await hold(page);const pressed=await read(page);
     assert.deepEqual(pressed.target,resting.target,'Only artwork flexes; the recorder hit target stays still');
     assert.ok(pressed.glass.width>resting.glass.width*1.06,'The held bubble widens');
     assert.ok(pressed.glass.height>resting.glass.height*1.035,'Pressure expands the membrane around its whole circumference');
-    assert.ok(pressed.membraneOpacity>.95,'The approved concave glass replaces the resting surface');
-    assert.ok(pressed.edgeAlpha>resting.edgeAlpha*1.2,'The loaded edge has visibly greater optical density');
+    assert.equal(pressed.surfaceOpacity,1,'The original surface stays fully visible under pressure');
+    assert.equal(pressed.canvasOpacity,resting.canvasOpacity,'Pressing does not crossfade the glass');
+    assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
+    assert.equal(pressed.pressureState.source,resting.pressureState.source,'Rest and press use the exact same texture');
+    assert.match(pressed.pressureState.source,/octi-glass-33-184\.png/);
+    assert.equal(await page.locator('.octi-pressure-media').count(),0,'No replacement glass layer is placed over the bubble');
+    assert.ok(pressed.edgeInk>resting.edgeInk*1.03,'Pressure darkens the original rim while preserving its blue glass');
     assert.deepEqual(pressed.membraneBuffer,resting.membraneBuffer,'The glass canvas also keeps its backing buffer');
     assert.equal(await page.locator('.octi-pressure-dent').count(),0,'The old flat fold is removed');
     assert.deepEqual(pressed.buffer,resting.buffer,'Press feedback must not reallocate the renderer backing buffer');
@@ -86,6 +99,9 @@ async function settled(page,channel='main'){
     assert.ok(Math.abs(pressed.actor.width-resting.actor.width)<.01,'The live actor keeps its width');
     assert.ok(Math.abs(pressed.actor.height-resting.actor.height)<.01,'The live actor keeps its height');
     assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
+    await page.waitForTimeout(250);const held=await read(page);
+    assert.equal(held.pressure,1,'The bubble remains expanded for the entire hold');
+    assert.ok(Math.abs(held.glass.width-pressed.glass.width)<.01,'Holding never starts the return animation');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
@@ -94,7 +110,7 @@ async function settled(page,channel='main'){
     // Real short touch events can both arrive before the next painted frame.
     const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await samples(page);
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap();
-    assert.ok(quick.some(v=>v.pressure>.2),'Even a very short touch paints a small compression');await settled(page);
+    assert.ok(quick.every(v=>v.pressure<=quick[0].pressure+.001),'A quick release never injects another compression after pointerup');await settled(page);
     await hold(page);await page.mouse.move(2,2);await page.mouse.up();await settled(page);
     await hold(page);await page.evaluate(()=>document.querySelector('.octi-dock[data-channel=main] .voice').dispatchEvent(new PointerEvent('pointercancel',{pointerId:window.pressPointer,bubbles:true})));await page.mouse.up();await settled(page);
     if(width===390){
@@ -106,7 +122,7 @@ async function settled(page,channel='main'){
      await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v.pressure<-.08));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
-    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} thick concave glass, fixed actor and target, higher elastic release, short touch and cancellation passed.`);
+    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} one original glass texture, continuous press/hold/release, fixed actor and target, higher rebound, short touch and cancellation passed.`);
    }finally{await page.close()}
   }
  }finally{await browser.close()}
