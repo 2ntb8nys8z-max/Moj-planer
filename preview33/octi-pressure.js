@@ -77,7 +77,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const glass=root.querySelector('.octi-motion-media'),canvas=document.createElement('canvas');
  if(!glass)return {reset(){}};
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
- const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,animationTarget=0,releasePending=false,frameClock=null,raf=0,lastPressure=NaN,lastPaint=0;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,animationTarget=0,releasePending=false,frameClock=null,raf=0,lastPressure=NaN;
  let driftLock=null,hoverAnimation=null,drawCount=0,lastDrawMs=0;
  function lockDrift(){
   if(driftLock)return;
@@ -129,7 +129,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    frameClock.last=time;frameClock.run.currentTime=frameClock.elapsed;
    if(frameClock.elapsed>=frameClock.duration){complete=frameClock.run;frameClock=null}
   }
-  if(time-lastPaint>=14||complete){paint();lastPaint=time}
+  paint();
   if(complete)complete.finish();
   if(animation)raf=requestAnimationFrame(tick);
  }
