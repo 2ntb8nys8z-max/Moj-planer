@@ -17,7 +17,11 @@ async function fixture(browser,width=390,height=844){
   return route.fulfill({body,contentType:type});
  });
  await page.goto('https://planner.test/');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
- await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas');return (state?.fallback||state?.rendering&&canvas?.width===canvas?.height)&&root.octiPressure?.getState().ready});
+ // The initial poster is visible before video decoding and shader compilation.
+ // Measure a finger gesture only after the actual artwork is drawing, rather
+ // than counting the renderer's first-start compilation as press animation.
+ await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas'),video=root?.querySelector('.octi-listening-source');return state?.ready&&state.rendering&&!state.fallback&&canvas?.width===canvas?.height&&video?.currentTime>.25&&root.octiPressure?.getState().ready});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  return {page,errors};
 }
 // This fixture isolates visual feedback. The existing recorder/browser suites
