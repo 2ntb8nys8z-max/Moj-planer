@@ -35,7 +35,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    // add no scroll range of its own, measured against the same undecorated UI.
    assert.equal(geometry.hit,true);assert.ok(geometry.width>=44);assert.ok(geometry.bottom<=height);assert.equal(geometry.overflow,false);assert.equal(geometry.verticalOverflow,geometry.withoutArtwork,'Decorative video margins cannot add scrollable app overflow: '+JSON.stringify(geometry));assert.equal(geometry.muted,true);assert.equal(geometry.inline,true);
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
-   // Holding the real button must not dim, shrink or shift either artwork layer.
+   // The real recorder target stays stable while its decorative bubble can flex.
    const voice=dock.locator('.voice'),pressStyles=()=>voice.evaluate(button=>{
     const style=getComputedStyle(button),floatStyle=getComputedStyle(button.closest('.stage').querySelector('.water-float'));
     return {filter:style.filter,transform:style.transform,tap:style.webkitTapHighlightColor,floating:floatStyle.transform};
@@ -43,7 +43,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    const resting=await pressStyles(),buttonBox=await voice.boundingBox();
    await page.mouse.move(buttonBox.x+buttonBox.width/2,buttonBox.y+buttonBox.height/2);await page.mouse.down();
    assert.equal(await voice.evaluate(button=>button.matches(':active')),true);
-   const pressed=await pressStyles();assert.deepEqual(pressed,resting,'Holding Okti keeps its brightness and artwork position');
+   const pressed=await pressStyles();assert.deepEqual(pressed,resting,'Press feedback cannot dim or move the recorder target or its floating coordinate space');
    assert.equal(pressed.filter,'none');assert.equal(pressed.tap,'rgba(0, 0, 0, 0)');
    await page.mouse.move(1,1);await page.mouse.up();
    const media=dock.locator('.octi-motion-media'),drift=await media.evaluate(el=>getComputedStyle(el).translate);await page.waitForTimeout(350);assert.notEqual(await media.evaluate(el=>getComputedStyle(el).translate),drift,'The visible bubble drifts gently');

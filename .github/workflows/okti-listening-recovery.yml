@@ -1,7 +1,7 @@
 name: Okti listening recovery
 on:
   push:
-    branches: [main, 'work/okti-listening-*']
+    branches: [main, 'work/okti-listening-*', 'work/okti-bubble-press-*']
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
       - name: Verify historical artwork fidelity and recovery with actual browser pixels
         env:
           PLANNER_BROWSER: ${{ matrix.browser }}
-        run: node tests/octi-listening-history-browser-33.cjs && node tests/octi-listening-recovery-browser-33.cjs && node tests/event-note-octopus-browser-33.cjs
+        run: node tests/octi-listening-history-browser-33.cjs && node tests/octi-listening-recovery-browser-33.cjs && node tests/event-note-octopus-browser-33.cjs && node tests/octi-pressure-browser-33.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
