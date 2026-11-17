@@ -310,11 +310,10 @@ function assertFastReturn(result){
    const before=await read(page);
    assert.equal(before.pressureState.ready,true);
    const media=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{
-    window.qaPlaybackCalls=0;window.qaActorPaints=0;
+    window.qaPlaybackCalls=0;
     const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){qaPlaybackCalls++;return play.call(this)};
-    const ctx=root.querySelector('.octi-listening-canvas').getContext('2d'),put=ctx.putImageData.bind(ctx);ctx.putImageData=(...args)=>{qaActorPaints++;return put(...args)};
     const video=root.querySelector('.octi-listening-source');
-    return {time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null};
+    return {time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paints:root.octiListening.getState().paintCount};
    });
    const observed=[];
    for(let i=0;i<4;i++){
@@ -323,15 +322,31 @@ function assertFastReturn(result){
     const visible=result.frames.filter(f=>f.pressure>.01&&f.width>before.glass.width+.1);
     observed.push({frames:visible.length,distinct:new Set(visible.map(f=>f.width.toFixed(2))).size,wall:result.frames.at(-1).wall});
    }
-   const running=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{const video=root.querySelector('.octi-listening-source');return {calls:qaPlaybackCalls,paints:qaActorPaints,time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paused:video.paused,renderer:root.octiListening.getState().renderer,drift:getComputedStyle(root.querySelector('.water-float')).animationPlayState}});
+   const running=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{const video=root.querySelector('.octi-listening-source'),image=root.querySelector('.octi-listening-fallback'),state=root.octiListening.getState();return {calls:qaPlaybackCalls,paints:state.paintCount,nativeIdle:state.nativeIdle,offThread:state.offThread,idleVisible:Number(getComputedStyle(image).opacity),idleLoaded:image.complete&&image.naturalWidth===384,idleSource:image.getAttribute('src'),time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paused:video.paused,renderer:state.renderer,drift:getComputedStyle(root.querySelector('.water-float')).animationPlayState}});
    assert.equal(running.renderer,'canvas2d');assert.equal(running.calls,0,'Repeated touches never restart the live video');
    assert.equal(running.paused,false);assert.equal(running.drift,'running');
    // currentTime wraps naturally at the loop boundary. Decoded frame count
    // must advance across that boundary, without interpreting a loop as a stall.
    const advanced=media.frames!==null&&running.frames!==null?running.frames>media.frames:running.time!==media.time;
-   assert.ok(running.paints>=8&&advanced,'The real fallback actor keeps painting and decoding through taps and video loop boundaries: '+JSON.stringify({media,running}));
+   assert.ok(advanced,'The video keeps decoding across the loop boundary');
+   assert.ok(running.nativeIdle&&running.idleVisible===1&&running.idleLoaded,'The approved animated idle image stays visible throughout the taps');
+   assert.match(running.idleSource,/octi-actor-idle\.webp/);
+   assert.equal(running.paints,media.paints,'Idle feedback never competes with a CPU pixel loop');
    assert.ok(observed.every(t=>t.frames>=3&&t.distinct>=3&&t.wall<1000),'Every actual mobile tap paints multiple moving frames, without a main-thread freeze: '+JSON.stringify(observed));
-   console.log(kind+' DPR3 software live frames: '+JSON.stringify({observed,running}));assert.deepEqual(mobile.errors,[]);
+   console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed,running}));
+   // Also verify touch responsiveness during the actual historical approach,
+   // not only while the idle image can take over from the software renderer.
+   await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});
+   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.approach===1&&s.paintCount>=2});
+   const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[];
+   for(let i=0;i<2;i++){
+    const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
+    active.push(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size);
+   }
+   const activeAfter=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount);
+   assert.ok(active.every(frames=>frames>=3)&&activeAfter>activeBefore,'The head keeps rendering off the main thread while every tap paints multiple frames: '+JSON.stringify({active,activeBefore,activeAfter}));
+   await page.evaluate(()=>{plannerRecordings.main=null});
+   console.log(kind+' DPR3 background approach: '+JSON.stringify({active,activeBefore,activeAfter}));assert.deepEqual(mobile.errors,[]);
   }finally{await mobile.page.close()}
   // Loading the optical atlas is optional: an unavailable asset must leave
   // one visible resting surface and working press/click controls.

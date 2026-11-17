@@ -4429,7 +4429,7 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
 <script src="octi-pressure.js?v=68c205ca5bebfaba"></script>
-<script src="octi-listening.js?v=fe9b5c335bbb66a4"></script>
+<script src="octi-listening.js?v=a95f1944cc2571b2"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6180,6 +6180,8 @@ window.OktiEventMotion=(()=>{
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
 </style>
 <style id="okti-bubble-pressure-33-321">
+.octi-dock .octi-listening-media.is-native-idle .octi-listening-canvas{opacity:0}
+.octi-dock .octi-listening-media.is-native-idle .octi-listening-fallback{opacity:1}
 /* Move the shared artwork on the compositor instead of recalculating
    inherited custom properties throughout the dock on every idle frame. */
 .octi-dock .water-float{

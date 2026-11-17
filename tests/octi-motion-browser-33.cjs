@@ -37,8 +37,8 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    assert.equal(await dock.locator('.commands').isVisible(),false,'Idle suggestions stay absent');
    // The real recorder target stays stable while its decorative bubble can flex.
    const voice=dock.locator('.voice'),pressStyles=()=>voice.evaluate(button=>{
-    const style=getComputedStyle(button),floatStyle=getComputedStyle(button.closest('.stage').querySelector('.water-float'));
-    return {filter:style.filter,transform:style.transform,tap:style.webkitTapHighlightColor,floating:floatStyle.transform};
+    const style=getComputedStyle(button);
+    return {filter:style.filter,transform:style.transform,tap:style.webkitTapHighlightColor};
    });
    const resting=await pressStyles(),buttonBox=await voice.boundingBox();
    await page.mouse.move(buttonBox.x+buttonBox.width/2,buttonBox.y+buttonBox.height/2);await page.mouse.down();
@@ -46,7 +46,7 @@ async function routeFiles(page,failMedia=false,holdListening=false){
    const pressed=await pressStyles();assert.deepEqual(pressed,resting,'Press feedback cannot dim or move the recorder target or its floating coordinate space');
    assert.equal(pressed.filter,'none');assert.equal(pressed.tap,'rgba(0, 0, 0, 0)');
    await page.mouse.move(1,1);await page.mouse.up();
-   const media=dock.locator('.octi-motion-media'),drift=await media.evaluate(el=>getComputedStyle(el).translate);await page.waitForTimeout(350);assert.notEqual(await media.evaluate(el=>getComputedStyle(el).translate),drift,'The visible bubble drifts gently');
+   const media=dock.locator('.water-float'),drift=await media.evaluate(el=>getComputedStyle(el).transform);await page.waitForTimeout(350);assert.notEqual(await media.evaluate(el=>getComputedStyle(el).transform),drift,'The visible glass and actor drift together on their shared compositor layer');
    const idleAction=await dock.locator('.action-bubble').boundingBox();
    await dock.locator('.action-bubble').click();await page.waitForTimeout(100);const openingAngle=await dock.locator('.action-rotation').evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return Math.atan2(m.b,m.a)*180/Math.PI});assert.ok(openingAngle>0&&openingAngle<44.9,'The plus visibly rotates through intermediate angles on opening');
    await page.waitForFunction(()=>[...document.querySelectorAll('.octi-dock[data-channel=main] .menu-bud-neck')].some(c=>!c.hidden&&c.getContext('2d').getImageData(0,0,260,260).data.some((v,i)=>i%4===3&&v>30)),null,{timeout:10000});
