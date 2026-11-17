@@ -66,7 +66,7 @@ function createSoftwareRenderer(canvas,video,head,poster){
   out[3]=valid?(map.atlas?smooth((alpha-.03)/.94):alpha):0;
  }
  const bodyPixel=new Float64Array(4),headPixel=new Float64Array(4),projected=new Float64Array(4);
- const capsule=(x,y)=>Math.hypot(x-272,y-clamp(y,205,251));
+ const capsule=(x,y)=>{const dx=x-272,dy=y-clamp(y,205,251);return Math.sqrt(dx*dx+dy*dy)};
  function headSample(x,y,a,out){sample(headMap,x,y,out);out[3]=out[3]*(1-a)+Math.min(out[3],clamp(49-capsule(x,y),0,1))*a;}
  function hit(ox,oy,oz,dx,dy,dz,cy,cylinder){
   const y=oy-cy,aa=dx*dx+dz*dz/.5184+(cylinder?0:dy*dy),bb=2*(ox*dx+oz*dz/.5184+(cylinder?0:y*dy)),cc=ox*ox+oz*oz/.5184-2304+(cylinder?0:y*y),disc=bb*bb-4*aa*cc;
@@ -83,10 +83,10 @@ function createSoftwareRenderer(canvas,video,head,poster){
   if(!output||canvas.width!==size){canvas.width=canvas.height=size;output=ctx.createImageData(size,size);coordinates=Float64Array.from({length:size},(_,i)=>(i+.5)*544/size-.5);}else output.data.fill(0);
   const a=state.approach,lag=state.lag,g=state.gesture,wave=2*Math.PI*state.phase/4.8,bx=1+.009*Math.sin(wave),by=1+.006*Math.sin(wave+.6),bob=1.7*Math.sin(wave),camera=1+.40*a,angle=11*Math.PI/180*a,ca=Math.cos(angle),sa=Math.sin(angle),cb=Math.cos(angle*.55),sb=Math.sin(angle*.55),rearX=272+12*a,rearY=298+62*a,rootX=272+38*a/camera,rootY=274+(298+134*a-274)/camera,sweep=7*(a-lag)+3.5*a*Math.sin(state.clock*2*Math.PI/2.4),m=matrices(g)[1],dx=-m[6],dy=-m[7],dz=-m[8],blend=smooth(g),levels=[.55,.85,.55].map((rest,i)=>rest*(1-a)+clamp([.58,.75,.58][i]+[.22,.18,.22][i]*Math.sin([4,3,5][i]/4.8*state.clock*2*Math.PI+[0,1.5,3.2][i])+.035*Math.sin(state.clock*2*Math.PI/4.8),.30,.95)*a);
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-   const px=(coordinates[x]-272)/bx+272,py=(coordinates[y]-274-bob)/by+274,radius=Math.hypot(px-272,py-274),edge=clamp((194-radius)/1.3,0,1)*(1-smooth((radius-180)/14));if(!edge)continue;
+   const px=(coordinates[x]-272)/bx+272,py=(coordinates[y]-274-bob)/by+274,cx=px-272,cy=py-274,radius=Math.sqrt(cx*cx+cy*cy),edge=clamp((194-radius)/1.3,0,1)*(1-smooth((radius-180)/14));if(!edge)continue;
    const viewX=(px-272)/camera+272,viewY=(py-274)/camera+274,rx=viewX-rearX,ry=viewY-rearY;
    let sx=(cb*rx-sb*ry)/(1+.06*a+.03*lag)+272,sy=(sb*rx+cb*ry+27*a*Math.pow(clamp(Math.abs(sx-272)/150,0,1.2),1.6))/(1-.05*a)+298;
-   const tip=Math.pow(clamp(Math.hypot(sx-272,sy-298)/135,0,1),1.5);sx-=Math.sign(sx-272)*tip*sweep;sy-=tip*5*lag;sample(bodyMap,sx,sy,bodyPixel);
+   const tx=sx-272,ty=sy-298,tipBase=clamp(Math.sqrt(tx*tx+ty*ty)/135,0,1),tip=tipBase*Math.sqrt(tipBase);sx-=Math.sign(sx-272)*tip*sweep;sy-=tip*5*lag;sample(bodyMap,sx,sy,bodyPixel);
    const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin)),hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
    let headAlpha=0,red=0,green=0,blue=0,sourceX=hx,sourceY=hy;
    if(hx>180&&hx<365&&hy>130&&hy<345){
@@ -95,12 +95,12 @@ function createSoftwareRenderer(canvas,video,head,poster){
      const ox=m[0]*(hx-272)+m[3]*(hy-228)+m[6]*180,oy=m[1]*(hx-272)+m[4]*(hy-228)+m[7]*180,oz=m[2]*(hx-272)+m[5]*(hy-228)+m[8]*180,t=Math.min(hit(ox,oy,oz,dx,dy,dz,0,true),hit(ox,oy,oz,dx,dy,dz,23,false),hit(ox,oy,oz,dx,dy,dz,-23,false)),visible=t<=9999,pointX=ox+dx*Math.min(t,180),pointY=oy+dy*Math.min(t,180),pointZ=oz+dz*Math.min(t,180);
      if(visible){sourceX=pointX+272;sourceY=pointY+228;}headSample(sourceX,sourceY,a,projected);headAlpha=headAlpha*(1-blend)+(visible?projected[3]:0)*blend;red=projected[0];green=projected[1];blue=projected[2];
      if(visible){
-      let nx=pointX,ny=Math.sign(pointY)*Math.max(Math.abs(pointY)-23,0),nz=pointZ/.5184;const length=Math.hypot(nx,ny,nz);nx/=length;ny/=length;nz/=length;
+      let nx=pointX,ny=Math.sign(pointY)*Math.max(Math.abs(pointY)-23,0),nz=pointZ/.5184;const length=Math.sqrt(nx*nx+ny*ny+nz*nz);nx/=length;ny/=length;nz/=length;
       const wx=m[0]*nx+m[1]*ny+m[2]*nz,wy=m[3]*nx+m[4]*ny+m[5]*nz,wz=m[6]*nx+m[7]*ny+m[8]*nz,diffuse=clamp((.48+.52*Math.max(wx*lx+wy*ly+wz*lz,0))/(.48+.52*Math.max(nx*lx+ny*ly+nz*lz,0)),.72,1.28),spec=(Math.pow(Math.max(wx*vx+wy*vy+wz*vz,0),28)-Math.pow(Math.max(nx*vx+ny*vy+nz*vz,0),28))*65;
       red=red*diffuse+spec;green=green*diffuse+spec;blue=blue*diffuse+spec;
      }
     }
-    let bars=0;for(let i=0;i<3;i++){const qx=Math.abs(sourceX-(252+i*20));if(qx>4)continue;const qy=Math.abs(sourceY-232)-Math.max(0,53*levels[i]/2-2.9),distance=Math.hypot(qx,Math.max(qy,0))-2.9;bars=Math.max(bars,1-smooth((distance+.55)/1.1));}
+    let bars=0;for(let i=0;i<3;i++){const qx=Math.abs(sourceX-(252+i*20));if(qx>4)continue;const qy=Math.max(0,Math.abs(sourceY-232)-Math.max(0,53*levels[i]/2-2.9)),distance=Math.sqrt(qx*qx+qy*qy)-2.9;bars=Math.max(bars,1-smooth((distance+.55)/1.1));}
     red=clamp(red,0,255)*(1-bars)+255*bars;green=clamp(green,0,255)*(1-bars)+255*bars;blue=clamp(blue,0,255)*(1-bars)+255*bars;
    }
    const opacity=armAlpha+headAlpha*(1-armAlpha);if(!opacity)continue;const q=(y*size+x)*4,bodyWeight=armAlpha*(1-headAlpha);
@@ -127,15 +127,18 @@ async function createBackgroundRenderer(canvas,video,head,poster){
    renderer=createSoftwareRenderer(self.canvas,video,m.head,m.poster);self.postMessage({type:'ready'});
   }else{
    layoutWidth=m.width;
-   if(m.body){Object.assign(video,m.body,{readyState:4,currentTime:m.time})}else video.readyState=0;
+   if(m.body)Object.assign(video,m.body,{currentTime:m.time});
+   video.readyState=m.live&&video.data?4:0;
    renderer.draw(m.state);const pixels=output.slice();self.postMessage({type:'frame',pixels,width:self.canvas.width,height:self.canvas.height},[pixels.buffer]);
   }
  }catch(error){self.postMessage({type:'error',message:error.message||String(error)})}};`;
- let worker,url,closed=false,busy=false,failure=null,paintCount=0;
+ let worker,url,closed=false,busy=false,failure=null,paintCount=0,captureCount=0,lastBodyTime=-1,lastBodyCapture=-Infinity,nextFrameAt=0;
  const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),stage=staging.getContext('2d',{willReadFrequently:true});
  function snapshot(image,live=false){
   const rawWidth=image.videoWidth||image.naturalWidth||image.width,rawHeight=image.videoHeight||image.naturalHeight||image.height;
-  const width=live?Math.min(768,rawWidth):rawWidth,height=Math.round(rawHeight*width/rawWidth);
+  // This atlas has two halves. A 512 px transfer still supplies 256 px of
+  // artwork for the small dock, without a large synchronous video readback.
+  const width=live?Math.min(512,rawWidth):rawWidth,height=Math.round(rawHeight*width/rawWidth);
   if(staging.width!==width)staging.width=width;if(staging.height!==height)staging.height=height;
   stage.clearRect(0,0,width,height);stage.drawImage(image,0,0,width,height);return {width,height,data:stage.getImageData(0,0,width,height).data};
  }
@@ -159,13 +162,22 @@ async function createBackgroundRenderer(canvas,video,head,poster){
   if(message.type==='error'){failure=Error(message.message);busy=false;return}
   if(message.type!=='frame')return;
   if(!closed){if(canvas.width!==message.width)canvas.width=message.width;if(canvas.height!==message.height)canvas.height=message.height;ctx.putImageData(new ImageData(message.pixels,message.width,message.height),0,0);paintCount++}
-  busy=false;
+  // Leave a display frame for input and compositing before the next CPU job.
+  busy=false;nextFrameAt=performance.now()+16;
  };
- return {kind:'canvas2d',offThread:true,get paintCount(){return paintCount},draw(state){
-  if(failure)throw failure;if(closed||busy)return;busy=true;
+ return {kind:'canvas2d',offThread:true,get paintCount(){return paintCount},get captureCount(){return captureCount},draw(state){
+  if(failure)throw failure;if(closed||busy||performance.now()<nextFrameAt)return;busy=true;
   try{
-   const live=state.videoAvailable&&video.readyState>=2&&!video.error,body=live?snapshot(video,true):null;
-   worker.postMessage({type:'frame',body,state,width:artworkLayoutWidth(canvas),time:video.currentTime},body?[body.data.buffer]:[]);
+   const live=state.videoAvailable&&video.readyState>=2&&!video.error;
+   let body=null;
+   // Pose and head motion advance on every job. Refresh the slowly changing
+   // body pixels at most ten times a second and reuse them between readbacks.
+   const capturedAt=performance.now();
+   if(live&&video.currentTime!==lastBodyTime&&capturedAt-lastBodyCapture>=100){body=snapshot(video,true);lastBodyTime=video.currentTime;lastBodyCapture=capturedAt;captureCount++;}
+   // Software projection has a bounded pixel budget on retina phones. The
+   // native idle image and GPU renderer keep their original sharp artwork.
+   const layoutWidth=artworkLayoutWidth(canvas),width=(devicePixelRatio||1)>1?Math.min(128,layoutWidth):layoutWidth;
+   worker.postMessage({type:'frame',body,live,state,width,time:video.currentTime},body?[body.data.buffer]:[]);
   }catch(error){busy=false;throw error}
  },destroy(){closed=true;worker.terminate();staging.width=staging.height=1;}};
 }

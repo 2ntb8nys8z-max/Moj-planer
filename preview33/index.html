@@ -4429,7 +4429,7 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
 <script src="octi-pressure.js?v=68c205ca5bebfaba"></script>
-<script src="octi-listening.js?v=3141ffa4a0d01107"></script>
+<script src="octi-listening.js?v=23524c5bda60af97"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6198,7 +6198,7 @@ window.OktiEventMotion=(()=>{
  scale:1;transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
  transform-origin:50% 50%;opacity:1;will-change:transform,translate;
 }
-.octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y)}
+.octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y);transform:translate3d(-50%,-50%,0);will-change:transform;contain:paint;isolation:isolate}
 .octi-dock .octi-motion-media.is-pressure-ready{
  background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:14;
 }

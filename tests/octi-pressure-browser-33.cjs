@@ -321,7 +321,7 @@ function assertFastReturn(result){
     const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
     const visible=result.frames.filter(f=>f.pressure>.01&&f.width>before.glass.width+.1);
-    observed.push({frames:visible.length,distinct:new Set(visible.map(f=>f.width.toFixed(2))).size,wall:result.frames.at(-1).wall});
+    observed.push({frames:visible.length,distinct:new Set(visible.map(f=>f.width.toFixed(2))).size,wall:result.frames.at(-1).wall,trace:result.frames,native:result.native});
    }
    const running=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{const video=root.querySelector('.octi-listening-source'),image=root.querySelector('.octi-listening-fallback'),state=root.octiListening.getState();return {calls:qaPlaybackCalls,paints:state.paintCount,nativeIdle:state.nativeIdle,offThread:state.offThread,backgroundError:state.backgroundError,idleVisible:Number(getComputedStyle(image).opacity),idleLoaded:image.complete&&image.naturalWidth===384,idleSource:image.getAttribute('src'),time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paused:video.paused,renderer:state.renderer,drift:getComputedStyle(root.querySelector('.water-float')).animationPlayState}});
    assert.equal(running.renderer,'canvas2d');assert.equal(running.calls,0,'Repeated touches never restart the live video');
@@ -334,19 +334,20 @@ function assertFastReturn(result){
    assert.match(running.idleSource,/octi-actor-idle\.webp/);
    assert.equal(running.paints,media.paints,'Idle feedback never competes with a CPU pixel loop');
    assert.ok(observed.every(t=>t.frames>=3&&t.distinct>=3&&t.wall<1000),'Every actual mobile tap paints multiple moving frames, without a main-thread freeze: '+JSON.stringify(observed));
-   console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed,running}));
+   console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed:observed.map(({trace,native,...summary})=>summary),running}));
    assert.ok(running.offThread,'The fallback projection runs in a background worker: '+JSON.stringify(running));
    // Also verify touch responsiveness during the actual historical approach,
    // not only while the idle image can take over from the software renderer.
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.approach===1&&s.paintCount>=2});
-   const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[];
+   const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[],activeTraces=[];
    for(let i=0;i<2;i++){
     const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
     active.push(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size);
+    activeTraces.push(result.frames);
    }
    const activeAfter=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount);
-   assert.ok(active.every(frames=>frames>=3)&&activeAfter>activeBefore,'The head keeps rendering off the main thread while every tap paints multiple frames: '+JSON.stringify({active,activeBefore,activeAfter}));
+   assert.ok(active.every(frames=>frames>=3)&&activeAfter>activeBefore,'The head keeps rendering off the main thread while every tap paints multiple frames: '+JSON.stringify({active,activeBefore,activeAfter,activeTraces}));
    await page.evaluate(()=>{plannerRecordings.main=null});
    console.log(kind+' DPR3 background approach: '+JSON.stringify({active,activeBefore,activeAfter}));assert.deepEqual(mobile.errors,[]);
   }finally{await mobile.page.close()}
