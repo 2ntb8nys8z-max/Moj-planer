@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.308</title>
+<title>Mój Planer — test integracji 33.309</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.308</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.308</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.308-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.309</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.309</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.309-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.308-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.309-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -4515,6 +4515,7 @@ function octiRibbonContour(width,height,cx,cy,radius){
 }
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
 function octiMotionArtwork(root,floating,motion){
+ const seat=document.createElement('span');seat.className='octi-key-seat';seat.setAttribute('aria-hidden','true');floating.append(seat);
  const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
  const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
  if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';poster.alt='';glass.append(poster);return ()=>{};}
@@ -6171,6 +6172,46 @@ window.OktiEventMotion=(()=>{
 .phone-date-card .phone-date-today{width:100%;margin-top:14px;background:#eae4da;font-size:15px}
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
+</style>
+<style id="okti-glass-key-33-309">
+/* The complete key fits the old 1.28 × artwork envelope. The existing actor
+   and lens share a smaller centre; their renderer and recording target stay intact. */
+.octi-dock .octi-key-seat{
+ position:absolute;left:50%;top:50%;
+ width:calc(var(--octi-size,100px) * 1.28);height:calc(var(--octi-size,100px) * 1.28);
+ transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
+ border-radius:50%;pointer-events:none;z-index:11;
+ background:url('octi-glass-key-33-309.webp?v=48830c2005ceda14') center/100% 100% no-repeat;
+ clip-path:circle(48% at 50% 50%);
+ mask-image:radial-gradient(circle closest-side,transparent 75.5%,#000 78%,#000 95.2%,transparent 97%);
+ -webkit-mask-image:radial-gradient(circle closest-side,transparent 75.5%,#000 78%,#000 95.2%,transparent 97%);
+ opacity:.82;
+}
+.octi-dock .octi-motion-media,.octi-dock .octi-listening-media{
+ width:calc(var(--octi-size,100px) * 1.0496);height:calc(var(--octi-size,100px) * 1.0496);
+}
+/* The clear rim belongs to the existing recorder's hit area as well. A pseudo
+   element survives textContent updates without moving the original button. */
+.octi-dock .stage .voice{overflow:visible}
+.octi-dock .stage .voice:after{
+ content:''!important;display:block!important;position:absolute;inset:auto;
+ left:50%;top:50%;width:calc(var(--octi-size,100px) * 1.34);height:calc(var(--octi-size,100px) * 1.34);
+ transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;box-shadow:none;
+ clip-path:circle(50%);pointer-events:auto;
+}
+/* Short contact shadow and transmitted light keep the clear seat grounded.
+   Both still follow the approved shared motion timeline. */
+.octi-dock .water-float:after{
+ left:calc(50% + var(--octi-size,100px) * .1);top:calc(50% + var(--octi-size,100px) * .57);
+ width:calc(var(--octi-size,100px) * 1.05);height:calc(var(--octi-size,100px) * .34);
+ background:radial-gradient(ellipse closest-side,#294b6b3d 0%,#43698929 30%,#587b9b12 61%,transparent 100%);
+ filter:blur(calc(3px + var(--okti-lift) * 1px));
+}
+.octi-dock .water-float:before{
+ left:calc(50% + var(--octi-size,100px) * .22);top:calc(50% + var(--octi-size,100px) * .58);
+ width:calc(var(--octi-size,100px) * .88);height:calc(var(--octi-size,100px) * .28);
+}
+@media(prefers-reduced-motion:reduce){.octi-dock .octi-key-seat{translate:0 0}}
 </style>
 <script src="event-delete.js?v=252559d65ddfea7b"></script>
 <script src="device-permissions.js?v=6862ddc083a8bb9d"></script>
