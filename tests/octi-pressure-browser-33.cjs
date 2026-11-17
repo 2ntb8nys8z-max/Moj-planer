@@ -322,7 +322,7 @@ function assertFastReturn(result){
     const visible=result.frames.filter(f=>f.pressure>.01&&f.width>before.glass.width+.1);
     observed.push({frames:visible.length,distinct:new Set(visible.map(f=>f.width.toFixed(2))).size,wall:result.frames.at(-1).wall});
    }
-   const running=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{const video=root.querySelector('.octi-listening-source'),image=root.querySelector('.octi-listening-fallback'),state=root.octiListening.getState();return {calls:qaPlaybackCalls,paints:state.paintCount,nativeIdle:state.nativeIdle,offThread:state.offThread,idleVisible:Number(getComputedStyle(image).opacity),idleLoaded:image.complete&&image.naturalWidth===384,idleSource:image.getAttribute('src'),time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paused:video.paused,renderer:state.renderer,drift:getComputedStyle(root.querySelector('.water-float')).animationPlayState}});
+   const running=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{const video=root.querySelector('.octi-listening-source'),image=root.querySelector('.octi-listening-fallback'),state=root.octiListening.getState();return {calls:qaPlaybackCalls,paints:state.paintCount,nativeIdle:state.nativeIdle,offThread:state.offThread,backgroundError:state.backgroundError,idleVisible:Number(getComputedStyle(image).opacity),idleLoaded:image.complete&&image.naturalWidth===384,idleSource:image.getAttribute('src'),time:video.currentTime,frames:video.getVideoPlaybackQuality?.().totalVideoFrames??null,paused:video.paused,renderer:state.renderer,drift:getComputedStyle(root.querySelector('.water-float')).animationPlayState}});
    assert.equal(running.renderer,'canvas2d');assert.equal(running.calls,0,'Repeated touches never restart the live video');
    assert.equal(running.paused,false);assert.equal(running.drift,'running');
    // currentTime wraps naturally at the loop boundary. Decoded frame count
@@ -334,6 +334,7 @@ function assertFastReturn(result){
    assert.equal(running.paints,media.paints,'Idle feedback never competes with a CPU pixel loop');
    assert.ok(observed.every(t=>t.frames>=3&&t.distinct>=3&&t.wall<1000),'Every actual mobile tap paints multiple moving frames, without a main-thread freeze: '+JSON.stringify(observed));
    console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed,running}));
+   assert.ok(running.offThread,'The fallback projection runs in a background worker: '+JSON.stringify(running));
    // Also verify touch responsiveness during the actual historical approach,
    // not only while the idle image can take over from the software renderer.
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});

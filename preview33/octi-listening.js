@@ -110,59 +110,63 @@ function createSoftwareRenderer(canvas,video,head,poster){
  },destroy(){staging.width=staging.height=1;bodyMap=null;output=null;coordinates=null;}};
 }
 async function createBackgroundRenderer(canvas,video,head,poster){
- if(typeof Worker!=='function'||typeof OffscreenCanvas!=='function'||typeof createImageBitmap!=='function')return createSoftwareRenderer(canvas,video,head,poster);
- // Reuse the exact historical software renderer in the worker. Only finished
- // bitmaps cross back to the UI; a single in-flight frame prevents a backlog.
+ if(typeof Worker!=='function'){const direct=createSoftwareRenderer(canvas,video,head,poster);direct.backgroundError='Worker unavailable';return direct;}
+ // Transfer plain RGBA buffers, so this path also works in WebKit builds
+ // without transferable ImageBitmap or OffscreenCanvas support in workers.
+ // The historical projection function is shared verbatim, not approximated.
  const source=`'use strict';
  const smooth=${smooth.toString()},matrices=${matrices.toString()};
- let layoutWidth=160,devicePixelRatio=1,renderer,video;
- const document={createElement:()=>new OffscreenCanvas(1,1)};
+ let layoutWidth=160,devicePixelRatio=1,renderer,video,output;
+ const document={createElement:()=>{let image;return {width:1,height:1,getContext:()=>({clearRect(){},drawImage(value){image=value},getImageData(){return {data:image.data}}})}}};
  const artworkLayoutWidth=()=>layoutWidth;
  const createSoftwareRenderer=${createSoftwareRenderer.toString()};
  self.onmessage=event=>{const m=event.data;try{
   if(m.type==='init'){
-   const canvas=new OffscreenCanvas(128,128);video=new OffscreenCanvas(1,1);video.readyState=0;video.currentTime=-1;
-   renderer=createSoftwareRenderer(canvas,video,m.head,m.poster);self.output=canvas;m.head.close();m.poster.close();self.postMessage({type:'ready'});
+   const ctx={createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(value){output=value.data}};
+   self.canvas={width:128,height:128,getContext:()=>ctx};video={width:1,height:1,readyState:0,currentTime:-1};
+   renderer=createSoftwareRenderer(self.canvas,video,m.head,m.poster);self.postMessage({type:'ready'});
   }else{
    layoutWidth=m.width;
-   if(m.body){if(video.width!==m.body.width)video.width=m.body.width;if(video.height!==m.body.height)video.height=m.body.height;video.getContext('2d').drawImage(m.body,0,0);video.readyState=4;video.currentTime=m.time;m.body.close()}else video.readyState=0;
-   renderer.draw(m.state);const bitmap=self.output.transferToImageBitmap();self.postMessage({type:'frame',bitmap},[bitmap]);
+   if(m.body){Object.assign(video,m.body,{readyState:4,currentTime:m.time})}else video.readyState=0;
+   renderer.draw(m.state);const pixels=output.slice();self.postMessage({type:'frame',pixels,width:self.canvas.width,height:self.canvas.height},[pixels.buffer]);
   }
  }catch(error){self.postMessage({type:'error',message:error.message||String(error)})}};`;
- let worker,url,closed=false,busy=false,failure=null,paintCount=0,fallbackVideo=false;
- const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),stage=staging.getContext('2d');
+ let worker,url,closed=false,busy=false,failure=null,paintCount=0;
+ const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),stage=staging.getContext('2d',{willReadFrequently:true});
+ function snapshot(image,live=false){
+  const rawWidth=image.videoWidth||image.naturalWidth||image.width,rawHeight=image.videoHeight||image.naturalHeight||image.height;
+  const width=live?Math.min(768,rawWidth):rawWidth,height=Math.round(rawHeight*width/rawWidth);
+  if(staging.width!==width)staging.width=width;if(staging.height!==height)staging.height=height;
+  stage.clearRect(0,0,width,height);stage.drawImage(image,0,0,width,height);return {width,height,data:stage.getImageData(0,0,width,height).data};
+ }
  try{
-  const images=await Promise.all([createImageBitmap(head),createImageBitmap(poster)]);
+  const images=[snapshot(head),snapshot(poster)];
   url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));worker=new Worker(url);
   await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(Error('Background renderer timed out')),5000);
    worker.onerror=event=>{clearTimeout(timer);reject(Error(event.message||'Background renderer unavailable'))};
    worker.onmessage=event=>{if(event.data.type==='ready'){clearTimeout(timer);resolve()}else if(event.data.type==='error'){clearTimeout(timer);reject(Error(event.data.message))}};
-   worker.postMessage({type:'init',head:images[0],poster:images[1]},images);
+   worker.postMessage({type:'init',head:images[0],poster:images[1]},images.map(image=>image.data.buffer));
   });
   URL.revokeObjectURL(url);url=null;
- }catch{
+ }catch(error){
   closed=true;worker?.terminate();if(url)URL.revokeObjectURL(url);
-  return createSoftwareRenderer(canvas,video,head,poster);
+  const direct=createSoftwareRenderer(canvas,video,head,poster);direct.backgroundError=error.message||String(error);return direct;
  }
  worker.onerror=event=>{failure=Error(event.message||'Background renderer unavailable');busy=false};
  worker.onmessage=event=>{
   const message=event.data;
   if(message.type==='error'){failure=Error(message.message);busy=false;return}
   if(message.type!=='frame')return;
-  const image=message.bitmap;
-  if(!closed){if(canvas.width!==image.width)canvas.width=image.width;if(canvas.height!==image.height)canvas.height=image.height;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0);paintCount++}
-  image.close();busy=false;
+  if(!closed){if(canvas.width!==message.width)canvas.width=message.width;if(canvas.height!==message.height)canvas.height=message.height;ctx.putImageData(new ImageData(message.pixels,message.width,message.height),0,0);paintCount++}
+  busy=false;
  };
- async function bitmap(){
-  if(!fallbackVideo){try{return await createImageBitmap(video)}catch{fallbackVideo=true}}
-  if(staging.width!==video.videoWidth)staging.width=video.videoWidth;if(staging.height!==video.videoHeight)staging.height=video.videoHeight;
-  stage.drawImage(video,0,0);return createImageBitmap(staging);
- }
  return {kind:'canvas2d',offThread:true,get paintCount(){return paintCount},draw(state){
   if(failure)throw failure;if(closed||busy)return;busy=true;
-  const live=state.videoAvailable&&video.readyState>=2&&!video.error;
-  Promise.resolve(live?bitmap():null).then(body=>{if(closed){body?.close();return}worker.postMessage({type:'frame',body,state,width:artworkLayoutWidth(canvas),time:video.currentTime},body?[body]:[])},error=>{failure=error;busy=false});
+  try{
+   const live=state.videoAvailable&&video.readyState>=2&&!video.error,body=live?snapshot(video,true):null;
+   worker.postMessage({type:'frame',body,state,width:artworkLayoutWidth(canvas),time:video.currentTime},body?[body.data.buffer]:[]);
+  }catch(error){busy=false;throw error}
  },destroy(){closed=true;worker.terminate();staging.width=staging.height=1;}};
 }
 window.createOctiListeningArtwork=function(root,floating,motion){
@@ -232,6 +236,6 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  function visibility(){if(document.hidden)stop();else resume();}
  const videoError=()=>playbackFailed(Error('Video unavailable'),'video-error');
  video.addEventListener('error',videoError);canvas.addEventListener('webglcontextlost',lost);root.addEventListener('pointerdown',resume,{passive:true});document.addEventListener('visibilitychange',visibility);window.addEventListener('pageshow',resume);window.addEventListener('online',resume);
- return {update,setRecording,getState:()=>({isRecording,approach:pose,gesture:headTurn,rendering,nativeIdle:layer.classList.contains('is-native-idle'),offThread:!!renderer?.offThread,paintCount:renderer?.paintCount||0,fallback:layer.classList.contains('is-fallback'),renderer:renderer?.kind||'image',ready,reason,lastError,retries,mediaRetries}),destroy(){destroyed=true;generation++;preparing=null;stop();releaseRenderer();canvas.removeEventListener('webglcontextlost',lost);video.removeEventListener('error',videoError);root.removeEventListener('pointerdown',resume);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('online',resume);}};
+ return {update,setRecording,getState:()=>({isRecording,approach:pose,gesture:headTurn,rendering,nativeIdle:layer.classList.contains('is-native-idle'),offThread:!!renderer?.offThread,backgroundError:renderer?.backgroundError||'',paintCount:renderer?.paintCount||0,fallback:layer.classList.contains('is-fallback'),renderer:renderer?.kind||'image',ready,reason,lastError,retries,mediaRetries}),destroy(){destroyed=true;generation++;preparing=null;stop();releaseRenderer();canvas.removeEventListener('webglcontextlost',lost);video.removeEventListener('error',videoError);root.removeEventListener('pointerdown',resume);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('online',resume);}};
 };
 })();
