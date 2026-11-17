@@ -21,7 +21,10 @@ async function fixture(browser,width=390,height=844){
 async function visualOnly(page,channel='main'){
  await page.locator(`.octi-dock[data-channel=${channel}] .voice`).evaluate(button=>{
   button.addEventListener('click',event=>event.stopImmediatePropagation(),true);
-  button.addEventListener('pointerdown',event=>window.pressPointer=event.pointerId);
+  button.addEventListener('pointerdown',event=>{
+   window.pressPointer=event.pointerId;const root=button.closest('.octi-dock'),r=root.querySelector('.octi-motion-media').getBoundingClientRect();
+   root.pressStart={x:r.x+r.width/2,y:r.y+r.height/2};
+  });
  });
 }
 function read(page,channel='main'){
@@ -32,7 +35,7 @@ function read(page,channel='main'){
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
   let edgeAlpha=0,edgeInk=0;
   for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<172){const q=(y*384+x)*4,a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).userSelect,driftPlayState:getComputedStyle(float).animationPlayState};
  });
 }
 async function samples(page,channel='main'){
@@ -82,8 +85,19 @@ async function settled(page,channel='main'){
     assert.ok(Math.abs(resting.glass.width/resting.target.width-1.28)<.002,'Restore the original full-size bubble');
     await hold(page);const pressed=await read(page);
     assert.deepEqual(pressed.target,resting.target,'Only artwork flexes; the recorder hit target stays still');
-    assert.ok(pressed.glass.width>resting.glass.width*1.06,'The held bubble widens');
-    assert.ok(pressed.glass.height>resting.glass.height*1.035,'Pressure expands the membrane around its whole circumference');
+    assert.ok(pressed.glass.width>resting.glass.width*1.15,'The held bubble widens');
+    assert.ok(pressed.glass.height>resting.glass.height*1.095,'Pressure expands the membrane around its whole circumference');
+    const center=r=>({x:r.x+r.width/2,y:r.y+r.height/2});
+    assert.ok(Math.abs(center(pressed.glass).x-pressed.pressStart.x)<.05,'Expansion keeps the center fixed horizontally');
+    assert.ok(Math.abs(center(pressed.glass).y-pressed.pressStart.y)<.05,'Expansion keeps the center fixed vertically');
+    assert.equal(pressed.driftPlayState,'paused','Idle floating is paused throughout the finger gesture');
+    assert.equal(pressed.touchAction,'none','The control reserves its touch gesture');
+    assert.equal(pressed.userSelect,'none','The bubble cannot start native text selection');
+    const nativeMenus=await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>({
+     contextAllowed:button.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true})),
+     selectionAllowed:button.dispatchEvent(new Event('selectstart',{bubbles:true,cancelable:true})),draggable:button.draggable
+    }));
+    assert.deepEqual(nativeMenus,{contextAllowed:false,selectionAllowed:false,draggable:false},'Long press must not open a context menu or drag preview');
     assert.equal(pressed.surfaceOpacity,1,'The original surface stays fully visible under pressure');
     assert.equal(pressed.canvasOpacity,resting.canvasOpacity,'Pressing does not crossfade the glass');
     assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
@@ -99,9 +113,11 @@ async function settled(page,channel='main'){
     assert.ok(Math.abs(pressed.actor.width-resting.actor.width)<.01,'The live actor keeps its width');
     assert.ok(Math.abs(pressed.actor.height-resting.actor.height)<.01,'The live actor keeps its height');
     assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
-    await page.waitForTimeout(250);const held=await read(page);
+    await page.waitForTimeout(width===390?1300:250);const held=await read(page);
     assert.equal(held.pressure,1,'The bubble remains expanded for the entire hold');
     assert.ok(Math.abs(held.glass.width-pressed.glass.width)<.01,'Holding never starts the return animation');
+    assert.ok(Math.abs(center(held.glass).x-center(pressed.glass).x)<.05&&Math.abs(center(held.glass).y-center(pressed.glass).y)<.05,'A long hold stays fixed under the fingertip');
+    assert.equal(await page.evaluate(()=>getSelection().toString()),'','A long hold does not select page content');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
@@ -114,6 +130,15 @@ async function settled(page,channel='main'){
     await hold(page);await page.mouse.move(2,2);await page.mouse.up();await settled(page);
     await hold(page);await page.evaluate(()=>document.querySelector('.octi-dock[data-channel=main] .voice').dispatchEvent(new PointerEvent('pointercancel',{pointerId:window.pressPointer,bubbles:true})));await page.mouse.up();await settled(page);
     if(width===390){
+     if(kind==='chromium'){
+      const touch=await page.context().newCDPSession(page);
+      await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2}]});
+      await page.waitForTimeout(1300);const finger=await read(page);
+      assert.equal(finger.pressure,1,'A real long touch remains expanded');
+      assert.equal(finger.pressureState.holding,true,'Native long touch does not cancel the gesture');
+      assert.equal(await page.evaluate(()=>getSelection().toString()),'');
+      await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await settled(page);await touch.detach();
+     }
      for(let i=0;i<4;i++){await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.up();}await settled(page);
      await page.locator('.octi-dock[data-channel=main] .voice').focus();await page.keyboard.down(' ');await page.waitForFunction(()=>Number(getComputedStyle(document.querySelector('.octi-dock[data-channel=main] .water-float')).getPropertyValue('--okti-pressure'))>.95);assert.ok((await read(page)).pressure>.95);await page.keyboard.up(' ');await settled(page);
      await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=await samples(page);await page.mouse.up();assert.ok((await quiet()).every(v=>v.pressure>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
@@ -122,7 +147,7 @@ async function settled(page,channel='main'){
      await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v.pressure<-.08));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
-    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} one original glass texture, continuous press/hold/release, fixed actor and target, higher rebound, short touch and cancellation passed.`);
+    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} centered whole-bubble expansion, native long-press protection, fixed actor/target, hold/release, higher rebound and cancellation passed.`);
    }finally{await page.close()}
   }
  }finally{await browser.close()}

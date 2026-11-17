@@ -124,6 +124,11 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    // paint() installs the identical texture only while the bubble is at rest.
   });
  }
+ // Prevent only native long-press UI. Pointerdown/up and click remain owned by
+ // the existing recorder, including its synchronous microphone activation.
+ button.draggable=false;
+ button.addEventListener('contextmenu',event=>event.preventDefault());
+ button.addEventListener('selectstart',event=>event.preventDefault());
  button.addEventListener('pointerdown',event=>{
   if(event.isPrimary===false||event.pointerType==='mouse'&&event.button!==0)return;
   begin({pointerId:event.pointerId});
