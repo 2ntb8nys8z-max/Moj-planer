@@ -18,7 +18,7 @@ function loadTexture(){
   const image=new Image();image.decoding='async';
   image.onload=()=>{
    try{const staging=document.createElement('canvas');staging.width=staging.height=SIZE;const ctx=staging.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(image,0,0,SIZE,SIZE);surfaceGeometry();resolve({image,pixels:ctx.getImageData(0,0,SIZE,SIZE).data});
+    ctx.drawImage(image,0,0,SIZE,SIZE);const original=ctx.getImageData(0,0,SIZE,SIZE);surfaceGeometry();resolve({image,pixels:original.data,original});
    }catch{texturePromise=null;resolve(null)}
   };
   image.onerror=()=>{texturePromise=null;resolve(null)};image.src=TEXTURE;
@@ -76,7 +76,7 @@ async function loadSurfaces(asset){
   function next(){
    const pressure=pressures[index],frame=document.createElement('canvas');frame.width=frame.height=SIZE;
    const context=frame.getContext('2d');if(!context){surfacePromise=null;resolve(null);return}
-   if(pressure===0)context.drawImage(asset.image,0,0,SIZE,SIZE);
+   if(pressure===0)context.putImageData(asset.original,0,0);
    else{const pixels=context.createImageData(SIZE,SIZE);deformTexture(asset.pixels,pixels.data,pressure);context.putImageData(pixels,0,0)}
    if(pressure!==0&&optics&&opticalContext){
     opticalContext.clearRect(0,0,SIZE,SIZE);
@@ -128,8 +128,11 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function draw(p){
   if(!texture||!ctx||p===lastPressure||p!==0&&p!==1&&Math.abs(p-lastPressure)<.0005)return;
   const drawStart=performance.now();lastPressure=p;
-  if(Math.abs(p)<.00001){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE);drawCount++;lastDrawMs=performance.now()-drawStart;return}
-  if(!surfaces){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE)}
+  // Reuse decoded pixels at rest. Re-sampling the PNG after Canvas has blended
+  // transparent frames can choose another Chromium raster path and leave a
+  // different low-alpha surface, even with the exact same pressure of zero.
+  if(Math.abs(p)<.00001){ctx.putImageData(texture.original,0,0);drawCount++;lastDrawMs=performance.now()-drawStart;return}
+  if(!surfaces)ctx.putImageData(texture.original,0,0);
   else{
    const pressure=Math.max(-.4,Math.min(1,p));let upper=surfaces.findIndex(frame=>frame.pressure>=pressure);
    if(upper<0)upper=surfaces.length-1;const b=surfaces[upper],a=surfaces[Math.max(0,upper-1)];
