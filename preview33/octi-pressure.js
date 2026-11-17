@@ -1,10 +1,18 @@
-/* One original glass surface for rest, press, hold and release. Presentation only. */
+/* Original resting glass and the approved v3 membrane optics in one surface. Presentation only. */
 (()=>{
 'use strict';
 const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31';
+const OPTICS='octi-pressure-33-311.webp?v=444011878e19cd36';
 const SIZE=384,LIGHT=[235,250,255],SHADE=[34,111,164];
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(10+v*(-15+6*v));};
-let texturePromise=null,surfacePromise=null,geometry=null;
+let texturePromise=null,opticsPromise=null,surfacePromise=null,geometry=null;
+function loadOptics(){
+ if(!opticsPromise)opticsPromise=new Promise(resolve=>{
+  const image=new Image();image.decoding='async';
+  image.onload=()=>resolve(image);image.onerror=()=>{opticsPromise=null;resolve(null)};image.src=OPTICS;
+ });
+ return opticsPromise;
+}
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
   const image=new Image();image.decoding='async';
@@ -53,23 +61,45 @@ function deformTexture(source,target,pressure){
   target[q+3]=opacity*255;
  }
 }
-function loadSurfaces(asset){
- // Share one small atlas between the three docks. The expensive refraction
- // sampling runs once, between tasks, instead of competing with the live actor
- // for every animation frame while a finger is on the glass.
- if(!surfacePromise)surfacePromise=new Promise(resolve=>{
-  const pressures=Array.from({length:25},(_,i)=>i<8?(i-8)*.05:(i-8)/16),frames=[];
+async function loadSurfaces(asset){
+ // The v3 Blender frames carry the changing surface normals, central dent,
+ // moving softbox reflections and lower glass fold. Normalize their silhouette:
+ // CSS owns the entire expansion, so both light fields share one moving edge.
+ // Precompute once for all docks; drawing a gesture only blends two frames.
+ if(!surfacePromise)surfacePromise=(async()=>{
+  const optics=await loadOptics();
+  return new Promise(resolve=>{
+  const pressures=Array.from({length:29},(_,i)=>i<8?-.38+i*.38/8:(i-8)/20),frames=[];
+  const optical=document.createElement('canvas');optical.width=optical.height=SIZE;
+  const opticalContext=optical.getContext('2d',{willReadFrequently:true});
   let index=0;
   function next(){
    const pressure=pressures[index],frame=document.createElement('canvas');frame.width=frame.height=SIZE;
    const context=frame.getContext('2d');if(!context){surfacePromise=null;resolve(null);return}
    if(pressure===0)context.drawImage(asset.image,0,0,SIZE,SIZE);
    else{const pixels=context.createImageData(SIZE,SIZE);deformTexture(asset.pixels,pixels.data,pressure);context.putImageData(pixels,0,0)}
-   frames.push({pressure,image:frame});index++;
+   if(pressure!==0&&optics&&opticalContext){
+    opticalContext.clearRect(0,0,SIZE,SIZE);
+    opticalContext.drawImage(optics,index%6*SIZE,Math.floor(index/6)*SIZE,SIZE,SIZE,0,0,SIZE,SIZE);
+    const pixels=opticalContext.getImageData(0,0,SIZE,SIZE).data;
+    let left=SIZE,top=SIZE,right=0,bottom=0;
+    for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(pixels[(y*SIZE+x)*4+3]>3){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
+    if(right>left&&bottom>top){
+     const blend=pressure>0?.88*smooth(pressure):.48*smooth(-pressure/.38);
+     // Interpolate premultiplied color and alpha inside this same canvas.
+     // The resting image is exact, and no second rim or overlay is installed.
+     context.globalCompositeOperation='destination-in';context.fillStyle='rgba(0,0,0,'+(1-blend)+')';context.fillRect(0,0,SIZE,SIZE);
+     context.globalCompositeOperation='lighter';context.globalAlpha=blend;
+     context.drawImage(optical,left,top,right-left+1,bottom-top+1,SIZE*.05,SIZE*.05,SIZE*.90,SIZE*.90);
+     context.globalAlpha=1;context.globalCompositeOperation='source-over';
+    }
+   }
+   frames.push({pressure,image:frame,optics:!!optics});index++;
    if(index<pressures.length)setTimeout(next,0);else resolve(frames);
   }
   setTimeout(next,0);
- });
+  });
+ })();
  return surfacePromise;
 }
 window.createOctiPressureArtwork=function(root,floating,motion){
@@ -171,7 +201,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function begin(input){
   if(button.disabled||active)return;
   releasePending=false;lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
-  floating.dataset.pressState='held';animate([[0,from],[140,1]],140,t=>1-(1-t)**3,true,17);
+  floating.dataset.pressState='held';animate([[0,from],[240,1],[300,1]],300,smooth,true,17);
   if(!texture)prepare();
  }
  function rebound(from){
@@ -220,7 +250,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   reset();
  });window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!surfaces&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
+ const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!surfaces&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,opticalSource:surfaces?.[0].optics?OPTICS:null,holding:!!active})};
  root.octiPressure=controls;prepare();return controls;
 };
 })();

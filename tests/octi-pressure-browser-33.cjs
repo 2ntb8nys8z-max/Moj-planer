@@ -4,11 +4,12 @@ const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium'
 // hundreds of milliseconds. Keep the real-time smoothness assertions free of
 // that observer overhead; request a separate recording only for visual review.
 const recordVideo=process.env.PLANNER_PRESSURE_VIDEO==='1';
-async function fixture(browser,width=390,height=844){
+async function fixture(browser,width=390,height=844,{blockOptics=false}={}){
  const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),file=path.resolve(base,u.pathname==='/'?'preview33/index.html':u.pathname.slice(1));
+  if(blockOptics&&u.pathname.endsWith('/octi-pressure-33-311.webp'))return route.fulfill({status:404,body:'unavailable artwork'});
   if(u.origin!=='https://planner.test')return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
   if(!file.startsWith(base+'/')||!fs.existsSync(file)||!fs.statSync(file).isFile())return route.fulfill({status:404,body:'missing'});
   const body=fs.readFileSync(file),type={'.html':'text/html','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'}[path.extname(file)]||'application/json';
@@ -48,9 +49,10 @@ function read(page,channel='main'){
   const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media'),actor=root.querySelector('.octi-listening-media');
   const canvas=root.querySelector('.octi-listening-canvas'),pressureState=root.octiPressure.getState();
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
-  let edgeAlpha=0,edgeInk=0;
-  for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<172){const q=(y*384+x)*4,a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
+  let edgeAlpha=0,edgeInk=0,interiorAlpha=0;
+  for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192),q=(y*384+x)*4;if(r<90)interiorAlpha+=pixels[q+3];if(r>122&&r<172){const a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
+  const transmittedShadow=getComputedStyle(float,':after'),caustic=getComputedStyle(float,':before');
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,interiorAlpha,transmittedShadow:{transform:transmittedShadow.transform,translate:transmittedShadow.translate,filter:transmittedShadow.filter,opacity:transmittedShadow.opacity},causticTransform:caustic.transform,glassZ:Number(getComputedStyle(glass).zIndex),actorZ:Number(getComputedStyle(actor).zIndex),pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
  });
 }
 async function samples(page,channel='main'){
@@ -139,6 +141,11 @@ async function observeTap(page,channel='main'){
     assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
     assert.equal(pressed.pressureState.source,resting.pressureState.source,'Rest and press use the exact same texture');
     assert.match(pressed.pressureState.source,/octi-glass-33-184\.png/);
+    assert.match(pressed.pressureState.opticalSource,/octi-pressure-33-311\.webp/,'The approved v3 surface normals and reflections are actually loaded');
+    assert.ok(pressed.interiorAlpha>resting.interiorAlpha+100000,'The interior glass changes visibly; a thicker outer rim alone cannot pass');
+    assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
+    assert.notEqual(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The transmitted shadow expands with the same contact');
+    assert.notEqual(pressed.causticTransform,resting.causticTransform,'The transmitted light changes with the pressed membrane');
     assert.equal(await page.locator('.octi-pressure-media').count(),0,'No replacement glass layer is placed over the bubble');
     assert.ok(pressed.edgeInk>resting.edgeInk*1.03,'Pressure darkens the original rim while preserving its blue glass');
     assert.deepEqual(pressed.membraneBuffer,resting.membraneBuffer,'The glass canvas also keeps its backing buffer');
@@ -166,6 +173,7 @@ async function observeTap(page,channel='main'){
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
+    assert.equal((await read(page)).transmittedShadow.transform,resting.transmittedShadow.transform,'The shadow recovers its original shape after release');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
     // Observe the real animation instead of seeking its timeline: even a very
     // short native tap must show the same full pressed pose as a long hold.
@@ -216,5 +224,20 @@ async function observeTap(page,channel='main'){
     if(recording){const source=await recording.path(),target=`test-results/okti-listening/${kind}-pressure-realtime.webm`;await recording.saveAs(target);if(path.resolve(source)!==path.resolve(target))fs.unlinkSync(source)}
    }
   }
+  // Loading the optical atlas is optional: an unavailable asset must leave
+  // one visible resting surface and working press/click controls.
+  const unavailable=await fixture(browser,390,844,{blockOptics:true});
+  try{
+   await visualOnly(unavailable.page);const resting=await read(unavailable.page);
+   assert.equal(resting.pressureState.opticalSource,null);
+   await hold(unavailable.page);const held=await read(unavailable.page);
+   assert.equal(held.pressureState.rendering,true);assert.equal(held.pressureState.holding,true);
+   assert.ok(held.glass.width>resting.glass.width*1.15);
+   assert.deepEqual(held.target,resting.target);
+   await unavailable.page.mouse.up();await settled(unavailable.page);
+   assert.equal((await read(unavailable.page)).interiorAlpha,resting.interiorAlpha,'Missing optics still return to the original resting pixels');
+   assert.deepEqual(unavailable.errors,[]);
+   console.log(kind+': unavailable optical artwork retains visible glass and working press controls.');
+  }finally{await unavailable.page.close()}
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
