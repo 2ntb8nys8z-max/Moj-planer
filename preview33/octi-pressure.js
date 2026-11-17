@@ -60,6 +60,22 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
  const output=ctx?.createImageData(SIZE,SIZE);
+ let driftLock=null,hoverAnimation=null;
+ function lockDrift(){
+  if(driftLock)return;
+  hoverAnimation=floating.getAnimations().find(run=>run.animationName==='okti-hover-physics');
+  if(hoverAnimation){const time=hoverAnimation.currentTime;hoverAnimation.pause();hoverAnimation.currentTime=time}
+  const style=getComputedStyle(floating);
+  driftLock=['--okti-drift-x','--okti-drift-y','--okti-lift'].map(name=>({name,value:style.getPropertyValue(name),previous:floating.style.getPropertyValue(name),priority:floating.style.getPropertyPriority(name)}));
+  for(const item of driftLock)floating.style.setProperty(item.name,item.value,'important');
+ }
+ function unlockDrift(){
+  if(!driftLock)return;
+  for(const item of driftLock){if(item.previous)floating.style.setProperty(item.name,item.previous,item.priority);else floating.style.removeProperty(item.name)}
+  driftLock=null;
+  if(hoverAnimation&&!motion?.matches&&floating.getAnimations().includes(hoverAnimation))hoverAnimation.play();
+  hoverAnimation=null;
+ }
  const value=()=>Number.parseFloat(getComputedStyle(floating).getPropertyValue('--okti-pressure'))||0;
  function draw(p){
   if(!texture||!ctx||p===lastPressure||p!==0&&p!==1&&Math.abs(p-lastPressure)<.0005)return;
@@ -79,7 +95,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   stop();floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
   if(motion?.matches||typeof floating.animate!=='function'){
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));
-   if(!peaks.at(-1)[1])delete floating.dataset.pressState;
+   if(!peaks.at(-1)[1]){delete floating.dataset.pressState;unlockDrift()}
    paint();return;
   }
   const keyframes=[];
@@ -93,18 +109,18 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   run.onfinish=()=>{
    if(animation!==run)return;
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));animation=null;run.cancel();
-   if(!peaks.at(-1)[1])delete floating.dataset.pressState;
+   if(!peaks.at(-1)[1]){delete floating.dataset.pressState;unlockDrift()}
    paint();
   };
   paint();raf=requestAnimationFrame(tick);
  }
  function reset(){
   if(!active&&!animation&&!value())return;
-  active=null;stop();floating.style.setProperty('--okti-pressure','0');delete floating.dataset.pressState;paint();
+  active=null;stop();floating.style.setProperty('--okti-pressure','0');delete floating.dataset.pressState;unlockDrift();paint();
  }
  function begin(input){
   if(button.disabled||active)return;
-  const from=value();active={...input,bounds:glass.getBoundingClientRect()};
+  lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
   floating.dataset.pressState='held';animate([[0,from],[160,1]],160);
   if(!texture)prepare();
  }

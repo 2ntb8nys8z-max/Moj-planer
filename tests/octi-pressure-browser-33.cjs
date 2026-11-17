@@ -35,7 +35,7 @@ function read(page,channel='main'){
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
   let edgeAlpha=0,edgeInk=0;
   for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<172){const q=(y*384+x)*4,a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).userSelect,driftPlayState:getComputedStyle(float).animationPlayState};
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState};
  });
 }
 async function samples(page,channel='main'){
@@ -88,8 +88,8 @@ async function settled(page,channel='main'){
     assert.ok(pressed.glass.width>resting.glass.width*1.15,'The held bubble widens');
     assert.ok(pressed.glass.height>resting.glass.height*1.095,'Pressure expands the membrane around its whole circumference');
     const center=r=>({x:r.x+r.width/2,y:r.y+r.height/2});
-    assert.ok(Math.abs(center(pressed.glass).x-pressed.pressStart.x)<.05,'Expansion keeps the center fixed horizontally');
-    assert.ok(Math.abs(center(pressed.glass).y-pressed.pressStart.y)<.05,'Expansion keeps the center fixed vertically');
+    assert.ok(Math.abs(center(pressed.glass).x-pressed.pressStart.x)<.05,'Expansion keeps the center fixed horizontally: '+JSON.stringify({start:pressed.pressStart,current:center(pressed.glass)}));
+    assert.ok(Math.abs(center(pressed.glass).y-pressed.pressStart.y)<.05,'Expansion keeps the center fixed vertically: '+JSON.stringify({start:pressed.pressStart,current:center(pressed.glass)}));
     assert.equal(pressed.driftPlayState,'paused','Idle floating is paused throughout the finger gesture');
     assert.equal(pressed.touchAction,'none','The control reserves its touch gesture');
     assert.equal(pressed.userSelect,'none','The bubble cannot start native text selection');
