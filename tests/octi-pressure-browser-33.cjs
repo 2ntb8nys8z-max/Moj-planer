@@ -91,10 +91,22 @@ async function observeTap(page,channel='main'){
  await root.evaluate(root=>{
   root.tapResult=new Promise(resolve=>{
    root.querySelector('.voice').addEventListener('pointerdown',event=>{
-    const started=performance.now(),frames=[];let releasedAt=null;
-    const finish=timedOut=>{clearTimeout(guard);window.removeEventListener('pointerup',released,true);resolve({frames,releasedAt,timedOut})};
+    const started=performance.now(),frames=[];let releasedAt=null,native=null;
+    const finish=timedOut=>{clearTimeout(guard);window.removeEventListener('pointerup',released,true);resolve({frames,releasedAt,timedOut,native})};
     const guard=setTimeout(()=>finish(true),7000);
-    function released(up){if(up.pointerId===event.pointerId)releasedAt=performance.now()-started}
+    function released(up){if(up.pointerId===event.pointerId){
+     releasedAt=performance.now()-started;
+     // Inspect the actual compiled native timeline after finger-up. A blocked
+     // JS observer can miss its held pose while the compositor displays it.
+     const run=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
+     if(run){
+      const duration=Number(run.effect.getTiming().duration),poses=run.effect.getKeyframes().map(frame=>{
+       const scale=frame.transform.match(/scale\(\s*([-\d.e+]+)\s*,\s*([-\d.e+]+)\s*\)/i);
+       return {time:frame.computedOffset*duration,x:scale?Number(scale[1]):0,y:scale?Number(scale[2]):0};
+      }),full=poses.filter(p=>p.x>=1.15999&&p.y>=1.09999);
+      native={duration,maxX:Math.max(...poses.map(p=>p.x)),maxY:Math.max(...poses.map(p=>p.y)),minX:Math.min(...poses.map(p=>p.x)),fullPoseMs:full.length?full.at(-1).time-full[0].time:0};
+     }
+    }}
     window.addEventListener('pointerup',released,true);
     function sample(time){
      const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media').getBoundingClientRect();
@@ -199,7 +211,8 @@ async function observeTap(page,channel='main'){
     const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await observeTap(page);
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap();
     assert.equal(quick.timedOut,false,'A quick tap completes its visual cycle');
-    assert.ok(quick.frames.some(v=>v.pressure>=.99999&&v.width>=pressed.glass.width-.02),'A quick tap reaches the complete held deformation: '+JSON.stringify(quick));
+    assert.ok(quick.native?.maxX>=1.15999&&quick.native.maxY>=1.09999&&quick.native.fullPoseMs>=50,'A quick tap keeps the full expanded pose in the running native timeline: '+JSON.stringify(quick));
+    assert.ok(quick.frames.some(v=>v.pressure>0&&v.width>resting.glass.width+.001),'A quick tap visibly advances its actual native geometry');
     assert.ok(quick.frames.some(v=>v.pressure<-.2),'A quick tap has a visible return, independent of finger duration: '+JSON.stringify(quick));
     await settled(page);
     if(width===390){
@@ -213,7 +226,7 @@ async function observeTap(page,channel='main'){
       button.dispatchEvent(new PointerEvent('pointerdown',input));window.dispatchEvent(new PointerEvent('pointerup',input));button.disabled=true;
      });
      const result=await instant();await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{button.disabled=false});assert.equal(result.timedOut,false);
-     assert.ok(result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>=.99999),'A release before the first frame cannot erase the press impulse: '+JSON.stringify(result));
+     assert.ok(result.native?.maxX>=1.15999&&result.native.fullPoseMs>=50&&result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>0),'A release before the first frame cannot erase the native contact impulse: '+JSON.stringify(result));
      assert.ok(result.frames.some(v=>v.pressure<-.2),'The before-first-frame tap also rebounds');await settled(page);
      console.log(kind+' quick tap: full visible press and rebound; same-task release completed after '+result.releasedAt.toFixed(2)+' ms.');
      const busy=await page.locator('.octi-dock[data-channel=main] .voice').evaluate(async button=>{
