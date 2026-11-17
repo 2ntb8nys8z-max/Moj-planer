@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.317-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.318-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.317-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.318-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -4426,7 +4426,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=37977c0db4c0a8ad"></script>
+<script src="octi-pressure.js?v=0d34cf1df066f142"></script>
 <script src="octi-listening.js?v=94bbd6436d62c055"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -6177,44 +6177,52 @@ window.OktiEventMotion=(()=>{
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
 </style>
-<style id="okti-bubble-pressure-33-317">
-@property --okti-pressure{syntax:'<number>';inherits:true;initial-value:0}
-.octi-dock .water-float{
- --okti-pressure:0;
- --okti-compression:clamp(0,var(--okti-pressure),1);--okti-recoil:max(0,calc(var(--okti-pressure) * -1));
-}
-/* A finger holds the whole resting drift timeline, including actor and shadow. */
+<style id="okti-bubble-pressure-33-318">
 .octi-dock .water-float[data-press-state]{animation-play-state:paused!important}
-/* Scale after the centering translation so all sides expand around one center. */
 .octi-dock .octi-motion-media{
- scale:1;transform:translate(-50%,-50%) scale(calc(1 + var(--okti-pressure) * .16),calc(1 + var(--okti-compression) * .10 + var(--okti-recoil) * .30));
- translate:var(--okti-drift-x) calc(var(--okti-drift-y) - var(--okti-recoil) * var(--octi-size,100px) * .08);
- transform-origin:50% 50%;opacity:1;
+ scale:1;transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
+ transform-origin:50% 50%;opacity:1;will-change:transform,translate;
 }
 .octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y)}
-/* Replace only the image pseudo-element, once, with the identical original
-   image in a deformable canvas. All surrounding glass and light stay in place. */
-/* The original image owns its glass edge and highlights. Retired CSS lens
-   layers must not draw a second outline around the expanding surface. */
 .octi-dock .octi-motion-media.is-pressure-ready{
  background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:14;
 }
 .octi-dock .octi-motion-media.is-pressure-ready:before,.octi-dock .octi-motion-media.is-pressure-ready:after{display:none}
-.octi-dock .octi-pressure-canvas{
+.octi-dock .octi-pressure-canvas,.octi-dock .octi-pressure-lights{
  position:absolute;left:-3%;top:-3%;width:106%;height:106%;max-width:none;
  border-radius:50%;clip-path:circle(45% at 50% 50%);pointer-events:none;z-index:0;
- opacity:.94;filter:brightness(1.12) saturate(.9);
 }
-/* The transmitted shadow and caustic follow the same contact and rebound. */
-.octi-dock .water-float:after{
- translate:calc(var(--okti-drift-x) - var(--okti-compression) * var(--octi-size,100px) * .06) calc(var(--okti-drift-y) * -.65 - var(--okti-compression) * var(--octi-size,100px) * .07 + var(--okti-recoil) * var(--octi-size,100px) * .04);
- transform:translate(-50%,-50%) rotate(-12deg) scale(calc(1 + var(--okti-compression) * .24 - var(--okti-recoil) * .17),calc(1 + var(--okti-compression) * .16 - var(--okti-recoil) * .16));
- opacity:clamp(0,calc(.85 - var(--okti-lift) * .17 + var(--okti-compression) * .14 - var(--okti-recoil) * .3),1);
- filter:blur(calc(3px + var(--okti-lift) * 1.8px - var(--okti-compression) * 1.1px + var(--okti-recoil) * 2px));
+.octi-dock .octi-pressure-canvas{opacity:.94;filter:brightness(1.12) saturate(.9)}
+/* Only neutral light is animated over the immutable blue image. */
+.octi-dock .octi-pressure-lights{z-index:1;overflow:hidden}
+.octi-dock .octi-pressure-lights>span{position:absolute;display:block;pointer-events:none;opacity:0;will-change:transform,opacity;transform-origin:50% 50%}
+.octi-dock .octi-pressure-dent{
+ inset:0;border-radius:50%;
+ background:radial-gradient(ellipse 27% 24% at 50% 48%,transparent 0 40%,#0000000d 60%,transparent 84%),radial-gradient(ellipse 24% 16% at 49% 41%,#ffffff80 0%,#ffffff26 36%,transparent 72%);
 }
-.octi-dock .water-float:before{
- transform:translate(-50%,-50%) rotate(-12deg) scale(calc(1 + var(--okti-compression) * .24 - var(--okti-recoil) * .12),calc(1 - var(--okti-compression) * .15 + var(--okti-recoil) * .2));
- opacity:calc(1 - var(--okti-compression) * .28 - var(--okti-recoil) * .5);
+.octi-dock .octi-pressure-reflection{
+ left:21%;top:21%;width:51%;height:23%;border-radius:50%;
+ background:radial-gradient(ellipse at 50% 50%,#ffffffd9 0 18%,#ffffff85 35%,#ffffff1f 52%,transparent 72%);
+}
+.octi-dock .octi-pressure-sheen{
+ left:54%;top:35%;width:25%;height:36%;border-radius:50%;
+ background:radial-gradient(ellipse at 50% 50%,transparent 0 48%,#ffffffb8 52%,#ffffff47 59%,transparent 67%);
+}
+/* Real shadow layers let native transform/opacity animations run independently
+   of the actor's JavaScript renderer. Their resting material stays unchanged. */
+.octi-dock .water-float.has-composited-pressure:before,.octi-dock .water-float.has-composited-pressure:after{visibility:hidden}
+.octi-dock :is(.octi-pressure-shadow,.octi-pressure-caustic){position:absolute;display:block;pointer-events:none;transform:translate(-50%,-50%) rotate(-12deg);translate:var(--okti-drift-x) calc(var(--okti-drift-y) * -.65);will-change:transform,translate,opacity}
+.octi-dock .octi-pressure-shadow{
+ left:calc(50% + var(--octi-size,100px) * .26);top:calc(50% + var(--octi-size,100px) * .54);
+ width:calc(var(--octi-size,100px) * 1.2);height:calc(var(--octi-size,100px) * .53);z-index:2;
+ scale:calc(1 + var(--okti-lift) * .14);opacity:calc(.85 - var(--okti-lift) * .17);
+ background:radial-gradient(ellipse closest-side,transparent 0 40%,#587ba312 49%,#42638c49 66%,#52759e2e 79%,transparent 100%);
+ filter:blur(calc(3px + var(--okti-lift) * 1.8px));
+}
+.octi-dock .octi-pressure-caustic{
+ left:calc(50% + var(--octi-size,100px) * .34);top:calc(50% + var(--octi-size,100px) * .64);
+ width:calc(var(--octi-size,100px) * .94);height:calc(var(--octi-size,100px) * .34);z-index:3;
+ scale:calc(1 + var(--okti-lift) * .1);opacity:1;background:url('octi-caustic-33-196.svg?v=a643000053e3f996') center/100% 100% no-repeat;
 }
 /* This is a control, not a selectable image. Keep native iOS callouts and drag
    previews off this stage while preserving normal clicks and keyboard focus. */
@@ -6232,9 +6240,7 @@ window.OktiEventMotion=(()=>{
  clip-path:circle(50%);pointer-events:auto;
 }
 @media(prefers-reduced-motion:reduce){
- .octi-dock .water-float{--okti-compression:clamp(0,calc(var(--okti-pressure) * .14),.14);--okti-recoil:0}
- .octi-dock .octi-motion-media{transform:translate(-50%,-50%) scale(calc(1 + var(--okti-pressure) * .0224),calc(1 + var(--okti-compression) * .014));translate:0 0}
- .octi-dock .octi-listening-media{translate:0 0}
+ .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{translate:0 0}
 }
 </style>
 <script src="event-delete.js?v=252559d65ddfea7b"></script>

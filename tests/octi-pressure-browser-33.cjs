@@ -5,11 +5,11 @@ const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium'
 // that observer overhead; request a separate recording only for visual review.
 const recordVideo=process.env.PLANNER_PRESSURE_VIDEO==='1';
 async function fixture(browser,width=390,height=844,{blockOptics=false}={}){
- const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];
+ const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];let atlasRequests=0;
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),file=path.resolve(base,u.pathname==='/'?'preview33/index.html':u.pathname.slice(1));
-  if(blockOptics&&u.pathname.endsWith('/octi-pressure-33-311.webp'))return route.fulfill({status:404,body:'unavailable artwork'});
+  if(u.pathname.endsWith('/octi-pressure-33-311.webp')){atlasRequests++;if(blockOptics)return route.fulfill({status:404,body:'unavailable artwork'})}
   if(u.origin!=='https://planner.test')return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
   if(!file.startsWith(base+'/')||!fs.existsSync(file)||!fs.statSync(file).isFile())return route.fulfill({status:404,body:'missing'});
   const body=fs.readFileSync(file),type={'.html':'text/html','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'}[path.extname(file)]||'application/json';
@@ -23,7 +23,7 @@ async function fixture(browser,width=390,height=844,{blockOptics=false}={}){
  // than counting the renderer's first-start compilation as press animation.
  await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas'),video=root?.querySelector('.octi-listening-source');return state?.ready&&state.rendering&&!state.fallback&&canvas?.width===canvas?.height&&video?.currentTime>.25&&root.octiPressure?.getState().ready});
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- return {page,errors};
+ return {page,errors,get atlasRequests(){return atlasRequests}};
 }
 // This fixture isolates visual feedback. The existing recorder/browser suites
 // exercise actual recorder handlers with their explicit microphone/provider mocks.
@@ -49,10 +49,12 @@ function read(page,channel='main'){
   const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media'),actor=root.querySelector('.octi-listening-media');
   const canvas=root.querySelector('.octi-listening-canvas'),pressureState=root.octiPressure.getState();
   const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
+  let pixelHash=2166136261;for(const value of pixels)pixelHash=Math.imul(pixelHash^value,16777619)>>>0;
   let edgeAlpha=0,edgeInk=0,interiorAlpha=0;
   for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192),q=(y*384+x)*4;if(r<90)interiorAlpha+=pixels[q+3];if(r>122&&r<172){const a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
-  const transmittedShadow=getComputedStyle(float,':after'),caustic=getComputedStyle(float,':before');
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,interiorAlpha,transmittedShadow:{transform:transmittedShadow.transform,translate:transmittedShadow.translate,filter:transmittedShadow.filter,opacity:transmittedShadow.opacity},causticTransform:caustic.transform,glassZ:Number(getComputedStyle(glass).zIndex),actorZ:Number(getComputedStyle(actor).zIndex),pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
+  const transmittedShadow=getComputedStyle(float.querySelector('.octi-pressure-shadow')),caustic=getComputedStyle(float.querySelector('.octi-pressure-caustic'));
+  const lightStyles=[...glass.querySelectorAll('.octi-pressure-lights>span')].map(node=>{const s=getComputedStyle(node);return {opacity:Number(s.opacity),transform:s.transform,background:s.backgroundImage}});
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:pressureState.pressure,pixelHash,lightStyles,materialFilter:getComputedStyle(membrane).filter,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,interiorAlpha,transmittedShadow:{transform:transmittedShadow.transform,translate:transmittedShadow.translate,filter:transmittedShadow.filter,opacity:transmittedShadow.opacity},causticTransform:caustic.transform,glassZ:Number(getComputedStyle(glass).zIndex),actorZ:Number(getComputedStyle(actor).zIndex),pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
  });
 }
 async function samples(page,channel='main'){
@@ -63,12 +65,13 @@ async function samples(page,channel='main'){
  await float.evaluate(float=>{
   float.pressureSamples=new Promise((resolve,reject)=>window.addEventListener('pointerup',async()=>{
    try{
-    const animation=float.getAnimations().find(a=>a.effect.getKeyframes().some(k=>'--okti-pressure' in k));
-    const frame=()=>{const r=float.querySelector('.octi-motion-media').getBoundingClientRect();return {pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,width:r.width,height:r.height}};
+    const root=float.closest('.octi-dock'),runs=[...float.querySelectorAll('*')].flatMap(node=>node.getAnimations()).filter(run=>run.id==='okti-pressure-compositor');
+    const animation=float.querySelector('.octi-motion-media').getAnimations().find(run=>run.id==='okti-pressure-compositor');
+    const frame=()=>{const r=float.querySelector('.octi-motion-media').getBoundingClientRect();return {pressure:root.octiPressure.getState().pressure,width:r.width,height:r.height}};
     if(!animation){resolve([frame()]);return}
-    const frameControlled=animation.playState==='paused';animation.pause();await animation.ready;const duration=Number(animation.effect.getTiming().duration),values=[];
-    for(let i=0;i<32;i++){animation.currentTime=duration*i/32;values.push(frame())}
-    animation.currentTime=0;if(!frameControlled)animation.play();resolve(values);
+    for(const run of runs)run.pause();await Promise.all(runs.map(run=>run.ready));const duration=Number(animation.effect.getTiming().duration),values=[];
+    for(let i=0;i<32;i++){for(const run of runs)run.currentTime=duration*i/32;values.push(frame())}
+    for(const run of runs){run.currentTime=0;run.play()}resolve(values);
    }catch(error){reject(error)}
   },{once:true}));
  });
@@ -77,11 +80,11 @@ async function samples(page,channel='main'){
 async function hold(page,channel='main'){
  const voice=page.locator(`.octi-dock[data-channel=${channel}] .voice`),b=await voice.boundingBox();
  await page.mouse.move(b.x+b.width/2,b.y+b.height*.4);await page.mouse.down();
- await page.waitForFunction(channel=>{const float=document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`);return Number(getComputedStyle(float).getPropertyValue('--okti-pressure'))>.99999&&!float.getAnimations().some(a=>a.effect.getKeyframes().some(k=>'--okti-pressure' in k))},channel);
+ await page.waitForFunction(channel=>{const root=document.querySelector(`.octi-dock[data-channel=${channel}]`),s=root.octiPressure.getState();return s.pressure===1&&!root.querySelector('.octi-motion-media').getAnimations().some(a=>a.id==='okti-pressure-compositor'&&a.playState==='running')},channel);
  return voice;
 }
 async function settled(page,channel='main'){
- await page.waitForFunction(channel=>Math.abs(parseFloat(getComputedStyle(document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`)).getPropertyValue('--okti-pressure'))||0)<.0001&&!document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`).hasAttribute('data-press-state'),channel);
+ await page.waitForFunction(channel=>document.querySelector(`.octi-dock[data-channel=${channel}]`).octiPressure.getState().phase==='idle',channel);
 }
 async function observeTap(page,channel='main'){
  const root=page.locator(`.octi-dock[data-channel=${channel}]`);
@@ -95,7 +98,7 @@ async function observeTap(page,channel='main'){
     window.addEventListener('pointerup',released,true);
     function sample(time){
      const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media').getBoundingClientRect();
-     frames.push({t:time-started,pressure:Number(getComputedStyle(float).getPropertyValue('--okti-pressure')),width:glass.width,height:glass.height,phase:float.dataset.pressState||'idle'});
+     frames.push({t:time-started,pressure:root.octiPressure.getState().pressure,width:glass.width,height:glass.height,phase:float.dataset.pressState||'idle'});
      if(releasedAt!==null&&!float.hasAttribute('data-press-state'))finish(false);else requestAnimationFrame(sample);
     }
     requestAnimationFrame(sample);
@@ -141,15 +144,17 @@ async function observeTap(page,channel='main'){
     assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
     assert.equal(pressed.pressureState.source,resting.pressureState.source,'Rest and press use the exact same texture');
     assert.match(pressed.pressureState.source,/octi-glass-33-184\.png/);
-    assert.match(pressed.pressureState.opticalSource,/octi-pressure-33-311\.webp/,'The approved v3 surface normals and reflections are actually loaded');
-    assert.ok(pressed.interiorAlpha>resting.interiorAlpha+100000,'The interior glass changes visibly; a thicker outer rim alone cannot pass');
+    assert.equal(pressed.pixelHash,resting.pixelHash,'All original RGBA material pixels stay unchanged during pressure');
+    assert.equal(pressed.materialFilter,resting.materialFilter,'No pressure-dependent hue, saturation or material filter is applied');
+    assert.ok(pressed.lightStyles.some(s=>s.opacity>.5),'Neutral surface reflections change visibly');
+    for(const style of pressed.lightStyles){const colors=[...style.background.matchAll(/rgba?\(([^)]+)\)/g)];assert.ok(colors.length);for(const color of colors){const [r,g,b]=color[1].split(',').map(Number);assert.equal(r,g,'Surface light is neutral');assert.equal(g,b,'Surface light cannot replace the blue material with another tint')}}
     assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
     assert.notEqual(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The transmitted shadow expands with the same contact');
     assert.notEqual(pressed.causticTransform,resting.causticTransform,'The transmitted light changes with the pressed membrane');
     assert.equal(await page.locator('.octi-pressure-media').count(),0,'No replacement glass layer is placed over the bubble');
-    assert.ok(pressed.edgeInk>resting.edgeInk*1.03,'Pressure darkens the original rim while preserving its blue glass');
+    assert.equal(pressed.edgeInk,resting.edgeInk,'Pressure preserves the color and alpha of the original blue edge');
     assert.deepEqual(pressed.membraneBuffer,resting.membraneBuffer,'The glass canvas also keeps its backing buffer');
-    assert.equal(await page.locator('.octi-pressure-dent').count(),0,'The old flat fold is removed');
+    assert.equal(pressed.pressureState.paintCount,resting.pressureState.paintCount,'Pressure never re-rasterizes the material');
     assert.deepEqual(pressed.buffer,resting.buffer,'Press feedback must not reallocate the renderer backing buffer');
     // Animated fractional translations round DOMRect edges independently.
     // A hundredth of a CSS pixel still catches any visible actor deformation.
@@ -166,7 +171,8 @@ async function observeTap(page,channel='main'){
     assert.equal(held.extraGlint,'none','The original image carries all moving highlights');
     const onset=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.onsetFrames);
     const intermediate=onset.filter(f=>f.paint.pressure>.05&&f.paint.pressure<.95);
-    assert.ok(new Set(intermediate.map(f=>f.paint.count)).size>=5,'Native onset must actually paint at least five intermediate glass surfaces: '+JSON.stringify(onset));
+    assert.ok(new Set(intermediate.map(f=>f.width.toFixed(3))).size>=5,'Native onset must show at least five intermediate surface sizes: '+JSON.stringify(onset));
+    assert.ok(onset.every(f=>f.paint.count===resting.pressureState.paintCount),'The whole onset uses the immutable material with no Canvas redraws');
     const full=onset.find(f=>f.paint.pressure>=.99999);
     assert.ok(full&&full.t>=90,'The quick contact impulse still has visible intermediate surfaces: '+JSON.stringify(onset));
     if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
@@ -198,6 +204,25 @@ async function observeTap(page,channel='main'){
      assert.ok(result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>=.99999),'A release before the first frame cannot erase the press impulse: '+JSON.stringify(result));
      assert.ok(result.frames.some(v=>v.pressure<-.2),'The before-first-frame tap also rebounds');await settled(page);
      console.log(kind+' quick tap: full visible press and rebound; same-task release completed after '+result.releasedAt.toFixed(2)+' ms.');
+     const busy=await page.locator('.octi-dock[data-channel=main] .voice').evaluate(async button=>{
+      const root=button.closest('.octi-dock'),r=button.getBoundingClientRect(),input={pointerId:25002,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
+      button.dispatchEvent(new PointerEvent('pointerdown',input));
+      const run=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
+      // Wait for the initial compositor commit before blocking JavaScript.
+      // A timeline read inside the first resumed RAF can still use its old
+      // frame timestamp, so observe again on the following fresh frame.
+      await run.ready;await new Promise(requestAnimationFrame);
+      const before=Number(run.currentTime);
+      const started=performance.now();while(performance.now()-started<150){}
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const state={time:Number(run.currentTime),advanced:Number(run.currentTime)-before,playState:run.playState,keys:Object.keys(run.effect.getKeyframes()[0]),pressure:root.octiPressure.getState().pressure,draws:root.octiPressure.getPaintState().count};
+      window.dispatchEvent(new PointerEvent('pointerup',input));return state;
+     });
+     assert.equal(busy.playState,'running','The browser clock is never paused and manually stepped');
+     assert.ok(busy.advanced>=130&&busy.pressure>.02,'Native geometry advances despite a 150 ms main-thread stall: '+JSON.stringify(busy));
+     assert.ok(busy.keys.includes('transform')&&!busy.keys.some(k=>k.startsWith('--')),'Compositor transforms own the actual geometry');
+     assert.equal(busy.draws,resting.pressureState.paintCount,'Busy input causes no material redraws');await settled(page);
+     console.log(kind+' native clock during 150 ms main-thread stall: '+JSON.stringify(busy));
     }
     await hold(page);await page.mouse.move(2,2);await page.mouse.up();await settled(page);
     await hold(page);await page.evaluate(()=>document.querySelector('.octi-dock[data-channel=main] .voice').dispatchEvent(new PointerEvent('pointercancel',{pointerId:window.pressPointer,bubbles:true})));await page.mouse.up();await settled(page);
@@ -212,7 +237,7 @@ async function observeTap(page,channel='main'){
       await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await settled(page);await touch.detach();
      }
      for(let i=0;i<4;i++){await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.up();}await settled(page);
-     await page.locator('.octi-dock[data-channel=main] .voice').focus();await page.keyboard.down(' ');await page.waitForFunction(()=>Number(getComputedStyle(document.querySelector('.octi-dock[data-channel=main] .water-float')).getPropertyValue('--okti-pressure'))>.95);assert.ok((await read(page)).pressure>.95);await page.keyboard.up(' ');await settled(page);
+     await page.locator('.octi-dock[data-channel=main] .voice').focus();await page.keyboard.down(' ');await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiPressure.getState().pressure>.95);assert.ok((await read(page)).pressure>.95);await page.keyboard.up(' ');await settled(page);
      await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=await samples(page);await page.mouse.up();assert.ok((await quiet()).every(v=>v.pressure>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
      await page.evaluate(()=>{showPlannerWeather=async()=>{};tasks=[{id:'pressure-event',title:'Test sprężystego bąbla',date:iso(selected),time:'17:00',endTime:'18:00'}];renderAll();openEventActions(tasks[0])});
      await page.waitForFunction(()=>!window.OktiEventMotion.getState()&&document.querySelector('.octi-dock[data-channel=event]')?.octiListening?.getState().rendering);await visualOnly(page,'event');const eventRest=await read(page,'event');
@@ -230,7 +255,7 @@ async function observeTap(page,channel='main'){
   const unavailable=await fixture(browser,390,844,{blockOptics:true});
   try{
    await visualOnly(unavailable.page);const resting=await read(unavailable.page);
-   assert.equal(resting.pressureState.opticalSource,null);
+   assert.equal(unavailable.atlasRequests,0,'No colored atlas is requested, even when that former asset is unavailable');
    await hold(unavailable.page);const held=await read(unavailable.page);
    assert.equal(held.pressureState.rendering,true);assert.equal(held.pressureState.holding,true);
    assert.ok(held.glass.width>resting.glass.width*1.15);

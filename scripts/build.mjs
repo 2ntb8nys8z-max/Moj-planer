@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.17.33.317-integration';
-const PREVIEW_VERSION='2026.11.17.33.317-test';
+const APP_VERSION='2026.11.17.33.318-integration';
+const PREVIEW_VERSION='2026.11.17.33.318-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.14.33.59-test';
 const WORKER_LABEL='Worker 33.59-test';
@@ -55,15 +55,11 @@ for(const item of calendarArtCatalog.backgrounds){
   output('preview33/'+file,content,false);
 }
 output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
-// Original resting image and the approved v3 optical atlas share one canvas.
+// One immutable blue material; pressure moves compositor layers only.
 const pressureTexture='octi-glass-33-184.png';
 const pressureTextureHash=createHash('sha256').update(fs.readFileSync(pressureTexture)).digest('hex').slice(0,16);
 let pressure=fs.readFileSync('octi-pressure.js','utf8');
 pressure=pressure.replace(/octi-glass-33-184\.png(?:\?v=[a-z0-9]+)?/g,pressureTexture+'?v='+pressureTextureHash);
-const pressureOptics='octi-pressure-33-311.webp',pressureOpticsBytes=fs.readFileSync(pressureOptics);
-const pressureOpticsHash=createHash('sha256').update(pressureOpticsBytes).digest('hex').slice(0,16);
-pressure=pressure.replace(/octi-pressure-33-311\.webp(?:\?v=[a-z0-9]+)?/g,pressureOptics+'?v='+pressureOpticsHash);
-output('preview33/'+pressureOptics,pressureOpticsBytes,false);
 output('octi-pressure.js',pressure,false);
 const pressureBuildId=createHash('sha256').update(pressure).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-pressure\.js(?:\?v=[a-z0-9]+)?/g,'octi-pressure.js?v='+pressureBuildId);
