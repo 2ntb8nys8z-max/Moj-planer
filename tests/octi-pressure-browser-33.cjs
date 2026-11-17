@@ -327,8 +327,8 @@ function assertFastReturn(result){
    assert.equal(running.paused,false);assert.equal(running.drift,'running');
    // currentTime wraps naturally at the loop boundary. Decoded frame count
    // must advance across that boundary, without interpreting a loop as a stall.
-   const advanced=media.frames!==null&&running.frames!==null?running.frames>media.frames:running.time!==media.time;
-   assert.ok(advanced,'The video keeps decoding across the loop boundary');
+   const advanced=(media.frames!==null&&running.frames!==null&&running.frames>media.frames)||Math.abs(running.time-media.time)>.001;
+   assert.ok(advanced,'The video advances across loop boundaries, including engines whose decoded-frame counter stays at zero: '+JSON.stringify({media,running}));
    assert.ok(running.nativeIdle&&running.idleVisible===1&&running.idleLoaded,'The approved animated idle image stays visible throughout the taps');
    assert.match(running.idleSource,/octi-actor-idle\.webp/);
    assert.equal(running.paints,media.paints,'Idle feedback never competes with a CPU pixel loop');
