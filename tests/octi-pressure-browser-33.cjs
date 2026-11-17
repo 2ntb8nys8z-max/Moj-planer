@@ -81,7 +81,11 @@ async function settled(page,channel='main'){
     assert.deepEqual(pressed.membraneBuffer,resting.membraneBuffer,'The glass canvas also keeps its backing buffer');
     assert.equal(await page.locator('.octi-pressure-dent').count(),0,'The old flat fold is removed');
     assert.deepEqual(pressed.buffer,resting.buffer,'Press feedback must not reallocate the renderer backing buffer');
-    assert.equal(pressed.actor.width,resting.actor.width);assert.equal(pressed.actor.height,resting.actor.height);assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
+    // Animated fractional translations round DOMRect edges independently.
+    // A hundredth of a CSS pixel still catches any visible actor deformation.
+    assert.ok(Math.abs(pressed.actor.width-resting.actor.width)<.01,'The live actor keeps its width');
+    assert.ok(Math.abs(pressed.actor.height-resting.actor.height)<.01,'The live actor keeps its height');
+    assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
