@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.17.33.313-integration';
-const PREVIEW_VERSION='2026.11.17.33.313-test';
+const APP_VERSION='2026.11.17.33.314-integration';
+const PREVIEW_VERSION='2026.11.17.33.314-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.14.33.59-test';
 const WORKER_LABEL='Worker 33.59-test';
@@ -93,6 +93,7 @@ for(const file of ['sync-core.js','google-calendar.js']){
   output('preview33/'+file,content,false);
 }
 const travelRoutes=fs.readFileSync('travel-routes.js','utf8');
+for(const file of ['porsche','bus','road-bike'])output('preview33/assets/transport/'+file+'-33-314.webp',fs.readFileSync('assets/transport/'+file+'-33-314.webp'),false);
 const travelRoutesBuildId=createHash('sha256').update(travelRoutes).digest('hex').slice(0,16);
 canonical=canonical.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
 preview=preview.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);

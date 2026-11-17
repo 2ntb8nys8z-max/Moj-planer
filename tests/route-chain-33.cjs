@@ -29,7 +29,7 @@ const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r
   // Inspect one leg: only its real origin/destination are sharp, with one center-to-center line.
   controls[1].querySelector('.okti-route-duration').click();const panel=d.querySelector('.okti-route-menu[data-state=open]'),focus=d.querySelector('.okti-route-focus');assert(panel&&focus);assert.equal(d.querySelector('.app').inert,true);
   const a=d.querySelector('[data-event-id="chain-1"]').getBoundingClientRect(),b=d.querySelector('[data-event-id="chain-2"]').getBoundingClientRect();
-  assert.equal(focus.querySelectorAll('.phone-event').length,2);assert.equal(focus.querySelectorAll('.okti-route-focus-lines path').length,1);assert.equal(focus.querySelectorAll('.okti-route-focus-lines circle').length,2);
+  assert.equal(focus.querySelectorAll('.phone-event').length,2);assert.equal(focus.querySelectorAll('.okti-route-focus-lines path').length,1);assert.equal(focus.querySelectorAll('.okti-route-point').length,2);assert.equal(focus.querySelectorAll('.okti-route-ring').length,2);
   assert.equal(focus.querySelector('.okti-route-focus-lines path').getAttribute('d'),`M ${a.left+a.width/2} ${a.top+a.height/2} L ${b.left+b.width/2} ${b.top+b.height/2}`);
   assert.equal(panel.querySelectorAll('[role=radio]').length,4);assert.equal(panel.querySelector('.okti-route-detail-duration').textContent,'18 min');assert.equal(panel.querySelector('.okti-route-detail-mode'),null);
   panel.querySelector('.okti-route-close').click();assert.equal(d.querySelector('.okti-route-focus'),null);assert.equal(!!d.querySelector('.app').inert,false);

@@ -2,7 +2,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require
 const dom=new JSDOM('<div id="taskList"><div class="phone-timeline"><button class="phone-event" data-event-id="a"></button><button class="phone-event" data-event-id="b"></button></div></div>',{url:'https://planner.test',runScripts:'outside-only',pretendToBeVisual:true});
 const w=dom.window,document=w.document,calls=[];let baseY=100;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function until(test){for(let i=0;i<100;i++){if(test())return;await wait(20)}throw Error('Timed out waiting for compact route state')}
+async function until(test,attempts=100){for(let i=0;i<attempts;i++){if(test())return;await wait(20)}throw Error('Timed out waiting for compact route state')}
 w.tasks=[{id:'a',title:'Pierwsze',time:'10:00',endTime:'11:00',location:'Berlin'},{id:'b',title:'Drugie',time:'13:00',endTime:'14:00',location:'Dresden'}];
 w.$=id=>document.getElementById(id);w.matchMedia=()=>({matches:true});
 w.plannerLocation=task=>task.location||'';w.plannerLocationKey=value=>value.trim().toLowerCase();w.phoneMinutes=value=>Number(value.slice(0,2))*60+Number(value.slice(3));
@@ -23,7 +23,9 @@ const badge=()=>document.querySelector('.okti-route-badge:not(:disabled)'),menu=
  const controls=badge().closest('.okti-route-controls');assert.equal(controls.dataset.destinationEventId,'b');assert.equal(controls.dataset.layout,'wide');assert(Number.parseFloat(controls.style.left)>=0&&Number.parseFloat(controls.style.left)+Number.parseFloat(controls.style.width)<=294,'Controls fit inside destination card');
  assert.equal(badge().textContent,'');assert.equal(badge().querySelectorAll('svg').length,1);assert.equal(badge().offsetWidth,44);assert.equal(badge().querySelector('.okti-route-clock'),null);
  assert.match(badge().getAttribute('aria-label'),/Samochód, 26 min/);
- badge().click();const panel=menu();assert(panel);assert.equal(document.getElementById('taskList').inert,true);assert.equal(document.querySelectorAll('.okti-route-focus-copy.phone-event').length,2);assert.equal(document.querySelectorAll('.okti-route-focus-lines circle').length,2);assert.equal(panel.parentElement,document.body);assert.equal(panel.querySelectorAll('[role=radio]').length,4);
+ badge().click();const panel=menu();assert(panel);assert.equal(document.getElementById('taskList').inert,true);assert.equal(document.querySelectorAll('.okti-route-focus-copy.phone-event').length,2);assert.equal(document.querySelectorAll('.okti-route-point').length,2);assert.equal(document.querySelectorAll('.okti-route-ring').length,2);assert.equal(panel.parentElement,document.body);assert.equal(panel.querySelectorAll('[role=radio]').length,4);
+ assert.deepEqual([...panel.querySelectorAll('[role=radio]')].map(n=>n.textContent),['','','','']);
+ assert.equal(document.querySelector('.okti-route-focus-lines').dataset.state,'complete','Reduced motion immediately shows the finished connector');
  assert.equal(panel.querySelector('.okti-route-detail-duration').textContent,'26 min');
  const walk=panel.querySelector('[data-mode=walk]');walk.click();
  await until(()=>panel.querySelector('.okti-route-detail-duration').textContent==='Liczymy…');
@@ -39,6 +41,13 @@ const badge=()=>document.querySelector('.okti-route-badge:not(:disabled)'),menu=
  panel.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert.equal(menu(),null);assert.equal(document.activeElement,badge());assert.equal(!!document.getElementById('taskList').inert,false);assert.equal(document.querySelector('.okti-route-focus'),null);
  badge().click();assert(menu());await wait(110);document.dispatchEvent(new w.Event('scroll'));assert.equal(menu(),null,'Scroll dismisses a fixed popup');
  badge().click();assert(menu());document.body.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true}));assert.equal(menu(),null);
+ w.matchMedia=()=>({matches:false});document.querySelector('[data-event-id=b]').style.setProperty('--key-rim-deep','#466751');badge().click();
+ const drawing=document.querySelector('.okti-route-focus-lines'),line=drawing.querySelector('.okti-route-solid'),arrival=drawing.querySelectorAll('.okti-route-dot')[1];
+ assert.equal(drawing.dataset.state,'drawing');assert.equal(document.querySelector('.okti-route-focus').style.getPropertyValue('--okti-route-accent'),'#466751');
+ await until(()=>Number(line.style.strokeDashoffset)<.95&&[...drawing.querySelectorAll('.okti-route-particle')].some(n=>Number(n.getAttribute('opacity'))>0));
+ assert.equal(Number(arrival.style.opacity),0,'The lower point appears only when the packet arrives');assert.ok(Number(line.style.strokeDashoffset)>0,'The moving packet progressively becomes a line');
+ await until(()=>drawing.dataset.state==='complete',250);assert.equal(Number(arrival.style.opacity),1);assert.equal(line.style.strokeDasharray,'none');assert.deepEqual([...drawing.querySelectorAll('.okti-route-particle')].map(n=>Number(n.getAttribute('opacity'))),[0,0,0,0,0]);
+ menu().querySelector('.okti-route-close').click();await until(()=>!document.querySelector('.okti-route-focus'));w.matchMedia=()=>({matches:true});
  baseY=550;w.flushPlannerRouteLayout();badge().click();assert(menu());const last=document.querySelector('[data-event-id=b]').getBoundingClientRect();assert.equal(Number.parseFloat(menu().style.top),last.bottom+10,'The panel remains below a late event');assert.ok(Number.parseFloat(menu().style.top)+menu().offsetHeight<=w.innerHeight-10,'The calendar scrolls to reveal room below the last event');await wait(250);const scroller=document.getElementById('taskList');scroller.dispatchEvent(new w.Event('scroll'));assert(menu(),'A delayed event from our own scroll must not close the menu');scroller.scrollTop+=10;scroller.dispatchEvent(new w.Event('scroll'));assert.equal(menu(),null,'An actual scroll away still dismisses the menu');document.body.dispatchEvent(new w.MouseEvent('pointerdown',{bubbles:true}));
  w.tasks[1].location='  POZNAŃ ';w.dispatchEvent(new w.Event('resize'));await until(()=>!document.querySelector('.okti-route-badge'));assert.equal(document.querySelectorAll('.okti-route-lines').length,0);
  console.log('Compact routes: inline icon and separate visible time, soft focus pair, accessible duration, persistent live popup, four choices, stable controls, latest locations, dismissal and same-place hiding passed (DOM geometry/routes simulated).');

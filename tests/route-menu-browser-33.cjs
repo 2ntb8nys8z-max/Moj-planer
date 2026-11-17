@@ -31,12 +31,25 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
   await openMenu(page);const menu=page.locator('.okti-route-menu[data-state=open]');assert.equal(await menu.getByRole('radio').count(),4);assert.equal(await key(page).getAttribute('aria-expanded'),'true');
   assert.equal(await menu.evaluate(n=>n.parentElement===document.body),true);assert.equal(await page.locator('.app').evaluate(n=>n.inert),true);
   const bounds=await menu.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width&&bounds.y>=0&&bounds.y+bounds.height<=height,JSON.stringify({label,bounds}));
-  const pair=await page.locator('.okti-route-focus').evaluate(n=>{const cards=[...document.querySelectorAll('#taskList .phone-event')].map(c=>c.getBoundingClientRect()),a=cards[0],b=cards[1];return {copies:n.querySelectorAll('.phone-event').length,path:n.querySelector('.okti-route-focus-lines path').getAttribute('d'),expected:`M ${a.left+a.width/2} ${a.top+a.height/2} L ${b.left+b.width/2} ${b.top+b.height/2}`,dots:n.querySelectorAll('.okti-route-focus-lines circle').length,background:n.getAttribute('aria-hidden')}});
+  const pair=await page.locator('.okti-route-focus').evaluate(n=>{const cards=[...document.querySelectorAll('#taskList .phone-event')].map(c=>c.getBoundingClientRect()),a=cards[0],b=cards[1];return {copies:n.querySelectorAll('.phone-event').length,path:n.querySelector('.okti-route-focus-lines path').getAttribute('d'),expected:`M ${a.left+a.width/2} ${a.top+a.height/2} L ${b.left+b.width/2} ${b.top+b.height/2}`,dots:n.querySelectorAll('.okti-route-point').length,background:n.getAttribute('aria-hidden')}});
   assert.equal(pair.copies,2);assert.equal(pair.path,pair.expected,'One straight line connects the real card centers');assert.equal(pair.dots,2);assert.equal(pair.background,'true');
+  assert.deepEqual(await menu.getByRole('radio').allTextContents(),['','','',''],'Transport options have accessible names without visible captions');
+  assert.deepEqual(await menu.getByRole('radio').evaluateAll(nodes=>nodes.map(n=>n.querySelector('svg').getBoundingClientRect().width)),[44,26,38,42],'Approved larger icons fit the original tiles');
+  assert.ok(bounds.height<=135,'The transport panel retains its compact height');
+  if(width===390&&mode==='BICYCLE'){
+   await page.waitForFunction(()=>{const path=document.querySelector('.okti-route-solid');return Number(path.style.strokeDashoffset)>0&&Number(path.style.strokeDashoffset)<.95&&[...document.querySelectorAll('.okti-route-particle')].some(n=>Number(n.getAttribute('opacity'))>0)});
+   assert.equal(await page.locator('.okti-route-point').last().locator('.okti-route-dot').evaluate(n=>Number(n.style.opacity)),0,'The destination dot waits for the arriving packet');
+   await page.screenshot({path:path.join(out,'dots-forming-line.png')});
+   await page.waitForFunction(()=>document.querySelector('.okti-route-focus-lines')?.dataset.state==='complete',{},{timeout:6000});
+   assert.equal(await page.locator('.okti-route-point').last().locator('.okti-route-dot').evaluate(n=>Number(n.style.opacity)),1);
+   assert.deepEqual(await page.locator('.okti-route-particle').evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute('opacity')))),[0,0,0,0,0],'The packet becomes one line without an endless loop');
+   const accents=await page.locator('.okti-route-focus').evaluate(n=>{const to=document.querySelector('#taskList [data-event-id="route-to"]'),style=getComputedStyle(to);return [n.style.getPropertyValue('--okti-route-accent'),style.getPropertyValue('--key-rim-deep').trim()||style.getPropertyValue('--key-rim').trim()||'#4d95c3']});assert.equal(accents[0],accents[1]);
+   await page.screenshot({path:path.join(out,'line-complete.png')});
+  }
   await menu.getByRole('radio',{name,exact:true}).tap();assert.equal(await page.locator('.okti-route-menu[data-state=open]').count(),1);await menu.locator('.okti-route-detail-duration').filter({hasText:expected[mode]}).waitFor();
   assert.equal(await key(page).getAttribute('data-route-duration'),expected[mode]);assert.equal(await menu.getByRole('radio',{name,exact:true}).getAttribute('aria-checked'),'true');
   assert.equal(await menu.locator('.okti-route-detail-duration').evaluate(n=>n.scrollWidth<=n.clientWidth),true,label+': complete duration fits');
-  assert.equal(await key(page).evaluate(n=>{const glyph=n.querySelector(':scope > svg').getBoundingClientRect(),r=n.getBoundingClientRect();return glyph.width===22&&glyph.height===22&&glyph.left>=r.left+3&&glyph.right<=r.right-3}),true);
+  assert.equal(await key(page).evaluate(n=>{const glyph=n.querySelector(':scope > svg').getBoundingClientRect(),r=n.getBoundingClientRect();return glyph.width===26&&glyph.height===26&&glyph.left>=r.left+3&&glyph.right<=r.right-3}),true);
   assert.equal((await key(page).textContent()).trim(),'');if(mode==='WALK')assert.equal(await key(page).locator('svg circle').count(),10,'Walking retains the two detailed footprints');
   if(width===390)await page.screenshot({path:path.join(out,label+'-'+mode.toLowerCase()+'.png')});
   await page.touchscreen.tap(5,5);await page.locator('.okti-route-menu').waitFor({state:'detached'});assert.equal(await page.locator('.app').evaluate(n=>n.inert),false);
@@ -75,5 +88,5 @@ try{for(const [width,height] of [[320,568],[355,768],[390,844],[430,932],[844,39
  assert.ok(Math.abs(below.top-below.cardBottom-10)<1,JSON.stringify({label,below}));assert.ok(below.bottom<=height-9,label+': the lower panel remains visible');await closeMenu(page);
  await context.close();console.log(kind+' '+label+': inline time, four modes, sharp pair and center line, bounded white panel, animation, outside/Escape/close, risk, persistence and data preservation passed.');
  }
- const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),page=await context.newPage();await routing(page);await page.goto(live||'https://planner.test');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await seed(page);await openMenu(page);assert.equal(await page.locator('.okti-route-menu').evaluate(n=>n.getAnimations().length),0);await closeMenu(page);await context.close();assert.deepEqual(errors,[]);
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}),page=await context.newPage();await routing(page);await page.goto(live||'https://planner.test');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await seed(page);await openMenu(page);assert.equal(await page.locator('.okti-route-menu').evaluate(n=>n.getAnimations().length),0);assert.equal(await page.locator('.okti-route-focus-lines').getAttribute('data-state'),'complete','Reduced motion shows the finished route immediately');await closeMenu(page);await context.close();assert.deepEqual(errors,[]);
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
