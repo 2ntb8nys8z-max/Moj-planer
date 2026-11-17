@@ -1,8 +1,9 @@
 /* One immutable blue material; native transforms and neutral light only. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',LIGHTS='octi-pressure-lights-33-319.webp?v=38ea712472ff432d',LIGHT_POSES=6,SIZE=384,CONTACT=600,RETURN=1750;
+const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',LIGHTS='octi-pressure-lights-33-319.webp?v=38ea712472ff432d',LIGHT_POSES=6,SIZE=384,CONTACT=80,RETURN=120,IMMEDIATE=.4;
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(10+v*(-15+6*v));};
+const easeOut=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),3);
 let texturePromise=null,lightPromise=null;
 function loadLights(){
  if(!lightPromise)lightPromise=new Promise(resolve=>{
@@ -23,14 +24,10 @@ function loadTexture(){
  });
  return texturePromise;
 }
-function spring(ms){
- const t=ms/1000,p=Math.exp(-4*t)*(Math.cos(12.5*t)+4/12.5*Math.sin(12.5*t));
- return p*(1-smooth((ms-1500)/250));
-}
 function sample(curve,time){
- if(curve.contact&&time<curve.contact)return curve.from+(1-curve.from)*smooth(time/curve.contact);
+ if(curve.contact&&time<curve.contact)return curve.from+(1-curve.from)*easeOut(time/curve.contact);
  if(curve.releaseAt===null||time<=curve.releaseAt)return curve.contact?1:curve.from;
- return (curve.contact?1:curve.from)*spring(time-curve.releaseAt);
+ return curve.from*(1-easeOut((time-curve.releaseAt)/RETURN));
 }
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
@@ -94,7 +91,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   ];
  }
  function frames(next,project){
-  const times=new Set([0,next.duration]);for(let t=12;t<next.duration;t+=12)times.add(t);
+  const times=new Set([0,next.duration]);for(let t=4;t<next.duration;t+=4)times.add(t);
   for(const t of [next.contact,next.releaseAt])if(t!==null&&t>=0&&t<=next.duration)times.add(t);
   return [...times].sort((a,b)=>a-b).map(time=>({...project(sample(next,time)),offset:time/next.duration}));
  }
@@ -118,20 +115,17 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function begin(input){
   if(button.disabled||active)return;
-  const from=value();lockDrift();active={...input,bounds:glass.getBoundingClientRect()};start({from,contact:CONTACT,releaseAt:null,duration:CONTACT},'held');
+  // Apply visible pressure in this input task, including taps released before
+  // the first display frame. The remaining expansion takes only 80 ms.
+  const from=Math.max(value(),IMMEDIATE);lockDrift();active={...input,bounds:glass.getBoundingClientRect()};start({from,contact:CONTACT,releaseAt:null,duration:CONTACT},'held');
   if(!texture&&!pendingTexture)prepare();
  }
  function release(){
   if(!active)return;
   active=null;if(motion?.matches||typeof glass.animate!=='function'){reset();return}
-  const from=value(),elapsed=Number(primary?.currentTime)||0;
-  if(curve?.releaseAt===null&&elapsed<curve.contact&&primary?.playState!=='finished'){
-   // Extend the same native timeline: same-task taps retain the full contact
-   // impulse. Nothing pauses or advances an animation from a JavaScript loop.
-   const next={...curve,releaseAt:curve.contact+60,duration:curve.contact+60+RETURN};
-   for(const {run,project} of records){run.effect.setKeyframes(frames(next,project));run.effect.updateTiming({duration:next.duration})}
-   curve=next;phase='tap';floating.dataset.pressState='tap';
-  }else start({from,contact:0,releaseAt:0,duration:RETURN},'release');
+  // Finger-up reverses from the currently displayed pressure immediately.
+  // A short tap never waits for full expansion or a minimum held pose.
+  start({from:value(),contact:0,releaseAt:0,duration:RETURN},'release');
  }
  function prepare(){
   loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;installTexture()}});
@@ -145,7 +139,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('pointercancel',event=>{if(active?.pointerId===event.pointerId)reset()},{capture:true,passive:true});
  button.addEventListener('keydown',event=>{if(!event.repeat&&[' ','Enter'].includes(event.key))begin({key:event.key})});
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
- button.addEventListener('blur',()=>{if(button.disabled&&!active&&['tap','release'].includes(phase))return;reset()});window.addEventListener('blur',reset);
+ button.addEventListener('blur',()=>{if(button.disabled&&!active&&phase==='release')return;reset()});window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
  const controls={reset,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?Math.max(0,value())*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,lightSource:LIGHTS,lightingReady,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
  root.octiPressure=controls;prepare();return controls;

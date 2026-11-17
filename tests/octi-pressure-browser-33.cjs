@@ -34,6 +34,8 @@ async function visualOnly(page,channel='main'){
   button.addEventListener('pointerdown',event=>{
    window.pressPointer=event.pointerId;const root=button.closest('.octi-dock'),r=root.querySelector('.octi-motion-media').getBoundingClientRect();
    root.pressStart={x:r.x+r.width/2,y:r.y+r.height/2};
+   const run=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
+   root.pressResponse={pressure:root.octiPressure.getState().pressure,width:r.width,phase:root.octiPressure.getState().phase,duration:Number(run?.effect.getTiming().duration),delay:run?.effect.getTiming().delay};
    const start=performance.now();root.onsetFrames=[];
    function sample(){
     const glass=root.querySelector('.octi-motion-media'),box=glass.getBoundingClientRect(),paint=root.octiPressure.getPaintState();
@@ -72,10 +74,10 @@ async function samples(page,channel='main'){
    try{
     const root=float.closest('.octi-dock'),runs=[...float.querySelectorAll('*')].flatMap(node=>node.getAnimations()).filter(run=>run.id==='okti-pressure-compositor');
     const animation=float.querySelector('.octi-motion-media').getAnimations().find(run=>run.id==='okti-pressure-compositor');
-    const frame=()=>{const r=float.querySelector('.octi-motion-media').getBoundingClientRect();return {pressure:root.octiPressure.getState().pressure,width:r.width,height:r.height}};
+    const frame=()=>{const r=float.querySelector('.octi-motion-media').getBoundingClientRect();return {pressure:root.octiPressure.getState().pressure,width:r.width,height:r.height,duration:Number(animation?.effect.getTiming().duration)||0}};
     if(!animation){resolve([frame()]);return}
     for(const run of runs)run.pause();await Promise.all(runs.map(run=>run.ready));const duration=Number(animation.effect.getTiming().duration),values=[];
-    for(let i=0;i<32;i++){for(const run of runs)run.currentTime=duration*i/32;values.push(frame())}
+    for(let i=0;i<=32;i++){for(const run of runs)run.currentTime=duration*i/32;values.push(frame())}
     for(const run of runs){run.currentTime=0;run.play()}resolve(values);
    }catch(error){reject(error)}
   },{once:true}));
@@ -101,15 +103,15 @@ async function observeTap(page,channel='main'){
     const guard=setTimeout(()=>finish(true),7000);
     function released(up){if(up.pointerId===event.pointerId){
      releasedAt=performance.now()-started;
-     // Inspect the actual compiled native timeline after finger-up. A blocked
-     // JS observer can miss its held pose while the compositor displays it.
+     // Inspect the actual native return after finger-up. The entire 120 ms
+     // feedback can finish between JS observer callbacks on software GL.
      const run=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
      if(run){
       const duration=Number(run.effect.getTiming().duration),poses=run.effect.getKeyframes().map(frame=>{
        const scale=frame.transform.match(/scale\(\s*([-\d.e+]+)\s*,\s*([-\d.e+]+)\s*\)/i);
        return {time:frame.computedOffset*duration,x:scale?Number(scale[1]):0,y:scale?Number(scale[2]):0};
-      }),full=poses.filter(p=>p.x>=1.15999&&p.y>=1.09999);
-      native={duration,maxX:Math.max(...poses.map(p=>p.x)),maxY:Math.max(...poses.map(p=>p.y)),minX:Math.min(...poses.map(p=>p.x)),fullPoseMs:full.length?full.at(-1).time-full[0].time:0};
+      });
+      native={duration,delay:run.effect.getTiming().delay,firstX:poses[0].x,lastX:poses.at(-1).x,maxX:Math.max(...poses.map(p=>p.x)),minX:Math.min(...poses.map(p=>p.x)),immediate:poses[1].x<poses[0].x,monotonic:poses.every((p,i)=>!i||p.x<=poses[i-1].x),phase:root.octiPressure.getState().phase,holding:root.octiPressure.getState().holding};
      }
     }}
     window.addEventListener('pointerup',released,true);
@@ -123,6 +125,17 @@ async function observeTap(page,channel='main'){
   });
  });
  return ()=>root.evaluate(root=>root.tapResult);
+}
+function assertFastReturn(result){
+ assert.equal(result.timedOut,false,'A real tap completes its visual cycle');
+ assert.equal(result.native?.duration,120,'Finger-up gets a 120 ms return, with no queued contact phase');
+ assert.equal(result.native.delay,0,'There is no finger-up delay');
+ assert.equal(result.native.phase,'release');assert.equal(result.native.holding,false);
+ assert.ok(result.native.firstX>=1.0639,'Even a before-first-frame tap retains visible immediate pressure: '+JSON.stringify(result));
+ assert.equal(result.native.lastX,1,'The return ends at the original size');
+ assert.ok(result.native.immediate&&result.native.monotonic,'The very first return interval shrinks and never waits or continues expanding: '+JSON.stringify(result));
+ assert.equal(result.native.minX,1,'No long elastic tail follows the fast return');
+ assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
 }
 (async()=>{
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
@@ -160,6 +173,10 @@ async function observeTap(page,channel='main'){
     assert.equal(await page.locator('.octi-key-seat').count(),0,'The extra glass mount has been removed');
     assert.ok(Math.abs(resting.glass.width/resting.target.width-1.28)<.002,'Restore the original full-size bubble');
     await hold(page);const pressed=await read(page);
+    const response=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.pressResponse);
+    assert.ok(response.width>=resting.glass.width*1.0639&&response.pressure>=.4,'The pointerdown task itself changes the rendered geometry before any animation frame or click');
+    assert.equal(response.duration,80,'The remaining expansion takes 80 ms');assert.equal(response.delay,0);
+    assert.equal(response.phase,'held');
     assert.deepEqual(pressed.target,resting.target,'Only artwork flexes; the recorder hit target stays still');
     assert.ok(pressed.glass.width>resting.glass.width*1.15,'The held bubble widens');
     assert.ok(pressed.glass.height>resting.glass.height*1.095,'Pressure expands the membrane around its whole circumference');
@@ -223,25 +240,22 @@ async function observeTap(page,channel='main'){
     assert.ok(onset.every((f,i)=>!i||f.width>=onset[i-1].width-.01),'The live contact never reverses or flickers');
     assert.ok(onset.every(f=>f.paint.count===resting.pressureState.paintCount),'The whole onset uses the immutable material with no Canvas redraws');
     const full=onset.find(f=>f.paint.pressure>=.99999);
-    assert.ok(full&&full.t>=580,'The native contact reaches full pressure only after its smooth 600 ms approach: '+JSON.stringify(onset));
+    assert.ok(full&&full.t>=79&&full.t<=81,'Native contact finishes within 80 ms: '+JSON.stringify(onset));
     if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
-    const release=await samples(page);await page.mouse.up();const bounce=await release();
-    assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
+    const release=await samples(page);await page.mouse.up();const returning=await release();
+    assert.equal(returning[0].duration,120,'A long hold returns as quickly as a short tap');
+    assert.equal(returning[0].pressure,1);assert.equal(returning.at(-1).pressure,0);
+    assert.ok(returning[1].pressure<returning[0].pressure&&returning.every((v,i)=>v.pressure>=0&&(!i||v.pressure<=returning[i-1].pressure)),'Release immediately shrinks without a held pose or oscillating tail: '+JSON.stringify(returning));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
     assert.equal((await read(page)).transmittedShadow.transform,resting.transmittedShadow.transform,'The shadow recovers its original shape after release');
     assert.equal((await read(page)).interiorAlpha,resting.interiorAlpha,'The decoded resting glass is restored exactly after the optical animation');
     assert.ok((await read(page)).lightStyles.every(s=>s.opacity===0),'All indentation reflections return completely after release');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
-    // Observe the real animation instead of seeking its timeline: even a very
-    // short native tap must show the same full pressed pose as a long hold.
+    // A native tap starts visible feedback on down and immediately reverses
+    // on up. It must never queue completion of the contact or a minimum hold.
     const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await observeTap(page);
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap();
-    assert.equal(quick.timedOut,false,'A quick tap completes its visual cycle');
-    assert.ok(quick.native?.maxX>=1.15999&&quick.native.maxY>=1.09999&&quick.native.fullPoseMs>=50,'A quick tap keeps the full expanded pose in the running native timeline: '+JSON.stringify(quick));
-    assert.ok(quick.frames.some(v=>v.pressure>0&&v.width>resting.glass.width+.001),'A quick tap visibly advances its actual native geometry');
-    // A blocked software-GL observer can skip the first spring trough. Check
-    // its full native geometry and an independently observed actual return.
-    assert.ok(quick.native?.minX<.95&&quick.frames.some(v=>v.pressure<0&&v.width<resting.glass.width-.01),'A quick tap compiles the full rebound and visibly crosses its resting size: '+JSON.stringify(quick));
+    assertFastReturn(quick);
     await settled(page);
     if(width===390){
      // Deterministic worst case: down and up occur in the same JavaScript task,
@@ -249,14 +263,14 @@ async function observeTap(page,channel='main'){
      // Then emulate the recorder disabling its focused button while opening
      // the microphone; its resulting blur must not erase the released tap.
      const instant=await observeTap(page);
-     await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{
-      button.focus();const r=button.getBoundingClientRect(),input={pointerId:25001,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
-      button.dispatchEvent(new PointerEvent('pointerdown',input));window.dispatchEvent(new PointerEvent('pointerup',input));button.disabled=true;
+     const sameTask=await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{
+      button.focus();const root=button.closest('.octi-dock'),glass=root.querySelector('.octi-motion-media'),before=glass.getBoundingClientRect().width,r=button.getBoundingClientRect(),input={pointerId:25001,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
+      button.dispatchEvent(new PointerEvent('pointerdown',input));const down=glass.getBoundingClientRect().width;
+      window.dispatchEvent(new PointerEvent('pointerup',input));const phase=root.octiPressure.getState().phase;button.disabled=true;return {before,down,phase};
      });
-     const result=await instant();await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{button.disabled=false});assert.equal(result.timedOut,false);
-     assert.ok(result.native?.maxX>=1.15999&&result.native.fullPoseMs>=50&&result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>0),'A release before the first frame cannot erase the native contact impulse: '+JSON.stringify(result));
-     assert.ok(result.native?.minX<.95&&result.frames.some(v=>v.pressure<0&&v.width<resting.glass.width-.01),'The before-first-frame tap also compiles and displays its rebound');await settled(page);
-     console.log(kind+' quick tap: full visible press and rebound; same-task release completed after '+result.releasedAt.toFixed(2)+' ms.');
+     assert.ok(sameTask.down>=sameTask.before*1.0639,'No timer, click or display frame is required to apply visible pressure');assert.equal(sameTask.phase,'release');
+     const result=await instant();await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{button.disabled=false});assertFastReturn(result);await settled(page);
+     console.log(kind+' immediate tap: synchronous pressure and 120 ms return; same-task release after '+result.releasedAt.toFixed(2)+' ms.');
      const busy=await page.locator('.octi-dock[data-channel=main] .voice').evaluate(async button=>{
       const root=button.closest('.octi-dock'),r=button.getBoundingClientRect(),input={pointerId:25002,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
       button.dispatchEvent(new PointerEvent('pointerdown',input));
@@ -268,11 +282,16 @@ async function observeTap(page,channel='main'){
       const before=Number(run.currentTime);
       const started=performance.now();while(performance.now()-started<150){}
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      const state={time:Number(run.currentTime),advanced:Number(run.currentTime)-before,playState:run.playState,keys:Object.keys(run.effect.getKeyframes()[0]),pressure:root.octiPressure.getState().pressure,draws:root.octiPressure.getPaintState().count};
-      window.dispatchEvent(new PointerEvent('pointerup',input));return state;
+      const state={time:Number(run.currentTime),before,playState:run.playState,keys:Object.keys(run.effect.getKeyframes()[0]),pressure:root.octiPressure.getState().pressure,draws:root.octiPressure.getPaintState().count};
+      window.dispatchEvent(new PointerEvent('pointerup',input));const returning=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
+      state.returnDuration=Number(returning.effect.getTiming().duration);await returning.ready;await new Promise(requestAnimationFrame);
+      const releaseStarted=performance.now();while(performance.now()-releaseStarted<150){}
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      state.returnPressure=root.octiPressure.getState().pressure;return state;
      });
-     assert.equal(busy.playState,'running','The browser clock is never paused and manually stepped');
-     assert.ok(busy.advanced>=130&&busy.pressure>.02,'Native geometry advances despite a 150 ms main-thread stall: '+JSON.stringify(busy));
+     assert.equal(busy.playState,'finished','The native 80 ms contact finishes during a 150 ms main-thread stall');
+     assert.equal(busy.time,80);assert.equal(busy.pressure,1,'Native geometry reaches the held pose without JavaScript frames: '+JSON.stringify(busy));
+     assert.equal(busy.returnDuration,120);assert.equal(busy.returnPressure,0,'The native return also finishes during a 150 ms main-thread stall');
      assert.ok(busy.keys.includes('transform')&&!busy.keys.some(k=>k.startsWith('--')),'Compositor transforms own the actual geometry');
      assert.equal(busy.draws,resting.pressureState.paintCount,'Busy input causes no material redraws');await settled(page);
      console.log(kind+' native clock during 150 ms main-thread stall: '+JSON.stringify(busy));
@@ -294,10 +313,10 @@ async function observeTap(page,channel='main'){
      await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=await samples(page);await page.mouse.up();assert.ok((await quiet()).every(v=>v.pressure>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
      await page.evaluate(()=>{showPlannerWeather=async()=>{};tasks=[{id:'pressure-event',title:'Test sprężystego bąbla',date:iso(selected),time:'17:00',endTime:'18:00'}];renderAll();openEventActions(tasks[0])});
      await page.waitForFunction(()=>!window.OktiEventMotion.getState()&&document.querySelector('.octi-dock[data-channel=event]')?.octiListening?.getState().rendering);await visualOnly(page,'event');const eventRest=await read(page,'event');
-     await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v.pressure<-.08));await settled(page,'event');
+     await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const back=await samples(page,'event');await page.mouse.up();const eventReturn=await back();assert.equal(eventReturn[0].duration,120);assert.equal(eventReturn.at(-1).pressure,0);assert.ok(eventReturn.every(v=>v.pressure>=0));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
-    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} visible real-time surface expansion, no duplicate frame, centered hold, native long-press protection and elastic release passed.`);
+    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} same-task pressure, 80 ms expansion, immediate 120 ms return, centered hold and native long-press protection passed.`);
    }finally{
     const recording=page.video();await page.close();
     if(recording){const source=await recording.path(),target=`test-results/okti-listening/${kind}-pressure-realtime.webm`;await recording.saveAs(target);if(path.resolve(source)!==path.resolve(target))fs.unlinkSync(source)}
