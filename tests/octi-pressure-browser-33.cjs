@@ -35,9 +35,13 @@ async function visualOnly(page,channel='main'){
    window.pressPointer=event.pointerId;const root=button.closest('.octi-dock'),r=root.querySelector('.octi-motion-media').getBoundingClientRect();
    root.pressStart={x:r.x+r.width/2,y:r.y+r.height/2};
    const start=performance.now();root.onsetFrames=[];
-   function sample(time){
-    const box=root.querySelector('.octi-motion-media').getBoundingClientRect(),paint=root.octiPressure.getPaintState();
-    root.onsetFrames.push({t:time-start,width:box.width,height:box.height,paint});
+   function sample(){
+    const glass=root.querySelector('.octi-motion-media'),box=glass.getBoundingClientRect(),paint=root.octiPressure.getPaintState();
+    const animation=glass.getAnimations().find(run=>run.id==='okti-pressure-compositor');
+    // A resumed RAF can carry a timestamp from before this pointer event on
+    // software GL. Read the running animation's clock, retaining wall time
+    // separately; neither clock drives or seeks the feedback under test.
+    root.onsetFrames.push({t:Number(animation?.currentTime)||0,wall:performance.now()-start,width:box.width,height:box.height,paint});
     if(paint.pressure<.99999&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
    }
    requestAnimationFrame(sample);
@@ -219,7 +223,7 @@ async function observeTap(page,channel='main'){
     assert.ok(onset.every((f,i)=>!i||f.width>=onset[i-1].width-.01),'The live contact never reverses or flickers');
     assert.ok(onset.every(f=>f.paint.count===resting.pressureState.paintCount),'The whole onset uses the immutable material with no Canvas redraws');
     const full=onset.find(f=>f.paint.pressure>=.99999);
-    assert.ok(full&&full.t>=90,'The quick contact impulse still has visible intermediate surfaces: '+JSON.stringify(onset));
+    assert.ok(full&&full.t>=580,'The native contact reaches full pressure only after its smooth 600 ms approach: '+JSON.stringify(onset));
     if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
