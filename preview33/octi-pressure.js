@@ -1,9 +1,10 @@
 /* One static blue material and one native transform; no video or hover control. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=180;
+const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=240;
 const ease=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),3);
-const EASING='cubic-bezier(.333333,1,.666667,1)';
+const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
+const EASING='cubic-bezier(.333333,1,.666667,1)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
 let texturePromise=null;
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
@@ -31,7 +32,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(!curve)return settled;
   if(curve.peakTime&&time<curve.peakTime)return curve.from+(curve.peak-curve.from)*ease(time/curve.peakTime);
   const from=curve.peakTime?curve.peak:curve.from,start=curve.peakTime||0;
-  return from+(curve.to-from)*ease((time-start)/(curve.duration-start));
+  return from+(curve.to-from)*(curve.to===0?recover:ease)((time-start)/(curve.duration-start));
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
  function style(p){return {transform:`translate(-50%,-50%) scale(${1+.16*p},${1+.10*p})`}}
@@ -50,8 +51,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   // Only two (or three for a before-first-frame tap) native transform frames.
   // The actor, its video, inherited drift and transmitted shadow keep running.
-  const frames=[{...style(next.from),offset:0,easing:EASING}];
-  if(next.peakTime)frames.push({...style(next.peak),offset:next.peakTime/next.duration,easing:EASING});
+  const frames=[{...style(next.from),offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
+  if(next.peakTime)frames.push({...style(next.peak),offset:next.peakTime/next.duration,easing:RECOVER});
   frames.push({...style(next.to),offset:1});
   const run=glass.animate(frames,{duration:next.duration,easing:'linear',fill:'forwards'});run.id='okti-pressure-compositor';
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
