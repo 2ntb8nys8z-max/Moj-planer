@@ -36,7 +36,7 @@ async function visualOnly(page,channel='main'){
    function sample(time){
     const box=root.querySelector('.octi-motion-media').getBoundingClientRect(),paint=root.octiPressure.getPaintState();
     root.onsetFrames.push({t:time-start,width:box.width,height:box.height,paint});
-    if(time-start<700&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
+    if(paint.pressure<.99999&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
    }
    requestAnimationFrame(sample);
   });

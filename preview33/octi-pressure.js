@@ -77,7 +77,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const glass=root.querySelector('.octi-motion-media'),canvas=document.createElement('canvas');
  if(!glass)return {reset(){}};
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
- const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,frameClock=null,raf=0,lastPressure=NaN,lastPaint=0;
  let driftLock=null,hoverAnimation=null,drawCount=0,lastDrawMs=0;
  function lockDrift(){
   if(driftLock)return;
@@ -120,9 +120,22 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(texture&&ctx&&canvas.parentElement!==glass&&effective===0){glass.append(canvas);glass.classList.add('is-pressure-ready')}
   return {pressure:p,effective};
  }
- function tick(time){raf=0;if(time-lastPaint>=14){paint();lastPaint=time}if(animation)raf=requestAnimationFrame(tick)}
- function stop(){if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
- function animate(peaks,duration,easing=smooth){
+ function tick(time){
+  raf=0;let complete=null;
+  if(frameClock){
+   // Preserve the visible stages if the live actor or device stalls a frame.
+   // On a normal display this is the same 600 ms motion. Under load it slows
+   // down instead of jumping straight from the resting edge to full size.
+   frameClock.elapsed=Math.min(frameClock.duration,frameClock.elapsed+Math.min(50,Math.max(0,time-frameClock.last)));
+   frameClock.last=time;frameClock.run.currentTime=frameClock.elapsed;
+   if(frameClock.elapsed>=frameClock.duration){complete=frameClock.run;frameClock=null}
+  }
+  if(time-lastPaint>=14||complete){paint();lastPaint=time}
+  if(complete)complete.finish();
+  if(animation)raf=requestAnimationFrame(tick);
+ }
+ function stop(){frameClock=null;if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
+ function animate(peaks,duration,easing=smooth,preserveFrames=false){
   stop();floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
   if(motion?.matches||typeof floating.animate!=='function'){
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));
@@ -137,6 +150,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    }
   }
   const run=floating.animate(keyframes,{duration,easing:'linear',fill:'forwards'});animation=run;
+  if(preserveFrames){run.pause();run.currentTime=0;frameClock={run,duration,elapsed:0,last:performance.now()}}
   run.onfinish=()=>{
    if(animation!==run)return;
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));animation=null;run.cancel();
@@ -152,7 +166,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function begin(input){
   if(button.disabled||active)return;
   lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
-  floating.dataset.pressState='held';animate([[0,from],[600,1]],600,t=>t*t*(3-2*t));
+  floating.dataset.pressState='held';animate([[0,from],[600,1]],600,t=>t*t*(3-2*t),true);
   if(!texture)prepare();
  }
  function release(){
