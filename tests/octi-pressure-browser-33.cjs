@@ -1,7 +1,11 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium',base=path.resolve('.');
+// Video encoding on software-rendered CI can stall requestAnimationFrame for
+// hundreds of milliseconds. Keep the real-time smoothness assertions free of
+// that observer overhead; request a separate recording only for visual review.
+const recordVideo=process.env.PLANNER_PRESSURE_VIDEO==='1';
 async function fixture(browser,width=390,height=844){
- const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];
+ const page=await browser.newPage({viewport:{width,height},hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),file=path.resolve(base,u.pathname==='/'?'preview33/index.html':u.pathname.slice(1));
