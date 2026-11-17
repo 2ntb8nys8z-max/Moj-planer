@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.310-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.17.33.311-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.310-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.17.33.311-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -4426,6 +4426,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
+<script src="octi-pressure.js?v=e3796e4a24cf2644"></script>
 <script src="octi-listening.js?v=94bbd6436d62c055"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -4514,56 +4515,9 @@ function octiRibbonContour(width,height,cx,cy,radius){
 // 33.134: the approved, pre-rendered logo decorates the existing recorder.
 // Presentation only. These passive listeners never own or cancel a recording.
 function octiBubblePressure(root,floating,motion){
- const button=root.querySelector('.voice'),dent=document.createElement('span');
- if(!button)return {reset(){}};
- dent.className='octi-pressure-dent';dent.setAttribute('aria-hidden','true');floating.append(dent);
- let active=null,animation=null;
- const value=()=>Number.parseFloat(getComputedStyle(floating).getPropertyValue('--okti-pressure'))||0;
- function stop(){if(animation){animation.cancel();animation=null}}
- function animate(values,offsets,duration){
-  stop();floating.style.setProperty('--okti-pressure',String(values[0]));
-  if(motion?.matches||typeof floating.animate!=='function'){
-   floating.style.setProperty('--okti-pressure',String(values.at(-1)));
-   if(!values.at(-1))delete floating.dataset.pressState;
-   return;
-  }
-  const run=floating.animate(values.map((v,i)=>({'--okti-pressure':String(v),offset:offsets[i]})),{duration,easing:'linear',fill:'forwards'});animation=run;
-  run.onfinish=()=>{if(animation!==run)return;floating.style.setProperty('--okti-pressure',String(values.at(-1)));animation=null;run.cancel();if(!values.at(-1))delete floating.dataset.pressState;};
- }
- function reset(){if(!active&&!animation)return;active=null;stop();floating.style.setProperty('--okti-pressure','0');delete floating.dataset.pressState;}
- function point(event){
-  const r=active.bounds,clamp=n=>Math.max(18,Math.min(82,n));
-  floating.style.setProperty('--okti-pressure-x',event?clamp((event.clientX-r.left)/r.width*100)+'%':'50%');
-  floating.style.setProperty('--okti-pressure-y',event?clamp((event.clientY-r.top)/r.height*100)+'%':'42%');
- }
- function begin(input,event){
-  if(button.disabled||active)return;
-  const from=value();active={...input,bounds:root.querySelector('.octi-motion-media').getBoundingClientRect()};point(event);floating.dataset.pressState='held';
-  animate([from,from+(1-from)*.72,1],[0,.42,1],85);
- }
- function release(){
-  if(!active)return;const from=value();active=null;floating.dataset.pressState='release';
-  // A short damped return, proportional to the actual compression reached.
-  // A tap ending before the first painted frame still gets a small soft press.
-  if(from<.42)animate([from,.42,-.135,.055,-.017,0],[0,.12,.38,.65,.84,1],420);
-  else animate([from,-from*.32,from*.13,-from*.04,0],[0,.32,.59,.8,1],420);
- }
- button.addEventListener('pointerdown',event=>{
-  if(event.isPrimary===false||(event.pointerType==='mouse'&&event.button!==0))return;
-  begin({pointerId:event.pointerId},event);
- },{passive:true});
- window.addEventListener('pointermove',event=>{
-  if(!active||active.pointerId===undefined||active.pointerId!==event.pointerId)return;const r=active.bounds;
-  if(event.clientX<r.left-8||event.clientX>r.right+8||event.clientY<r.top-8||event.clientY>r.bottom+8){reset();return}point(event);
- },{passive:true});
- window.addEventListener('pointerup',event=>{if(active?.pointerId===event.pointerId)release()},{capture:true,passive:true});
- window.addEventListener('pointercancel',event=>{if(active?.pointerId===event.pointerId)reset()},{capture:true,passive:true});
- button.addEventListener('keydown',event=>{if(!event.repeat&&[' ','Enter'].includes(event.key))begin({key:event.key})});
- window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
- button.addEventListener('blur',reset);window.addEventListener('blur',reset);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- return {reset};
+ return window.createOctiPressureArtwork?.(root,floating,motion)||{reset(){}};
 }
+
 function octiMotionArtwork(root,floating,motion){
  const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
  const pressure=octiBubblePressure(root,floating,motion);
@@ -6223,29 +6177,28 @@ window.OktiEventMotion=(()=>{
 @media(max-width:359px){.phone-layout #dayTitle .phone-day-weekday{font-size:20px}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather){padding-left:9px;padding-right:8px}.phone-layout #dayTitle .phone-day-weather{gap:0}.phone-layout #dayTitle .phone-day-weather .weather-icon{width:43px;height:43px}.phone-layout #dayTitle .phone-day-temperature{font-size:28px}.phone-day-chevron{width:13px;height:13px}.phone-date-card{padding:12px}.phone-date-grid{gap:1px}}
 @media(prefers-reduced-motion:reduce){.phone-layout #dayTitle .phone-day-weather.is-loading:after{animation:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather),.phone-day-glass>span{transition:none}.phone-layout #dayTitle :is(.phone-day-date,.phone-day-weather).is-header-pressed,.phone-layout #dayTitle:has(.phone-day-date.is-header-pressed) .phone-day-glass-date,.phone-layout #dayTitle:has(.phone-day-weather.is-header-pressed) .phone-day-glass-weather{transform:none}}
 </style>
-<style id="okti-bubble-pressure-33-310">
+<style id="okti-bubble-pressure-33-311">
 @property --okti-pressure{syntax:'<number>';inherits:true;initial-value:0}
-.octi-dock .water-float{--okti-pressure:0;--okti-pressure-x:50%;--okti-pressure-y:42%}
-/* Deform the existing glass and approved actor together. Neither the recorder
-   target nor the renderer's pose and recording state are transformed. */
-.octi-dock .octi-motion-media,.octi-dock .octi-listening-media,.octi-dock .octi-pressure-dent{
- scale:calc(1 + var(--okti-pressure) * .075) calc(1 - var(--okti-pressure) * .105);
- translate:var(--okti-drift-x) calc(var(--okti-drift-y) + var(--okti-pressure) * 2px);
- transform-origin:50% 50%;
+.octi-dock .water-float{
+ --okti-pressure:0;--okti-glass-blend:0;
+ --okti-compression:clamp(0,var(--okti-pressure),1);--okti-recoil:max(0,calc(var(--okti-pressure) * -1));
 }
-.octi-dock .octi-pressure-dent{
+/* The membrane carries the deformation. The live octopus keeps its own pose. */
+.octi-dock .octi-motion-media{
+ scale:calc(1 + var(--okti-pressure) * .095) calc(1 + var(--okti-compression) * .045 + var(--okti-recoil) * .19);
+ translate:var(--okti-drift-x) calc(var(--okti-drift-y) - var(--okti-recoil) * var(--octi-size,100px) * .0576);
+ transform-origin:50% 50%;opacity:calc(1 - var(--okti-glass-blend));
+}
+.octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y)}
+.octi-dock .octi-pressure-media{
  position:absolute;left:50%;top:50%;width:calc(var(--octi-size,100px) * 1.28);height:calc(var(--octi-size,100px) * 1.28);
- transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:14;
- opacity:clamp(0,var(--okti-pressure),1);
+ transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
+ pointer-events:none;overflow:visible;z-index:14;opacity:0;
 }
-/* Reversed light and shade suggest the fingertip's shallow concave dent. */
-.octi-dock .octi-pressure-dent:before{
- content:'';position:absolute;left:var(--okti-pressure-x);top:var(--okti-pressure-y);width:55%;height:32%;
- transform:translate(-50%,-50%) rotate(-12deg);border-radius:50%;
- background:radial-gradient(ellipse at 48% 35%,#254f731a,transparent 72%),radial-gradient(ellipse at 52% 88%,#ffffffe0,transparent 58%);
- box-shadow:inset 0 2px 3px #24496c32,inset 0 -1px 1px #ffffffd9;
+.octi-dock .octi-pressure-canvas{
+ position:absolute;left:-14.4295302%;top:-14.4295302%;width:128.8590604%;height:128.8590604%;max-width:none;
 }
-/* The complete original bubble is clickable, including its transparent rim. */
+/* The complete original bubble remains clickable, including its clear rim. */
 .octi-dock .stage .voice{overflow:visible}
 .octi-dock .stage .voice:after{
  content:''!important;display:block!important;position:absolute;inset:auto;
@@ -6254,8 +6207,8 @@ window.OktiEventMotion=(()=>{
  clip-path:circle(50%);pointer-events:auto;
 }
 @media(prefers-reduced-motion:reduce){
- .octi-dock .octi-motion-media,.octi-dock .octi-listening-media,.octi-dock .octi-pressure-dent{scale:calc(1 + var(--okti-pressure) * .018) calc(1 - var(--okti-pressure) * .024);translate:0 0}
- .octi-dock .octi-pressure-dent{opacity:calc(clamp(0,var(--okti-pressure),1) * .45)}
+ .octi-dock .octi-motion-media{scale:calc(1 + var(--okti-pressure) * .0133) calc(1 + var(--okti-compression) * .0063);translate:0 0}
+ .octi-dock .octi-pressure-media,.octi-dock .octi-listening-media{translate:0 0}
 }
 </style>
 <script src="event-delete.js?v=252559d65ddfea7b"></script>

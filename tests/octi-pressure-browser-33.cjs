@@ -13,7 +13,7 @@ async function fixture(browser,width=390,height=844){
   return route.fulfill({body,contentType:type});
  });
  await page.goto('https://planner.test/');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
- await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas');return state?.fallback||state?.rendering&&canvas?.width===canvas?.height});
+ await page.waitForFunction(()=>{const root=document.querySelector('.octi-dock[data-channel=main]'),state=root?.octiListening?.getState(),canvas=root?.querySelector('.octi-listening-canvas');return (state?.fallback||state?.rendering&&canvas?.width===canvas?.height)&&root.octiPressure?.getState().ready});
  return {page,errors};
 }
 // This fixture isolates visual feedback. The existing recorder/browser suites
@@ -28,8 +28,11 @@ function read(page,channel='main'){
  return page.locator(`.octi-dock[data-channel=${channel}]`).evaluate(root=>{
   const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
   const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media'),actor=root.querySelector('.octi-listening-media');
-  const canvas=root.querySelector('.octi-listening-canvas');
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,dentOpacity:Number(getComputedStyle(root.querySelector('.octi-pressure-dent')).opacity),sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
+  const canvas=root.querySelector('.octi-listening-canvas'),pressureState=root.octiPressure.getState();
+  const membrane=root.querySelector('.octi-pressure-canvas'),pixels=membrane.getContext('2d').getImageData(0,0,384,384).data;
+  let edgeAlpha=0;
+  for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192);if(r>122&&r<180)edgeAlpha+=pixels[(y*384+x)*4+3]}
+  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,membraneOpacity:Number(getComputedStyle(root.querySelector('.octi-pressure-media')).opacity),edgeAlpha,pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
  });
 }
 async function samples(page,channel='main'){
@@ -72,13 +75,16 @@ async function settled(page,channel='main'){
     await hold(page);const pressed=await read(page);
     assert.deepEqual(pressed.target,resting.target,'Only artwork flexes; the recorder hit target stays still');
     assert.ok(pressed.glass.width>resting.glass.width*1.06,'The held bubble widens');
-    assert.ok(pressed.glass.height<resting.glass.height*.91,'The held bubble compresses vertically');
-    assert.ok(pressed.dentOpacity>.95,'A shallow concave reflection appears under the fingertip');
+    assert.ok(pressed.glass.height>resting.glass.height*1.035,'Pressure expands the membrane around its whole circumference');
+    assert.ok(pressed.membraneOpacity>.95,'The approved concave glass replaces the resting surface');
+    assert.ok(pressed.edgeAlpha>resting.edgeAlpha*1.2,'The loaded edge has visibly greater optical density');
+    assert.deepEqual(pressed.membraneBuffer,resting.membraneBuffer,'The glass canvas also keeps its backing buffer');
+    assert.equal(await page.locator('.octi-pressure-dent').count(),0,'The old flat fold is removed');
     assert.deepEqual(pressed.buffer,resting.buffer,'Press feedback must not reallocate the renderer backing buffer');
-    assert.equal(pressed.actor.width,pressed.glass.width);assert.equal(pressed.actor.height,pressed.glass.height);assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
+    assert.equal(pressed.actor.width,resting.actor.width);assert.equal(pressed.actor.height,resting.actor.height);assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
     const release=await samples(page);await page.mouse.up();const bounce=await release();
-    assert.ok(bounce.some(v=>v.pressure<-.08&&v.width<resting.glass.width&&v.height>resting.glass.height),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
+    assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
     // Real short touch events can both arrive before the next painted frame.
@@ -96,7 +102,7 @@ async function settled(page,channel='main'){
      await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v.pressure<-.08));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
-    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} held dent, fixed target, elastic release, short touch and cancellation passed.`);
+    assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} thick concave glass, fixed actor and target, higher elastic release, short touch and cancellation passed.`);
    }finally{await page.close()}
   }
  }finally{await browser.close()}
