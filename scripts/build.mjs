@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.17.33.310-integration';
-const PREVIEW_VERSION='2026.11.17.33.310-test';
+const APP_VERSION='2026.11.17.33.311-integration';
+const PREVIEW_VERSION='2026.11.17.33.311-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.14.33.59-test';
 const WORKER_LABEL='Worker 33.59-test';
@@ -55,6 +55,17 @@ for(const item of calendarArtCatalog.backgrounds){
   output('preview33/'+file,content,false);
 }
 output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
+// Pressure artwork is sampled from the approved glass membrane, not the actor.
+const pressureAtlas='octi-pressure-33-311.webp';
+const pressureAtlasData=fs.readFileSync(pressureAtlas);
+const pressureAtlasHash=createHash('sha256').update(pressureAtlasData).digest('hex').slice(0,16);
+let pressure=fs.readFileSync('octi-pressure.js','utf8');
+pressure=pressure.replace(/octi-pressure-33-311\.webp(?:\?v=[a-z0-9]+)?/g,pressureAtlas+'?v='+pressureAtlasHash);
+output('octi-pressure.js',pressure,false);
+const pressureBuildId=createHash('sha256').update(pressure).digest('hex').slice(0,16);
+canonical=canonical.replace(/octi-pressure\.js(?:\?v=[a-z0-9]+)?/g,'octi-pressure.js?v='+pressureBuildId);
+output('preview33/octi-pressure.js',pressure,false);
+output('preview33/'+pressureAtlas,pressureAtlasData,false);
 const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
 let listening=fs.readFileSync('octi-listening.js','utf8');
 for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
