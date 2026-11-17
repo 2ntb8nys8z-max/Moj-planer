@@ -213,7 +213,12 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('pointercancel',event=>{if(active?.pointerId===event.pointerId)reset()},{capture:true,passive:true});
  button.addEventListener('keydown',event=>{if(!event.repeat&&[' ','Enter'].includes(event.key))begin({key:event.key})});
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
- button.addEventListener('blur',reset);window.addEventListener('blur',reset);
+ button.addEventListener('blur',()=>{
+  // The recorder can disable its focused button while opening the microphone.
+  // That internal blur must not erase a tap whose finger is already released.
+  if(button.disabled&&!active&&(releasePending||floating.dataset.pressState==='release'))return;
+  reset();
+ });window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
  const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!surfaces&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
  root.octiPressure=controls;prepare();return controls;

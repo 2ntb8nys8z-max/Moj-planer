@@ -178,12 +178,14 @@ async function observeTap(page,channel='main'){
     if(width===390){
      // Deterministic worst case: down and up occur in the same JavaScript task,
      // with no chance to paint a pressed frame between the two input events.
+     // Then emulate the recorder disabling its focused button while opening
+     // the microphone; its resulting blur must not erase the released tap.
      const instant=await observeTap(page);
      await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{
-      const r=button.getBoundingClientRect(),input={pointerId:25001,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
-      button.dispatchEvent(new PointerEvent('pointerdown',input));window.dispatchEvent(new PointerEvent('pointerup',input));
+      button.focus();const r=button.getBoundingClientRect(),input={pointerId:25001,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
+      button.dispatchEvent(new PointerEvent('pointerdown',input));window.dispatchEvent(new PointerEvent('pointerup',input));button.disabled=true;
      });
-     const result=await instant();assert.equal(result.timedOut,false);
+     const result=await instant();await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{button.disabled=false});assert.equal(result.timedOut,false);
      assert.ok(result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>=.99999),'A release before the first frame cannot erase the press impulse: '+JSON.stringify(result));
      assert.ok(result.frames.some(v=>v.pressure<-.2),'The before-first-frame tap also rebounds');await settled(page);
      console.log(kind+' quick tap: full visible press and rebound; same-task release completed after '+result.releasedAt.toFixed(2)+' ms.');
