@@ -52,15 +52,17 @@ function loadImage(src,retry=0){return new Promise((resolve,reject)=>{const imag
 function createSoftwareRenderer(canvas,video,head,poster){
  const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),read=staging.getContext('2d',{willReadFrequently:true});
  if(!ctx||!read)throw Error('Canvas unavailable');
- function capture(image,atlas){const w=image.videoWidth||image.naturalWidth||image.width||768,h=image.videoHeight||image.naturalHeight||image.height||384;staging.width=w;staging.height=h;read.clearRect(0,0,w,h);read.drawImage(image,0,0,w,h);return {data:read.getImageData(0,0,w,h).data,w,h,atlas};}
+ function capture(image,atlas){const w=image.videoWidth||image.naturalWidth||image.width||768,h=image.videoHeight||image.naturalHeight||image.height||384;if(staging.width!==w)staging.width=w;if(staging.height!==h)staging.height=h;read.clearRect(0,0,w,h);read.drawImage(image,0,0,w,h);return {data:read.getImageData(0,0,w,h).data,w,h,atlas};}
  const headMap=capture(head,true),posterMap=capture(poster,false);let bodyMap=posterMap,lastTime=-1,lastLive=false,output=null,coordinates=null;
  const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
  function sample(map,x,y,out){
   const valid=x>=0&&y>=0&&x<=543&&y<=543,u=(clamp(x,0,543)+.5)/544,v=(clamp(y,0,543)+.5)/544;
   const fx=clamp(u*(map.atlas?map.w/2:map.w)-.5,0,map.w-1),fy=clamp(v*map.h-.5,0,map.h-1),ix=Math.floor(fx),iy=Math.floor(fy),jx=Math.min(ix+1,map.w-1),jy=Math.min(iy+1,map.h-1),dx=fx-ix,dy=fy-iy;
-  const weights=[(1-dx)*(1-dy),dx*(1-dy),(1-dx)*dy,dx*dy],indices=[(iy*map.w+ix)*4,(iy*map.w+jx)*4,(jy*map.w+ix)*4,(jy*map.w+jx)*4],d=map.data;
-  for(let c=0;c<3;c++)out[c]=d[indices[0]+c]*weights[0]+d[indices[1]+c]*weights[1]+d[indices[2]+c]*weights[2]+d[indices[3]+c]*weights[3];
-  const offset=map.atlas?map.w*2:3;let alpha=(d[indices[0]+offset]*weights[0]+d[indices[1]+offset]*weights[1]+d[indices[2]+offset]*weights[2]+d[indices[3]+offset]*weights[3])/255;
+  // Scalar bilinear sampling keeps the exact pose and pixels without allocating
+  // two temporary arrays for every sampled pixel on the phone's main thread.
+  const w0=(1-dx)*(1-dy),w1=dx*(1-dy),w2=(1-dx)*dy,w3=dx*dy,i0=(iy*map.w+ix)*4,i1=(iy*map.w+jx)*4,i2=(jy*map.w+ix)*4,i3=(jy*map.w+jx)*4,d=map.data;
+  for(let c=0;c<3;c++)out[c]=d[i0+c]*w0+d[i1+c]*w1+d[i2+c]*w2+d[i3+c]*w3;
+  const offset=map.atlas?map.w*2:3;let alpha=(d[i0+offset]*w0+d[i1+offset]*w1+d[i2+offset]*w2+d[i3+offset]*w3)/255;
   out[3]=valid?(map.atlas?smooth((alpha-.03)/.94):alpha):0;
  }
  const bodyPixel=new Float64Array(4),headPixel=new Float64Array(4),projected=new Float64Array(4);
@@ -75,7 +77,9 @@ function createSoftwareRenderer(canvas,video,head,poster){
  return {kind:'canvas2d',draw(state){
   const live=state.videoAvailable&&video.readyState>=2&&!video.error;
   if(live&&(!lastLive||video.currentTime!==lastTime)){bodyMap=capture(video,true);lastTime=video.currentTime;}else if(!live)bodyMap=posterMap;lastLive=live;
-  const size=Math.max(128,Math.min(256,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));
+  // The fallback is CPU rendered. Bound retina work while keeping the same
+  // historical geometry and a stable backing buffer during each gesture.
+  const size=Math.max(128,Math.min(192,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));
   if(!output||canvas.width!==size){canvas.width=canvas.height=size;output=ctx.createImageData(size,size);coordinates=Float64Array.from({length:size},(_,i)=>(i+.5)*544/size-.5);}else output.data.fill(0);
   const a=state.approach,lag=state.lag,g=state.gesture,wave=2*Math.PI*state.phase/4.8,bx=1+.009*Math.sin(wave),by=1+.006*Math.sin(wave+.6),bob=1.7*Math.sin(wave),camera=1+.40*a,angle=11*Math.PI/180*a,ca=Math.cos(angle),sa=Math.sin(angle),cb=Math.cos(angle*.55),sb=Math.sin(angle*.55),rearX=272+12*a,rearY=298+62*a,rootX=272+38*a/camera,rootY=274+(298+134*a-274)/camera,sweep=7*(a-lag)+3.5*a*Math.sin(state.clock*2*Math.PI/2.4),m=matrices(g)[1],dx=-m[6],dy=-m[7],dz=-m[8],blend=smooth(g),levels=[.55,.85,.55].map((rest,i)=>rest*(1-a)+clamp([.58,.75,.58][i]+[.22,.18,.22][i]*Math.sin([4,3,5][i]/4.8*state.clock*2*Math.PI+[0,1.5,3.2][i])+.035*Math.sin(state.clock*2*Math.PI/4.8),.30,.95)*a);
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){
@@ -126,7 +130,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  function replaceCanvas(){canvas.removeEventListener('webglcontextlost',lost);const next=document.createElement('canvas');next.className='octi-listening-canvas';canvas.replaceWith(next);canvas=next;canvas.addEventListener('webglcontextlost',lost);}
  function source(reload=false){if(video.getAttribute('src')?.split('&retry=')[0]!==FILES.body)video.src=FILES.body;else if(reload&&(video.error||reloadMedia)){video.src=FILES.body+'&retry='+(++mediaReloads);reloadMedia=false;}}
  function playbackFailed(error,stage){if(destroyed||!visible||motion?.matches)return;remember(error,stage);mediaBlocked=true;if(stage==='video-stalled')reloadMedia=true;mediaRetryAt=mediaRetries<delays.length?now()+delays[mediaRetries++]:Infinity;if(renderer?.kind==='webgl'||!software)useSoftware(error,stage);}
- function play(){if(destroyed||!visible||motion?.matches||playPending||mediaBlocked&&now()<mediaRetryAt)return;source(true);const token=++playGeneration;playPending=true;
+ function play(){if(destroyed||!visible||motion?.matches||playPending||mediaBlocked&&now()<mediaRetryAt)return;if(!video.paused&&video.readyState>=2&&!video.error&&!mediaBlocked)return;source(true);const token=++playGeneration;playPending=true;
   try{Promise.resolve(video.play()).then(()=>{if(token!==playGeneration||destroyed)return;playPending=false;mediaBlocked=false;lastProgress=now();},error=>{if(token!==playGeneration||destroyed)return;playPending=false;if(error?.name!=='AbortError')playbackFailed(error,'video-play');});}catch(error){playPending=false;playbackFailed(error,'video-play');}
  }
  function useSoftware(error,stage){if(destroyed)return;remember(error,stage);software=true;generation++;preparing=null;stop();releaseRenderer();retryAt=0;replaceCanvas();if(visible&&!motion?.matches){staticFrame();prepare();}}
