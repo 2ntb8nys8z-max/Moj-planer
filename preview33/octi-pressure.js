@@ -77,7 +77,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const glass=root.querySelector('.octi-motion-media'),canvas=document.createElement('canvas');
  if(!glass)return {reset(){}};
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
- const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,frameClock=null,raf=0,lastPressure=NaN,lastPaint=0;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,animationTarget=0,releasePending=false,frameClock=null,raf=0,lastPressure=NaN,lastPaint=0;
  let driftLock=null,hoverAnimation=null,drawCount=0,lastDrawMs=0;
  function lockDrift(){
   if(driftLock)return;
@@ -123,10 +123,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function tick(time){
   raf=0;let complete=null;
   if(frameClock){
-   // Preserve the visible stages if the live actor or device stalls a frame.
-   // On a normal display this is the same 600 ms motion. Under load it slows
-   // down instead of jumping straight from the resting edge to full size.
-   frameClock.elapsed=Math.min(frameClock.duration,frameClock.elapsed+Math.min(50,Math.max(0,time-frameClock.last)));
+   // Keep the short contact impulse visible even if the live actor stalls a
+   // frame. The input may already be released; the visual impulse still ends.
+   frameClock.elapsed=Math.min(frameClock.duration,frameClock.elapsed+Math.min(frameClock.maxStep,Math.max(0,time-frameClock.last)));
    frameClock.last=time;frameClock.run.currentTime=frameClock.elapsed;
    if(frameClock.elapsed>=frameClock.duration){complete=frameClock.run;frameClock=null}
   }
@@ -134,9 +133,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(complete)complete.finish();
   if(animation)raf=requestAnimationFrame(tick);
  }
- function stop(){frameClock=null;if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
- function animate(peaks,duration,easing=smooth,preserveFrames=false){
-  stop();floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
+ function stop(){frameClock=null;animationTarget=0;if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
+ function animate(peaks,duration,easing=smooth,preserveFrames=false,maxStep=50){
+  stop();animationTarget=peaks.at(-1)[1];floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
   if(motion?.matches||typeof floating.animate!=='function'){
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));
    if(!peaks.at(-1)[1]){delete floating.dataset.pressState;unlockDrift()}
@@ -150,34 +149,45 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    }
   }
   const run=floating.animate(keyframes,{duration,easing:'linear',fill:'forwards'});animation=run;
-  if(preserveFrames){run.pause();run.currentTime=0;frameClock={run,duration,elapsed:0,last:performance.now()}}
+  if(preserveFrames){run.pause();run.currentTime=0;frameClock={run,duration,maxStep,elapsed:0,last:performance.now()}}
   run.onfinish=()=>{
    if(animation!==run)return;
+   if(raf){cancelAnimationFrame(raf);raf=0}
    floating.style.setProperty('--okti-pressure',String(peaks.at(-1)[1]));animation=null;run.cancel();
    if(!peaks.at(-1)[1]){delete floating.dataset.pressState;unlockDrift()}
    paint();
+   if(peaks.at(-1)[1]===1&&releasePending){
+    // Keep one fully pressed frame before returning. This is presentation
+    // only: the recorder's native click has already run without waiting.
+    raf=requestAnimationFrame(()=>{raf=0;if(releasePending&&!active){releasePending=false;rebound(1)}});
+   }
   };
   paint();raf=requestAnimationFrame(tick);
  }
  function reset(){
   if(!active&&!animation&&!value())return;
-  active=null;stop();floating.style.setProperty('--okti-pressure','0');delete floating.dataset.pressState;unlockDrift();paint();
+  active=null;releasePending=false;stop();floating.style.setProperty('--okti-pressure','0');delete floating.dataset.pressState;unlockDrift();paint();
  }
  function begin(input){
   if(button.disabled||active)return;
-  lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
-  floating.dataset.pressState='held';animate([[0,from],[600,1]],600,t=>t*t*(3-2*t),true);
+  releasePending=false;lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
+  floating.dataset.pressState='held';animate([[0,from],[140,1]],140,t=>1-(1-t)**3,true,17);
   if(!texture)prepare();
+ }
+ function rebound(from){
+  if(Math.abs(from)<.001){reset();return}
+  floating.dataset.pressState='release';
+  const amplitude=Math.max(0,from),peaks=[[0,from]];
+  for(const [time,p] of [[250,-.38],[500,.11],[750,-.075],[1000,.038],[1250,-.022],[1500,.008],[1750,0]])peaks.push([time,p*amplitude]);
+  animate(peaks,1750,smooth,true);
  }
  function release(){
   if(!active)return;
-  const from=value();if(Math.abs(from)<.001){reset();return}
-  active=null;floating.dataset.pressState='release';
-  // Only release the compression actually reached. Never add another press
-  // after pointerup, including taps that finish before the first painted frame.
-  const amplitude=Math.max(0,from),peaks=[[0,from]];
-  for(const [time,p] of [[250,-.38],[500,.11],[750,-.075],[1000,.038],[1250,-.022],[1500,.008],[1750,0]])peaks.push([time,p*amplitude]);
-  animate(peaks,1750);
+  active=null;
+  // A tap and a long hold reach the same pressed pose. Finger-up queues the
+  // return instead of cancelling a tap before its first visible frame.
+  if(animation&&animationTarget===1&&!motion?.matches){releasePending=true;floating.dataset.pressState='tap';return}
+  rebound(value());
  }
  function prepare(){
   loadTexture().then(async asset=>{

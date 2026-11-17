@@ -64,9 +64,9 @@ async function samples(page,channel='main'){
     const animation=float.getAnimations().find(a=>a.effect.getKeyframes().some(k=>'--okti-pressure' in k));
     const frame=()=>{const r=float.querySelector('.octi-motion-media').getBoundingClientRect();return {pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,width:r.width,height:r.height}};
     if(!animation){resolve([frame()]);return}
-    animation.pause();await animation.ready;const duration=Number(animation.effect.getTiming().duration),values=[];
+    const frameControlled=animation.playState==='paused';animation.pause();await animation.ready;const duration=Number(animation.effect.getTiming().duration),values=[];
     for(let i=0;i<32;i++){animation.currentTime=duration*i/32;values.push(frame())}
-    animation.currentTime=0;animation.play();resolve(values);
+    animation.currentTime=0;if(!frameControlled)animation.play();resolve(values);
    }catch(error){reject(error)}
   },{once:true}));
  });
@@ -80,6 +80,27 @@ async function hold(page,channel='main'){
 }
 async function settled(page,channel='main'){
  await page.waitForFunction(channel=>Math.abs(parseFloat(getComputedStyle(document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`)).getPropertyValue('--okti-pressure'))||0)<.0001&&!document.querySelector(`.octi-dock[data-channel=${channel}] .water-float`).hasAttribute('data-press-state'),channel);
+}
+async function observeTap(page,channel='main'){
+ const root=page.locator(`.octi-dock[data-channel=${channel}]`);
+ await root.evaluate(root=>{
+  root.tapResult=new Promise(resolve=>{
+   root.querySelector('.voice').addEventListener('pointerdown',event=>{
+    const started=performance.now(),frames=[];let releasedAt=null;
+    const finish=timedOut=>{clearTimeout(guard);window.removeEventListener('pointerup',released,true);resolve({frames,releasedAt,timedOut})};
+    const guard=setTimeout(()=>finish(true),7000);
+    function released(up){if(up.pointerId===event.pointerId)releasedAt=performance.now()-started}
+    window.addEventListener('pointerup',released,true);
+    function sample(time){
+     const float=root.querySelector('.water-float'),glass=root.querySelector('.octi-motion-media').getBoundingClientRect();
+     frames.push({t:time-started,pressure:Number(getComputedStyle(float).getPropertyValue('--okti-pressure')),width:glass.width,height:glass.height,phase:float.dataset.pressState||'idle'});
+     if(releasedAt!==null&&!float.hasAttribute('data-press-state'))finish(false);else requestAnimationFrame(sample);
+    }
+    requestAnimationFrame(sample);
+   },{once:true});
+  });
+ });
+ return ()=>root.evaluate(root=>root.tapResult);
 }
 (async()=>{
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
@@ -140,16 +161,33 @@ async function settled(page,channel='main'){
     const intermediate=onset.filter(f=>f.paint.pressure>.05&&f.paint.pressure<.95);
     assert.ok(new Set(intermediate.map(f=>f.paint.count)).size>=5,'Native onset must actually paint at least five intermediate glass surfaces: '+JSON.stringify(onset));
     const full=onset.find(f=>f.paint.pressure>=.99999);
-    assert.ok(full&&full.t>=500,'Expansion must remain visible over time rather than snapping to an extra rim: '+JSON.stringify(onset));
+    assert.ok(full&&full.t>=90,'The quick contact impulse still has visible intermediate surfaces: '+JSON.stringify(onset));
     if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
-    // Real short touch events can both arrive before the next painted frame.
-    const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await samples(page);
+    // Observe the real animation instead of seeking its timeline: even a very
+    // short native tap must show the same full pressed pose as a long hold.
+    const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await observeTap(page);
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap();
-    assert.ok(quick.every(v=>v.pressure<=quick[0].pressure+.001),'A quick release never injects another compression after pointerup');await settled(page);
+    assert.equal(quick.timedOut,false,'A quick tap completes its visual cycle');
+    assert.ok(quick.frames.some(v=>v.pressure>=.99999&&v.width>=pressed.glass.width-.02),'A quick tap reaches the complete held deformation: '+JSON.stringify(quick));
+    assert.ok(quick.frames.some(v=>v.pressure<-.2),'A quick tap has a visible return, independent of finger duration: '+JSON.stringify(quick));
+    await settled(page);
+    if(width===390){
+     // Deterministic worst case: down and up occur in the same JavaScript task,
+     // with no chance to paint a pressed frame between the two input events.
+     const instant=await observeTap(page);
+     await page.locator('.octi-dock[data-channel=main] .voice').evaluate(button=>{
+      const r=button.getBoundingClientRect(),input={pointerId:25001,pointerType:'touch',isPrimary:true,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
+      button.dispatchEvent(new PointerEvent('pointerdown',input));window.dispatchEvent(new PointerEvent('pointerup',input));
+     });
+     const result=await instant;assert.equal(result.timedOut,false);
+     assert.ok(result.frames.some(v=>v.t>=result.releasedAt&&v.pressure>=.99999),'A release before the first frame cannot erase the press impulse: '+JSON.stringify(result));
+     assert.ok(result.frames.some(v=>v.pressure<-.2),'The before-first-frame tap also rebounds');await settled(page);
+     console.log(kind+' quick tap: full visible press and rebound; same-task release completed after '+result.releasedAt.toFixed(2)+' ms.');
+    }
     await hold(page);await page.mouse.move(2,2);await page.mouse.up();await settled(page);
     await hold(page);await page.evaluate(()=>document.querySelector('.octi-dock[data-channel=main] .voice').dispatchEvent(new PointerEvent('pointercancel',{pointerId:window.pressPointer,bubbles:true})));await page.mouse.up();await settled(page);
     if(width===390){
