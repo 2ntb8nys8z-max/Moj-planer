@@ -191,11 +191,11 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  }
  function useSoftware(error,stage){if(destroyed)return;remember(error,stage);software=true;generation++;preparing=null;stop();releaseRenderer();retryAt=0;replaceCanvas();if(visible&&!motion?.matches){staticFrame();prepare();}}
  function prepare(){if(preparing||destroyed||!visible||motion?.matches||now()<retryAt)return preparing;const token=++generation;loadingSince=now();source();
-  const task=Promise.resolve().then(async()=>{try{
+  const task=Promise.resolve().then(async()=>{let nextRenderer=null;try{
    if(!assets){const head=await loadImage(FILES.head,lastError?token:0);if(token!==generation||destroyed)return;assets={head,poster:null};}
-   if(software){if(!assets.poster)assets.poster=await loadImage('octi-actor-poster.webp?v=9b20c4f5b0d17977',lastError?token:0);if(token!==generation||destroyed)return;renderer=await createBackgroundRenderer(canvas,video,assets.head,assets.poster);}
-   else{try{renderer=createRenderer(canvas,video,assets.head);}catch(error){remember(error,'webgl-init');software=true;replaceCanvas();if(!assets.poster)assets.poster=await loadImage('octi-actor-poster.webp?v=9b20c4f5b0d17977',token);if(token!==generation||destroyed)return;renderer=await createBackgroundRenderer(canvas,video,assets.head,assets.poster);}}
-   if(token!==generation||destroyed){renderer?.destroy();return;}ready=true;retryAt=0;retries=0;preparing=null;if(visible&&!motion?.matches)start();
+   if(software){if(!assets.poster)assets.poster=await loadImage('octi-actor-poster.webp?v=9b20c4f5b0d17977',lastError?token:0);if(token!==generation||destroyed)return;nextRenderer=await createBackgroundRenderer(canvas,video,assets.head,assets.poster);}
+   else{try{nextRenderer=createRenderer(canvas,video,assets.head);}catch(error){remember(error,'webgl-init');software=true;replaceCanvas();if(!assets.poster)assets.poster=await loadImage('octi-actor-poster.webp?v=9b20c4f5b0d17977',token);if(token!==generation||destroyed)return;nextRenderer=await createBackgroundRenderer(canvas,video,assets.head,assets.poster);}}
+   if(token!==generation||destroyed){nextRenderer?.destroy();return;}renderer=nextRenderer;ready=true;retryAt=0;retries=0;preparing=null;if(visible&&!motion?.matches)start();
   }catch(error){if(token===generation&&!destroyed)fail(error,'artwork-init');}finally{if(token===generation)preparing=null;}});preparing=task;return task;
  }
  function animate(t){raf=0;if(!visible||destroyed||!ready||motion?.matches)return;
