@@ -89,7 +89,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(texture&&ctx&&canvas.parentElement!==glass&&effective===0){glass.append(canvas);glass.classList.add('is-pressure-ready')}
   return {pressure:p,effective};
  }
- function tick(time){raf=0;if(time-lastPaint>=30){paint();lastPaint=time}if(animation)raf=requestAnimationFrame(tick)}
+ function tick(time){raf=0;if(time-lastPaint>=14){paint();lastPaint=time}if(animation)raf=requestAnimationFrame(tick)}
  function stop(){if(animation){animation.cancel();animation=null}if(raf){cancelAnimationFrame(raf);raf=0}}
  function animate(peaks,duration,easing=smooth){
   stop();floating.style.setProperty('--okti-pressure',String(peaks[0][1]));
@@ -121,7 +121,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function begin(input){
   if(button.disabled||active)return;
   lockDrift();const from=value();active={...input,bounds:glass.getBoundingClientRect()};
-  floating.dataset.pressState='held';animate([[0,from],[480,1]],480,t=>1-(1-t)**3);
+  floating.dataset.pressState='held';animate([[0,from],[600,1]],600,t=>t*t*(3-2*t));
   if(!texture)prepare();
  }
  function release(){

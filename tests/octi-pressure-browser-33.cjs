@@ -132,7 +132,7 @@ async function settled(page,channel='main'){
     const intermediate=onset.filter(f=>f.paint.pressure>.05&&f.paint.pressure<.95);
     assert.ok(new Set(intermediate.map(f=>f.paint.count)).size>=5,'Native onset must actually paint at least five intermediate glass surfaces: '+JSON.stringify(onset));
     const full=onset.find(f=>f.paint.pressure>=.99999);
-    assert.ok(full&&full.t>=360,'Expansion must remain visible over time rather than snapping to an extra rim: '+JSON.stringify(onset));
+    assert.ok(full&&full.t>=500,'Expansion must remain visible over time rather than snapping to an extra rim: '+JSON.stringify(onset));
     if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const bounce=await release();
     assert.ok(bounce.some(v=>v.pressure<-.3&&v.width<resting.glass.width&&v.height>resting.glass.height*1.06),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
