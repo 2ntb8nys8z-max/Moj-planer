@@ -11,7 +11,7 @@ async function fixture({reduced=false,blocked=false,hanging=false,noGL=false,can
  w.HTMLMediaElement.prototype.play=function(){if(denyPlay)return Promise.reject(new w.DOMException('Autoplay denied','NotAllowedError'));if(hanging)return new Promise(()=>{});this._paused=false;return Promise.resolve()};
  w.HTMLMediaElement.prototype.pause=function(){this._paused=true};
  const gl=new Proxy({getShaderPrecisionFormat:()=>({precision:23}),getShaderParameter:()=>true,getProgramParameter:()=>true,isContextLost:()=>false,getExtension:()=>null,drawArrays(){draws++}}, {get(target,key){if(key in target)return target[key];if(/^[A-Z_0-9]+$/.test(key))return 1;return ()=>({})}});
- const context2d=new Proxy({createImageData:(width,height)=>({data:new Uint8ClampedArray(width*height*4)}),getImageData:(x,y,width,height)=>({data:new Uint8ClampedArray(width*height*4).fill(255)}),drawImage(){softwareDraws++}}, {get:(target,key)=>key in target?target[key]:()=>{}});
+ const context2d=new Proxy({createImageData:(width,height)=>({data:new Uint8ClampedArray(width*height*4)}),getImageData:(x,y,width,height)=>({data:new Uint8ClampedArray(width*height*4).fill(255)}),drawImage(){softwareDraws++},putImageData(){softwareDraws++}}, {get:(target,key)=>key in target?target[key]:()=>{}});
  w.HTMLCanvasElement.prototype.getContext=type=>type==='2d'?(canvas2d?context2d:null):(noGL?null:gl);w.HTMLCanvasElement.prototype.getBoundingClientRect=()=>({width:128});
  vm.runInContext(fs.readFileSync('octi-listening.js','utf8'),dom.getInternalVMContext());
  const root=w.document.getElementById('root'),motion={matches:reduced},controller=w.createOctiListeningArtwork(root,w.document.getElementById('floating'),motion,w.document.getElementById('idle'));
@@ -40,7 +40,7 @@ async function fixture({reduced=false,blocked=false,hanging=false,noGL=false,can
  }
  for(const options of [{noGL:true},{blocked:true},{hanging:true}]){
   const f=await fixture({...options,canvas2d:true});try{
-   f.update(true);await f.settle();await f.frames(8000);assert.equal(f.controller.getState().renderer,'canvas2d',JSON.stringify(options));assert.equal(f.controller.getState().rendering,true);assert.equal(f.controller.getState().fallback,false);assert.equal(f.controller.getState().approach,1);assert.ok(f.softwareDraws>10,'The separate head keeps rendering without WebGL or decoded video');assert.ok(f.controller.getState().lastError,'The original failure remains available for diagnosis');
+   f.update(true);await f.settle();await f.frames(8000);assert.equal(f.controller.getState().renderer,'canvas2d',JSON.stringify(options));assert.equal(f.controller.getState().rendering,true);assert.equal(f.controller.getState().fallback,false);assert.equal(f.controller.getState().approach,1);assert.ok(f.softwareDraws>10,'The approved coupled pose keeps rendering without WebGL or decoded video');assert.ok(f.controller.getState().lastError,'The original failure remains available for diagnosis');
    f.update(false);await f.frames(1100,false);assert.equal(f.controller.getState().approach,0);await f.frames(7000,false);assert.equal(f.controller.getState().rendering,true,'A settled preparation promise cannot become a spurious loading timeout');
   }finally{f.controller.destroy();f.dom.window.close()}
  }
