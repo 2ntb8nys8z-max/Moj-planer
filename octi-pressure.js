@@ -4,7 +4,7 @@
 const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31';
 const SIZE=384,LIGHT=[235,250,255],SHADE=[34,111,164];
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(10+v*(-15+6*v));};
-let texturePromise=null,geometry=null;
+let texturePromise=null,surfacePromise=null,geometry=null;
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
   const image=new Image();image.decoding='async';
@@ -53,13 +53,31 @@ function deformTexture(source,target,pressure){
   target[q+3]=opacity*255;
  }
 }
+function loadSurfaces(asset){
+ // Share one small atlas between the three docks. The expensive refraction
+ // sampling runs once, between tasks, instead of competing with the live actor
+ // for every animation frame while a finger is on the glass.
+ if(!surfacePromise)surfacePromise=new Promise(resolve=>{
+  const pressures=Array.from({length:25},(_,i)=>i<8?(i-8)*.05:(i-8)/16),frames=[];
+  let index=0;
+  function next(){
+   const pressure=pressures[index],frame=document.createElement('canvas');frame.width=frame.height=SIZE;
+   const context=frame.getContext('2d');if(!context){surfacePromise=null;resolve(null);return}
+   if(pressure===0)context.drawImage(asset.image,0,0,SIZE,SIZE);
+   else{const pixels=context.createImageData(SIZE,SIZE);deformTexture(asset.pixels,pixels.data,pressure);context.putImageData(pixels,0,0)}
+   frames.push({pressure,image:frame});index++;
+   if(index<pressures.length)setTimeout(next,0);else resolve(frames);
+  }
+  setTimeout(next,0);
+ });
+ return surfacePromise;
+}
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice');if(!button)return {reset(){}};
  const glass=root.querySelector('.octi-motion-media'),canvas=document.createElement('canvas');
  if(!glass)return {reset(){}};
  canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
- const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
- const output=ctx?.createImageData(SIZE,SIZE);
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,surfaces=null,preparedSurfaces=null,active=null,animation=null,raf=0,lastPressure=NaN,lastPaint=0;
  let driftLock=null,hoverAnimation=null,drawCount=0,lastDrawMs=0;
  function lockDrift(){
   if(driftLock)return;
@@ -81,10 +99,23 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(!texture||!ctx||p===lastPressure||p!==0&&p!==1&&Math.abs(p-lastPressure)<.0005)return;
   const drawStart=performance.now();lastPressure=p;
   if(Math.abs(p)<.00001){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE);drawCount++;lastDrawMs=performance.now()-drawStart;return}
-  deformTexture(texture.pixels,output.data,p);ctx.putImageData(output,0,0);drawCount++;lastDrawMs=performance.now()-drawStart;
+  if(!surfaces){ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(texture.image,0,0,SIZE,SIZE)}
+  else{
+   const pressure=Math.max(-.4,Math.min(1,p));let upper=surfaces.findIndex(frame=>frame.pressure>=pressure);
+   if(upper<0)upper=surfaces.length-1;const b=surfaces[upper],a=surfaces[Math.max(0,upper-1)];
+   const blend=a===b?0:(pressure-a.pressure)/(b.pressure-a.pressure);
+   // Add premultiplied colors so interpolation preserves the original alpha.
+   // Source-over crossfades would thicken the transparent rim into two layers.
+   ctx.globalCompositeOperation='copy';ctx.globalAlpha=1-blend;ctx.drawImage(a.image,0,0);
+   if(blend){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=blend;ctx.drawImage(b.image,0,0)}
+   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  }
+  drawCount++;lastDrawMs=performance.now()-drawStart;
  }
  function paint(){
-  const p=value(),effective=motion?.matches?Math.max(0,p)*.14:p;draw(effective);
+  const p=value(),effective=motion?.matches?Math.max(0,p)*.14:p;
+  if(!surfaces&&preparedSurfaces&&effective===0)surfaces=preparedSurfaces;
+  draw(effective);
   // Late image decoding never swaps the surface during a finger gesture.
   if(texture&&ctx&&canvas.parentElement!==glass&&effective===0){glass.append(canvas);glass.classList.add('is-pressure-ready')}
   return {pressure:p,effective};
@@ -135,8 +166,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   animate(peaks,1750);
  }
  function prepare(){
-  loadTexture().then(asset=>{
+  loadTexture().then(async asset=>{
    if(!asset||!ctx)return;texture=asset;lastPressure=NaN;paint();
+   const frames=await loadSurfaces(asset);if(!frames)return;preparedSurfaces=frames;lastPressure=NaN;paint();
    // paint() installs the identical texture only while the bubble is at rest.
   });
  }
@@ -159,7 +191,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
  button.addEventListener('blur',reset);window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!texture&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
+ const controls={reset,getPaintState:()=>({pressure:lastPressure,count:drawCount,ms:lastDrawMs}),getState:()=>({...paint(),ready:!!surfaces&&canvas.parentElement===glass,rendering:!!texture&&!!ctx&&canvas.parentElement===glass,buffer:SIZE,source:TEXTURE,holding:!!active})};
  root.octiPressure=controls;prepare();return controls;
 };
 })();
