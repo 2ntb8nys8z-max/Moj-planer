@@ -31,10 +31,16 @@ function read(page,channel='main'){
   return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),pressure:parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0,dentOpacity:Number(getComputedStyle(root.querySelector('.octi-pressure-dent')).opacity),sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter};
  });
 }
-function samples(page,channel='main',duration=510){
- return page.locator(`.octi-dock[data-channel=${channel}] .water-float`).evaluate((float,duration)=>new Promise(resolve=>{
-  const values=[],start=performance.now();function tick(){values.push(parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0);if(performance.now()-start>=duration)resolve(values);else requestAnimationFrame(tick)}tick();
- }),duration);
+async function samples(page,channel='main',duration=510){
+ const float=page.locator(`.octi-dock[data-channel=${channel}] .water-float`);
+ // Start in the browser's release event, not before an automation round trip.
+ // A slow runner must not consume the sampling window while the finger is held.
+ await float.evaluate((float,duration)=>{
+  float.pressureSamples=new Promise(resolve=>window.addEventListener('pointerup',()=>{
+   const values=[],start=performance.now();function tick(){values.push(parseFloat(getComputedStyle(float).getPropertyValue('--okti-pressure'))||0);if(performance.now()-start>=duration)resolve(values);else requestAnimationFrame(tick)}tick();
+  },{once:true}));
+ },duration);
+ return ()=>float.evaluate(float=>float.pressureSamples);
 }
 async function hold(page,channel='main'){
  const voice=page.locator(`.octi-dock[data-channel=${channel}] .voice`),b=await voice.boundingBox();
@@ -61,23 +67,23 @@ async function settled(page,channel='main'){
     assert.ok(pressed.dentOpacity>.95,'A shallow concave reflection appears under the fingertip');
     assert.equal(pressed.actor.width,pressed.glass.width);assert.equal(pressed.actor.height,pressed.glass.height);assert.equal(pressed.sameHost,true);assert.equal(pressed.filter,'none');
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`});
-    const release=samples(page);await page.mouse.up();const bounce=await release;
-    assert.ok(bounce.some(v=>v<-.08),'Release crosses the resting shape with a visible elastic rebound');await settled(page);
+    const release=await samples(page);await page.mouse.up();const bounce=await release();
+    assert.ok(bounce.some(v=>v<-.08),'Release crosses the resting shape with a visible elastic rebound: '+JSON.stringify(bounce));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
     if(width===390)await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-restored.png`});
     // Real short touch events can both arrive before the next painted frame.
-    const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=samples(page);
-    await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap;
+    const b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox(),tap=await samples(page);
+    await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const quick=await tap();
     assert.ok(quick.some(v=>v>.2),'Even a very short touch paints a small compression');await settled(page);
     await hold(page);await page.mouse.move(2,2);await page.mouse.up();await settled(page);
     await hold(page);await page.evaluate(()=>document.querySelector('.octi-dock[data-channel=main] .voice').dispatchEvent(new PointerEvent('pointercancel',{pointerId:window.pressPointer,bubbles:true})));await page.mouse.up();await settled(page);
     if(width===390){
      for(let i=0;i<4;i++){await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.up();}await settled(page);
      await page.locator('.octi-dock[data-channel=main] .voice').focus();await page.keyboard.down(' ');await page.waitForTimeout(100);assert.ok((await read(page)).pressure>.95);await page.keyboard.up(' ');await settled(page);
-     await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=samples(page,'main',100);await page.mouse.up();assert.ok((await quiet).every(v=>v>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
+     await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=await samples(page,'main',100);await page.mouse.up();assert.ok((await quiet()).every(v=>v>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
      await page.evaluate(()=>{showPlannerWeather=async()=>{};tasks=[{id:'pressure-event',title:'Test sprężystego bąbla',date:iso(selected),time:'17:00',endTime:'18:00'}];renderAll();openEventActions(tasks[0])});
      await page.waitForFunction(()=>!window.OktiEventMotion.getState()&&document.querySelector('.octi-dock[data-channel=event]')?.octiListening?.getState().rendering);await visualOnly(page,'event');const eventRest=await read(page,'event');
-     await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=samples(page,'event');await page.mouse.up();assert.ok((await spring).some(v=>v<-.08));await settled(page,'event');
+     await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const spring=await samples(page,'event');await page.mouse.up();assert.ok((await spring()).some(v=>v<-.08));await settled(page,'event');
      await hold(page,'event');await page.evaluate(()=>closeEventActions());await page.mouse.up();await settled(page,'event');
     }
     assert.deepEqual(errors,[]);console.log(`${kind}: ${width}×${height} held dent, fixed target, elastic release, short touch and cancellation passed.`);
