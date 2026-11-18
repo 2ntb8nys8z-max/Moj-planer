@@ -1,12 +1,17 @@
 /* One static blue material and one native transform; no video or hover control. */
 (()=>{
 'use strict';
-const TEXTURE='octi-water-shell-332.png?v=b52c46cccd774fd5',SIZE=384,CONTACT=120,RETURN=390;
-const ease=v=>{const t=Math.max(0,Math.min(1,v));return t*(.75+t*(1.05-.8*t))};
-const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
-const EASING='cubic-bezier(.333333,.25,.666667,.85)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
+const TEXTURE='octi-water-shell-332.png?v=b52c46cccd774fd5',SIZE=384,CONTACT=600,RETURN=1750;
 const settle=v=>{const t=Math.max(0,Math.min(1,v));return t*t*(3-2*t)};
-const SETTLE='cubic-bezier(.333333,0,.666667,1)';
+const smoothLoad=t=>t*t*t*(10+t*(-15+6*t));
+// Pressure extrema from the reference membrane, spaced 250 ms apart.
+const unloading=[1,-.38,.11,-.075,.038,-.022,.008,0];
+function pressureAt(curve,fraction){
+ const t=Math.max(0,Math.min(1,fraction));
+ if(curve.to)return curve.from+(curve.to-curve.from)*smoothLoad(t);
+ const position=t*(unloading.length-1),i=Math.min(unloading.length-2,Math.floor(position));
+ return unloading[i]+(unloading[i+1]-unloading[i])*smoothLoad(position-i);
+}
 function splitSurface(source,ctx){
  const surface=ctx.createImageData(SIZE,SIZE),rim=source.data,light=surface.data;
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
@@ -147,18 +152,10 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
  }
  function sample(time){
-  if(!curve)return settled;
-  const from=curve.from;
-  if(curve.echo){
-   const {low,high}=curve.echo,t=time/curve.duration;
-   if(t<=.43)return from+(low-from)*recover(t/.43);
-   if(t<=.76)return low+(high-low)*settle((t-.43)/.33);
-   return high*(1-settle((t-.76)/.24));
-  }
-  return from+(curve.to-from)*(curve.to===0?recover:ease)(time/curve.duration);
+  return curve?pressureAt(curve,time/curve.duration):settled;
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
- function style(p){return {transform:`translate(-50%,-50%) scale(${1+.20*p},${1+.13*p})`}}
+ function style(p){const lift=Math.min(0,p)*4.5;return {transform:`translate(-50%,${-50+lift}%) scale(${1+.106*p},${1+(p<0?-.19:.045)*p})`}}
  function install(){
   if(!pendingTexture||!ctx||phase!=='idle')return;
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
@@ -175,16 +172,15 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   // The shell crosses rest once in each direction on its native timeline.
   // The actor and detached highlights keep their independent motion.
-  const stops=[{p:next.from,offset:0,easing:next.to?EASING:RECOVER}];
-  if(next.echo){
-   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset,easing:SETTLE});
-  }
-  stops.push({p:next.to,offset:1});
+  // Sample the original quintic load at 50 ms intervals, including each
+  // peak, then let the browser interpolate the shell on its own compositor.
+  const intervals=next.to?12:35;
+  const stops=Array.from({length:intervals+1},(_,i)=>({offset:i/intervals,p:pressureAt(next,i/intervals)}));
   startDetails(next,nextPhase==='held',stops);
   const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
   footprintRun?.cancel();
   footprintRun=footprint.animate(stops.map(({p,...timing})=>({
-   transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.20*p},${1+.13*p})`,...timing
+   transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.08*p},${1+.04*p})`,...timing
   })),{duration:next.duration,fill:'forwards'});
   if(document.timeline.currentTime!==null)footprintRun.startTime=document.timeline.currentTime;
   wallRun?.cancel();
@@ -220,11 +216,11 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    const proximity=Math.max(0,1-Math.hypot(band.x-touchX/50,band.y-touchY/50)/1.85);
    band.pull=.17+.39*proximity;
   }
-  start({from:motion?.matches?from:Math.max(.115,from),to:1,duration:CONTACT,carry},'held');
+  start({from:motion?.matches?from:Math.max(.035,from),to:1,duration:CONTACT,carry},'held');
   if(!texture&&!pendingTexture)prepare();
  }
  function returnFromPeak(){
-  start({from:1,to:0,duration:RETURN,echo:{low:-.24,high:.105}},'release');
+  start({from:1,to:0,duration:RETURN},'release');
  }
  function release(){
   if(!active)return;
