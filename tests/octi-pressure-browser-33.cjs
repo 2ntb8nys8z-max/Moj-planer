@@ -131,11 +131,11 @@ async function observeTap(page,channel='main'){
 }
 function assertFastReturn(result){
  assert.equal(result.timedOut,false,'A real tap completes its visual cycle');
- assert.equal(result.native?.duration,390,'Finger-up has one short native return');
+ assert.ok(Math.abs(result.native.duration-(result.native.count===6?390+result.native.peakAt+64:390))<.01,'Short taps finish the attack and near-peak shoulder before the normal return');
  assert.equal(result.native.delay,0);assert.equal(result.native.phase,'release');assert.equal(result.native.holding,false);
  assert.equal(result.native.lastX,1);assert.ok(result.native.minX<.995);
- assert.ok([4,5].includes(result.native.count),'Release has one undershoot and one smaller rebound');
- if(result.native.count===5)assert.ok(result.native.maxX>=1.20&&result.native.peakAt<=40,'A before-first-frame tap paints a short smooth impulse: '+JSON.stringify(result));
+ assert.ok([4,6].includes(result.native.count),'Release has one undershoot and one smaller rebound');
+ if(result.native.count===6)assert.ok(result.native.maxX>=1.20&&result.native.peakAt>=17&&result.native.peakAt<=94,'A before-first-frame tap paints a short smooth impulse: '+JSON.stringify(result));
  else assert.ok(result.native.immediate,'An already visible press returns directly from its current size: '+JSON.stringify(result));
  assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
 }

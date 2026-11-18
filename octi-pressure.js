@@ -110,7 +110,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,pendingTexture=null,drawCount=0,lastDrawMs=0;
  for(const name of ['octi-pressure-shadow','octi-pressure-caustic']){const node=document.createElement('span');node.className=name;node.setAttribute('aria-hidden','true');floating.append(node)}
  floating.classList.add('has-composited-pressure');
- let active=null,curve=null,primary=null,phase='idle',settled=0;
+ const wall=document.createElement('span');wall.className='octi-pressed-wall';wall.setAttribute('aria-hidden','true');glass.append(wall);
+ let active=null,curve=null,primary=null,wallRun=null,phase='idle',settled=0;
  const initialTransform=glass.style.transform;
  const scatter=document.createElement('span');scatter.className='octi-glass-scatter';scatter.setAttribute('aria-hidden','true');glass.append(scatter);
  const reflections=lights.map(({angle,radius},index)=>{
@@ -165,7 +166,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function sample(time){
   if(!curve)return settled;
   if(curve.peakTime&&time<curve.peakTime)return curve.from+(curve.peak-curve.from)*ease(time/curve.peakTime);
-  const from=curve.peakTime?curve.peak:curve.from,start=curve.peakTime||0;
+  if(curve.shoulderEnd&&time<curve.shoulderEnd)return curve.peak+(.965-curve.peak)*settle((time-curve.peakTime)/(curve.shoulderEnd-curve.peakTime));
+  const from=curve.shoulderEnd ? .965 : curve.from,start=curve.shoulderEnd||0;
   if(curve.echo){
    const {low,high}=curve.echo,t=(time-start)/(curve.duration-start);
    if(t<=.43)return from+(low-from)*recover(t/.43);
@@ -181,7 +183,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
  }
- function clear(){clearDetails();if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
+ function clear(){clearDetails();wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
  function reset(){active=null;clear();settled=0;phase='idle';delete floating.dataset.pressState;install()}
  function start(next,nextPhase){
   startDetails(next,nextPhase==='held');
@@ -192,13 +194,20 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   // The shell crosses rest once in each direction on its native timeline.
   // The actor and detached highlights keep their independent motion.
-  const frames=[{...style(next.from),offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
-  if(next.peakTime)frames.push({...style(next.peak),offset:next.peakTime/next.duration,easing:RECOVER});
-  if(next.echo){
-   const start=(next.peakTime||0)/next.duration;
-   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])frames.push({...style(p),offset:start+(1-start)*offset,easing:SETTLE});
+  const stops=[{p:next.from,offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
+  if(next.peakTime){
+   stops.push({p:next.peak,offset:next.peakTime/next.duration,easing:SETTLE});
+   stops.push({p:.965,offset:next.shoulderEnd/next.duration,easing:RECOVER});
   }
-  frames.push({...style(next.to),offset:1});
+  if(next.echo){
+   const start=(next.shoulderEnd||0)/next.duration;
+   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset:start+(1-start)*offset,easing:SETTLE});
+  }
+  stops.push({p:next.to,offset:1});
+  const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
+  wallRun?.cancel();
+  wallRun=wall.animate(stops.map(({p,...timing})=>({opacity:Math.max(0,p),...timing})),{duration:next.duration,fill:'forwards'});
+  if(document.timeline.currentTime!==null)wallRun.startTime=document.timeline.currentTime;
   const run=glass.animate(frames,{duration:next.duration,easing:'linear',fill:'forwards'});run.id='okti-pressure-compositor';
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
   primary=run;
@@ -207,7 +216,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function begin(input){
   if(button.disabled||active)return;
-  const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds};
+  const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds,downAt:performance.now()};
   // A second finger-down can redirect a reflection before it has returned.
   const carry=phase==='release'?new Map([...reflections.map(({node})=>node),legacy].map(node=>[node,getComputedStyle(node).transform])):null;
   const dx=Number.isFinite(input.x)?(input.x-bounds.left)/bounds.width-.5:0;
@@ -217,17 +226,18 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    const proximity=Math.max(0,1-Math.hypot(band.x-touchX/50,band.y-touchY/50)/1.85);
    band.pull=.17+.39*proximity;
   }
-  start({from:motion?.matches?from:Math.max(.055,from),to:1,duration:CONTACT,carry},'held');
+  start({from:motion?.matches?from:Math.max(.115,from),to:1,duration:CONTACT,carry},'held');
   if(!texture&&!pendingTexture)prepare();
  }
  function release(){
   if(!active)return;
-  const from=value(),elapsed=Number(primary?.currentTime)||0;active=null;
+  const from=value(),elapsed=performance.now()-active.downAt;active=null;
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
-  // A tap released before the first display frame still paints a short, smooth
-  // impulse. All other releases reverse immediately from the current size.
-  const impulse=elapsed<90&&from<.96,amplitude=impulse?1:from;
-  start({from,to:0,duration:RETURN,echo:{low:-.24*amplitude,high:.105*amplitude},...(impulse?{peak:1,peakTime:Math.max(24,40*(1-from))}:{})},'release');
+  // A light tap finishes opening after lift. A hold starts returning on lift.
+  const impulse=elapsed<105,amplitude=impulse?1:from;
+  const peakTime=impulse?Math.max(18,94*(1-from)):0;
+  const shoulderEnd=impulse?peakTime+64:0;
+  start({from,to:0,duration:RETURN+shoulderEnd,echo:{low:-.24*amplitude,high:.105*amplitude},...(impulse?{peak:1,peakTime,shoulderEnd}:{})},'release');
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
