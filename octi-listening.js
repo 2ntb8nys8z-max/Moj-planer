@@ -203,7 +203,9 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  fallback.addEventListener('error',()=>{if(/octi-water-idle-332\.webp(?:\?|$)/.test(fallback.getAttribute('src')||''))nativeImageFailed=true;});
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
- plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
+ const surface=document.createElement('span');surface.className='octi-material-surface';
+ surface.style.cssText='position:absolute;inset:0;transform-origin:50% 56%;pointer-events:none';
+ surface.append(canvas,fallback);plane.append(surface);layer.append(plane);floating.append(layer);
  // A single decoded alpha edge stays intact while the control is pressed.
  function setNativeImage(src){if(fallback.getAttribute('src')!==src)fallback.src=src;}
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
