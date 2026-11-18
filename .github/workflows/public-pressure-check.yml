@@ -1,0 +1,34 @@
+name: Public iPhone WebKit pressure check
+on:
+  push:
+    branches: ['work/public-okti-344*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Wait for the exact production release
+        run: |
+          for attempt in $(seq 1 100); do
+            if curl -fsSL "https://2ntb8nys8z-max.github.io/Moj-planer/release.json?proof=343-$attempt-$(date +%s)" | grep -q 013c5b3e57c967f9; then exit 0; fi
+            sleep 7
+          done
+          exit 1
+      - run: node tests/pressure-public-check.cjs
+        env:
+          PUBLIC_URL: https://2ntb8nys8z-max.github.io/Moj-planer/?build=013c5b3e57c967f9
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-water
+          path: capture/
