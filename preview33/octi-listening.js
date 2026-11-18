@@ -216,8 +216,8 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     const tips=document.createElement('span');tips.className='octi-native-tips '+side;
     const image=document.createElement('img');image.alt='';tips.append(image);nativeWater.append(tips);
    }
-   const face=document.createElement('span');face.className='octi-native-face';nativeWater.append(face);
-   for(let i=0;i<3;i++){const bar=document.createElement('span');bar.className='octi-native-bar';nativeWater.append(bar)}
+   const head=document.createElement('span');head.className='octi-native-head';
+   const image=document.createElement('img');image.alt='';head.append(image);nativeWater.append(head);
    plane.append(nativeWater);
   }
   for(const im of [fallback,...nativeWater.querySelectorAll('img')])if(im.getAttribute('src')!==src)im.src=src;

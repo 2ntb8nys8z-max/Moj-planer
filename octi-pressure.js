@@ -144,10 +144,23 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
   const first={...currentPose(),offset:0};
-  const keys=held?[first,pose(.23,.67,.06,.43),pose(.60,.98,.70,.86),pose(1,1,1,1)]:
-   [first,
-    pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
-  const detailDuration=held?next.duration:240;
+  const detailDuration=next.duration;
+  // Sample the load and its delayed response over the complete visual cycle.
+  // Start from the presented pose when a new tap interrupts the previous one.
+  const intervals=held?12:35;
+  const contact=v=>smoothLoad(Math.max(0,Math.min(1,v)));
+  const keys=Array.from({length:intervals+1},(_,i)=>{
+   const t=i/intervals;
+   if(i===0)return first;
+   if(held){
+    const head=.18*Math.min(1,t/.16)+.82*contact(t/.88);
+    const arms=.08*Math.min(1,t/.25)+.92*contact((t-.025)/.975);
+    return pose(t,first.head+(1-first.head)*head,first.arms+(1-first.arms)*arms,0);
+   }
+   const tail=contact((1-t)/.14);
+   const response=delay=>pressureAt(next,Math.max(0,t-delay))*tail;
+   return pose(t,response(.009),response(.034),0);
+  });
   clearDetails();poses={keys,duration:detailDuration};
   const native=actor.querySelector('.octi-native-water');
   if(native&&native.parentElement.parentElement.matches('.is-native-idle,.is-fallback')){
@@ -157,14 +170,11 @@ window.createOctiPressureArtwork=function(root,floating,motion){
     if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
     details.push(run);
    }
-   native.querySelectorAll('.octi-native-bar').forEach((bar,i)=>move(bar,({head})=>{
-    const u=(i-1)*.43,yaw=head*(.08+.34*side),pitch=head*(.27-.12*Math.abs(side)),z=Math.sqrt(1-u*u);
-    const dx=21.4*(u*(Math.cos(yaw)-1)-z*Math.sin(yaw)),dy=32*z*Math.sin(pitch);
-    return `translate(${dx/2.7*100}%,${dy/(i===1?19:12)*100}%) scaleX(${Math.cos(yaw)+u*Math.sin(yaw)})`;
-   }));
+   move(native.querySelector('.octi-native-head'),({head})=>
+    `matrix(1,0,${head*(.026+.09*side)},${1-.046*head},0,0)`);
    native.querySelectorAll('.octi-native-tips').forEach((tips,i)=>move(tips,({arms})=>{
     const sign=i===0?-1:1;
-    return `matrix(${1+arms*(.13-.06*side*sign)},${arms*(.06*sign+.025*side)},0,1,0,0)`;
+    return `matrix(${1+arms*(.085-.04*side*sign)},${arms*(.048*sign+.018*side)},0,1,0,0)`;
    }));
   }
   // Contract each optical band toward the contact in glass-local coordinates.
