@@ -1,0 +1,28 @@
+name: Public iPhone WebKit pressure check
+on:
+  push:
+    branches: ['work/public-pressure-343*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: mkdir -p /tmp/preview-site/Moj-planer && ln -s "$PWD/preview33" /tmp/preview-site/Moj-planer/podglad-nacisku && python3 -m http.server 8183 --directory /tmp/preview-site >/tmp/preview-http.log 2>&1 &
+      - run: node tests/pressure-public-check.cjs
+        env:
+          PUBLIC_URL: http://127.0.0.1:8183/Moj-planer/podglad-nacisku/?build=dd9ace42a4823183
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-water
+          path: capture/
