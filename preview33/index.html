@@ -6189,10 +6189,11 @@ window.OktiEventMotion=(()=>{
  .phone-layout:has(.octi-listening-media.uses-software-renderer.is-active) #dayTitle::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
  .phone-layout:has(.octi-listening-media.uses-software-renderer.is-active) .phone-bottom-bar{background-color:#e7edf2ed}
 }
-.octi-dock .octi-touch-actor{position:absolute;inset:0;pointer-events:none;transform-origin:center}
+.octi-dock .octi-touch-actor{position:absolute;inset:0;pointer-events:none;transform-origin:center;transform:translateZ(0);will-change:transform}
+.octi-dock .octi-pressure-canvas{transform:translateZ(0);will-change:transform}
 .octi-dock .octi-contact-lens{
  position:absolute;width:25%;height:21%;left:50%;top:50%;pointer-events:none;z-index:1;
- border-radius:50%;opacity:0;transform:translate(-50%,-50%);
+ border-radius:50%;opacity:0;transform:translate3d(-50%,-50%,0);will-change:opacity;
  background:linear-gradient(132deg,rgba(31,55,72,.62) 12%,rgba(57,96,115,.16) 39%,transparent 49%,rgba(239,253,255,.95) 78%);
  -webkit-mask-image:radial-gradient(ellipse,transparent 40%,#000 62%,transparent 81%);
  mask-image:radial-gradient(ellipse,transparent 40%,#000 62%,transparent 81%);
