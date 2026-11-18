@@ -155,7 +155,13 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   return curve?pressureAt(curve,time/curve.duration):settled;
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
- function style(p){const lift=Math.min(0,p)*4.5;return {transform:`translate(-50%,${-50+lift}%) scale(${1+.106*p},${1+(p<0?-.19:.045)*p})`}}
+ function style(p,returning=false){
+  // Carry the extra contact volume out with the initial release. Subsequent
+  // rebound extrema retain the projected proportions of the approved V3 pose.
+  const extra=returning?Math.max(0,(p-.11)/.89):Math.max(0,p);
+  const lift=Math.min(0,p)*4.5;
+  return {transform:`translate(-50%,${-50+lift}%) scale(${1+.106*p+.039*extra},${1+(p<0?-.19:.045)*p+.025*extra})`};
+ }
  function install(){
   if(!pendingTexture||!ctx||phase!=='idle')return;
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
@@ -177,7 +183,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const intervals=next.to?12:35;
   const stops=Array.from({length:intervals+1},(_,i)=>({offset:i/intervals,p:pressureAt(next,i/intervals)}));
   startDetails(next,nextPhase==='held',stops);
-  const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
+  const frames=stops.map(({p,...timing})=>({...style(p,!next.to),...timing}));
   footprintRun?.cancel();
   footprintRun=footprint.animate(stops.map(({p,...timing})=>({
    transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.08*p},${1+.04*p})`,...timing

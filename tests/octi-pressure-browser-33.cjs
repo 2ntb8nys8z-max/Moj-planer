@@ -175,7 +175,7 @@ function assertFastReturn(result){
  assert.equal(result.native.delay,0);assert.equal(result.native.phase,'release');assert.equal(result.native.holding,false);
  assert.equal(result.native.lastX,1);assert.ok(result.native.minX<.995);
  assert.equal(result.native.count,36,'Return has the successive damped extrema of the reference');
- assert.equal(result.native.firstX,1.106,'Every release starts from the full held width');
+ assert.equal(result.native.firstX,1.145,'Every release starts from the full held width');
  assert.ok(result.native.immediate,'There is no plateau after maximum expansion');
  if(result.attack){assert.equal(result.attack.duration,600);assert.equal(result.attack.delay,0);assert.equal(result.attack.lastX,1.106)}
  assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
@@ -206,8 +206,8 @@ function assertFastReturn(result){
     assert.equal(response.duration,600,'A short native contact remains visibly smooth');assert.equal(response.delay,0);
     assert.equal(response.phase,'held');
     assert.deepEqual(pressed.target,resting.target,'Only artwork flexes; the recorder hit target stays still');
-    assert.ok(pressed.glass.width>resting.glass.width*1.104,'The held bubble widens');
-    assert.ok(pressed.glass.height>resting.glass.height*1.043,'Pressure expands the membrane around its whole circumference');
+    assert.ok(pressed.glass.width>resting.glass.width*1.143,'The held bubble widens');
+    assert.ok(pressed.glass.height>resting.glass.height*1.068,'Pressure expands the membrane around its whole circumference');
     const center=r=>({x:r.x+r.width/2,y:r.y+r.height/2});
     assert.ok(Math.abs(center(pressed.glass).x-center(pressed.actor).x)<.05,'Expansion keeps the center fixed horizontally: '+JSON.stringify({start:pressed.pressStart,current:center(pressed.glass)}));
     assert.ok(Math.abs(center(pressed.glass).y-center(pressed.actor).y)<.05,'Expansion keeps the center fixed vertically: '+JSON.stringify({start:pressed.pressStart,current:center(pressed.glass)}));
@@ -429,7 +429,7 @@ function assertFastReturn(result){
    assert.equal(unavailable.lightRequests,0,'The discarded neutral atlas is no longer requested');
    await hold(unavailable.page);const held=await read(unavailable.page);
    assert.equal(held.pressureState.rendering,true);assert.equal(held.pressureState.holding,true);
-   assert.ok(held.glass.width>resting.glass.width*1.104);
+   assert.ok(held.glass.width>resting.glass.width*1.143);
    assert.deepEqual(held.target,resting.target);
    await unavailable.page.mouse.up();await settled(unavailable.page);
    assert.equal((await read(unavailable.page)).interiorAlpha,resting.interiorAlpha,'Missing optics still return to the original resting pixels');
