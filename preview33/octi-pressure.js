@@ -64,13 +64,18 @@ function glassSheen(){
   sheenPixels=ctx.createImageData(144,144);const rgba=sheenPixels.data;
   for(let y=0;y<144;y++)for(let x=0;x<144;x++){
    const u=(x+0.5)/72-1,v=(y+0.5)/72-1,r=Math.hypot(u,v);
-   const side=Math.max(0,-v/(r||1)),angle=side*side;
-   const white=.91*angle*Math.exp(-((r-.83)**2)/.016);
-   const ice=.27*angle*Math.exp(-((r-.64)**2)/.022),alpha=white+ice*(1-white);
-   if(alpha<.002||r>=1)continue;
+   // Two elongated softboxes sit on opposite sides of the clear shell.
+   // Their cool underside keeps the moving white bands readable over white.
+   const theta=Math.atan2(v,u);
+   const box=(center,extent)=>Math.exp(-Math.pow(Math.atan2(Math.sin(theta-center),Math.cos(theta-center))/extent,4));
+   const aperture=Math.max(box(-2.20,.49),.77*box(.78,.36));
+   const highlight=aperture*.98*Math.exp(-Math.pow((r-.845)/.071,4));
+   const shade=aperture*.78*Math.exp(-Math.pow((r-.787)/.062,2));
+   const alpha=highlight+shade*(1-highlight);
+   if(alpha<.002)continue;
    const q=(y*144+x)*4;
-   for(const [c,tint] of [158,213,234].entries())rgba[q+c]=(255*white+tint*ice*(1-white))/alpha;
-   rgba[q+3]=255*alpha*Math.min(1,(1-r)*14);
+   for(const [c,tint] of [55,109,146].entries())rgba[q+c]=(255*highlight+tint*shade*(1-highlight))/alpha;
+   rgba[q+3]=255*alpha;
   }
  }
  ctx.putImageData(sheenPixels,0,0);return node;
@@ -85,7 +90,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  let active=null,curve=null,primary=null,phase='idle',settled=0;
  const initialTransform=glass.style.transform;
  const lens=glassSheen();lens.className='octi-contact-lens';lens.setAttribute('aria-hidden','true');glass.append(lens);
- let details=[],poses=null,nativeFilter=null,filteredImage=null,lightAngle=-35;
+ let details=[],poses=null,nativeFilter=null,filteredImage=null,lightAngle=42;
  const headResponse=.38,armResponse=.19;
  function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse}}
  const rest={head:0,arms:0,light:0,rim:0};
@@ -111,7 +116,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   clearDetails();poses={keys,duration:next.duration};
   filteredImage=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
   if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),next.duration)}
-  for(const [node,make] of [[lens,p=>({opacity:p.light,transform:`translate3d(-50%,-50%,0) rotate(${lightAngle}deg) scale(${.94+.06*p.light})`})],[canvas,p=>({transform:`scale(${1+p.rim})`})]]){
+  for(const [node,make] of [[lens,p=>({opacity:.88+.12*p.light,transform:`translate3d(-50%,-50%,0) rotate(${lightAngle*p.light}deg) scale(${1-.075*p.light},${1+.022*p.light})`})],[canvas,p=>({transform:`scale(${1+p.rim})`})]]){
    const run=node.animate(keys.map(p=>({offset:p.offset,...make(p)})),{duration:next.duration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
@@ -155,7 +160,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds};
   const dx=Number.isFinite(input.x)?(input.x-bounds.left)/bounds.width-.5:0;
   const dy=Number.isFinite(input.y)?(input.y-bounds.top)/bounds.height-.5:0;
-  lightAngle=Math.hypot(dx,dy)>.06?Math.atan2(dx,-dy)*180/Math.PI:-35;
+  lightAngle=(dx<-.06?-1:1)*(40+Math.min(10,Math.abs(dy)*20));
   start({from:motion?.matches?from:Math.max(.16,from),to:1,duration:CONTACT},'held');
   if(!texture&&!pendingTexture)prepare();
  }
