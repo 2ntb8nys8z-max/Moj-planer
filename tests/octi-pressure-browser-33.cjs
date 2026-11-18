@@ -222,7 +222,16 @@ function assertFastReturn(result){
     assert.ok(onset.every(f=>f.paint.count===resting.pressureState.paintCount),'The whole onset uses the immutable material with no Canvas redraws');
     const full=onset.find(f=>f.paint.pressure>=.99999);
     assert.ok(full&&full.t>=119&&full.t<=121,'Native contact finishes within 120 ms: '+JSON.stringify(onset));
-    if(width===390){console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
+    if(width===390){
+     const contact=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{
+      const lens=root.querySelector('.octi-contact-lens'),actor=root.querySelector('.octi-touch-actor');
+      const matrix=new DOMMatrix(getComputedStyle(actor).transform),at=actor.clientHeight*.13;
+      return {alpha:Number(getComputedStyle(lens).opacity),y:parseFloat(lens.style.top),
+       headScale:matrix.m11/(1-matrix.m24*at),armScale:matrix.m11/(1+matrix.m24*at)};
+     });
+     assert.ok(contact.alpha>.95&&contact.y<50,'The held surface catches light at the off-center touch');
+     assert.ok(contact.headScale<.94&&contact.armScale>1.06,'The head recedes while the tentacles open');
+     console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const returning=await release();
     assert.equal(returning[0].duration,240,'A long hold returns as quickly as a short tap');
     assert.equal(returning[0].pressure,1);assert.equal(returning.at(-1).pressure,0);

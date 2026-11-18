@@ -185,7 +185,9 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-listening-media';layer.setAttribute('aria-hidden','true');
  let canvas=document.createElement('canvas');canvas.width=canvas.height=128;canvas.className='octi-listening-canvas';
  const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';
- layer.append(canvas,fallback);floating.append(layer);
+ // A common plane lets the tap deform either live renderer or the animated idle image.
+ const plane=document.createElement('span');plane.className='octi-touch-actor';
+ plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
  let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastFrame=0,lastDraw=0,pose=0,follow=0,headTurn=0,recordStart=0,starting=false,lastVideoTime=-1,lastProgress=0,reason='';
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
