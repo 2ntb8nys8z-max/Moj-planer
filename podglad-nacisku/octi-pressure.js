@@ -162,20 +162,16 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    return pose(t,response(.009),response(.034),0);
   });
   clearDetails();poses={keys,duration:detailDuration};
-  const native=actor.querySelector('.octi-native-water');
-  if(native&&native.parentElement.parentElement.matches('.is-native-idle,.is-fallback')){
+  const native=actor.querySelector('.octi-listening-fallback');
+  if(native){
+   // One continuous affine field across the animated silhouette. The crown
+   // and distal arms sit on opposite sides of its stationary neck pivot.
    const side=touchX/50;
-   function move(node,transform){
-    const run=node.animate(keys.map(key=>({offset:key.offset,transform:transform(key)})),{duration:detailDuration,fill:'forwards'});
-    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
-    details.push(run);
-   }
-   move(native.querySelector('.octi-native-head'),({head})=>
-    `matrix(1,0,${head*(.026+.09*side)},${1-.046*head},0,0)`);
-   native.querySelectorAll('.octi-native-tips').forEach((tips,i)=>move(tips,({arms})=>{
-    const sign=i===0?-1:1;
-    return `matrix(${1+arms*(.085-.04*side*sign)},${arms*(.048*sign+.018*side)},0,1,0,0)`;
-   }));
+   const frames=keys.map(({offset,head,arms})=>({offset,
+    transform:`translate(-50%,-50%) matrix(1,${arms*(.012+.018*side)},${head*(.024+.060*side)},1,0,0)`}));
+   const run=native.animate(frames,{duration:detailDuration,fill:'forwards'});
+   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
+   details.push(run);
   }
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
