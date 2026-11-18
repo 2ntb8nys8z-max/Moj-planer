@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Bright decorative calendar tile backgrounds; text and interaction remain separate.",
+  "backgrounds": [
+    {
+      "id": "light-shadow",
+      "file": "light-shadow.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 14680,
+      "sha256": "2754b26f6df8c4afc9ceda4cf4a630a35dfc1ed2e3b8707ab820b91f3368924d"
+    },
+    {
+      "id": "work-focus",
+      "file": "work-focus.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 12656,
+      "sha256": "da7b25d5a942a5664f9c4ffa458682eafb4599e556fb7faa10e1f459e5785ed8"
+    },
+    {
+      "id": "calm-balance",
+      "file": "calm-balance.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 7206,
+      "sha256": "907e68651db11f88a7fb2b1cf5b9d7e27c5386ef933575e6cdbf85140a50bd5a"
+    },
+    {
+      "id": "forest-breath",
+      "file": "forest-breath.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 34144,
+      "sha256": "61989c7bcdfaafff9ada389acdce40de41b61a5d32ac7b2f0412484fb1558807"
+    }
+  ]
+}
