@@ -35,7 +35,15 @@ for mode in ('idle','poster'):
     frames[0].save(ROOT/f'octi-water-{mode}-332.webp',save_all=True,append_images=frames[1:],
                    duration=times,loop=0,quality=97,method=5)
 source = Image.open(ROOT/'octi-listening-head.webp').convert('RGB')
-source.paste(color_head(source.crop((0,0,544,544))), (0,0))
+head = np.array(color_head(source.crop((0,0,544,544))), dtype=float)
+# Keep the same three printed capsules visible at the 128 CSS-pixel size
+# after removing the unrelated white glint from the side of the mantle.
+y,x = np.indices(head.shape[:2])
+for center,height in ((252,30),(272,45),(292,30)):
+    distance=np.hypot(x-center,np.maximum(0,abs(y-232)-(height/2-4)))
+    coverage=smooth(4.6-distance)[:,:,None]
+    head+=(255-head)*coverage
+source.paste(Image.fromarray(np.uint8(head+.5)),(0,0))
 source.save(ROOT/'octi-water-head-332.webp',lossless=True)
 
 # A single exterior boundary feeds every optical path. The material only

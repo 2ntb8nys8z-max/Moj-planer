@@ -1,7 +1,7 @@
 /* Okti listening artwork. Presentation only: the existing recorder owns state. */
 (()=>{
 'use strict';
-const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-water-head-332.webp?v=d4bf93251ec1b54f',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
+const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-water-head-332.webp?v=1fc82de88dd38d0e',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
 const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1.0)*.5;gl_Position=vec4(position,0.0,1.0);}`;
 const fragment=`precision highp float;
 varying vec2 uv;
@@ -99,7 +99,7 @@ function createSoftwareRenderer(canvas,video,head,poster){
    if(state.touchArms){const ax=sx-272,ay=sy-298,freeTip=smooth((Math.sqrt(ax*ax+ay*ay)-44)/88);sx-=state.touchArms*freeTip*ax*.19;sy-=state.touchArms*freeTip*(5+22*Math.min(1,Math.abs(ax)/100));}
    sample(bodyMap,sx,sy,bodyPixel);
    const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin));let hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
-   if(state.touchHead){
+   if(state.touchHead&&hx>222&&hx<322&&hy>152&&hy<300){
     const u=(hx-272)/47.3,v=(hy-226)/70.8,q=u*u+v*v,side=state.touchSide||0;
     const amount=state.touchHead*Math.sqrt(Math.max(0,1-q))*smooth((1.06-q)/.23)*smooth((300-hy)/33);
     hx+=amount*(9+37*side);hy+=amount*(-45+20*Math.abs(side));

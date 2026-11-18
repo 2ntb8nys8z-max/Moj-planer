@@ -42,7 +42,8 @@ function idleMaps(){
  const size=96,c=document.createElement('canvas');c.width=c.height=size;
  const ctx=c.getContext('2d'),pixels=ctx.createImageData(size,size);
  const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
- nativeMaps=['head','side','arms'].map(part=>{
+ const bins=[-1,-.5,0,.5,1];
+ nativeMaps=[...bins,'arms'].map(part=>{
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){
    const ax=(x+.5)*4-192,ay=(y+.5)*4-210;
    const head=smooth(-ay/76)*(1-smooth((Math.abs(ax)-29)/17));
@@ -50,8 +51,8 @@ function idleMaps(){
    const u=((x+.5)*246/size-123)/21.4,v=((y+.5)*246/size-102)/32;
    const z=Math.sqrt(Math.max(0,1-u*u-v*v)),surface=smooth((1.06-u*u-v*v)/.23)*smooth((136-(y+.5)*246/size)/15);
    // Inverse projection: texture marks travel over the dome while the silhouette stays put.
-   const dx=part==='head'?surface*z*5:part==='side'?surface*z*28:-arm*ax*.19;
-   const dy=part==='head'?-surface*z*36:part==='side'?surface*z*13:-arm*(3.5+15.5*Math.min(1,Math.abs(ax)/70));
+   const dx=part==='arms'?-arm*ax*.19:surface*z*(5+28*part);
+   const dy=part==='arms'?-arm*(3.5+15.5*Math.min(1,Math.abs(ax)/70)):surface*z*(-36+13*Math.abs(part));
    const at=(y*size+x)*4;pixels.data[at]=128+255*dx/96;pixels.data[at+1]=128+255*dy/96;pixels.data[at+2]=128;pixels.data[at+3]=255;
   }
   ctx.putImageData(pixels,0,0);return c.toDataURL();
@@ -60,17 +61,19 @@ function idleMaps(){
 function nativeTouchFilter(root){
  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
  svg.setAttribute('class','octi-touch-defs');svg.setAttribute('aria-hidden','true');
- const id='octi-regional-'+root.dataset.channel,[head,side,arms]=idleMaps();
- svg.innerHTML=`<defs><filter id="${id}" x="0" y="0" width="1" height="1" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+ const id='octi-regional-'+root.dataset.channel,maps=idleMaps(),head=maps[2],arms=maps[5];
+ svg.innerHTML=`<defs><filter id="${id}" x=".15" y=".20" width=".70" height=".67" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
  <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${head}" result="headMap"/>
  <feDisplacementMap in="SourceGraphic" in2="headMap" scale="0" xChannelSelector="R" yChannelSelector="G" result="head"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap>
- <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${side}" result="sideMap"/>
- <feDisplacementMap in="head" in2="sideMap" scale="0" xChannelSelector="R" yChannelSelector="G" result="turned"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap>
  <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${arms}" result="armMap"/>
- <feDisplacementMap in="turned" in2="armMap" scale="0" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap></filter></defs>`;
+ <feDisplacementMap in="head" in2="armMap" scale="0" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap></filter></defs>`;
  root.append(svg);
  const anim=svg.querySelectorAll('animate');
- return {id,play(keys,duration){for(const [i,part] of ['head','side','arms'].entries()){
+ const headField=svg.querySelector('feImage');
+ let previousBin=2;
+ return {id,play(keys,duration,side){const bin=Math.max(0,Math.min(4,Math.round(side*2)+2));
+  if(bin!==previousBin){headField.setAttribute('href',maps[bin]);previousBin=bin}
+  for(const [i,part] of ['head','arms'].entries()){
   const a=anim[i];a.setAttribute('values',keys.map(p=>p[part]*.25).join(';'));a.setAttribute('keyTimes',keys.map(p=>p.offset).join(';'));a.setAttribute('dur',duration+'ms');a.beginElement?.();
  }}};
 }
@@ -139,7 +142,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   return keys[keys.length-1];
  }
- function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;if(filteredImage){filteredImage.style.removeProperty('filter');filteredImage=null}}
+ function clearDetails(removeFilter=true){for(const run of details)run.cancel();details=[];poses=null;if(removeFilter&&filteredImage){filteredImage.style.removeProperty('filter');filteredImage=null}}
  function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
@@ -148,9 +151,12 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
     pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
   const detailDuration=held?next.duration:240;
-  clearDetails();poses={keys,duration:detailDuration};
-  filteredImage=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
-  if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,side:p.head*headResponse*touchX/50,arms:p.arms*armResponse})),detailDuration)}
+  clearDetails(false);poses={keys,duration:detailDuration};
+  const image=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
+  if(filteredImage!==image){filteredImage?.style.removeProperty('filter');filteredImage=image;
+   if(nativeFilter&&image)image.style.filter='url(#'+nativeFilter.id+')';
+  }
+  if(nativeFilter&&filteredImage){nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),detailDuration,touchX/50)}
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
   const layers=reflections.map(({node,pull})=>[node,p=>{
