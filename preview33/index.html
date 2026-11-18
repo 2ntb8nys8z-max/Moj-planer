@@ -4428,7 +4428,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=1bd15f7c0d469a1c"></script>
+<script src="octi-pressure.js?v=8167ca15e54f87cf"></script>
 <script src="octi-listening.js?v=61f66c6a5ebee405"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -6191,12 +6191,10 @@ window.OktiEventMotion=(()=>{
 }
 .octi-dock .octi-touch-actor{position:absolute;inset:0;pointer-events:none;transform-origin:center;transform:translateZ(0);will-change:transform}
 .octi-dock .octi-pressure-canvas{transform:translateZ(0);will-change:transform}
-.octi-dock .octi-contact-lens{
+.octi-dock .octi-motion-media>.octi-contact-lens{
  position:absolute;width:25%;height:21%;left:50%;top:50%;pointer-events:none;z-index:1;
- border-radius:50%;opacity:0;transform:translate3d(-50%,-50%,0);will-change:opacity;
- background:linear-gradient(132deg,rgba(31,55,72,.62) 12%,rgba(57,96,115,.16) 39%,transparent 49%,rgba(239,253,255,.95) 78%);
- -webkit-mask-image:radial-gradient(ellipse,transparent 40%,#000 62%,transparent 81%);
- mask-image:radial-gradient(ellipse,transparent 40%,#000 62%,transparent 81%);
+ border-radius:50%;opacity:.004;transform:translate3d(-50%,-50%,0);will-change:opacity;
+ object-fit:fill;max-width:none;
 }
 /* Move the shared artwork on the compositor instead of recalculating
    inherited custom properties throughout the dock on every idle frame. */

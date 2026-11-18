@@ -227,9 +227,9 @@ function assertFastReturn(result){
       const lens=root.querySelector('.octi-contact-lens'),actor=root.querySelector('.octi-touch-actor');
       const matrix=new DOMMatrix(getComputedStyle(actor).transform),at=actor.clientHeight*.13;
       return {alpha:Number(getComputedStyle(lens).opacity),y:parseFloat(lens.style.top),
-       headScale:matrix.m11/(1-matrix.m24*at),armScale:matrix.m11/(1+matrix.m24*at)};
+       localWidth:lens.offsetWidth/root.querySelector('.octi-motion-media').offsetWidth,headScale:matrix.m11/(1-matrix.m24*at),armScale:matrix.m11/(1+matrix.m24*at)};
      });
-     assert.ok(contact.alpha>.95&&contact.y<50,'The held surface catches light at the off-center touch');
+     assert.ok(contact.alpha>.95&&contact.y<50&&contact.localWidth>.23&&contact.localWidth<.27,'The held surface catches light at the off-center touch');
      assert.ok(contact.headScale<.94&&contact.armScale>1.06,'The head recedes while the tentacles open');
      console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const returning=await release();
