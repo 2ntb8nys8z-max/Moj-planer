@@ -183,7 +183,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   return from+(curve.to-from)*(curve.to===0?recover:ease)((time-start)/(curve.duration-start));
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
- function style(p){return {transform:`translate(-50%,-50%) scale(${1+.19*p},${1+.13*p})`}}
+ function style(p){return {transform:`translate(-50%,-50%) scale(${1+.20*p},${1+.13*p})`}}
  function install(){
   if(!pendingTexture||!ctx||phase!=='idle')return;
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
@@ -213,7 +213,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
   footprintRun?.cancel();
   footprintRun=footprint.animate(stops.map(({p,...timing})=>({
-   transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.19*p},${1+.13*p})`,...timing
+   transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.20*p},${1+.13*p})`,...timing
   })),{duration:next.duration,fill:'forwards'});
   if(document.timeline.currentTime!==null)footprintRun.startTime=document.timeline.currentTime;
   wallRun?.cancel();

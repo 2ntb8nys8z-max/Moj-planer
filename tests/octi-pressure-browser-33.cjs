@@ -129,6 +129,36 @@ async function observeTap(page,channel='main'){
  });
  return ()=>root.evaluate(root=>root.tapResult);
 }
+async function verifyCastPixels(page){
+ const root=page.locator('.octi-dock[data-channel=main]'),voice=root.locator('.voice');
+ const isolation=await page.addStyleTag({content:`
+  html,body{background:white!important}body *,body :before,body :after{visibility:hidden!important}
+  .octi-dock[data-channel=main] .water-float:has(.octi-shadow-footprint){animation-play-state:paused!important}
+  .octi-dock[data-channel=main] .octi-shadow-footprint :is(.octi-pressure-shadow,.octi-pressure-caustic){visibility:visible!important}`});
+ try{
+  const bounds=await voice.evaluate(node=>node.getBoundingClientRect().toJSON()),x=bounds.x+bounds.width/2,y=bounds.y+bounds.height/2;
+  const clip={x:Math.floor(x-65),y:Math.floor(y+8),width:180,height:100};
+  async function measure(){
+   const pixels=await page.screenshot({clip});
+   return page.evaluate(async data=>{
+    const image=new Image();image.src='data:image/png;base64,'+data;await image.decode();
+    const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+    const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);
+    const rgba=ctx.getImageData(0,0,canvas.width,canvas.height).data,columns=new Float64Array(canvas.width);
+    for(let i=0;i<rgba.length;i+=4)columns[(i/4)%canvas.width]+=Math.max(0,250-(rgba[i]+rgba[i+1]+rgba[i+2])/3);
+    const sum=columns.reduce((a,b)=>a+b,0);let accum=0,left=-1,right=-1;
+    for(let i=0;i<columns.length;i++){accum+=columns[i];if(left<0&&accum>=sum*.05)left=i;if(right<0&&accum>=sum*.95)right=i}
+    return {left,right,ink:Math.round(sum)};
+   },pixels.toString('base64'));
+  }
+  const rest=await measure();
+  await voice.dispatchEvent('pointerdown',{isPrimary:true,pointerId:419,clientX:x,clientY:y});
+  await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiPressure.getState().pressure===1);
+  const held=await measure();
+  assert.ok(rest.ink>1000&&held.left<rest.left-2&&held.right>rest.right+2,'The actual cast pixels move outward on both sides: '+JSON.stringify({rest,held}));
+  console.log(kind+' cast pixels '+JSON.stringify({rest,held}));
+ }finally{await voice.dispatchEvent('pointercancel',{pointerId:419});await isolation.evaluate(node=>node.remove())}
+}
 function assertFastReturn(result){
  assert.equal(result.timedOut,false,'A real tap completes its visual cycle');
  assert.ok(Math.abs(result.native.duration-(result.native.count===6?390+result.native.peakAt+64:390))<.01,'Short taps finish the attack and near-peak shoulder before the normal return');
@@ -188,7 +218,7 @@ function assertFastReturn(result){
     assert.equal(pressed.lightStyles.length,0,'Only the original blue surface is painted');
     assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
     const footprint=pressed.footprint.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
-    assert.ok(Math.abs(footprint[0]-1.19)<.001&&Math.abs(footprint[3]-1.13)<.001,'Both cast layers expand with the approved shell');
+    assert.ok(Math.abs(footprint[0]-1.20)<.001&&Math.abs(footprint[3]-1.13)<.001,'Both cast layers expand with the approved shell');
     assert.equal(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The contact does not create another shadow animation');
     assert.equal(pressed.causticTransform,resting.causticTransform,'The existing caustic keeps its original material');
     assert.equal(await page.locator('.octi-pressure-media').count(),0,'No replacement glass layer is placed over the bubble');
@@ -307,6 +337,7 @@ function assertFastReturn(result){
      for(let i=0;i<4;i++){await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.up();}await settled(page);
      await page.locator('.octi-dock[data-channel=main] .voice').focus();await page.keyboard.down(' ');await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiPressure.getState().pressure>.95);assert.ok((await read(page)).pressure>.95);await page.keyboard.up(' ');await settled(page);
      await page.emulateMedia({reducedMotion:'reduce'});await hold(page);const reduced=await read(page);assert.ok(reduced.glass.width<resting.glass.width*1.025,'Reduced motion uses only a small static press');const quiet=await samples(page);await page.mouse.up();assert.ok((await quiet()).every(v=>v.pressure>=0),'Reduced motion has no elastic overshoot');await settled(page);await page.emulateMedia({reducedMotion:'no-preference'});
+     await verifyCastPixels(page);
      await page.evaluate(()=>{showPlannerWeather=async()=>{};tasks=[{id:'pressure-event',title:'Test sprężystego bąbla',date:iso(selected),time:'17:00',endTime:'18:00'}];renderAll();openEventActions(tasks[0])});
      await page.waitForFunction(()=>!window.OktiEventMotion.getState()&&document.querySelector('.octi-dock[data-channel=event]')?.octiListening?.getState().rendering);await visualOnly(page,'event');const eventRest=await read(page,'event');
      await hold(page,'event');assert.deepEqual((await read(page,'event')).target,eventRest.target);const back=await samples(page,'event');await page.mouse.up();const eventReturn=await back();assert.equal(eventReturn[0].duration,390);assert.equal(eventReturn.at(-1).pressure,0);assert.ok(eventReturn.some(v=>v.pressure<-.2)&&eventReturn.slice(20,27).some(v=>v.pressure>.09));await settled(page,'event');
