@@ -127,7 +127,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }]);
   layers.push([canvas,p=>({transform:`scale(${1+p.rim})`})]);
   for(const [node,make] of layers){
-   const run=node.animate(keys.map(p=>({offset:p.offset,...make(p)})),{duration:next.duration,fill:'forwards'});
+   const frames=keys.map(p=>({offset:p.offset,...make(p)}));
+   if(next.carry?.has(node))frames[0].transform=next.carry.get(node);
+   const run=node.animate(frames,{duration:next.duration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
   }
@@ -168,6 +170,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function begin(input){
   if(button.disabled||active)return;
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds};
+  // A second finger-down can redirect a reflection before it has returned.
+  const carry=phase==='release'?new Map(reflections.map(({node})=>[node,getComputedStyle(node).transform])):null;
   const dx=Number.isFinite(input.x)?(input.x-bounds.left)/bounds.width-.5:0;
   const dy=Number.isFinite(input.y)?(input.y-bounds.top)/bounds.height-.5:0;
   touchX=Math.max(-50,Math.min(50,100*dx/.91));touchY=Math.max(-50,Math.min(50,100*dy/.91));
@@ -175,7 +179,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    const proximity=Math.max(0,1-Math.hypot(band.x-touchX/50,band.y-touchY/50)/1.85);
    band.pull=.17+.39*proximity;
   }
-  start({from:motion?.matches?from:Math.max(.085,from),to:1,duration:CONTACT},'held');
+  start({from:motion?.matches?from:Math.max(.085,from),to:1,duration:CONTACT,carry},'held');
   if(!texture&&!pendingTexture)prepare();
  }
  function release(){
