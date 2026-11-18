@@ -1,12 +1,12 @@
 /* Okti listening artwork. Presentation only: the existing recorder owns state. */
 (()=>{
 'use strict';
-const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-listening-head.webp?v=bb333f958242d2fc',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
+const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-water-head-332.webp?v=d4bf93251ec1b54f',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
 const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1.0)*.5;gl_Position=vec4(position,0.0,1.0);}`;
 const fragment=`precision highp float;
 varying vec2 uv;
 uniform sampler2D bodyMap,headMap;
-uniform float approach,lag,gesture,clock,phase,touchHead,touchArms;
+uniform float approach,lag,gesture,clock,phase,touchHead,touchArms,touchSide;
 uniform mat3 rotation,inverseRotation;
 const float PI=3.14159265359;
 float smooth01(float v){return smoothstep(0.0,1.0,v);}
@@ -31,9 +31,10 @@ void main(){float a=approach;vec2 p=vec2(uv.x,1.0-uv.y)*544.0-.5;float wave=2.0*
   sx-=touchArms*freeTip*arm.x*.19;
   sy-=touchArms*freeTip*(5.0+22.0*min(1.0,abs(arm.x)/100.0));
  }vec2 armUV=vec2(sx,sy);float oldHead=(1.0-smoothstep(50.0,52.0,capsuleDistance(armUV)))*(1.0-smoothstep(290.0,305.0,sy));float margin=(1.0-smoothstep(60.0,67.0,abs(sx-272.0)))*(1.0-smoothstep(292.0,310.0,sy));float armAlpha=atlasAlpha(bodyMap,armUV)*(1.0-max(oldHead,a*margin));vec2 root=vec2(272.0+38.0*a/camera,274.0+(298.0+134.0*a-274.0)/camera);q=tiltPoint(view,angle,root);vec2 headUV=(q-root)/(vec2(1.0+1.65*a,1.0+1.16*a)/camera)+vec2(272.0,298.0);if(touchHead!=0.0){
-  float freeHead=smoothstep(0.0,108.0,298.0-headUV.y);
-  headUV.x=272.0+(headUV.x-272.0-9.0*touchHead*freeHead)/(1.0-.10*touchHead*freeHead);
-  headUV.y=298.0+(headUV.y-298.0)/(1.0-.19*touchHead*freeHead);
+  vec2 dome=(headUV-vec2(272.0,226.0))/vec2(47.3,70.8);
+  float q=dot(dome,dome),z=sqrt(max(0.0,1.0-q));
+  float skin=(1.0-smoothstep(.83,1.06,q))*smoothstep(0.0,33.0,300.0-headUV.y);
+  headUV+=skin*z*touchHead*vec2(9.0+37.0*touchSide,-45.0+20.0*abs(touchSide));
  }vec4 head=mantle(headUV);float radius=length(p-vec2(272.0,274.0));float inside=clamp((194.0-radius)/1.3,0.0,1.0);float alpha=(armAlpha+head.a*(1.0-armAlpha))*inside*(1.0-smoothstep(180.0,194.0,radius));vec3 rgb=atlasColor(bodyMap,armUV)*armAlpha*(1.0-head.a)+head.rgb*head.a;gl_FragColor=vec4(rgb*inside*(1.0-smoothstep(180.0,194.0,radius)),alpha);}`;
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
 function matrices(g){
@@ -50,9 +51,9 @@ function createRenderer(canvas,video,head){
  const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s};
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const position=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
- const uniforms=Object.fromEntries(['approach','lag','gesture','clock','phase','touchHead','touchArms','rotation','inverseRotation'].map(name=>[name,gl.getUniformLocation(program,name)]));
+ const uniforms=Object.fromEntries(['approach','lag','gesture','clock','phase','touchHead','touchArms','touchSide','rotation','inverseRotation'].map(name=>[name,gl.getUniformLocation(program,name)]));
  const textures=[video,head].map((image,i)=>{const texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);if(i)gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,['bodyMap','headMap'][i]),i);return texture});
- return {kind:'webgl',draw(state){const size=Math.max(128,Math.min(384,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));if(canvas.width!==size){canvas.width=canvas.height=size;gl.viewport(0,0,size,size)}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[0]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);for(const name of ['approach','lag','gesture','clock','phase'])gl.uniform1f(uniforms[name],state[name]);gl.uniform1f(uniforms.touchHead,state.touchHead||0);gl.uniform1f(uniforms.touchArms,state.touchArms||0);const [rotation,inverse]=matrices(state.gesture);gl.uniformMatrix3fv(uniforms.rotation,false,rotation);gl.uniformMatrix3fv(uniforms.inverseRotation,false,inverse);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);if(gl.isContextLost())throw Error('WebGL context lost');},destroy(){for(const t of textures)gl.deleteTexture(t);gl.deleteBuffer(buffer);gl.deleteProgram(program);}};
+ return {kind:'webgl',draw(state){const size=Math.max(128,Math.min(384,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));if(canvas.width!==size){canvas.width=canvas.height=size;gl.viewport(0,0,size,size)}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[0]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);for(const name of ['approach','lag','gesture','clock','phase'])gl.uniform1f(uniforms[name],state[name]);gl.uniform1f(uniforms.touchSide,state.touchSide||0);gl.uniform1f(uniforms.touchHead,state.touchHead||0);gl.uniform1f(uniforms.touchArms,state.touchArms||0);const [rotation,inverse]=matrices(state.gesture);gl.uniformMatrix3fv(uniforms.rotation,false,rotation);gl.uniformMatrix3fv(uniforms.inverseRotation,false,inverse);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);if(gl.isContextLost())throw Error('WebGL context lost');},destroy(){for(const t of textures)gl.deleteTexture(t);gl.deleteBuffer(buffer);gl.deleteProgram(program);}};
 }
 function loadImage(src,retry=0){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Artwork unavailable'));image.src=src+(retry?'&retry='+retry:'')})}
 // CPU evaluation of the same approved pose and capsule used by the GPU. This
@@ -98,7 +99,11 @@ function createSoftwareRenderer(canvas,video,head,poster){
    if(state.touchArms){const ax=sx-272,ay=sy-298,freeTip=smooth((Math.sqrt(ax*ax+ay*ay)-44)/88);sx-=state.touchArms*freeTip*ax*.19;sy-=state.touchArms*freeTip*(5+22*Math.min(1,Math.abs(ax)/100));}
    sample(bodyMap,sx,sy,bodyPixel);
    const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin));let hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
-   if(state.touchHead){const freeHead=smooth((298-hy)/108);hx=272+(hx-272-9*state.touchHead*freeHead)/(1-.10*state.touchHead*freeHead);hy=298+(hy-298)/(1-.19*state.touchHead*freeHead);}
+   if(state.touchHead){
+    const u=(hx-272)/47.3,v=(hy-226)/70.8,q=u*u+v*v,side=state.touchSide||0;
+    const amount=state.touchHead*Math.sqrt(Math.max(0,1-q))*smooth((1.06-q)/.23)*smooth((300-hy)/33);
+    hx+=amount*(9+37*side);hy+=amount*(-45+20*Math.abs(side));
+   }
    let headAlpha=0,red=0,green=0,blue=0,sourceX=hx,sourceY=hy;
    if(hx>180&&hx<365&&hy>130&&hy<345){
     headSample(hx,hy,a,headPixel);headAlpha=headPixel[3];red=headPixel[0];green=headPixel[1];blue=headPixel[2];
@@ -196,8 +201,8 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-listening-media';layer.setAttribute('aria-hidden','true');
  let canvas=document.createElement('canvas');canvas.width=canvas.height=128;canvas.className='octi-listening-canvas';
  let nativeImageFailed=false;
- const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';
- fallback.addEventListener('error',()=>{if(/octi-actor-idle\.webp(?:\?|$)/.test(fallback.getAttribute('src')||''))nativeImageFailed=true;});
+ const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-water-poster-332.webp?v=01be661c80c0c917';
+ fallback.addEventListener('error',()=>{if(/octi-water-idle-332\.webp(?:\?|$)/.test(fallback.getAttribute('src')||''))nativeImageFailed=true;});
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
  plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
@@ -206,7 +211,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
- function staticFrame(){const src=motion?.matches?'octi-actor-poster.webp?v=9b20c4f5b0d17977':'octi-actor-idle.webp?v=d571dd888f44cb66';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=ff45b829ccc81b9b';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
@@ -236,9 +241,9 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     // on screen across both states. A failed image still has the live CPU renderer.
     const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
-     if(!layer.classList.contains('is-native-idle')){fallback.src='octi-actor-idle.webp?v=d571dd888f44cb66';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
+     if(!layer.classList.contains('is-native-idle')){fallback.src='octi-water-idle-332.webp?v=ff45b829ccc81b9b';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
-     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
+     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
     }
     rendering=true;reason='';lastDraw=t;

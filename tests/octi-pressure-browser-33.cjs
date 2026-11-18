@@ -64,7 +64,7 @@ function read(page,channel='main'){
   for(let y=0;y<384;y++)for(let x=0;x<384;x++){const r=Math.hypot(x-192,y-192),q=(y*384+x)*4;if(r<90)interiorAlpha+=pixels[q+3];if(r>122&&r<172){const a=pixels[q+3]/255;edgeAlpha+=pixels[q+3];edgeInk+=(255-(.2126*pixels[q]+.7152*pixels[q+1]+.0722*pixels[q+2]))*a}}
   const transmittedShadow=getComputedStyle(float.querySelector('.octi-pressure-shadow')),caustic=getComputedStyle(float.querySelector('.octi-pressure-caustic'));
   const lightStyles=[...glass.querySelectorAll('.octi-pressure-lights>span')].map(node=>{const s=getComputedStyle(node);return {opacity:Number(s.opacity),transform:s.transform,background:s.backgroundImage}});
-  return {target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:pressureState.pressure,pixelHash,lightStyles,materialFilter:getComputedStyle(membrane).filter,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,interiorAlpha,transmittedShadow:{transform:transmittedShadow.transform,translate:transmittedShadow.translate,filter:transmittedShadow.filter,opacity:transmittedShadow.opacity},causticTransform:caustic.transform,glassZ:Number(getComputedStyle(glass).zIndex),actorZ:Number(getComputedStyle(actor).zIndex),pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
+  return {footprint:getComputedStyle(float.querySelector(".octi-shadow-footprint")).transform,target:rect(root.querySelector('.voice')),glass:rect(glass),actor:rect(actor),buffer:{width:canvas.width,height:canvas.height},pressure:pressureState.pressure,pixelHash,lightStyles,materialFilter:getComputedStyle(membrane).filter,surfaceOpacity:Number(getComputedStyle(glass).opacity),canvasOpacity:Number(getComputedStyle(membrane).opacity),canvasParent:membrane.parentElement===glass,edgeAlpha,edgeInk,interiorAlpha,transmittedShadow:{transform:transmittedShadow.transform,translate:transmittedShadow.translate,filter:transmittedShadow.filter,opacity:transmittedShadow.opacity},causticTransform:caustic.transform,glassZ:Number(getComputedStyle(glass).zIndex),actorZ:Number(getComputedStyle(actor).zIndex),pressureState,membraneBuffer:{width:membrane.width,height:membrane.height},sameHost:glass.parentElement===actor.parentElement,filter:getComputedStyle(root.querySelector('.voice')).filter,pressStart:root.pressStart,touchAction:getComputedStyle(root.querySelector('.voice')).touchAction,userSelect:getComputedStyle(root.querySelector('.voice')).getPropertyValue('user-select')||getComputedStyle(root.querySelector('.voice')).getPropertyValue('-webkit-user-select'),driftPlayState:getComputedStyle(float).animationPlayState,background:getComputedStyle(glass).backgroundImage,shadow:getComputedStyle(glass).boxShadow,extraGlint:getComputedStyle(glass,':before').display};
  });
 }
 async function samples(page,channel='main'){
@@ -182,11 +182,13 @@ function assertFastReturn(result){
     assert.equal(pressed.canvasOpacity,resting.canvasOpacity,'Pressing does not crossfade the glass');
     assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
     assert.equal(pressed.pressureState.source,resting.pressureState.source,'Rest and press use the exact same texture');
-    assert.match(pressed.pressureState.source,/octi-glass-33-329\.png/);
+    assert.match(pressed.pressureState.source,/octi-water-shell-332\.png/);
     assert.equal(pressed.pixelHash,resting.pixelHash,'All original RGBA material pixels stay unchanged during pressure');
     assert.equal(pressed.materialFilter,resting.materialFilter,'No pressure-dependent hue, saturation or material filter is applied');
     assert.equal(pressed.lightStyles.length,0,'Only the original blue surface is painted');
     assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
+    const footprint=pressed.footprint.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
+    assert.ok(Math.abs(footprint[0]-1.19)<.001&&Math.abs(footprint[3]-1.13)<.001,'Both cast layers expand with the approved shell');
     assert.equal(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The contact does not create another shadow animation');
     assert.equal(pressed.causticTransform,resting.causticTransform,'The existing caustic keeps its original material');
     assert.equal(await page.locator('.octi-pressure-media').count(),0,'No replacement glass layer is placed over the bubble');
@@ -240,6 +242,7 @@ function assertFastReturn(result){
     assert.equal(returning[0].pressure,1);assert.equal(returning.at(-1).pressure,0);
     assert.ok(returning[1].pressure<returning[0].pressure&&Math.min(...returning.map(v=>v.pressure))<-.22&&returning.slice(20,27).some(v=>v.pressure>.09),'Release crosses rest and rebounds once before settling: '+JSON.stringify(returning));await settled(page);
     assert.ok(Math.abs((await read(page)).glass.width-resting.glass.width)<.02,'The bubble returns to its original rendered size');assert.deepEqual((await read(page)).target,resting.target);
+    assert.equal((await read(page)).footprint,resting.footprint,'The shared optical footprint returns to rest');
     assert.equal((await read(page)).transmittedShadow.transform,resting.transmittedShadow.transform,'The shadow recovers its original shape after release');
     assert.equal((await read(page)).interiorAlpha,resting.interiorAlpha,'The decoded resting glass is restored exactly after the optical animation');
     assert.ok((await read(page)).lightStyles.every(s=>s.opacity===0),'All indentation reflections return completely after release');
@@ -343,7 +346,7 @@ function assertFastReturn(result){
    const advanced=(media.frames!==null&&running.frames!==null&&running.frames>media.frames)||Math.abs(running.time-media.time)>.001;
    assert.ok(advanced,'The video advances across loop boundaries, including engines whose decoded-frame counter stays at zero: '+JSON.stringify({media,running}));
    assert.ok(running.nativeIdle&&running.idleVisible===1&&running.idleLoaded,'The approved animated idle image stays visible throughout the taps');
-   assert.match(running.idleSource,/octi-actor-idle\.webp/);
+   assert.match(running.idleSource,/octi-water-idle-332\.webp/);
    assert.equal(running.paints,media.paints,'Idle feedback never competes with a CPU pixel loop');
    assert.ok(observed.every(t=>t.frames>=3&&t.distinct>=3&&t.wall<1000),'Every actual mobile tap paints multiple moving frames, without a main-thread freeze: '+JSON.stringify(observed));
    console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed:observed.map(({trace,native,...summary})=>summary),running}));
@@ -357,8 +360,8 @@ function assertFastReturn(result){
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
     assert.ok(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size>=3,'Native recording paints at least three sizes on each tap');
    }
-   await page.route('**/octi-actor-idle.webp*',route=>route.fulfill({status:404,body:'missing native animation'}));
-   await page.locator('.octi-dock[data-channel=main] .octi-listening-fallback').evaluate(im=>{im.src='octi-actor-idle.webp?missing-native-animation'});
+   await page.route('**/octi-water-idle-332.webp*',route=>route.fulfill({status:404,body:'missing native animation'}));
+   await page.locator('.octi-dock[data-channel=main] .octi-listening-fallback').evaluate(im=>{im.src='octi-water-idle-332.webp?missing-native-animation'});
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.isRecording&&s.approach===0&&s.paintCount>=2});
    const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[],activeTraces=[];
    for(let i=0;i<2;i++){
