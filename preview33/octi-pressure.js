@@ -34,49 +34,6 @@ function loadTexture(){
  return texturePromise;
 }
 
-// The native idle image and the last-resort poster have no shader. Two small
-// displacement maps move their colored pixels locally with the same envelopes.
-let nativeMaps;
-function idleMaps(){
- if(nativeMaps)return nativeMaps;
- const size=96,c=document.createElement('canvas');c.width=c.height=size;
- const ctx=c.getContext('2d'),pixels=ctx.createImageData(size,size);
- const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
- const bins=[-1,-.5,0,.5,1];
- nativeMaps=[...bins,'arms'].map(part=>{
-  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-   const ax=(x+.5)*4-192,ay=(y+.5)*4-210;
-   const head=smooth(-ay/76)*(1-smooth((Math.abs(ax)-29)/17));
-   const arm=smooth((Math.hypot(ax,ay)-34)/62)*(1-smooth((-ay-7)/40)*(1-smooth((Math.abs(ax)-30)/18)));
-   const u=((x+.5)*246/size-123)/21.4,v=((y+.5)*246/size-102)/32;
-   const z=Math.sqrt(Math.max(0,1-u*u-v*v)),surface=smooth((1.06-u*u-v*v)/.23)*smooth((136-(y+.5)*246/size)/15);
-   // Inverse projection: texture marks travel over the dome while the silhouette stays put.
-   const dx=part==='arms'?-arm*ax*.19:surface*z*(5+28*part);
-   const dy=part==='arms'?-arm*(3.5+15.5*Math.min(1,Math.abs(ax)/70)):surface*z*(-36+13*Math.abs(part));
-   const at=(y*size+x)*4;pixels.data[at]=128+255*dx/96;pixels.data[at+1]=128+255*dy/96;pixels.data[at+2]=128;pixels.data[at+3]=255;
-  }
-  ctx.putImageData(pixels,0,0);return c.toDataURL();
- });return nativeMaps;
-}
-function nativeTouchFilter(root){
- const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
- svg.setAttribute('class','octi-touch-defs');svg.setAttribute('aria-hidden','true');
- const id='octi-regional-'+root.dataset.channel,maps=idleMaps(),head=maps[2],arms=maps[5];
- svg.innerHTML=`<defs><filter id="${id}" x=".15" y=".20" width=".70" height=".67" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
- <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${head}" result="headMap"/>
- <feDisplacementMap in="SourceGraphic" in2="headMap" scale="0" xChannelSelector="R" yChannelSelector="G" result="head"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap>
- <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${arms}" result="armMap"/>
- <feDisplacementMap in="head" in2="armMap" scale="0" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap></filter></defs>`;
- root.append(svg);
- const anim=svg.querySelectorAll('animate');
- const headField=svg.querySelector('feImage');
- let previousBin=2;
- return {id,play(keys,duration,side){const bin=Math.max(0,Math.min(4,Math.round(side*2)+2));
-  if(bin!==previousBin){headField.setAttribute('href',maps[bin]);previousBin=bin}
-  for(const [i,part] of ['head','arms'].entries()){
-  const a=anim[i];a.setAttribute('values',keys.map(p=>p[part]*.25).join(';'));a.setAttribute('keyTimes',keys.map(p=>p.offset).join(';'));a.setAttribute('dur',duration+'ms');a.beginElement?.();
- }}};
-}
 // Soft window, thin strip and compact glints from three lighting directions.
 const lights=[
  {angle:-2.25,radius:.76,length:.40,width:.105},
@@ -127,7 +84,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const node=glassSheen(index);node.className='octi-contact-lens';node.setAttribute('aria-hidden','true');glass.append(node);
   return {node,x:radius*Math.cos(angle),y:radius*Math.sin(angle),pull:0};
  });
- let details=[],poses=null,nativeFilter=null,filteredImage=null,touchX=0,touchY=0;
+ let details=[],poses=null,touchX=0,touchY=0;
  const headResponse=.38,armResponse=.19;
  function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse,side:touchX/50}}
  const rest={head:0,arms:0,light:0,rim:0};
@@ -142,7 +99,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   return keys[keys.length-1];
  }
- function clearDetails(removeFilter=true){for(const run of details)run.cancel();details=[];poses=null;if(removeFilter&&filteredImage){filteredImage.style.removeProperty('filter');filteredImage=null}}
+ function clearDetails(){for(const run of details)run.cancel();details=[];poses=null}
  function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
@@ -151,12 +108,25 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
     pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
   const detailDuration=held?next.duration:240;
-  clearDetails(false);poses={keys,duration:detailDuration};
-  const image=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
-  if(filteredImage!==image){filteredImage?.style.removeProperty('filter');filteredImage=image;
-   if(nativeFilter&&image)image.style.filter='url(#'+nativeFilter.id+')';
+  clearDetails();poses={keys,duration:detailDuration};
+  const native=actor.querySelector('.octi-native-water');
+  if(native&&native.parentElement.parentElement.matches('.is-native-idle,.is-fallback')){
+   const side=touchX/50;
+   function move(node,transform){
+    const run=node.animate(keys.map(key=>({offset:key.offset,transform:transform(key)})),{duration:detailDuration,fill:'forwards'});
+    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
+    details.push(run);
+   }
+   native.querySelectorAll('.octi-native-bar').forEach((bar,i)=>move(bar,({head})=>{
+    const u=(i-1)*.43,yaw=head*(.08+.34*side),pitch=head*(.27-.12*Math.abs(side)),z=Math.sqrt(1-u*u);
+    const dx=21.4*(u*(Math.cos(yaw)-1)-z*Math.sin(yaw)),dy=32*z*Math.sin(pitch);
+    return `translate(${dx/2.7*100}%,${dy/(i===1?19:12)*100}%) scaleX(${Math.cos(yaw)+u*Math.sin(yaw)})`;
+   }));
+   native.querySelectorAll('.octi-native-tips').forEach((tips,i)=>move(tips,({arms})=>{
+    const sign=i===0?-1:1;
+    return `matrix(${1+arms*(.13-.06*side*sign)},${arms*(.06*sign+.025*side)},0,1,0,0)`;
+   }));
   }
-  if(nativeFilter&&filteredImage){nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),detailDuration,touchX/50)}
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
   const layers=reflections.map(({node,pull})=>[node,p=>{
@@ -269,7 +239,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
  const controls={reset,getActorPose:actorPose,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?value()*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
  root.octiPressure=controls;prepare();
- if(ctx&&typeof SVGElement!=='undefined')nativeFilter=nativeTouchFilter(root);
+
  return controls;
 };
 })();

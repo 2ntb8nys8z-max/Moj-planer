@@ -25,6 +25,13 @@ def color_head(frame):
     data[:,:,:3] += (skin-data[:,:,:3])*mask[:,:,None]
     return Image.fromarray(np.uint8(np.clip(data*255+.5,0,255)))
 
+# Opaque only beneath the printed bars, fading into the original crown.
+# The native path moves the marks on this small region without an SVG filter.
+y,x=np.indices((246,246))
+face=np.zeros((246,246,4),dtype=np.uint8)
+face[:,:,3]=np.uint8(255*smooth((16-abs(x-123))/3)*smooth((21-abs(y-104))/5))
+color_head(Image.fromarray(face)).crop((106,82,141,127)).save(ROOT/'octi-water-face-332.png')
+
 for mode in ('idle','poster'):
     source = Image.open(ROOT/f'octi-actor-{mode}.webp')
     frames, times = [], []

@@ -386,19 +386,14 @@ function assertFastReturn(result){
    // not only while the idle image can take over from the software renderer.
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.isRecording&&s.nativeIdle&&s.approach===0});
-   const recordings={normal:[],withoutFilter:[]};
-   // Alternate conditions inside the same mobile WebKit instance. The control
-   // removes just the native SVG deformation, preserving recording and glass.
-   const conditions=kind==='webkit'?['normal','withoutFilter','withoutFilter','normal','normal','withoutFilter','withoutFilter','normal']:['normal','normal'];
-   for(const condition of conditions){
-    const diagnostic=condition==='withoutFilter'?await page.addStyleTag({content:'.octi-listening-fallback{filter:none!important}'}):null;
+   const recordings=[];
+   for(let i=0;i<(kind==='webkit'?8:4);i++){
     const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();
     await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
-    recordings[condition].push(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size);
-    if(diagnostic)await diagnostic.evaluate(node=>node.remove());
+    recordings.push(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size);
    }
-   console.log(kind+' DPR3 recording differential '+JSON.stringify(recordings));
-   assert.ok(recordings.normal.every(n=>n>=3),'Native recording paints at least three sizes on each tap: '+JSON.stringify(recordings));
+   console.log(kind+' DPR3 native recording '+JSON.stringify(recordings));
+   assert.ok(recordings.every(n=>n>=3),'Native recording paints at least three sizes on each tap: '+JSON.stringify(recordings));
    await page.route('**/octi-water-idle-332.webp*',route=>route.fulfill({status:404,body:'missing native animation'}));
    await page.locator('.octi-dock[data-channel=main] .octi-listening-fallback').evaluate(im=>{im.src='octi-water-idle-332.webp?missing-native-animation'});
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.isRecording&&s.approach===0&&s.paintCount>=2});

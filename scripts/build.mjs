@@ -64,6 +64,9 @@ pressure=pressure.replace(/octi-water-shell-332\.png(?:\?v=[a-z0-9]+)?/g,pressur
 const depthFile='octi-water-depth-332.png',depth=fs.readFileSync(depthFile);
 output('preview33/'+depthFile,depth,false);
 canonical=canonical.replace(/octi-water-depth-332\.png(?:\?v=[a-z0-9]+)?/g,depthFile+'?v='+createHash('sha256').update(depth).digest('hex').slice(0,16));
+const faceFile='octi-water-face-332.png',face=fs.readFileSync(faceFile);
+output('preview33/'+faceFile,face,false);
+canonical=canonical.replace(/octi-water-face-332\.png(?:\?v=[a-z0-9]+)?/g,faceFile+'?v='+createHash('sha256').update(face).digest('hex').slice(0,16));
 const pressureLights='octi-pressure-lights-33-319.webp';
 const pressureLightsHash=createHash('sha256').update(fs.readFileSync(pressureLights)).digest('hex').slice(0,16);
 pressure=pressure.replace(/octi-pressure-lights-33-319\.webp(?:\?v=[a-z0-9]+)?/g,pressureLights+'?v='+pressureLightsHash);
