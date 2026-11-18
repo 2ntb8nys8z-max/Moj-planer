@@ -177,7 +177,7 @@ function assertFastReturn(result){
  assert.equal(result.native.count,36,'Return has the successive damped extrema of the reference');
  assert.equal(result.native.firstX,1.145,'Every release starts from the full held width');
  assert.ok(result.native.immediate,'There is no plateau after maximum expansion');
- if(result.attack){assert.equal(result.attack.duration,600);assert.equal(result.attack.delay,0);assert.equal(result.attack.lastX,1.106)}
+ if(result.attack){assert.equal(result.attack.duration,600);assert.equal(result.attack.delay,0);assert.equal(result.attack.lastX,1.145)}
  assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
 }
 (async()=>{
