@@ -77,6 +77,17 @@ for held in (False,True):
         over([72,150,197],.62*shoulder*np.exp(-d/(2.65+10.7*shoulder)))
         over([93,224,226],.81*caustic*np.exp(-d/(2.65+7.3*caustic)))
         over([235,255,250],.88*(sector(.64,.19)+.58*sector(-1.53,.14))*np.exp(-d/4.3))
+        # The reference softbox breaks into three facets across the loaded
+        # front. Give each its own finite angular and radial support.
+        for center, span, radius, width, skew in (
+                (-1.17, .48, .83, .046, .12),
+                (-2.38, .22, .65, .055, -.23),
+                (-.10, .32, .63, .052, -.07)):
+            arc = np.arctan2(np.sin(angle-center), np.cos(angle-center))/span
+            cross = (np.hypot(u,v)-radius-skew*arc*.2+.042*arc**2)/width
+            window = np.exp(-arc**4)
+            over([115,178,205], .17*window*np.exp(-((cross-.6)/2.2)**2))
+            over([255,254,248], .90*window*np.exp(-cross**4))
     else:
         over([127,196,230],.012+.245*np.minimum(1,np.hypot(u,v))**2.6)
         mix=np.clip(.50+.27*u+.34*v,0,1)[:,:,None]
