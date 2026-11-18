@@ -1,0 +1,26 @@
+name: Okti display-frame capture
+on:
+  push:
+    branches: ['work/probe-water-33-336']
+permissions:
+  contents: read
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node tests/optical-reference.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: water-display
+          path: ab/*.png
+          retention-days: 3
