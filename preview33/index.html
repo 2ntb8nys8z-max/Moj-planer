@@ -4609,32 +4609,78 @@ function octiActionBubble(root,toggle,stage,recorder,motion,setMenu,channel){
  toggle.innerHTML='<span class="action-fixed-shadow" aria-hidden="true"></span><span class="action-skin" aria-hidden="true"><img class="action-glass" src="octi-water-glass.webp?v=babdb581839accf9" alt=""><span class="action-warm"></span><span class="action-rotation"><span class="action-mark"></span></span></span>';
  const skin=toggle.querySelector('.action-skin'),rotation=toggle.querySelector('.action-rotation');
  let target=false,amount=0,flow=0,frame=0,lastTime=0,elapsed=0,from=0,fromFlow=0,visible=true;
+ const warmLayer=skin.querySelector('.action-warm'),warmMark=rotation.firstElementChild.cloneNode(true);
+ warmMark.classList.add('action-travel-mark');rotation.append(warmMark);
+ let runs=[],painted=false;
+ function geometry(){
+  const circle=recorder.getBoundingClientRect(),box=stage.getBoundingClientRect();
+  return circle.width?{cx:circle.left+circle.width/2-box.left,cy:circle.top+circle.height/2-box.top,distance:circle.width/2+39}:null;
+ }
+ function shape(e,stretchFlow,g){
+  const angle=Math.atan2(89,63)*e,radius=g.distance*(1+(Math.hypot(63,89)/110-1)*e);
+  const warm=Math.max(0,Math.min(1,e)),size=1-.28*e,stretch=1+.34*stretchFlow,tilt=-angle*180/Math.PI;
+  return {x:radius*Math.cos(angle)+9*(1-warm),y:-radius*Math.sin(angle)-11*(1-warm),
+   skin:`rotate(${tilt}deg) scale(${size/stretch},${size*stretch}) rotate(${-tilt}deg)`,warm};
+ }
  function paint(e,stretchFlow){
-  amount=e;flow=stretchFlow;const circle=recorder.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!circle.width)return;
-  const cx=circle.left+circle.width/2-box.left,cy=circle.top+circle.height/2-box.top,distance=circle.width/2+39,angle=Math.atan2(89,63)*e,radius=distance+(Math.hypot(63,89)/110-1)*distance*e,size=1-.28*e,stretch=1+.34*stretchFlow,tilt=-angle*180/Math.PI,warm=Math.max(0,Math.min(1,e));
-  toggle.style.left=(cx+radius*Math.cos(angle)+9*(1-warm))+'px';toggle.style.top=(cy-radius*Math.sin(angle)-11*(1-warm))+'px';
-  skin.style.transform=`rotate(${tilt}deg) scale(${size/stretch},${size*stretch}) rotate(${-tilt}deg)`;
-  const menuOpen=root.querySelector('.extras').classList.contains('expanded');rotation.style.transform=`rotate(${45*(menuOpen?1:e)}deg)`;
-  const tint=menuOpen?1:warm,rgb=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*tint)).join(',');
+  amount=e;flow=stretchFlow;const g=geometry();if(!g){painted=false;return}painted=true;
+  const form=shape(e,stretchFlow,g);
+  toggle.style.left=(g.cx+form.x)+'px';toggle.style.top=(g.cy+form.y)+'px';skin.style.transform=form.skin;
+  const menuOpen=root.querySelector('.extras').classList.contains('expanded'),tint=menuOpen?1:form.warm;
+  rotation.style.transform=`rotate(${45*(menuOpen?1:e)}deg)`;
+  const rgb=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*tint)).join(',');
   skin.style.setProperty('--action-top',`rgb(${rgb([104,199,237],[242,147,164])})`);skin.style.setProperty('--action-bottom',`rgb(${rgb([38,117,172],[196,65,98])})`);skin.style.setProperty('--action-warm',String(tint));
  }
- function stop(){cancelAnimationFrame(frame);frame=0;delete root.dataset.actionMoving;}
- function settle(){stop();paint(target?1:0,0);}
- function animate(now){
-  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;const p=Math.min(1,elapsed/1900),stopAt=.72;let travel,arrival=0;
+ function pose(p){
+  const stopAt=.72;let travel,arrival=0;
   if(p<=stopAt){const u=p/stopAt,m=stopAt*.045*4*Math.PI/(1-stopAt);travel=(m-2)*u*u*u+(3-m)*u*u;}
   else{const u=(p-stopAt)/(1-stopAt);arrival=Math.sin(u*Math.PI*4)*(1-u)*(1-u);travel=1+.045*arrival;}
-  const changing=(target?1:0)-from,shape=p<stopAt?Math.sin(Math.PI*p/stopAt)**2:.12*arrival;
-  paint(from+changing*travel,shape*Math.min(1,Math.abs(changing))+fromFlow*(1-p));
+  const changing=(target?1:0)-from,bend=p<stopAt?Math.sin(Math.PI*p/stopAt)**2:.12*arrival;
+  return {amount:from+changing*travel,flow:bend*Math.min(1,Math.abs(changing))+fromFlow*(1-p)};
+ }
+ function stop(){
+  cancelAnimationFrame(frame);frame=0;
+  if(runs.length){
+   const current=pose(Math.min(1,(Number(runs[0].currentTime)||0)/1900));
+   amount=current.amount;flow=current.flow;
+   for(const run of runs){run.onfinish=null;run.cancel()}runs=[];
+  }
+  delete root.dataset.actionMoving;
+ }
+ function settle(){stop();paint(target?1:0,0);}
+ function animate(now){
+  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;const p=Math.min(1,elapsed/1900),current=pose(p);
+  paint(current.amount,current.flow);
   if(p<1&&visible&&!document.hidden)frame=requestAnimationFrame(animate);else settle();
  }
+ function travel(){
+  const g=geometry();if(!g){settle();return}
+  if(typeof toggle.animate!=='function'){frame=requestAnimationFrame(animate);return}
+  toggle.style.left=g.cx+'px';toggle.style.top=g.cy+'px';
+  skin.style.setProperty('--action-top','rgb(104,199,237)');skin.style.setProperty('--action-bottom','rgb(38,117,172)');
+  const positions=[],shapes=[],angles=[],warmth=[];
+  for(let i=0;i<=64;i++){
+   const offset=i/64,current=pose(offset),form=shape(current.amount,current.flow,g);
+   positions.push({offset,transform:`translate(calc(-50% + ${form.x}px),calc(-50% + ${form.y}px))`});
+   shapes.push({offset,transform:form.skin});angles.push({offset,transform:`rotate(${45*current.amount}deg)`});warmth.push({offset,opacity:form.warm});
+  }
+  const timeline=document.timeline.currentTime;
+  for(const [node,keys] of [[toggle,positions],[skin,shapes],[rotation,angles],[warmLayer,warmth],[warmMark,warmth]]){
+   const run=node.animate(keys,{duration:1900,fill:'both'});
+   if(timeline!==null)run.startTime=timeline;runs.push(run);
+  }
+  runs[0].onfinish=settle;
+ }
  function update(show,enabled,isVisible){
-  visible=isVisible;toggle.disabled=!enabled;root.dataset.actionState=show?'cancel':'menu';toggle.setAttribute('aria-label',show?'Skasuj nagranie':root.querySelector('.extras').classList.contains('expanded')?'Zwiń dodatkowe działania':'Dodatkowe działania');
-  if(show!==target){target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');stop();from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';frame=requestAnimationFrame(animate);}}
-  else if((!visible||document.hidden||motion?.matches)&&frame)settle();else if(!frame)paint(target?1:0,0);
+  const wasVisible=visible;visible=isVisible;toggle.disabled=!enabled;root.dataset.actionState=show?'cancel':'menu';toggle.setAttribute('aria-label',show?'Skasuj nagranie':root.querySelector('.extras').classList.contains('expanded')?'Zwiń dodatkowe działania':'Dodatkowe działania');
+  if(show!==target){stop();target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';travel();}}
+  else if((!visible||document.hidden||motion?.matches)&&(frame||runs.length))settle();
+  else if(visible&&(!wasVisible||!painted)&&!frame&&!runs.length)paint(target?1:0,0);
  }
  toggle.onclick=()=>{const state=plannerRecordings[channel];if(state&&state.mode!=='sending'){cancelPlannerRecording(channel);update(false,true,visible);}else if(!state&&!voiceDialogues[channel]?.busy){setMenu(!root.querySelector('.extras').classList.contains('expanded'));paint(amount,flow);}};
- window.addEventListener('resize',()=>paint(amount,flow));document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
+ const refit=()=>{if(runs.length)settle();else if(visible)paint(amount,flow)};
+ if(typeof ResizeObserver==='function'){const size=new ResizeObserver(refit);size.observe(stage);size.observe(recorder)}
+ window.addEventListener('resize',refit);document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
  requestAnimationFrame(()=>paint(0,0));return update;
 }
 
@@ -6201,6 +6247,7 @@ window.OktiEventMotion=(()=>{
  radial-gradient(circle closest-side,transparent 15%,rgba(116,191,232,.055) 37%,rgba(99,181,229,.15) 58%,rgba(92,178,228,.23) 76%,rgba(122,197,232,.13) 87%,transparent 99%);
 }
 /* Both transmitted layers share the same optical axis, shear-free expansion and rebound. */
+.octi-dock .action-travel-mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;--action-top:#f293a4;--action-bottom:#c44162}
 .octi-dock .octi-shadow-footprint{
  position:absolute;inset:0;z-index:2;pointer-events:none;
  transform-origin:calc(50% + var(--octi-size,100px) * .31) calc(50% + var(--octi-size,100px) * .625);
