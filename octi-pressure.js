@@ -164,12 +164,12 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   clearDetails();poses={keys,duration:detailDuration};
   const surface=actor.firstElementChild;
   if(surface?.classList.contains('octi-material-surface')){
-   // A single projective surface retains the native animated image/video.
-   // The neck is the origin. Perspective shortens the crown while the slower
-   // transverse response opens the arms without clipping their alpha edges.
-   const height=actor.clientHeight||128,side=touchX/50;
+   // Keep one uninterrupted moving surface anchored at the neck. Use 2D
+   // compositor transforms: mobile WebKit can flatten a projective matrix
+   // during interpolation and make the head appear almost edge-on.
+   const side=touchX/50;
    const frames=keys.map(({offset,head,arms})=>({offset,transform:
-    `matrix3d(${1+.103*arms},0,0,0,${.045*head*side},${1-.048*head},0,${-.64*head/height},0,0,1,0,0,0,0,1)`}));
+    `matrix(${1+.09*arms},0,${.028*head*side},${1-.135*head},0,0)`}));
    try{
     const run=surface.animate(frames,{duration:detailDuration,fill:'forwards'});
     if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
