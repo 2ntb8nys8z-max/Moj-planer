@@ -1,0 +1,34 @@
+name: Public iPhone WebKit pressure check
+on:
+  push:
+    branches: ['work/public-pressure-343*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Wait for the exact published preview
+        run: |
+          for attempt in $(seq 1 48); do
+            if curl -fsSL "https://2ntb8nys8z-max.github.io/Moj-planer/podglad-nacisku/release.json?proof=343-$attempt-$(date +%s)" | grep -q 34174ce1bc8f03ee; then exit 0; fi
+            sleep 7
+          done
+          exit 1
+      - run: node tests/pressure-public-check.cjs
+        env:
+          PUBLIC_URL: https://2ntb8nys8z-max.github.io/Moj-planer/podglad-nacisku/?build=34174ce1bc8f03ee
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-water
+          path: capture/
