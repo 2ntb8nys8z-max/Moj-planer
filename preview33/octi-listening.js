@@ -1,7 +1,7 @@
 /* Okti listening artwork. Presentation only: the existing recorder owns state. */
 (()=>{
 'use strict';
-const FILES={body:'octi-listening-body.mp4?v=63a63bad76c25c35',head:'octi-water-head-332.webp?v=1fc82de88dd38d0e',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
+const FILES={body:'octi-listening-body.mp4?v=2ef468277bbc3b4b',head:'octi-water-head-332.webp?v=1fc82de88dd38d0e',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
 const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1.0)*.5;gl_Position=vec4(position,0.0,1.0);}`;
 const fragment=`precision highp float;
 varying vec2 uv;
@@ -148,7 +148,7 @@ async function createBackgroundRenderer(canvas,video,head,poster){
    renderer.draw(m.state);const pixels=output.slice();self.postMessage({type:'frame',pixels,width:self.canvas.width,height:self.canvas.height},[pixels.buffer]);
   }
  }catch(error){self.postMessage({type:'error',message:error.message||String(error)})}};`;
- let worker,url,closed=false,busy=false,failure=null,paintCount=0,captureCount=0,lastBodyTime=-1,lastBodyCapture=-Infinity,nextFrameAt=0;
+ let worker,url,closed=false,busy=false,failure=null,paintCount=0,captureCount=0,lastBodyTime=-1;
  const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),stage=staging.getContext('2d',{willReadFrequently:true});
  function snapshot(image,live=false){
   const rawWidth=image.videoWidth||image.naturalWidth||image.width,rawHeight=image.videoHeight||image.naturalHeight||image.height;
@@ -178,18 +178,17 @@ async function createBackgroundRenderer(canvas,video,head,poster){
   if(message.type==='error'){failure=Error(message.message);busy=false;return}
   if(message.type!=='frame')return;
   if(!closed){if(canvas.width!==message.width)canvas.width=message.width;if(canvas.height!==message.height)canvas.height=message.height;ctx.putImageData(new ImageData(message.pixels,message.width,message.height),0,0);paintCount++}
-  // Leave a display frame for input and compositing before the next CPU job.
-  busy=false;nextFrameAt=performance.now()+16;
+  busy=false;
  };
  return {kind:'canvas2d',offThread:true,get paintCount(){return paintCount},get captureCount(){return captureCount},draw(state){
-  if(failure)throw failure;if(closed||busy||performance.now()<nextFrameAt)return;busy=true;
+  if(failure)throw failure;if(closed||busy)return;busy=true;
   try{
    const live=state.videoAvailable&&video.readyState>=2&&!video.error;
    let body=null;
-   // Pose and head motion advance on every job. Refresh the slowly changing
-   // body pixels at most ten times a second and reuse them between readbacks.
-   const capturedAt=performance.now();
-   if(live&&video.currentTime!==lastBodyTime&&capturedAt-lastBodyCapture>=100){body=snapshot(video,true);lastBodyTime=video.currentTime;lastBodyCapture=capturedAt;captureCount++;}
+   // Capture the newest source pose only when the previous projection has
+   // finished. Never queue stale images, nor hold a body pose for 100 ms.
+   const bodyTime=Math.floor(video.currentTime*30+1e-4);
+   if(live&&bodyTime!==lastBodyTime){body=snapshot(video,true);lastBodyTime=bodyTime;captureCount++;}
    // Software projection has a bounded pixel budget on retina phones. The
    // native idle image and GPU renderer keep their original sharp artwork.
    const layoutWidth=artworkLayoutWidth(canvas),width=(devicePixelRatio||1)>1?Math.min(128,layoutWidth):layoutWidth;
@@ -206,28 +205,14 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
  plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
- // Only the software path exposes the native animated image. All three views
- // of it share its frame clock; the cropped ends hinge at stationary roots.
- let nativeWater=null;
- function setNativeImage(src){
-  if(!nativeWater){
-   nativeWater=document.createElement('span');nativeWater.className='octi-native-water';nativeWater.setAttribute('aria-hidden','true');
-   for(const side of ['left','right']){
-    const tips=document.createElement('span');tips.className='octi-native-tips '+side;
-    const image=document.createElement('img');image.alt='';tips.append(image);nativeWater.append(tips);
-   }
-   const head=document.createElement('span');head.className='octi-native-head';
-   const image=document.createElement('img');image.alt='';head.append(image);nativeWater.append(head);
-   plane.append(nativeWater);
-  }
-  for(const im of [fallback,...nativeWater.querySelectorAll('img')])if(im.getAttribute('src')!==src)im.src=src;
- }
+ // A single decoded alpha edge stays intact while the control is pressed.
+ function setNativeImage(src){if(fallback.getAttribute('src')!==src)fallback.src=src;}
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
  let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastDraw=0,lastVideoTime=-1,lastProgress=0,reason='';
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
- function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=ff45b829ccc81b9b';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=0aa461e0800b698e';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
@@ -257,7 +242,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     // on screen across both states. A failed image still has the live CPU renderer.
     const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
-     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=ff45b829ccc81b9b');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
+     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=0aa461e0800b698e');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
      const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
