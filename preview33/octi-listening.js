@@ -6,7 +6,7 @@ const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1
 const fragment=`precision highp float;
 varying vec2 uv;
 uniform sampler2D bodyMap,headMap;
-uniform float approach,lag,gesture,clock,phase;
+uniform float approach,lag,gesture,clock,phase,touchHead,touchArms;
 uniform mat3 rotation,inverseRotation;
 const float PI=3.14159265359;
 float smooth01(float v){return smoothstep(0.0,1.0,v);}
@@ -26,7 +26,15 @@ vec4 mantle(vec2 p){vec2 source=p;float baseline=headAlpha(p),alpha=baseline;vec
  color=mix(clamp(color,0.0,1.0),vec3(1.0),bars(source));return vec4(color,alpha);
 }
 // Approved coupled pose from 058ddbf (33.239), before the 33.307 geometry change.
-void main(){float a=approach;vec2 p=vec2(uv.x,1.0-uv.y)*544.0-.5;float wave=2.0*PI*phase/4.8;vec2 breathe=vec2(1.0+.009*sin(wave),1.0+.006*sin(wave+.6));p=(p-vec2(272.0,274.0+1.7*sin(wave)))/breathe+vec2(272.0,274.0);float camera=1.0+.40*a;vec2 view=(p-vec2(272.0,274.0))/camera+vec2(272.0,274.0);float angle=11.0*PI/180.0*a;vec2 rear=vec2(272.0+12.0*a,298.0+62.0*a);vec2 q=tiltPoint(view,angle*.55,rear);float sx=(q.x-rear.x)/(1.0+.06*a+.03*lag)+272.0;float arch=27.0*a*pow(clamp(abs(sx-272.0)/150.0,0.0,1.2),1.6);float sy=(q.y-rear.y+arch)/(1.0-.05*a)+298.0;float tip=pow(clamp(length(vec2(sx-272.0,sy-298.0))/135.0,0.0,1.0),1.5);float sweep=7.0*(a-lag)+3.5*a*sin(clock*2.0*PI/2.4);sx-=sign(sx-272.0)*tip*sweep;sy-=tip*5.0*lag;vec2 armUV=vec2(sx,sy);float oldHead=(1.0-smoothstep(50.0,52.0,capsuleDistance(armUV)))*(1.0-smoothstep(290.0,305.0,sy));float margin=(1.0-smoothstep(60.0,67.0,abs(sx-272.0)))*(1.0-smoothstep(292.0,310.0,sy));float armAlpha=atlasAlpha(bodyMap,armUV)*(1.0-max(oldHead,a*margin));vec2 root=vec2(272.0+38.0*a/camera,274.0+(298.0+134.0*a-274.0)/camera);q=tiltPoint(view,angle,root);vec2 headUV=(q-root)/(vec2(1.0+1.65*a,1.0+1.16*a)/camera)+vec2(272.0,298.0);vec4 head=mantle(headUV);float radius=length(p-vec2(272.0,274.0));float inside=clamp((194.0-radius)/1.3,0.0,1.0);float alpha=(armAlpha+head.a*(1.0-armAlpha))*inside*(1.0-smoothstep(180.0,194.0,radius));vec3 rgb=atlasColor(bodyMap,armUV)*armAlpha*(1.0-head.a)+head.rgb*head.a;gl_FragColor=vec4(rgb*inside*(1.0-smoothstep(180.0,194.0,radius)),alpha);}`;
+void main(){float a=approach;vec2 p=vec2(uv.x,1.0-uv.y)*544.0-.5;float wave=2.0*PI*phase/4.8;vec2 breathe=vec2(1.0+.009*sin(wave),1.0+.006*sin(wave+.6));p=(p-vec2(272.0,274.0+1.7*sin(wave)))/breathe+vec2(272.0,274.0);float camera=1.0+.40*a;vec2 view=(p-vec2(272.0,274.0))/camera+vec2(272.0,274.0);float angle=11.0*PI/180.0*a;vec2 rear=vec2(272.0+12.0*a,298.0+62.0*a);vec2 q=tiltPoint(view,angle*.55,rear);float sx=(q.x-rear.x)/(1.0+.06*a+.03*lag)+272.0;float arch=27.0*a*pow(clamp(abs(sx-272.0)/150.0,0.0,1.2),1.6);float sy=(q.y-rear.y+arch)/(1.0-.05*a)+298.0;float tip=pow(clamp(length(vec2(sx-272.0,sy-298.0))/135.0,0.0,1.0),1.5);float sweep=7.0*(a-lag)+3.5*a*sin(clock*2.0*PI/2.4);sx-=sign(sx-272.0)*tip*sweep;sy-=tip*5.0*lag;if(touchArms!=0.0){
+  vec2 arm=vec2(sx-272.0,sy-298.0);float freeTip=smoothstep(44.0,132.0,length(arm));
+  sx-=touchArms*freeTip*arm.x*.19;
+  sy-=touchArms*freeTip*(5.0+22.0*min(1.0,abs(arm.x)/100.0));
+ }vec2 armUV=vec2(sx,sy);float oldHead=(1.0-smoothstep(50.0,52.0,capsuleDistance(armUV)))*(1.0-smoothstep(290.0,305.0,sy));float margin=(1.0-smoothstep(60.0,67.0,abs(sx-272.0)))*(1.0-smoothstep(292.0,310.0,sy));float armAlpha=atlasAlpha(bodyMap,armUV)*(1.0-max(oldHead,a*margin));vec2 root=vec2(272.0+38.0*a/camera,274.0+(298.0+134.0*a-274.0)/camera);q=tiltPoint(view,angle,root);vec2 headUV=(q-root)/(vec2(1.0+1.65*a,1.0+1.16*a)/camera)+vec2(272.0,298.0);if(touchHead!=0.0){
+  float freeHead=smoothstep(0.0,108.0,298.0-headUV.y);
+  headUV.x=272.0+(headUV.x-272.0-9.0*touchHead*freeHead)/(1.0-.10*touchHead*freeHead);
+  headUV.y=298.0+(headUV.y-298.0)/(1.0-.19*touchHead*freeHead);
+ }vec4 head=mantle(headUV);float radius=length(p-vec2(272.0,274.0));float inside=clamp((194.0-radius)/1.3,0.0,1.0);float alpha=(armAlpha+head.a*(1.0-armAlpha))*inside*(1.0-smoothstep(180.0,194.0,radius));vec3 rgb=atlasColor(bodyMap,armUV)*armAlpha*(1.0-head.a)+head.rgb*head.a;gl_FragColor=vec4(rgb*inside*(1.0-smoothstep(180.0,194.0,radius)),alpha);}`;
 const smooth=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
 function matrices(g){
  const angles=[8,-3,-2].map(v=>v*g*Math.PI/180),[y,p,r]=angles,cy=Math.cos(y),sy=Math.sin(y),cp=Math.cos(p),sp=Math.sin(p),cr=Math.cos(r),sr=Math.sin(r);
@@ -42,9 +50,9 @@ function createRenderer(canvas,video,head){
  const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s};
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const position=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
- const uniforms=Object.fromEntries(['approach','lag','gesture','clock','phase','rotation','inverseRotation'].map(name=>[name,gl.getUniformLocation(program,name)]));
+ const uniforms=Object.fromEntries(['approach','lag','gesture','clock','phase','touchHead','touchArms','rotation','inverseRotation'].map(name=>[name,gl.getUniformLocation(program,name)]));
  const textures=[video,head].map((image,i)=>{const texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);if(i)gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,['bodyMap','headMap'][i]),i);return texture});
- return {kind:'webgl',draw(state){const size=Math.max(128,Math.min(384,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));if(canvas.width!==size){canvas.width=canvas.height=size;gl.viewport(0,0,size,size)}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[0]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);for(const name of ['approach','lag','gesture','clock','phase'])gl.uniform1f(uniforms[name],state[name]);const [rotation,inverse]=matrices(state.gesture);gl.uniformMatrix3fv(uniforms.rotation,false,rotation);gl.uniformMatrix3fv(uniforms.inverseRotation,false,inverse);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);if(gl.isContextLost())throw Error('WebGL context lost');},destroy(){for(const t of textures)gl.deleteTexture(t);gl.deleteBuffer(buffer);gl.deleteProgram(program);}};
+ return {kind:'webgl',draw(state){const size=Math.max(128,Math.min(384,Math.round(artworkLayoutWidth(canvas)*(devicePixelRatio||1))));if(canvas.width!==size){canvas.width=canvas.height=size;gl.viewport(0,0,size,size)}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,textures[0]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,video);for(const name of ['approach','lag','gesture','clock','phase'])gl.uniform1f(uniforms[name],state[name]);gl.uniform1f(uniforms.touchHead,state.touchHead||0);gl.uniform1f(uniforms.touchArms,state.touchArms||0);const [rotation,inverse]=matrices(state.gesture);gl.uniformMatrix3fv(uniforms.rotation,false,rotation);gl.uniformMatrix3fv(uniforms.inverseRotation,false,inverse);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);if(gl.isContextLost())throw Error('WebGL context lost');},destroy(){for(const t of textures)gl.deleteTexture(t);gl.deleteBuffer(buffer);gl.deleteProgram(program);}};
 }
 function loadImage(src,retry=0){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Artwork unavailable'));image.src=src+(retry?'&retry='+retry:'')})}
 // CPU evaluation of the same approved pose and capsule used by the GPU. This
@@ -86,8 +94,11 @@ function createSoftwareRenderer(canvas,video,head,poster){
    const px=(coordinates[x]-272)/bx+272,py=(coordinates[y]-274-bob)/by+274,cx=px-272,cy=py-274,radius=Math.sqrt(cx*cx+cy*cy),edge=clamp((194-radius)/1.3,0,1)*(1-smooth((radius-180)/14));if(!edge)continue;
    const viewX=(px-272)/camera+272,viewY=(py-274)/camera+274,rx=viewX-rearX,ry=viewY-rearY;
    let sx=(cb*rx-sb*ry)/(1+.06*a+.03*lag)+272,sy=(sb*rx+cb*ry+27*a*Math.pow(clamp(Math.abs(sx-272)/150,0,1.2),1.6))/(1-.05*a)+298;
-   const tx=sx-272,ty=sy-298,tipBase=clamp(Math.sqrt(tx*tx+ty*ty)/135,0,1),tip=tipBase*Math.sqrt(tipBase);sx-=Math.sign(sx-272)*tip*sweep;sy-=tip*5*lag;sample(bodyMap,sx,sy,bodyPixel);
-   const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin)),hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
+   const tx=sx-272,ty=sy-298,tipBase=clamp(Math.sqrt(tx*tx+ty*ty)/135,0,1),tip=tipBase*Math.sqrt(tipBase);sx-=Math.sign(sx-272)*tip*sweep;sy-=tip*5*lag;
+   if(state.touchArms){const ax=sx-272,ay=sy-298,freeTip=smooth((Math.sqrt(ax*ax+ay*ay)-44)/88);sx-=state.touchArms*freeTip*ax*.19;sy-=state.touchArms*freeTip*(5+22*Math.min(1,Math.abs(ax)/100));}
+   sample(bodyMap,sx,sy,bodyPixel);
+   const oldHead=(1-smooth((capsule(sx,sy)-50)/2))*(1-smooth((sy-290)/15)),margin=(1-smooth((Math.abs(sx-272)-60)/7))*(1-smooth((sy-292)/18)),armAlpha=bodyPixel[3]*(1-Math.max(oldHead,a*margin));let hx=(ca*(viewX-rootX)-sa*(viewY-rootY))/((1+1.65*a)/camera)+272,hy=(sa*(viewX-rootX)+ca*(viewY-rootY))/((1+1.16*a)/camera)+298;
+   if(state.touchHead){const freeHead=smooth((298-hy)/108);hx=272+(hx-272-9*state.touchHead*freeHead)/(1-.10*state.touchHead*freeHead);hy=298+(hy-298)/(1-.19*state.touchHead*freeHead);}
    let headAlpha=0,red=0,green=0,blue=0,sourceX=hx,sourceY=hy;
    if(hx>180&&hx<365&&hy>130&&hy<345){
     headSample(hx,hy,a,headPixel);headAlpha=headPixel[3];red=headPixel[0];green=headPixel[1];blue=headPixel[2];
@@ -229,7 +240,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     if(nativeIdle){
      if(!layer.classList.contains('is-native-idle')){fallback.src='octi-actor-idle.webp?v=d571dd888f44cb66';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
-     renderer.draw({approach:pose,lag:follow,gesture:headTurn,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
+     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:pose,lag:follow,gesture:headTurn,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
     }
     rendering=true;reason='';lastDraw=t;

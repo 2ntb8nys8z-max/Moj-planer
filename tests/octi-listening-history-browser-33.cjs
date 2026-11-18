@@ -46,6 +46,37 @@ assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),referen
    assert.ok(metrics.gpuDifference<.1,'The restored GPU pose must match the historical renderer pixel for pixel');assert.ok(metrics.softwareDifference<.5,'The software renderer must retain the historical complete silhouette and head projection');
    assert.ok(metrics.backgroundDifference<.5,'The background renderer must retain the same historical artwork after smaller video transfers');assert.equal(metrics.captures,1,'Head poses reuse the same decoded body frame without another synchronous readback');
   }
+  // Freeze the approved video phase; change head and arm controls independently.
+  // Inspect the rendered colors and silhouette in both anatomical regions.
+  const regions=await page.evaluate(async()=>{
+   const q=historyQA,results=[];
+   for(const approach of [0,1]){
+    const state={approach,lag:approach,gesture:approach,clock:1.8,phase:0,videoAvailable:true};
+    for(const [path,renderer,canvas] of [['webgl',q.gpu,q.current],['canvas',q.cpu,q.software],['worker',q.backgroundRenderer,q.backgroundCanvas]]){
+     async function image(head,arms){
+      if(path==='worker')await new Promise(r=>setTimeout(r,25));
+      const before=renderer.paintCount;renderer.draw({...state,touchHead:head,touchArms:arms});
+      if(path==='worker')while(renderer.paintCount===before)await new Promise(requestAnimationFrame);
+      const flat=document.createElement('canvas');flat.width=canvas.width;flat.height=canvas.height;
+      const ctx=flat.getContext('2d');ctx.drawImage(canvas,0,0);return ctx.getImageData(0,0,flat.width,flat.height);
+     }
+     const neutral=await image(0,0),head=await image(1,0),arms=await image(0,1);
+     function change(frame,box){
+      let total=0,count=0;const n=frame.width;
+      for(let y=Math.floor(n*box[1]);y<n*box[3];y++)for(let x=Math.floor(n*box[0]);x<n*box[2];x++){
+       const i=(y*n+x)*4;for(let c=0;c<4;c++)total+=Math.abs(frame.data[i+c]-neutral.data[i+c]);count+=4;
+      }return total/count;
+     }
+     const crown=approach?[.48,.28,.72,.44]:[.42,.27,.58,.44],tips=approach?[.17,.55,.276,.73]:[.16,.39,.35,.72];
+     results.push({path,approach,head:change(head,crown),headAtTips:change(head,tips),arms:change(arms,tips),armsAtHead:change(arms,crown)});
+    }
+   }return results;
+  });
+  for(const m of regions){
+   console.log(kind+' regional pixels '+JSON.stringify(m));
+   assert.ok(m.head>3&&m.arms>3,'A head recoil and a tip sweep both change visible pixels');
+   assert.ok(m.headAtTips<m.head*.15&&m.armsAtHead<m.arms*.15,'Moving a single anatomical region leaves the other region anchored');
+  }
   const poster=await page.evaluate(()=>{
    const q=historyQA,canvas=document.createElement('canvas');canvas.style.width='160px';document.body.append(canvas);const cpu=createSoftwareOktiRenderer(canvas,q.video,q.head,q.poster);
    // Use identical image sources in the no-video comparison; poster alpha has

@@ -134,7 +134,7 @@ function assertFastReturn(result){
  assert.equal(result.native.delay,0);assert.equal(result.native.phase,'release');assert.equal(result.native.holding,false);
  assert.equal(result.native.lastX,1);assert.equal(result.native.minX,1);
  assert.ok(result.native.count<=3,'Only two or three transform keyframes are submitted');
- if(result.native.count===3)assert.ok(result.native.maxX>=1.11&&result.native.peakAt<=40,'A before-first-frame tap paints a short smooth impulse: '+JSON.stringify(result));
+ if(result.native.count===3)assert.ok(result.native.maxX>=1.20&&result.native.peakAt<=40,'A before-first-frame tap paints a short smooth impulse: '+JSON.stringify(result));
  else assert.ok(result.native.immediate&&result.native.monotonic,'An already visible press returns directly from its current size: '+JSON.stringify(result));
  assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
 }
@@ -225,12 +225,12 @@ function assertFastReturn(result){
     if(width===390){
      const contact=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{
       const lens=root.querySelector('.octi-contact-lens'),actor=root.querySelector('.octi-touch-actor');
-      const matrix=new DOMMatrix(getComputedStyle(actor).transform),at=actor.clientHeight*.13;
+      const matrix=new DOMMatrix(getComputedStyle(actor).transform),pose=root.octiPressure.getActorPose();
       return {alpha:Number(getComputedStyle(lens).opacity),y:parseFloat(lens.style.top),
-       localWidth:lens.offsetWidth/root.querySelector('.octi-motion-media').offsetWidth,headScale:matrix.m11/(1-matrix.m24*at),armScale:matrix.m11/(1+matrix.m24*at)};
+       localWidth:lens.offsetWidth/root.querySelector('.octi-motion-media').offsetWidth,identity:matrix.isIdentity,head:pose.head,arms:pose.arms};
      });
-     assert.ok(contact.alpha>.95&&contact.y<50&&contact.localWidth>.23&&contact.localWidth<.27,'The held surface catches light at the off-center touch');
-     assert.ok(contact.headScale<.94&&contact.armScale>1.06,'The head recedes while the tentacles open');
+     assert.ok(contact.alpha>.95&&contact.y<50&&contact.localWidth>.40&&contact.localWidth<.44,'The held surface catches light at the off-center touch');
+     assert.ok(contact.identity&&contact.head===1&&contact.arms===1,'The actor plane stays fixed while the renderer deforms the head and free tips');
      console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const returning=await release();
     assert.equal(returning[0].duration,240,'A long hold returns as quickly as a short tap');
