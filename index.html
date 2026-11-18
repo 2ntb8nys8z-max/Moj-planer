@@ -4426,8 +4426,8 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=be06e0b4ecf13abb"></script>
-<script src="octi-listening.js?v=26372f210c434d50"></script>
+<script src="octi-pressure.js?v=fc3bb052ed534745"></script>
+<script src="octi-listening.js?v=a23ee31af2f760b2"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6193,9 +6193,7 @@ window.OktiEventMotion=(()=>{
 .octi-dock .octi-motion-media>.octi-contact-lens{
  position:absolute;left:50%;top:50%;width:91%;height:91%;border-radius:50%;pointer-events:none;z-index:1;
  opacity:.004;transform:translate3d(-50%,-50%,0);will-change:opacity,transform;
- background:radial-gradient(ellipse 47% 25% at 50% 16%,#ffffffdc 0%,#ecfaff88 40%,#d9f4ff12 80%,transparent 100%);
- -webkit-mask-image:radial-gradient(ellipse,transparent 52%,#0007 66%,#000 84%,transparent 100%);
- mask-image:radial-gradient(ellipse,transparent 52%,#0007 66%,#000 84%,transparent 100%);
+
 }
 /* Move the shared artwork on the compositor instead of recalculating
    inherited custom properties throughout the dock on every idle frame. */

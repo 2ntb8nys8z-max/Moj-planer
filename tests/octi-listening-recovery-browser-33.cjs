@@ -54,7 +54,7 @@ async function pixels(page){
   console.log(kind+': GPU and software neutral recording pixels passed');
   const blocked=await fixture(browser,{blocked:true});try{
    await rendered(blocked.page);assert.equal((await state(blocked.page)).renderer,'canvas2d');await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).isRecording);
-   await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).paintCount>0);assert.ok((await pixels(blocked.page)).blue>1000,'Autoplay failure retains a real animated head, not a scaled idle image');
+   await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).nativeIdle);assert.ok((await pixels(blocked.page)).blue>1000,'Autoplay failure keeps the native animated octopus visible');
    await blocked.page.evaluate(()=>window.qaBlocked=false);await blocked.page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>!document.querySelector('.octi-listening-source').paused);
    assert.ok((await state(blocked.page)).lastError,'The original failure is retained for diagnosis');assert.deepEqual(blocked.errors,[]);
   }finally{await blocked.page.close();}
@@ -85,6 +85,6 @@ async function pixels(page){
     assert.deepEqual(event.errors,[]);console.log(kind+': event '+width+'px open/record/close/reopen passed');
    }finally{await page.screenshot({path:`test-results/okti-listening/${kind}-event-${width}-last.png`}).catch(()=>{});await page.close();}
   }
-  console.log(`Okti listening ${kind}: real approved-approach pixels, historical silhouette, GPU loss, autoplay recovery and transient asset failures passed.`);
+  console.log(`Okti listening ${kind}: neutral recording pixels, historical silhouette, GPU loss, autoplay recovery and transient asset failures passed.`);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

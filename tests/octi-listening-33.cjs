@@ -49,7 +49,7 @@ async function fixture({reduced=false,blocked=false,hanging=false,noGL=false,can
  }
  for(const options of [{noGL:true},{blocked:true},{hanging:true}]){
   const f=await fixture({...options,canvas2d:true});try{
-   f.update(true);await f.settle();await f.frames(8000);assert.equal(f.controller.getState().renderer,'canvas2d',JSON.stringify(options));assert.equal(f.controller.getState().rendering,true);assert.equal(f.controller.getState().fallback,false);assert.equal(f.controller.getState().approach,0);assert.ok(f.softwareDraws>10,'The approved coupled pose keeps rendering without WebGL or decoded video');assert.ok(f.controller.getState().lastError,'The original failure remains available for diagnosis');
+   f.update(true);await f.settle();await f.frames(8000);assert.equal(f.controller.getState().renderer,'canvas2d',JSON.stringify(options));assert.equal(f.controller.getState().rendering,true);assert.equal(f.controller.getState().fallback,false);assert.equal(f.controller.getState().approach,0);assert.equal(f.controller.getState().nativeIdle,true,'Software recording keeps the normally sized animated source');const im=f.root.querySelector('.octi-listening-fallback');im.dispatchEvent(new f.dom.window.Event('error'));await f.frames(900);assert.ok(f.softwareDraws>10,'Image failure activates software rendering');assert.ok(f.controller.getState().lastError,'The original failure remains available for diagnosis');
    f.update(false);await f.frames(1100,false);assert.equal(f.controller.getState().approach,0);await f.frames(7000,false);assert.equal(f.controller.getState().rendering,true,'A settled preparation promise cannot become a spurious loading timeout');
   }finally{f.controller.destroy();f.dom.window.close()}
  }

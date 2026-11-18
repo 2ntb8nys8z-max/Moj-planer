@@ -195,7 +195,9 @@ async function createBackgroundRenderer(canvas,video,head,poster){
 window.createOctiListeningArtwork=function(root,floating,motion){
  const layer=document.createElement('span');layer.className='octi-listening-media';layer.setAttribute('aria-hidden','true');
  let canvas=document.createElement('canvas');canvas.width=canvas.height=128;canvas.className='octi-listening-canvas';
+ let nativeImageFailed=false;
  const fallback=document.createElement('img');fallback.className='octi-listening-fallback';fallback.alt='';fallback.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';
+ fallback.addEventListener('error',()=>{if(/octi-actor-idle\.webp(?:\?|$)/.test(fallback.getAttribute('src')||''))nativeImageFailed=true;});
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
  plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
@@ -230,7 +232,9 @@ window.createOctiListeningArtwork=function(root,floating,motion){
    if(t-lastDraw>=30){try{
     // Native animated WebP is already the approved idle artwork. In the CPU
     // fallback it keeps moving without blocking touch with a per-pixel loop.
-    const nativeIdle=renderer.kind==='canvas2d'&&!isRecording;
+    // Recording now uses the same silhouette as idle. Keep the animated source
+    // on screen across both states. A failed image still has the live CPU renderer.
+    const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
      if(!layer.classList.contains('is-native-idle')){fallback.src='octi-actor-idle.webp?v=d571dd888f44cb66';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{

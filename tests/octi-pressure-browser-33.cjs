@@ -349,6 +349,14 @@ function assertFastReturn(result){
    // Also verify touch responsiveness during the active recording,
    // not only while the idle image can take over from the software renderer.
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});
+   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.isRecording&&s.nativeIdle&&s.approach===0});
+   for(let i=0;i<2;i++){
+    const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();
+    await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
+    assert.ok(new Set(result.frames.filter(f=>f.pressure>.01).map(f=>f.width.toFixed(2))).size>=3,'Native recording paints at least three sizes on each tap');
+   }
+   await page.route('**/octi-actor-idle.webp*',route=>route.fulfill({status:404,body:'missing native animation'}));
+   await page.locator('.octi-dock[data-channel=main] .octi-listening-fallback').evaluate(im=>{im.src='octi-actor-idle.webp?missing-native-animation'});
    await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.isRecording&&s.approach===0&&s.paintCount>=2});
    const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[],activeTraces=[];
    for(let i=0;i<2;i++){

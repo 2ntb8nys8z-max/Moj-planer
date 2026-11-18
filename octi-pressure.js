@@ -54,6 +54,27 @@ function nativeTouchFilter(root){
   const a=anim[i];a.setAttribute('values',keys.map(p=>p[part]*.25).join(';'));a.setAttribute('keyTimes',keys.map(p=>p.offset).join(';'));a.setAttribute('dur',duration+'ms');a.beginElement?.();
  }}};
 }
+// Bake one translucent highlight along the curvature of the outer glass. Only
+// its opacity and transform change under the finger, including on retina screens.
+let sheenPixels;
+function glassSheen(){
+ const node=document.createElement('canvas');node.width=node.height=144;
+ const ctx=node.getContext('2d');if(!ctx)return node;
+ if(!sheenPixels){
+  sheenPixels=ctx.createImageData(144,144);const rgba=sheenPixels.data;
+  for(let y=0;y<144;y++)for(let x=0;x<144;x++){
+   const u=(x+0.5)/72-1,v=(y+0.5)/72-1,r=Math.hypot(u,v);
+   const side=Math.max(0,-v/(r||1)),angle=side*side;
+   const white=.91*angle*Math.exp(-((r-.83)**2)/.016);
+   const ice=.27*angle*Math.exp(-((r-.64)**2)/.022),alpha=white+ice*(1-white);
+   if(alpha<.002||r>=1)continue;
+   const q=(y*144+x)*4;
+   for(const [c,tint] of [158,213,234].entries())rgba[q+c]=(255*white+tint*ice*(1-white))/alpha;
+   rgba[q+3]=255*alpha*Math.min(1,(1-r)*14);
+  }
+ }
+ ctx.putImageData(sheenPixels,0,0);return node;
+}
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
  if(!button||!glass)return {reset(){}};
@@ -63,7 +84,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  floating.classList.add('has-composited-pressure');
  let active=null,curve=null,primary=null,phase='idle',settled=0;
  const initialTransform=glass.style.transform;
- const lens=document.createElement('span');lens.className='octi-contact-lens';lens.setAttribute('aria-hidden','true');glass.append(lens);
+ const lens=glassSheen();lens.className='octi-contact-lens';lens.setAttribute('aria-hidden','true');glass.append(lens);
  let details=[],poses=null,nativeFilter=null,filteredImage=null,lightAngle=-35;
  const headResponse=.38,armResponse=.19;
  function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse}}
