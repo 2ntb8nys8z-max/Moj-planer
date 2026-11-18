@@ -41,7 +41,7 @@ async function fixture(browser,width=390,height=844,{blockOptics=false,software=
  for(const mode of ['original','no_ring','no_scatter','no_legacy','no_reflections','no_actor','outer_only']){
  let css=({'no_scatter':'.octi-glass-scatter{visibility:hidden!important}',no_legacy:'.octi-glass-surface{visibility:hidden!important}',no_reflections:'.octi-contact-lens{visibility:hidden!important}',no_actor:'.octi-listening-media{visibility:hidden!important}',outer_only:'.octi-listening-media,.octi-glass-scatter,.octi-contact-lens,.octi-glass-surface{visibility:hidden!important}'})[mode]||'';
  if(mode==='no_ring')css=await dock.locator('.octi-glass-scatter').evaluate(el=>'.octi-dock .octi-glass-scatter{background-image:'+getComputedStyle(el).backgroundImage.replace(/, radial-gradient\(circle closest-side.*$/,'')+'!important}');
- const style=await page.addStyleTag({content:css});
+ const style=await page.addStyleTag({content:css||'html{}'});
  await page.screenshot({path:'ab/'+phase+'-'+mode+'.png',clip:{x:Math.floor(cx-80),y:Math.floor(cy-80),width:160,height:160}});
  await style.evaluate(e=>e.remove());
  }
