@@ -6,6 +6,7 @@ import tempfile
 import math
 import sys
 from okti_motion_contours import mascot_mask, signed_distance, prepare_pairs, motion_blend, clear_background
+from okti_side_tips import restore_side_material
 import cv2
 import numpy as np
 
@@ -78,6 +79,7 @@ def main():
         qa={}
         if export_tips:
             tiles=np.zeros((18*74,8*174,4),np.uint8)
+            sides=np.zeros((18*110,8*172,4),np.uint8)
         for i in range(COUNT):
             if export_tips and i%2!=0:
                 continue
@@ -100,6 +102,13 @@ def main():
                 tile[:,:,:3]*=255/np.maximum(tile[:,:,3:],.001)
                 k=i//2;row,col=divmod(k,8)
                 tiles[row*74:(row+1)*74,col*174:(col+1)*174]=np.uint8(np.clip(tile+.5,0,255))
+                # Retain original alpha here: a colour key applied after the
+                # glass composite cuts pale holes through the oblique tips.
+                pair=np.concatenate((rgba[309:419,134:220],rgba[309:419,324:410]),axis=1).copy()
+                pair[:,:,:3]*=255/np.maximum(pair[:,:,3:],.001)
+                if i>COUNT-OVERLAP:
+                    rgba_pair=np.uint8(np.clip(pair[..., [2,1,0,3]]+.5,0,255))
+                    sides[row*110:(row+1)*110,col*172:(col+1)*172]=restore_side_material(rgba_pair)[..., [2,1,0,3]]
                 continue
             frame=np.clip(np.rint(opacity[...,None]*color+(1-opacity[...,None])*background),0,255).astype(np.uint8)
             # Keep the capsule fixed while the arms follow the reference wave.
@@ -111,6 +120,7 @@ def main():
             if i in [0,1,2,COUNT-3,COUNT-2,COUNT-1]:qa[i]=frame
         if export_tips:
             assert cv2.imwrite(str(ART/'live-lower-tips.png'),tiles)
+            assert cv2.imwrite(str(ART/'live-side-tips.png'),sides)
             return
         region=np.s_[280:435,120:424]
         difference=lambda a,b:float(np.mean(np.abs(a[region].astype(float)-b[region])))

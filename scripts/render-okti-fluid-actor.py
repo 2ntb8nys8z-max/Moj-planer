@@ -47,6 +47,7 @@ def main():
     # Generated from the original motion reference, before the old master
     # clipped the two lowest arm ends and composited them against glass.
     tips=np.asarray(Image.open(ROOT/'artwork/okti-motion/live-lower-tips.png').convert('RGBA'))
+    sides=np.asarray(Image.open(ROOT/'artwork/okti-motion/live-side-tips.png').convert('RGBA'))
     frames=[]
     try:
         for i in range(144):
@@ -76,6 +77,22 @@ def main():
                         + tip_color*(blend*tip_alpha)[:,:,None])
                 color[region]=np.where(joined[:,:,None]>.001,premul/np.maximum(joined[:,:,None],.001),tip_color)
                 alpha[region]=joined
+            if i>108:
+                phase=(i-108)/36
+                phase=phase**3*(10+phase*(-15+6*phase))
+                strength=min(1,phase/.13,(1-phase)/.13)
+                for idx,left in enumerate((134,324)):
+                    src=sides[row*110:(row+1)*110,col*172+86*idx:col*172+86*(idx+1)]
+                    region=np.s_[309:419,left:left+86]
+                    yy,xx=np.indices((110,86))
+                    edge=np.minimum(xx,85-xx)
+                    blend=strength*pose.smooth(edge/6)*pose.smooth((yy-27)/12)*pose.smooth((109-yy)/6)
+                    old_alpha=alpha[region]
+                    new_alpha=src[:,:,3]/255.
+                    joined=(1-blend)*old_alpha+blend*new_alpha
+                    rgb=(color[region]*((1-blend)*old_alpha)[:,:,None]+src[:,:,:3]*(blend*new_alpha)[:,:,None])
+                    color[region]=np.uint8(np.clip(rgb/np.maximum(.001,joined[:,:,None]),0,255))
+                    alpha[region]=joined
             gray=(alpha*255).astype(np.uint8)
             encoder.stdin.write(np.concatenate((color,np.repeat(gray[:,:,None],3,axis=2)),axis=1).tobytes())
             native=np.array(Image.fromarray(np.dstack((color,gray))).resize((384,384),Image.Resampling.LANCZOS),float)
