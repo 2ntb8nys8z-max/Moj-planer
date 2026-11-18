@@ -44,6 +44,9 @@ def main():
         guide.seek(index)
         alpha=np.asarray(guide.convert('RGBA').getchannel('A').resize((544,544)))>64
         envelopes.append(ndi.maximum_filter(alpha, size=17))
+    # Generated from the original motion reference, before the old master
+    # clipped the two lowest arm ends and composited them against glass.
+    tips=np.asarray(Image.open(ROOT/'artwork/okti-motion/live-lower-tips.png').convert('RGBA'))
     frames=[]
     try:
         for i in range(144):
@@ -57,6 +60,22 @@ def main():
             holes,n=ndi.label(ndi.binary_fill_holes(mask)&~mask)
             areas=np.bincount(holes.ravel());small=areas<32;small[0]=False
             color,alpha=pose.matte(frame,mask|small[holes])
+            row,col=divmod(i,8)
+            tile=tips[row*74:(row+1)*74,col*174:(col+1)*174]
+            tip_alpha=tile[:,:,3]/255.
+            if np.any(tip_alpha>.5):
+                _,nearest=ndi.distance_transform_edt(tip_alpha<.5,return_indices=True)
+                tip_color=tile[:,:,:3].copy()
+                transparent=tip_alpha==0
+                tip_color[transparent]=tip_color[tuple(nearest[:,transparent])]
+                region=np.s_[407:481,185:359]
+                blend=pose.smooth((np.arange(407,481)-416)/12)[:,None]
+                old_alpha=alpha[region]
+                joined=(1-blend)*old_alpha+blend*tip_alpha
+                premul=(color[region]*((1-blend)*old_alpha)[:,:,None]
+                        + tip_color*(blend*tip_alpha)[:,:,None])
+                color[region]=np.where(joined[:,:,None]>.001,premul/np.maximum(joined[:,:,None],.001),tip_color)
+                alpha[region]=joined
             gray=(alpha*255).astype(np.uint8)
             encoder.stdin.write(np.concatenate((color,np.repeat(gray[:,:,None],3,axis=2)),axis=1).tobytes())
             native=np.array(Image.fromarray(np.dstack((color,gray))).resize((384,384),Image.Resampling.LANCZOS),float)
