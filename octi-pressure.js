@@ -78,6 +78,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  floating.classList.add('has-composited-pressure');
  const wall=document.createElement('span');wall.className='octi-pressed-wall';wall.setAttribute('aria-hidden','true');glass.append(wall);
  let active=null,curve=null,primary=null,wallRun=null,footprintRun=null,phase='idle',settled=0;
+ let presentedAttack=null,peakFrame=0;
  const initialTransform=glass.style.transform;
  const scatter=document.createElement('span');scatter.className='octi-glass-scatter';scatter.setAttribute('aria-hidden','true');glass.append(scatter);
  const reflections=lights.map(({angle,radius},index)=>{
@@ -163,9 +164,10 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
  }
- function clear(){clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
+ function clear(){cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
  function reset(){active=null;clear();settled=0;phase='idle';delete floating.dataset.pressState;install()}
  function start(next,nextPhase){
+  cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;
   const previous=primary;primary=null;curve=next;phase=nextPhase;floating.dataset.pressState=nextPhase;
   if(motion?.matches||typeof glass.animate!=='function'){
    if(previous){previous.onfinish=null;previous.cancel()}settled=next.to;curve=null;
@@ -192,7 +194,19 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
   primary=run;
   if(previous){previous.onfinish=null;previous.cancel()}
-  run.onfinish=()=>{if(primary!==run)return;settled=next.to;if(!active){if(next.to===1)returnFromPeak();else reset()}};
+  run.onfinish=()=>{
+   if(primary!==run)return;
+   settled=next.to;
+   if(next.to===0){reset();return}
+   // Finishing a timeline can precede presentation of its final sample.
+   // Leave the native fill in place for one rendering opportunity. The very
+   // next rendering update may start the return, with no timed plateau.
+   peakFrame=requestAnimationFrame(()=>{peakFrame=requestAnimationFrame(()=>{
+    if(primary!==run)return;
+    peakFrame=0;presentedAttack=run;
+    if(!active)returnFromPeak();
+   })});
+  };
  }
  function begin(input){
   if(button.disabled||active)return;
@@ -220,7 +234,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   // Keep the original native attack. Its finish event hands the full-size
   // painted state directly to the return, even if down/up shared one JS task.
   // A hold already at its maximum starts returning in this input event.
-  if(!primary||primary.playState==='finished'||value()>=1)returnFromPeak();
+  if(presentedAttack===primary)returnFromPeak();
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
@@ -233,7 +247,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
  button.addEventListener('blur',()=>{if(button.disabled&&!active&&phase==='release')return;reset()});window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getActorPose:actorPose,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?value()*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
+ const controls={reset,getActorPose:actorPose,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?value()*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,atPresentedPeak:!!primary&&presentedAttack===primary,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
  root.octiPressure=controls;prepare();
 
  return controls;

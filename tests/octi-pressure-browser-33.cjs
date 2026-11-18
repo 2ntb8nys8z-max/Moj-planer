@@ -90,7 +90,7 @@ async function samples(page,channel='main'){
 async function hold(page,channel='main'){
  const voice=page.locator(`.octi-dock[data-channel=${channel}] .voice`),b=await voice.boundingBox();
  await page.mouse.move(b.x+b.width/2,b.y+b.height*.4);await page.mouse.down();
- await page.waitForFunction(channel=>{const root=document.querySelector(`.octi-dock[data-channel=${channel}]`),s=root.octiPressure.getState();return s.pressure===1&&!root.querySelector('.octi-motion-media').getAnimations().some(a=>a.id==='okti-pressure-compositor'&&a.playState==='running')},channel);
+ await page.waitForFunction(channel=>{const root=document.querySelector(`.octi-dock[data-channel=${channel}]`),s=root.octiPressure.getState();return s.pressure===1&&(s.atPresentedPeak||matchMedia('(prefers-reduced-motion: reduce)').matches)&&!root.querySelector('.octi-motion-media').getAnimations().some(a=>a.id==='okti-pressure-compositor'&&a.playState==='running')},channel);
  return voice;
 }
 async function settled(page,channel='main'){
@@ -119,7 +119,12 @@ async function observeTap(page,channel='main'){
      capture(run);
      if(native?.count===2){
       attack=native;native=null;
-      run.addEventListener('finish',()=>capture(root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor')),{once:true});
+      function readReturn(){
+       const current=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
+       if(current&&current!==run)capture(current);
+       else if(root.octiPressure.getState().phase==='release')requestAnimationFrame(readReturn);
+      }
+      requestAnimationFrame(readReturn);
      }
     }}
     window.addEventListener('pointerup',released,true);
@@ -315,6 +320,7 @@ function assertFastReturn(result){
       const started=performance.now();while(performance.now()-started<150){}
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       const state={time:Number(run.currentTime),before,playState:run.playState,keys:Object.keys(run.effect.getKeyframes()[0]),pressure:root.octiPressure.getState().pressure,draws:root.octiPressure.getPaintState().count};
+      while(!root.octiPressure.getState().atPresentedPeak)await new Promise(requestAnimationFrame);
       window.dispatchEvent(new PointerEvent('pointerup',input));const returning=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
       state.returnDuration=Number(returning.effect.getTiming().duration);await returning.ready;await new Promise(requestAnimationFrame);
       const releaseStarted=performance.now();while(performance.now()-releaseStarted<430){}
