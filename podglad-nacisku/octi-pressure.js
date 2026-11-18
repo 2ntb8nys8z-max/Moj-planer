@@ -139,7 +139,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   return keys[keys.length-1];
  }
- function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;}
+ function clearDetails(){for(const run of details)run.cancel();details=[];poses=null}
  function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
@@ -162,19 +162,16 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    return pose(t,response(.009),response(.034),0);
   });
   clearDetails();poses={keys,duration:detailDuration};
-  const surface=actor.firstElementChild;
-  if(surface?.classList.contains('octi-material-surface')){
-   // Keep one uninterrupted moving surface anchored at the neck. Use 2D
-   // compositor transforms: mobile WebKit can flatten a projective matrix
-   // during interpolation and make the head appear almost edge-on.
+  const native=actor.querySelector('.octi-listening-fallback');
+  if(native){
+   // One continuous affine field across the animated silhouette. The crown
+   // and distal arms sit on opposite sides of its stationary neck pivot.
    const side=touchX/50;
-   const frames=keys.map(({offset,head,arms})=>({offset,transform:
-    `matrix(${1+.09*arms},0,${.028*head*side},${1-.135*head},0,0)`}));
-   try{
-    const run=surface.animate(frames,{duration:detailDuration,fill:'forwards'});
-    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
-    details.push(run);
-   }catch{ /* The optional pose must never interrupt shell or recorder feedback. */ }
+   const frames=keys.map(({offset,head,arms})=>({offset,
+    transform:`translate(-50%,-50%) matrix(1,${arms*(.012+.018*side)},${head*(.024+.060*side)},1,0,0)`}));
+   const run=native.animate(frames,{duration:detailDuration,fill:'forwards'});
+   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
+   details.push(run);
   }
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
