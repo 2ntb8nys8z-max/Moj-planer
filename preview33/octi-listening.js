@@ -243,7 +243,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     if(nativeIdle){
      if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=d4c31896ee04b8c5');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
-     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
+     renderer.draw({approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
     }
     rendering=true;reason='';lastDraw=t;
