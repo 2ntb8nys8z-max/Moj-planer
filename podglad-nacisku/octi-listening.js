@@ -203,12 +203,18 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  fallback.addEventListener('error',()=>{if(/octi-water-idle-332\.webp(?:\?|$)/.test(fallback.getAttribute('src')||''))nativeImageFailed=true;});
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
- plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
+ const surface=document.createElement('span');surface.className='octi-material-surface';
+ surface.style.cssText='position:absolute;inset:0;transform-origin:50% 56%;pointer-events:none';
+ surface.append(canvas,fallback);plane.append(surface);layer.append(plane);floating.append(layer);
  // A single decoded alpha edge stays intact while the control is pressed.
  function setNativeImage(src){if(fallback.getAttribute('src')!==src)fallback.src=src;}
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
  let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastDraw=0,lastVideoTime=-1,lastProgress=0,reason='';
- let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
+ // On iOS the independently decoded animated WebP keeps moving even when
+ // opening the microphone stalls WebGL presentation. Keep the CPU worker
+ // available if the native image fails, as on other software-rendered devices.
+ const appleTouch=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ let destroyed=false,generation=0,playGeneration=0,assets=null,software=appleTouch,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
  function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=d4c31896ee04b8c5';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}

@@ -81,66 +81,6 @@ function unlockFeedback(){
   if(feedbackAudio.state!=='running')return feedbackAudio.resume().catch(()=>{});
  }catch{}
 }
-// Inverse displacement in the actor's 544-unit source coordinates. Both
-// optical maps resample the same live silhouette, including its original alpha.
-const materialMaps=new Map();
-let nextMaterialId=0;
-function materialMap(kind,side=0){
- const key=kind+side;if(materialMaps.has(key))return materialMaps.get(key);
- const n=96,c=document.createElement('canvas');c.width=c.height=n;
- const ctx=c.getContext('2d'),data=ctx.createImageData(n,n);
- for(let row=0;row<n;row++)for(let col=0;col<n;col++){
-  // The actor image is centered in a plane and occupies 125% of its size.
-  const x=((col+.5)/n-.5)*544/1.25,y=((row+.5)/n-.5)*544/1.25+272;
-  const neck=settle((302-y)/38),mantle=neck*settle((74-Math.abs(x))/21);
-  let dx,dy;
-  if(kind==='head'){
-   const height=Math.max(0,Math.min(1.08,(295-y)/137));
-   const u=x/48,v=(y-226)/71,z=Math.sqrt(Math.max(0,1-u*u-v*v));
-   const contact=1+.23*side*Math.max(-1,Math.min(1,u));
-   // The neck stays planted while the crown settles, its sides bulge and the
-   // curved front (including the white mark) rolls over the volume.
-   dx=mantle*(-.10*x*height+z*(2+7*side));
-   dy=mantle*(-24*height*contact-5*z);
-  }else{
-   const free=settle((Math.hypot(x,y-298)-32)/106)*(1-mantle);
-   dx=-free*(.093*x+3.1*Math.tanh(x/19));
-   dy=free*(3.5*Math.min(1,Math.abs(x)/110)-1.6);
-  }
-  const i=(row*n+col)*4;
-  data.data[i]=Math.round(127.5+255*dx/80);
-  data.data[i+1]=Math.round(127.5+255*dy/80);
-  data.data[i+3]=255;
- }
- ctx.putImageData(data,0,0);const url=c.toDataURL();materialMaps.set(key,url);return url;
-}
-function createMaterialFilter(parent){
- const ns='http://www.w3.org/2000/svg',id='okti-material-'+(++nextMaterialId);
- function node(tag,attrs,host){const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);host?.append(e);return e}
- const svg=node('svg',{width:0,height:0,'aria-hidden':'true'},parent);
- svg.style.cssText='position:absolute;pointer-events:none';
- const filter=node('filter',{id,x:0,y:0,width:1,height:1,filterUnits:'objectBoundingBox',primitiveUnits:'objectBoundingBox','color-interpolation-filters':'sRGB'},node('defs',{},svg));
- function stage(name,input){
-  const map=node('feImage',{x:0,y:0,width:1,height:1,preserveAspectRatio:'none',result:name+'Map'},filter);
-  const warp=node('feDisplacementMap',{in:input,in2:name+'Map',scale:0,xChannelSelector:'R',yChannelSelector:'G',result:name},filter);
-  const animation=node('animate',{attributeName:'scale',begin:'indefinite',fill:'freeze',calcMode:'linear'},warp);
-  return {map,animation};
- }
- const head=stage('head','SourceGraphic'),arms=stage('arms','head');
- arms.map.setAttribute('href',materialMap('arms'));
- head.map.setAttribute('href',materialMap('head'));
- return {play(actor,keys,duration,side){
-  head.map.setAttribute('href',materialMap('head',Math.round(side*4)/4));
-  actor.style.filter='url(#'+id+')';
-  for(const [key,stage] of [['head',head],['arms',arms]]){
-   const a=stage.animation;
-   a.setAttribute('dur',duration+'ms');
-   a.setAttribute('keyTimes',keys.map(p=>p.offset).join(';'));
-   a.setAttribute('values',keys.map(p=>p[key]*80*1.25/544).join(';'));a.beginElement();
-  }
- }};
-}
-
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
  if(!button||!glass)return {reset(){}};
@@ -185,7 +125,6 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   return {node,x:radius*Math.cos(angle),y:radius*Math.sin(angle),pull:0};
  });
  let details=[],poses=null,touchX=0,touchY=0;
- const material=createMaterialFilter(floating);
  const headResponse=.38,armResponse=.19;
  function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse,side:touchX/50}}
  const rest={head:0,arms:0,light:0,rim:0};
@@ -200,7 +139,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   return keys[keys.length-1];
  }
- function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;const actor=floating.querySelector('.octi-touch-actor');if(actor)actor.style.filter='';}
+ function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;}
  function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
@@ -223,7 +162,20 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    return pose(t,response(.009),response(.034),0);
   });
   clearDetails();poses={keys,duration:detailDuration};
-  material.play(actor,keys,detailDuration,touchX/50);
+  const surface=actor.firstElementChild;
+  if(surface?.classList.contains('octi-material-surface')){
+   // Keep one uninterrupted moving surface anchored at the neck. Use 2D
+   // compositor transforms: mobile WebKit can flatten a projective matrix
+   // during interpolation and make the head appear almost edge-on.
+   const side=touchX/50;
+   const frames=keys.map(({offset,head,arms})=>({offset,transform:
+    `matrix(${1+.09*arms},0,${.028*head*side},${1-.135*head},0,0)`}));
+   try{
+    const run=surface.animate(frames,{duration:detailDuration,fill:'forwards'});
+    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
+    details.push(run);
+   }catch{ /* The optional pose must never interrupt shell or recorder feedback. */ }
+  }
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
   const layers=reflections.map(({node,pull})=>[node,p=>{
