@@ -182,7 +182,7 @@ function assertFastReturn(result){
     assert.equal(pressed.canvasOpacity,resting.canvasOpacity,'Pressing does not crossfade the glass');
     assert.equal(pressed.canvasParent,true,'The original glass owns its deformable image');
     assert.equal(pressed.pressureState.source,resting.pressureState.source,'Rest and press use the exact same texture');
-    assert.match(pressed.pressureState.source,/octi-glass-33-184\.png/);
+    assert.match(pressed.pressureState.source,/octi-glass-33-329\.png/);
     assert.equal(pressed.pixelHash,resting.pixelHash,'All original RGBA material pixels stay unchanged during pressure');
     assert.equal(pressed.materialFilter,resting.materialFilter,'No pressure-dependent hue, saturation or material filter is applied');
     assert.equal(pressed.lightStyles.length,0,'Only the original blue surface is painted');

@@ -4426,7 +4426,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=d2834e2a62d07f68"></script>
+<script src="octi-pressure.js?v=7db7babf7c7e8ea2"></script>
 <script src="octi-listening.js?v=a23ee31af2f760b2"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -6226,11 +6226,6 @@ window.OktiEventMotion=(()=>{
  border-radius:50%;clip-path:circle(45% at 50% 50%);pointer-events:none;z-index:0;
 }
 .octi-dock :is(.octi-pressure-canvas,.octi-glass-surface){opacity:.94;filter:brightness(1.12) saturate(.9)}
-/* Transmit the calendar through the bowl; retain the aqua lip at its foot. */
-.octi-dock :is(.octi-pressure-canvas,.octi-glass-surface){
- --glass-transmission:radial-gradient(circle closest-side,rgba(0,0,0,.14) 0 44%,rgba(0,0,0,.32) 65%,rgba(0,0,0,.51) 78%,rgba(0,0,0,.83) 88%,#000 100%),linear-gradient(to top,#000 0%,rgba(0,0,0,.82) 10%,transparent 33%);
- -webkit-mask-image:var(--glass-transmission);mask-image:var(--glass-transmission);
-}
 /* Real shadow layers let native transform/opacity animations run independently
    of the actor's JavaScript renderer. Their resting material stays unchanged. */
 .octi-dock .water-float.has-composited-pressure:before,.octi-dock .water-float.has-composited-pressure:after{visibility:hidden}

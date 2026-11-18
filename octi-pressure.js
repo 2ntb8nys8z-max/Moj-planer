@@ -1,7 +1,7 @@
 /* One static blue material and one native transform; no video or hover control. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=390;
+const TEXTURE='octi-glass-33-329.png?v=3b92b3d7da48a5d9',SIZE=384,CONTACT=120,RETURN=390;
 const ease=v=>{const t=Math.max(0,Math.min(1,v));return t*(.75+t*(1.05-.8*t))};
 const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
 const EASING='cubic-bezier(.333333,.25,.666667,.85)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';

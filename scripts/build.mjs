@@ -56,10 +56,11 @@ for(const item of calendarArtCatalog.backgrounds){
 }
 output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
 // One immutable blue material; pressure moves compositor layers only.
-const pressureTexture='octi-glass-33-184.png';
+const pressureTexture='octi-glass-33-329.png';
+output('preview33/'+pressureTexture,fs.readFileSync(pressureTexture),false);
 const pressureTextureHash=createHash('sha256').update(fs.readFileSync(pressureTexture)).digest('hex').slice(0,16);
 let pressure=fs.readFileSync('octi-pressure.js','utf8');
-pressure=pressure.replace(/octi-glass-33-184\.png(?:\?v=[a-z0-9]+)?/g,pressureTexture+'?v='+pressureTextureHash);
+pressure=pressure.replace(/octi-glass-33-329\.png(?:\?v=[a-z0-9]+)?/g,pressureTexture+'?v='+pressureTextureHash);
 const pressureLights='octi-pressure-lights-33-319.webp';
 const pressureLightsHash=createHash('sha256').update(fs.readFileSync(pressureLights)).digest('hex').slice(0,16);
 pressure=pressure.replace(/octi-pressure-lights-33-319\.webp(?:\?v=[a-z0-9]+)?/g,pressureLights+'?v='+pressureLightsHash);
