@@ -101,20 +101,25 @@ async function observeTap(page,channel='main'){
  await root.evaluate(root=>{
   root.tapResult=new Promise(resolve=>{
    root.querySelector('.voice').addEventListener('pointerdown',event=>{
-    const started=performance.now(),frames=[];let releasedAt=null,native=null;
-    const finish=timedOut=>{clearTimeout(guard);window.removeEventListener('pointerup',released,true);resolve({frames,releasedAt,timedOut,native})};
+    const started=performance.now(),frames=[];let releasedAt=null,native=null,attack=null;
+    const finish=timedOut=>{clearTimeout(guard);window.removeEventListener('pointerup',released,true);resolve({frames,releasedAt,timedOut,native,attack})};
     const guard=setTimeout(()=>finish(true),7000);
     function released(up){if(up.pointerId===event.pointerId){
      releasedAt=performance.now()-started;
      // Inspect the actual native return after finger-up. The entire 120 ms
      // feedback can finish between JS observer callbacks on software GL.
      const run=root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor');
-     if(run){
+     function capture(run){if(run){
       const duration=Number(run.effect.getTiming().duration),poses=run.effect.getKeyframes().map(frame=>{
        const scale=frame.transform.match(/scale\(\s*([-\d.e+]+)\s*,\s*([-\d.e+]+)\s*\)/i);
        return {time:frame.computedOffset*duration,x:scale?Number(scale[1]):0,y:scale?Number(scale[2]):0};
       });
       native={count:poses.length,peakAt:poses.find(p=>p.x===Math.max(...poses.map(v=>v.x))).time,duration,delay:run.effect.getTiming().delay,firstX:poses[0].x,lastX:poses.at(-1).x,maxX:Math.max(...poses.map(p=>p.x)),minX:Math.min(...poses.map(p=>p.x)),immediate:poses[1].x<poses[0].x,monotonic:poses.every((p,i)=>!i||p.x<=poses[i-1].x),phase:root.octiPressure.getState().phase,holding:root.octiPressure.getState().holding};
+     }}
+     capture(run);
+     if(native?.count===2){
+      attack=native;native=null;
+      run.addEventListener('finish',()=>capture(root.querySelector('.octi-motion-media').getAnimations().find(a=>a.id==='okti-pressure-compositor')),{once:true});
      }
     }}
     window.addEventListener('pointerup',released,true);
@@ -161,12 +166,13 @@ async function verifyCastPixels(page){
 }
 function assertFastReturn(result){
  assert.equal(result.timedOut,false,'A real tap completes its visual cycle');
- assert.ok(Math.abs(result.native.duration-(result.native.count===6?390+result.native.peakAt+64:390))<.01,'Short taps finish the attack and near-peak shoulder before the normal return');
+ assert.equal(result.native.duration,390,'Return has the original duration');
  assert.equal(result.native.delay,0);assert.equal(result.native.phase,'release');assert.equal(result.native.holding,false);
  assert.equal(result.native.lastX,1);assert.ok(result.native.minX<.995);
- assert.ok([4,6].includes(result.native.count),'Release has one undershoot and one smaller rebound');
- if(result.native.count===6)assert.ok(result.native.maxX>=1.20&&result.native.peakAt>=17&&result.native.peakAt<=94,'A before-first-frame tap paints a short smooth impulse: '+JSON.stringify(result));
- else assert.ok(result.native.immediate,'An already visible press returns directly from its current size: '+JSON.stringify(result));
+ assert.equal(result.native.count,4,'Return has one undershoot and one smaller rebound');
+ assert.equal(result.native.firstX,1.2,'Every release starts from the full held width');
+ assert.ok(result.native.immediate,'There is no plateau after maximum expansion');
+ if(result.attack){assert.equal(result.attack.duration,120);assert.equal(result.attack.delay,0);assert.equal(result.attack.lastX,1.2)}
  assert.equal(result.frames.at(-1).phase,'idle');assert.equal(result.frames.at(-1).pressure,0);
 }
 (async()=>{

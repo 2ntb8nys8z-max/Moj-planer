@@ -105,7 +105,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
   const first={...currentPose(),offset:0};
   const keys=held?[first,pose(.23,.67,.06,.43),pose(.60,.98,.70,.86),pose(1,1,1,1)]:
-   [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
+   [first,
     pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
   const detailDuration=held?next.duration:240;
   clearDetails();poses={keys,duration:detailDuration};
@@ -147,16 +147,14 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function sample(time){
   if(!curve)return settled;
-  if(curve.peakTime&&time<curve.peakTime)return curve.from+(curve.peak-curve.from)*ease(time/curve.peakTime);
-  if(curve.shoulderEnd&&time<curve.shoulderEnd)return curve.peak+(.965-curve.peak)*settle((time-curve.peakTime)/(curve.shoulderEnd-curve.peakTime));
-  const from=curve.shoulderEnd ? .965 : curve.from,start=curve.shoulderEnd||0;
+  const from=curve.from;
   if(curve.echo){
-   const {low,high}=curve.echo,t=(time-start)/(curve.duration-start);
+   const {low,high}=curve.echo,t=time/curve.duration;
    if(t<=.43)return from+(low-from)*recover(t/.43);
    if(t<=.76)return low+(high-low)*settle((t-.43)/.33);
    return high*(1-settle((t-.76)/.24));
   }
-  return from+(curve.to-from)*(curve.to===0?recover:ease)((time-start)/(curve.duration-start));
+  return from+(curve.to-from)*(curve.to===0?recover:ease)(time/curve.duration);
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
  function style(p){return {transform:`translate(-50%,-50%) scale(${1+.20*p},${1+.13*p})`}}
@@ -175,14 +173,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   // The shell crosses rest once in each direction on its native timeline.
   // The actor and detached highlights keep their independent motion.
-  const stops=[{p:next.from,offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
-  if(next.peakTime){
-   stops.push({p:next.peak,offset:next.peakTime/next.duration,easing:SETTLE});
-   stops.push({p:.965,offset:next.shoulderEnd/next.duration,easing:RECOVER});
-  }
+  const stops=[{p:next.from,offset:0,easing:next.to?EASING:RECOVER}];
   if(next.echo){
-   const start=(next.shoulderEnd||0)/next.duration;
-   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset:start+(1-start)*offset,easing:SETTLE});
+   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset,easing:SETTLE});
   }
   stops.push({p:next.to,offset:1});
   startDetails(next,nextPhase==='held',stops);
@@ -199,7 +192,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
   primary=run;
   if(previous){previous.onfinish=null;previous.cancel()}
-  run.onfinish=()=>{if(primary!==run)return;settled=next.to;if(!active)reset()};
+  run.onfinish=()=>{if(primary!==run)return;settled=next.to;if(!active){if(next.to===1)returnFromPeak();else reset()}};
  }
  function begin(input){
   if(button.disabled||active)return;
@@ -216,15 +209,18 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   start({from:motion?.matches?from:Math.max(.115,from),to:1,duration:CONTACT,carry},'held');
   if(!texture&&!pendingTexture)prepare();
  }
+ function returnFromPeak(){
+  start({from:1,to:0,duration:RETURN,echo:{low:-.24,high:.105}},'release');
+ }
  function release(){
   if(!active)return;
-  const from=value(),elapsed=performance.now()-active.downAt;active=null;
+  active=null;
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
-  // A light tap finishes opening after lift. A hold starts returning on lift.
-  const impulse=elapsed<105,amplitude=impulse?1:from;
-  const peakTime=impulse?Math.max(18,94*(1-from)):0;
-  const shoulderEnd=impulse?peakTime+64:0;
-  start({from,to:0,duration:RETURN+shoulderEnd,echo:{low:-.24*amplitude,high:.105*amplitude},...(impulse?{peak:1,peakTime,shoulderEnd}:{})},'release');
+  phase='release';floating.dataset.pressState='release';
+  // Keep the original native attack. Its finish event hands the full-size
+  // painted state directly to the return, even if down/up shared one JS task.
+  // A hold already at its maximum starts returning in this input event.
+  if(!primary||primary.playState==='finished'||value()>=1)returnFromPeak();
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
