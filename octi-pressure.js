@@ -1,17 +1,32 @@
 /* One static blue material and one native transform; no video or hover control. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=240;
+const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=390;
 const ease=v=>{const t=Math.max(0,Math.min(1,v));return t*(.75+t*(1.05-.8*t))};
 const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
 const EASING='cubic-bezier(.333333,.25,.666667,.85)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
+const settle=v=>{const t=Math.max(0,Math.min(1,v));return t*t*(3-2*t)};
+const SETTLE='cubic-bezier(.333333,0,.666667,1)';
+function splitSurface(source,ctx){
+ const surface=ctx.createImageData(SIZE,SIZE),rim=source.data,light=surface.data;
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+  const i=(y*SIZE+x)*4,u=(x+.5)*2/SIZE-1,v=(y+.5)*2/SIZE-1;
+  const radius=Math.hypot(u,v),weight=settle((.843-radius)/.052)*settle((rim[i]-130)/75);
+  if(weight<=0)continue;
+  const original=rim[i+3],base=Math.round(original*(1-weight));
+  if(original===base)continue;
+  light[i]=rim[i];light[i+1]=rim[i+1];light[i+2]=rim[i+2];
+  light[i+3]=255*(original-base)/(255-base);rim[i+3]=base;
+ }
+ return {rim:source,surface};
+}
 let texturePromise=null;
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
   const image=new Image();image.decoding='async';
   image.onload=()=>{
    try{const staging=document.createElement('canvas');staging.width=staging.height=SIZE;const ctx=staging.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(image,0,0,SIZE,SIZE);resolve(ctx.getImageData(0,0,SIZE,SIZE));
+    ctx.drawImage(image,0,0,SIZE,SIZE);resolve(splitSurface(ctx.getImageData(0,0,SIZE,SIZE),ctx));
    }catch{texturePromise=null;resolve(null)}
   };
   image.onerror=()=>{texturePromise=null;resolve(null)};image.src=TEXTURE;
@@ -86,6 +101,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
  if(!button||!glass)return {reset(){}};
  const canvas=document.createElement('canvas');canvas.className='octi-pressure-canvas';canvas.width=canvas.height=SIZE;canvas.setAttribute('aria-hidden','true');
+ const legacy=document.createElement('canvas');legacy.className='octi-glass-surface';legacy.width=legacy.height=SIZE;legacy.setAttribute('aria-hidden','true');glass.append(legacy);
+ const legacyCtx=legacy.getContext('2d');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,pendingTexture=null,drawCount=0,lastDrawMs=0;
  for(const name of ['octi-pressure-shadow','octi-pressure-caustic']){const node=document.createElement('span');node.className=name;node.setAttribute('aria-hidden','true');floating.append(node)}
  floating.classList.add('has-composited-pressure');
@@ -119,20 +136,24 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const keys=held?[first,pose(.23,.67,.06,.43),pose(.60,.98,.70,.86),pose(1,1,1,1)]:
    [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
     pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
-  clearDetails();poses={keys,duration:next.duration};
+  const detailDuration=held?next.duration:240;
+  clearDetails();poses={keys,duration:detailDuration};
   filteredImage=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
-  if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),next.duration)}
+  if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),detailDuration)}
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
   const layers=reflections.map(({node,pull})=>[node,p=>{
    const contraction=pull*p.light;
    return {opacity:.88+.12*p.light,transform:`translate3d(calc(-50% + ${touchX*contraction}%),calc(-50% + ${touchY*contraction}%),0) scale(${1-contraction})`};
   }]);
-  layers.push([canvas,p=>({transform:`scale(${1+p.rim})`})]);
+  layers.push([legacy,p=>{
+   const bend=.34*p.light;
+   return {transform:`translate3d(${touchX*.91/1.06*bend}%,${touchY*.91/1.06*bend}%,0) scale(${1-bend})`};
+  }]);
   for(const [node,make] of layers){
    const frames=keys.map(p=>({offset:p.offset,...make(p)}));
    if(next.carry?.has(node))frames[0].transform=next.carry.get(node);
-   const run=node.animate(frames,{duration:next.duration,fill:'forwards'});
+   const run=node.animate(frames,{duration:detailDuration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
   }
@@ -141,13 +162,19 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(!curve)return settled;
   if(curve.peakTime&&time<curve.peakTime)return curve.from+(curve.peak-curve.from)*ease(time/curve.peakTime);
   const from=curve.peakTime?curve.peak:curve.from,start=curve.peakTime||0;
+  if(curve.echo){
+   const {low,high}=curve.echo,t=(time-start)/(curve.duration-start);
+   if(t<=.43)return from+(low-from)*recover(t/.43);
+   if(t<=.76)return low+(high-low)*settle((t-.43)/.33);
+   return high*(1-settle((t-.76)/.24));
+  }
   return from+(curve.to-from)*(curve.to===0?recover:ease)((time-start)/(curve.duration-start));
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
  function style(p){return {transform:`translate(-50%,-50%) scale(${1+.22*p},${1+.16*p})`}}
  function install(){
   if(!pendingTexture||!ctx||phase!=='idle')return;
-  const start=performance.now();ctx.putImageData(pendingTexture,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
+  const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
  }
  function clear(){clearDetails();if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
@@ -159,10 +186,14 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    if(previous){previous.onfinish=null;previous.cancel()}settled=next.to;curve=null;
    glass.style.transform=style(settled*(motion?.matches ? .1 : 1)).transform;return;
   }
-  // Only two (or three for a before-first-frame tap) native transform frames.
-  // The actor, its video, inherited drift and transmitted shadow keep running.
+  // The shell crosses rest once in each direction on its native timeline.
+  // The actor and detached highlights keep their independent motion.
   const frames=[{...style(next.from),offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
   if(next.peakTime)frames.push({...style(next.peak),offset:next.peakTime/next.duration,easing:RECOVER});
+  if(next.echo){
+   const start=(next.peakTime||0)/next.duration;
+   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])frames.push({...style(p),offset:start+(1-start)*offset,easing:SETTLE});
+  }
   frames.push({...style(next.to),offset:1});
   const run=glass.animate(frames,{duration:next.duration,easing:'linear',fill:'forwards'});run.id='okti-pressure-compositor';
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
@@ -174,7 +205,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(button.disabled||active)return;
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds};
   // A second finger-down can redirect a reflection before it has returned.
-  const carry=phase==='release'?new Map(reflections.map(({node})=>[node,getComputedStyle(node).transform])):null;
+  const carry=phase==='release'?new Map([...reflections.map(({node})=>node),legacy].map(node=>[node,getComputedStyle(node).transform])):null;
   const dx=Number.isFinite(input.x)?(input.x-bounds.left)/bounds.width-.5:0;
   const dy=Number.isFinite(input.y)?(input.y-bounds.top)/bounds.height-.5:0;
   touchX=Math.max(-50,Math.min(50,100*dx/.91));touchY=Math.max(-50,Math.min(50,100*dy/.91));
@@ -191,7 +222,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
   // A tap released before the first display frame still paints a short, smooth
   // impulse. All other releases reverse immediately from the current size.
-  start({from,to:0,duration:RETURN,...(elapsed<90&&from<.96?{peak:1,peakTime:Math.max(24,40*(1-from))}:{})},'release');
+  const impulse=elapsed<90&&from<.96,amplitude=impulse?1:from;
+  start({from,to:0,duration:RETURN,echo:{low:-.24*amplitude,high:.105*amplitude},...(impulse?{peak:1,peakTime:Math.max(24,40*(1-from))}:{})},'release');
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
