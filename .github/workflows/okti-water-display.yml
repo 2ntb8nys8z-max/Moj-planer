@@ -17,12 +17,12 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: node tests/water-display-capture.cjs
+      - run: node tests/octi-listening-history-browser-33.cjs && node tests/octi-listening-recovery-browser-33.cjs
         env:
-          PLANNER_PRESSURE_VIDEO: '1'
+          PLANNER_BROWSER: webkit
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: water-display
-          path: test-results/okti-listening/*.webm
+          path: test-results/okti-listening/
           retention-days: 3
