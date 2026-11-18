@@ -46,7 +46,8 @@ async function visualOnly(page,channel='main'){
     // software GL. Read the running animation's clock, retaining wall time
     // separately; neither clock drives or seeks the feedback under test.
     root.onsetFrames.push({t:Number(animation?.currentTime)||0,wall:performance.now()-start,width:box.width,height:box.height,paint});
-    if(paint.pressure<.99999&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
+    // The cubic can round to full width before the native timeline finishes.
+    if(animation&&animation.playState!=='finished'&&root.querySelector('.water-float').dataset.pressState==='held')requestAnimationFrame(sample);
    }
    requestAnimationFrame(sample);
   });
@@ -220,8 +221,8 @@ function assertFastReturn(result){
     assert.ok(nativeSizes.every((width,i)=>!i||width>nativeSizes[i-1]),'Every native contact interval widens smoothly');
     assert.ok(onset.every((f,i)=>!i||f.width>=onset[i-1].width-.01),'The live contact never reverses or flickers');
     assert.ok(onset.every(f=>f.paint.count===resting.pressureState.paintCount),'The whole onset uses the immutable material with no Canvas redraws');
-    const full=onset.find(f=>f.paint.pressure>=.99999);
-    assert.ok(full&&full.t>=119&&full.t<=121,'Native contact finishes within 120 ms: '+JSON.stringify(onset));
+    const full=onset.at(-1);
+    assert.ok(full&&full.paint.pressure>=.99999&&full.t>=119&&full.t<=121,'Native contact finishes within 120 ms: '+JSON.stringify(onset));
     if(width===390){
      const contact=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{
       const lens=root.querySelector('.octi-contact-lens'),actor=root.querySelector('.octi-touch-actor');
