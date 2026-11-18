@@ -206,12 +206,28 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  // A common plane lets the tap deform either live renderer or the animated idle image.
  const plane=document.createElement('span');plane.className='octi-touch-actor';
  plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
+ // Only the software path exposes the native animated image. All three views
+ // of it share its frame clock; the cropped ends hinge at stationary roots.
+ let nativeWater=null;
+ function setNativeImage(src){
+  if(!nativeWater){
+   nativeWater=document.createElement('span');nativeWater.className='octi-native-water';nativeWater.setAttribute('aria-hidden','true');
+   for(const side of ['left','right']){
+    const tips=document.createElement('span');tips.className='octi-native-tips '+side;
+    const image=document.createElement('img');image.alt='';tips.append(image);nativeWater.append(tips);
+   }
+   const face=document.createElement('span');face.className='octi-native-face';nativeWater.append(face);
+   for(let i=0;i<3;i++){const bar=document.createElement('span');bar.className='octi-native-bar';nativeWater.append(bar)}
+   plane.append(nativeWater);
+  }
+  for(const im of [fallback,...nativeWater.querySelectorAll('img')])if(im.getAttribute('src')!==src)im.src=src;
+ }
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
  let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastDraw=0,lastVideoTime=-1,lastProgress=0,reason='';
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
- function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=ff45b829ccc81b9b';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=ff45b829ccc81b9b';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
@@ -241,7 +257,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     // on screen across both states. A failed image still has the live CPU renderer.
     const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
-     if(!layer.classList.contains('is-native-idle')){fallback.src='octi-water-idle-332.webp?v=ff45b829ccc81b9b';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
+     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=ff45b829ccc81b9b');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
      const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}

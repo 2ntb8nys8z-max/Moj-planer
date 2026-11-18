@@ -4426,8 +4426,8 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=61c9568c132788c8"></script>
-<script src="octi-listening.js?v=5fac624fb4f72539"></script>
+<script src="octi-pressure.js?v=d5629568e1b30363"></script>
+<script src="octi-listening.js?v=dfe86543c4abfd35"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6233,7 +6233,23 @@ window.OktiEventMotion=(()=>{
  .phone-layout:has(.octi-listening-media.is-active) #dayTitle::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
  .phone-layout:has(.octi-listening-media.is-active) .phone-bottom-bar{background-color:#e7edf2ed}
 }
-.octi-touch-defs{position:absolute;width:0;height:0;pointer-events:none;overflow:hidden}
+/* The live native image owns the whole silhouette at rest. During a press
+   its outer ends share the decoded frame and shear about their fixed roots. */
+.octi-native-water{display:none;position:absolute;left:50%;top:50%;width:125%;height:125%;transform:translate(-50%,-50%);pointer-events:none}
+.water-float[data-press-state] .octi-listening-media:is(.is-native-idle,.is-fallback) .octi-native-water{display:block}
+.water-float[data-press-state] .octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback{clip-path:inset(0 37% 0 37%)}
+.octi-native-tips{position:absolute;top:0;bottom:0;width:37%;overflow:hidden}
+.octi-native-tips.left{left:0;transform-origin:100% 50%}.octi-native-tips.right{right:0;transform-origin:0 50%}
+.octi-native-tips img{position:absolute;top:0;height:100%;width:270.27027%;max-width:none}
+.octi-native-tips.left img{left:0}.octi-native-tips.right img{right:0}
+.octi-native-face{position:absolute;left:43.0894%;top:33.3333%;width:14.2276%;height:18.2927%;background:url('octi-water-face-332.png?v=66eb5a604644ed98') center/100% 100% no-repeat}
+.octi-native-bar{position:absolute;width:1.09756%;height:4.87805%;top:40.04%;left:45.79%;background:#f8fcff;border-radius:10px}
+.octi-native-bar:nth-last-child(2){left:49.45%;top:38.62%;height:7.72358%}
+.octi-native-bar:last-child{left:53.11%}
+@media(prefers-reduced-motion:reduce){
+ .water-float[data-press-state] .octi-listening-media:is(.is-native-idle,.is-fallback) .octi-native-water{display:none}
+ .water-float[data-press-state] .octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback{clip-path:none}
+}
 .octi-dock .octi-touch-actor{position:absolute;inset:0;pointer-events:none;transform-origin:center;transform:translateZ(0);will-change:transform}
 .octi-dock .octi-pressure-canvas{transform:translateZ(0);will-change:transform}
 .octi-dock .octi-glass-scatter{
