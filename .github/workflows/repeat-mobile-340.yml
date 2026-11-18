@@ -1,0 +1,21 @@
+name: Repeat mobile WebKit pressure and playback
+on:
+  push:
+    branches: ['work/probe-taps-33-340']
+permissions:
+  contents: read
+jobs:
+  repeat:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: node tests/octi-pressure-browser-33.cjs
+        env:
+          PLANNER_BROWSER: webkit
