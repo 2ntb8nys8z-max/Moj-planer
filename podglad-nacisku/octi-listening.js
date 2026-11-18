@@ -1,7 +1,7 @@
 /* Okti listening artwork. Presentation only: the existing recorder owns state. */
 (()=>{
 'use strict';
-const FILES={body:'octi-listening-body.mp4?v=2ef468277bbc3b4b',head:'octi-water-head-332.webp?v=1fc82de88dd38d0e',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
+const FILES={body:'octi-listening-body.mp4?v=2d1ad9b7fa1b7459',head:'octi-water-head-332.webp?v=1fc82de88dd38d0e',background:'octi-listening-background.webp?v=ad256a438de85c9a',fallback:'octi-listening-fallback.webp?v=25ae76619a20d894',poster:'octi-listening-poster.webp?v=c71534ebdd09f60d'};
 const vertex=`attribute vec2 position;varying vec2 uv;void main(){uv=(position+1.0)*.5;gl_Position=vec4(position,0.0,1.0);}`;
 const fragment=`precision highp float;
 varying vec2 uv;
@@ -211,7 +211,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
- function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=8df2d7c698bbcd86';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=a9841711ce3e694b';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
@@ -220,7 +220,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  function replaceCanvas(){canvas.removeEventListener('webglcontextlost',lost);const next=document.createElement('canvas');next.width=next.height=128;next.className='octi-listening-canvas';canvas.replaceWith(next);canvas=next;canvas.addEventListener('webglcontextlost',lost);}
  function source(reload=false){if(video.getAttribute('src')?.split('&retry=')[0]!==FILES.body)video.src=FILES.body;else if(reload&&(video.error||reloadMedia)){video.src=FILES.body+'&retry='+(++mediaReloads);reloadMedia=false;}}
  function playbackFailed(error,stage){if(destroyed||!visible||motion?.matches)return;remember(error,stage);mediaBlocked=true;if(stage==='video-stalled')reloadMedia=true;mediaRetryAt=mediaRetries<delays.length?now()+delays[mediaRetries++]:Infinity;if(renderer?.kind==='webgl'||!software)useSoftware(error,stage);}
- function play(){if(destroyed||!visible||motion?.matches||playPending||mediaBlocked&&now()<mediaRetryAt)return;if(!video.paused&&video.readyState>=2&&!video.error&&!mediaBlocked)return;source(true);const token=++playGeneration;playPending=true;
+ function play(){if(destroyed||!visible||motion?.matches||playPending||mediaBlocked&&now()<mediaRetryAt)return;if(!video.paused&&!video.error&&!mediaBlocked)return;source(true);const token=++playGeneration;playPending=true;
   try{Promise.resolve(video.play()).then(()=>{if(token!==playGeneration||destroyed)return;playPending=false;mediaBlocked=false;lastProgress=now();},error=>{if(token!==playGeneration||destroyed)return;playPending=false;if(error?.name!=='AbortError')playbackFailed(error,'video-play');});}catch(error){playPending=false;playbackFailed(error,'video-play');}
  }
  function useSoftware(error,stage){if(destroyed)return;remember(error,stage);software=true;generation++;preparing=null;stop();releaseRenderer();retryAt=0;replaceCanvas();if(visible&&!motion?.matches){staticFrame();prepare();}}
@@ -241,7 +241,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     // on screen across both states. A failed image still has the live CPU renderer.
     const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
-     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=8df2d7c698bbcd86');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
+     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=a9841711ce3e694b');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
      const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
