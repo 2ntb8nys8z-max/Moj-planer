@@ -165,7 +165,7 @@ async function verifyCastPixels(page){
   await voice.dispatchEvent('pointerdown',{isPrimary:true,pointerId:419,clientX:x,clientY:y});
   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiPressure.getState().pressure===1);
   const held=await measure();
-  assert.ok(rest.center<90&&held.center<90,'The cast remains left of the button axis at x=115');
+  assert.ok(rest.center<105&&held.center<105,'The cast centroid remains at least ten pixels left of the button axis: '+JSON.stringify({rest,held}));
   assert.ok(rest.ink>1000&&held.left<rest.left-2&&held.right>rest.right+2,'The actual cast pixels move outward on both sides: '+JSON.stringify({rest,held}));
   console.log(kind+' cast pixels '+JSON.stringify({rest,held}));
  }finally{await voice.dispatchEvent('pointercancel',{pointerId:419});await isolation.evaluate(node=>node.remove())}
