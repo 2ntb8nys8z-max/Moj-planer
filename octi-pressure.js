@@ -2,9 +2,9 @@
 (()=>{
 'use strict';
 const TEXTURE='octi-glass-33-184.png?v=ffa5688726705d31',SIZE=384,CONTACT=120,RETURN=240;
-const ease=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),3);
+const ease=v=>{const t=Math.max(0,Math.min(1,v));return t*(1.5-.5*t*t)};
 const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
-const EASING='cubic-bezier(.333333,1,.666667,1)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
+const EASING='cubic-bezier(.333333,.5,.666667,1)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
 let texturePromise=null;
 function loadTexture(){
  if(!texturePromise)texturePromise=new Promise(resolve=>{
@@ -56,19 +56,19 @@ function nativeTouchFilter(root){
 }
 // Bake one translucent highlight along the curvature of the outer glass. Only
 // its opacity and transform change under the finger, including on retina screens.
-let sheenPixels;
-function glassSheen(){
+const sheenPixels=[];
+function glassSheen(index){
  const node=document.createElement('canvas');node.width=node.height=144;
  const ctx=node.getContext('2d');if(!ctx)return node;
- if(!sheenPixels){
-  sheenPixels=ctx.createImageData(144,144);const rgba=sheenPixels.data;
+ if(!sheenPixels[index]){
+  sheenPixels[index]=ctx.createImageData(144,144);const rgba=sheenPixels[index].data;
   for(let y=0;y<144;y++)for(let x=0;x<144;x++){
    const u=(x+0.5)/72-1,v=(y+0.5)/72-1,r=Math.hypot(u,v);
    // Two elongated softboxes sit on opposite sides of the clear shell.
    // Their cool underside keeps the moving white bands readable over white.
    const theta=Math.atan2(v,u);
    const box=(center,extent)=>Math.exp(-Math.pow(Math.atan2(Math.sin(theta-center),Math.cos(theta-center))/extent,4));
-   const aperture=Math.max(box(-2.20,.49),.77*box(.78,.36));
+   const aperture=index===0?box(-2.20,.49):.77*box(.78,.36);
    const highlight=aperture*.98*Math.exp(-Math.pow((r-.845)/.071,4));
    const shade=aperture*.78*Math.exp(-Math.pow((r-.787)/.062,2));
    const alpha=highlight+shade*(1-highlight);
@@ -78,7 +78,7 @@ function glassSheen(){
    rgba[q+3]=255*alpha;
   }
  }
- ctx.putImageData(sheenPixels,0,0);return node;
+ ctx.putImageData(sheenPixels[index],0,0);return node;
 }
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
@@ -89,8 +89,11 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  floating.classList.add('has-composited-pressure');
  let active=null,curve=null,primary=null,phase='idle',settled=0;
  const initialTransform=glass.style.transform;
- const lens=glassSheen();lens.className='octi-contact-lens';lens.setAttribute('aria-hidden','true');glass.append(lens);
- let details=[],poses=null,nativeFilter=null,filteredImage=null,lightAngle=42;
+ const reflections=[-2.20,.78].map((angle,index)=>{
+  const node=glassSheen(index);node.className='octi-contact-lens';node.setAttribute('aria-hidden','true');glass.append(node);
+  return {node,x:.845*Math.cos(angle),y:.845*Math.sin(angle),pull:0};
+ });
+ let details=[],poses=null,nativeFilter=null,filteredImage=null,touchX=0,touchY=0;
  const headResponse=.38,armResponse=.19;
  function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse}}
  const rest={head:0,arms:0,light:0,rim:0};
@@ -110,13 +113,20 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
   const first={...currentPose(),offset:0};
-  const keys=held?[first,pose(.23,.67,.06,.90),pose(.60,.98,.70,1),pose(1,1,1,1)]:
-   [first,...(next.peakTime?[pose(.11,1,.20,1),pose(.31,.61,1,.89)]:[]),
+  const keys=held?[first,pose(.23,.67,.06,.43),pose(.60,.98,.70,.86),pose(1,1,1,1)]:
+   [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
     pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
   clearDetails();poses={keys,duration:next.duration};
   filteredImage=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
   if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),next.duration)}
-  for(const [node,make] of [[lens,p=>({opacity:.88+.12*p.light,transform:`translate3d(-50%,-50%,0) rotate(${lightAngle*p.light}deg) scale(${1-.075*p.light},${1+.022*p.light})`})],[canvas,p=>({transform:`scale(${1+p.rim})`})]]){
+  // Contract each optical band toward the contact in glass-local coordinates.
+  // The nearby band bends most; a central touch draws both bands inward.
+  const layers=reflections.map(({node,pull})=>[node,p=>{
+   const contraction=pull*p.light;
+   return {opacity:.88+.12*p.light,transform:`translate3d(calc(-50% + ${touchX*contraction}%),calc(-50% + ${touchY*contraction}%),0) scale(${1-contraction})`};
+  }]);
+  layers.push([canvas,p=>({transform:`scale(${1+p.rim})`})]);
+  for(const [node,make] of layers){
    const run=node.animate(keys.map(p=>({offset:p.offset,...make(p)})),{duration:next.duration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
@@ -160,8 +170,12 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds};
   const dx=Number.isFinite(input.x)?(input.x-bounds.left)/bounds.width-.5:0;
   const dy=Number.isFinite(input.y)?(input.y-bounds.top)/bounds.height-.5:0;
-  lightAngle=(dx<-.06?-1:1)*(40+Math.min(10,Math.abs(dy)*20));
-  start({from:motion?.matches?from:Math.max(.16,from),to:1,duration:CONTACT},'held');
+  touchX=Math.max(-50,Math.min(50,100*dx/.91));touchY=Math.max(-50,Math.min(50,100*dy/.91));
+  for(const band of reflections){
+   const proximity=Math.max(0,1-Math.hypot(band.x-touchX/50,band.y-touchY/50)/1.85);
+   band.pull=.17+.39*proximity;
+  }
+  start({from:motion?.matches?from:Math.max(.085,from),to:1,duration:CONTACT},'held');
   if(!texture&&!pendingTexture)prepare();
  }
  function release(){
@@ -170,7 +184,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
   // A tap released before the first display frame still paints a short, smooth
   // impulse. All other releases reverse immediately from the current size.
-  start({from,to:0,duration:RETURN,...(elapsed<90&&from<.96?{peak:1,peakTime:Math.max(12,36*(1-from))}:{})},'release');
+  start({from,to:0,duration:RETURN,...(elapsed<90&&from<.96?{peak:1,peakTime:Math.max(18,40*(1-from))}:{})},'release');
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
