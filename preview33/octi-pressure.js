@@ -71,6 +71,16 @@ function glassSheen(index){
  }
  ctx.putImageData(sheenPixels[index],0,0);return node;
 }
+// The output context is separate from every recorder and its input stream.
+let feedbackAudio;
+function unlockFeedback(){
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(!Audio)return;
+  feedbackAudio??=new Audio();
+  if(feedbackAudio.state!=='running')return feedbackAudio.resume().catch(()=>{});
+ }catch{}
+}
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
  if(!button||!glass)return {reset(){}};
@@ -83,7 +93,31 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  floating.classList.add('has-composited-pressure');
  const wall=document.createElement('span');wall.className='octi-pressed-wall';wall.setAttribute('aria-hidden','true');glass.append(wall);
  let active=null,curve=null,primary=null,wallRun=null,footprintRun=null,phase='idle',settled=0;
- let presentedAttack=null,peakFrame=0;
+ let presentedAttack=null,peakFrame=0,plum=null,audioReady;
+ function silencePlum(){
+  if(!plum)return;
+  try{plum.stop()}catch{}
+  plum=null;
+ }
+ async function schedulePlum(){
+  const audio=feedbackAudio,releaseRun=primary;
+  if(!audio)return;
+  if(audio.state!=='running')await audioReady;
+  const delay=.25-(Number(releaseRun?.currentTime)||0)/1000;
+  if(audio.state!=='running'||primary!==releaseRun||delay<0)return;
+  try{
+   const tone=audio.createOscillator(),gain=audio.createGain();
+   const t=audio.currentTime+delay;
+   tone.frequency.setValueAtTime(530,t);
+   tone.frequency.exponentialRampToValueAtTime(230,t+.095);
+   gain.gain.setValueAtTime(.0001,t);
+   gain.gain.exponentialRampToValueAtTime(.065,t+.008);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+.14);
+   tone.connect(gain);gain.connect(audio.destination);
+   tone.onended=()=>{tone.disconnect();gain.disconnect();if(plum===tone)plum=null};
+   plum=tone;tone.start(t);tone.stop(t+.15);
+  }catch{}
+ }
  const initialTransform=glass.style.transform;
  const scatter=document.createElement('span');scatter.className='octi-glass-scatter';scatter.setAttribute('aria-hidden','true');glass.append(scatter);
  const reflections=lights.map(({angle,radius},index)=>{
@@ -167,7 +201,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
  }
- function clear(){cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
+ function clear(){silencePlum();cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
  function reset(){active=null;clear();settled=0;phase='idle';delete floating.dataset.pressState;install()}
  function start(next,nextPhase){
   cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;
@@ -212,6 +246,8 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function begin(input){
   if(button.disabled||active)return;
+  silencePlum();
+  if(!motion?.matches)unlockFeedback();
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds,downAt:performance.now()};
   // A second finger-down can redirect a reflection before it has returned.
   const carry=phase==='release'?new Map([...reflections.map(({node})=>node),legacy].map(node=>[node,getComputedStyle(node).transform])):null;
@@ -227,11 +263,13 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  }
  function returnFromPeak(){
   start({from:1,to:0,duration:RETURN},'release');
+  schedulePlum();
  }
  function release(){
   if(!active)return;
   active=null;
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
+  audioReady=unlockFeedback();
   phase='release';floating.dataset.pressState='release';
   // Keep the original native attack. Its finish event hands the full-size
   // painted state directly to the return, even if down/up shared one JS task.

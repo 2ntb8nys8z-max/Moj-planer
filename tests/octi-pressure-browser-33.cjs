@@ -147,7 +147,7 @@ async function verifyCastPixels(page){
   .octi-dock[data-channel=main] .octi-shadow-footprint :is(.octi-pressure-shadow,.octi-pressure-caustic){visibility:visible!important}`});
  try{
   const bounds=await voice.evaluate(node=>node.getBoundingClientRect().toJSON()),x=bounds.x+bounds.width/2,y=bounds.y+bounds.height/2;
-  const clip={x:Math.floor(x-65),y:Math.floor(y+8),width:180,height:100};
+  const clip={x:Math.floor(x-115),y:Math.floor(y+8),width:180,height:100};
   async function measure(){
    const pixels=await page.screenshot({clip});
    return page.evaluate(async data=>{
@@ -158,13 +158,14 @@ async function verifyCastPixels(page){
     for(let i=0;i<rgba.length;i+=4)columns[(i/4)%canvas.width]+=Math.max(0,250-(rgba[i]+rgba[i+1]+rgba[i+2])/3);
     const sum=columns.reduce((a,b)=>a+b,0);let accum=0,left=-1,right=-1;
     for(let i=0;i<columns.length;i++){accum+=columns[i];if(left<0&&accum>=sum*.05)left=i;if(right<0&&accum>=sum*.95)right=i}
-    return {left,right,ink:Math.round(sum)};
+    return {left,right,center:columns.reduce((n,column,i)=>n+i*column,0)/sum,ink:Math.round(sum)};
    },pixels.toString('base64'));
   }
   const rest=await measure();
   await voice.dispatchEvent('pointerdown',{isPrimary:true,pointerId:419,clientX:x,clientY:y});
   await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=main]').octiPressure.getState().pressure===1);
   const held=await measure();
+  assert.ok(rest.center<90&&held.center<90,'The cast remains left of the button axis at x=115');
   assert.ok(rest.ink>1000&&held.left<rest.left-2&&held.right>rest.right+2,'The actual cast pixels move outward on both sides: '+JSON.stringify({rest,held}));
   console.log(kind+' cast pixels '+JSON.stringify({rest,held}));
  }finally{await voice.dispatchEvent('pointercancel',{pointerId:419});await isolation.evaluate(node=>node.remove())}
