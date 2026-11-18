@@ -91,7 +91,11 @@ function glassSheen(index){
    const alpha=core+(1-core)*glow;
    if(alpha<.004)continue;
    const q=4*(y*144+x);
-   rgba[q]=229+26*core;rgba[q+1]=250+5*core;rgba[q+2]=255;rgba[q+3]=255*alpha;
+   // Warm the broad upper-left reflection while keeping the secondary lights neutral.
+   rgba[q]=index===0?255:248+7*core;
+   rgba[q+1]=index===0?232+19*core:249+6*core;
+   rgba[q+2]=index===0?203+37*core:250+5*core;
+   rgba[q+3]=255*alpha;
   }
   sheenPixels[index]=image;
  }
