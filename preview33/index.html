@@ -4428,7 +4428,7 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=d5d16166930341a7"></script>
+<script src="octi-pressure.js?v=cfa8b91dd3bf36d3"></script>
 <script src="octi-listening.js?v=a5750a003d4a7187"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
@@ -4524,7 +4524,7 @@ function octiMotionArtwork(root,floating,motion){
  const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
  const pressure=octiBubblePressure(root,floating,motion);
  const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
- if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';poster.alt='';glass.append(poster);return ()=>{};}
+ if(!artwork){const poster=document.createElement('img');poster.src='octi-water-poster-332.webp?v=01be661c80c0c917';poster.alt='';glass.append(poster);return ()=>{};}
  return ()=>{const context=octiCurrentContext(),leavingEvent=root.dataset.channel==='event'&&$('eventModal').classList.contains('okti-event-exiting'),visibleContext=context===root.dataset.channel||leavingEvent,visible=root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&visibleContext&&root.getClientRects().length>0;if(!visible)pressure.reset();artwork.update({visible,isRecording:root.dataset.mode==='recording'&&!leavingEvent})};
 }
 

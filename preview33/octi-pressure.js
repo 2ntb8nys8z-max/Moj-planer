@@ -140,7 +140,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   return keys[keys.length-1];
  }
  function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;if(filteredImage){filteredImage.style.removeProperty('filter');filteredImage=null}}
- function startDetails(next,held){
+ function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
   const first={...currentPose(),offset:0};
@@ -162,9 +162,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    return {transform:`translate3d(${touchX*.91/1.06*bend}%,${touchY*.91/1.06*bend}%,0) scale(${1-bend})`};
   }]);
   for(const [node,make] of layers){
-   const frames=keys.map(p=>({offset:p.offset,...make(p)}));
+   const frames=stops.map(({p,...timing})=>({...timing,...make({light:Math.max(0,p)})}));
    if(next.carry?.has(node))frames[0].transform=next.carry.get(node);
-   const run=node.animate(frames,{duration:detailDuration,fill:'forwards'});
+   const run=node.animate(frames,{duration:next.duration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
   }
@@ -192,7 +192,6 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  function clear(){clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
  function reset(){active=null;clear();settled=0;phase='idle';delete floating.dataset.pressState;install()}
  function start(next,nextPhase){
-  startDetails(next,nextPhase==='held');
   const previous=primary;primary=null;curve=next;phase=nextPhase;floating.dataset.pressState=nextPhase;
   if(motion?.matches||typeof glass.animate!=='function'){
    if(previous){previous.onfinish=null;previous.cancel()}settled=next.to;curve=null;
@@ -210,6 +209,7 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset:start+(1-start)*offset,easing:SETTLE});
   }
   stops.push({p:next.to,offset:1});
+  startDetails(next,nextPhase==='held',stops);
   const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
   footprintRun?.cancel();
   footprintRun=footprint.animate(stops.map(({p,...timing})=>({

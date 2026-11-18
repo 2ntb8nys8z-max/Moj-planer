@@ -8,7 +8,7 @@ const rootWorkerText=fs.readFileSync('worker.txt','utf8');
 const previewWorkerText=fs.readFileSync('preview33/worker.txt','utf8');
 const release=JSON.parse(fs.readFileSync('preview33/release.json','utf8'));
 for(const file of ['fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt'])assert.ok(fs.readFileSync('preview33/'+file).equals(fs.readFileSync(file)),'Preview must include its locally served font and license');
-for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-mascot.webp','octi-actor-poster.webp','octi-glass-33-184.png','octi-caustic-33-196.svg','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
+for(const file of ['header-sailboat.webp','octi-water-glass.webp','octi-water-mascot.webp','octi-water-poster-332.webp','octi-water-depth-332.png','octi-glass-33-184.png','octi-caustic-33-196.svg','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp']){
   const bytes=fs.readFileSync(file),hash=require('node:crypto').createHash('sha256').update(bytes).digest('hex').slice(0,16);
   assert.ok(fs.readFileSync('preview33/'+file).equals(bytes),'Preview must contain the exact visual asset');
   assert.ok(preview.includes(file+'?v='+hash),'The rendered artwork must reference the current asset hash');
