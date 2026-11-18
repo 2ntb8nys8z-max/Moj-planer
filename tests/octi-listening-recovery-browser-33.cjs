@@ -19,7 +19,21 @@ async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=f
 }
 const state=page=>page.locator('#state').innerText().then(JSON.parse);
 const rendered=page=>page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent||'{}');return s.rendering&&s.ready;},null,{timeout:15000});
-async function pixels(page){return page.locator('.octi-listening-canvas').evaluate(canvas=>{const s=JSON.parse(document.querySelector('#state').textContent),n=canvas.width,p=new Uint8Array(n*n*4);if(s.renderer==='webgl')canvas.getContext('webgl').readPixels(0,0,n,n,6408,5121,p);else p.set(canvas.getContext('2d').getImageData(0,0,n,n).data);let blue=0,white=0;for(let q=0;q<p.length;q+=4){if(p[q+3]>100&&p[q+2]-p[q]>70)blue++;if(p[q+3]>100&&p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;}return {n,blue,white};});}
+async function pixels(page){
+ return page.locator('.octi-listening-canvas').evaluate(canvas=>{
+  const s=JSON.parse(document.querySelector('#state').textContent),n=160;
+  const sample=document.createElement('canvas');sample.width=sample.height=n;
+  const ctx=sample.getContext('2d');ctx.drawImage(s.nativeIdle?document.querySelector('.octi-listening-fallback'):canvas,0,0,n,n);
+  const p=ctx.getImageData(0,0,n,n).data;let blue=0,white=0,crownWidth=0;
+  for(let y=0;y<n;y++){let left=n,right=-1;
+   for(let x=0;x<n;x++){const q=(y*n+x)*4;if(p[q+3]<100)continue;
+    if(p[q+2]-p[q]>70){blue++;left=Math.min(left,x);right=Math.max(right,x)}
+    if(p[q]>235&&p[q+1]>235&&p[q+2]>235)white++;
+   }
+   if(y>=n*.32&&y<n*.39)crownWidth=Math.max(crownWidth,right-left+1);
+  }return {blue,white,crownWidth};
+ });
+}
 
 (async()=>{
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{} )});
@@ -29,18 +43,18 @@ async function pixels(page){return page.locator('.octi-listening-canvas').evalua
    const {page,errors}=await fixture(browser,{noGL});try{
     await rendered(page);const renderer=(await state(page)).renderer;if(noGL)assert.equal(renderer,'canvas2d');
     await page.locator('.octi-listening-source').evaluate(v=>{v.pause();v.currentTime=0});await page.waitForFunction(()=>{const v=document.querySelector('.octi-listening-source');return !v.seeking&&v.currentTime===0});await page.waitForTimeout(150);const idle=await pixels(page);await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-idle.png`});
-    await page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===1);
-    const listening=await pixels(page);await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-head-only.png`});assert.ok(listening.blue>idle.blue*1.15,'The approved approach is visible in the actual small button');assert.ok(listening.white>10,'Microphone marks remain visible');
+    await page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).isRecording);
+    await page.waitForTimeout(1700);const listening=await pixels(page);console.log(kind,renderer,'neutral crown',idle,listening);await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-neutral-listening.png`});assert.ok(idle.crownWidth>14&&Math.abs(listening.crownWidth-idle.crownWidth)<=3,'Recording retains the resting crown width in rendered pixels');assert.ok(listening.white>10,'Microphone marks remain visible');
     assert.equal(await page.locator('.octi-listening-canvas').evaluate(c=>c.getBoundingClientRect().width),160,'The check uses the real button size');
-    await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-head-only.png`});
+    await page.screenshot({path:`test-results/okti-listening/${kind}-${renderer}-neutral-listening.png`});
     await page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===0);
     assert.deepEqual(errors,[]);
    }finally{await page.close();}
   }
-  console.log(kind+': GPU and software approach pixels passed');
+  console.log(kind+': GPU and software neutral recording pixels passed');
   const blocked=await fixture(browser,{blocked:true});try{
-   await rendered(blocked.page);assert.equal((await state(blocked.page)).renderer,'canvas2d');await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).approach===1);
-   assert.ok((await pixels(blocked.page)).blue>1000,'Autoplay failure retains a real animated head, not a scaled idle image');
+   await rendered(blocked.page);assert.equal((await state(blocked.page)).renderer,'canvas2d');await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).isRecording);
+   await blocked.page.waitForFunction(()=>JSON.parse(document.querySelector('#state').textContent).paintCount>0);assert.ok((await pixels(blocked.page)).blue>1000,'Autoplay failure retains a real animated head, not a scaled idle image');
    await blocked.page.evaluate(()=>window.qaBlocked=false);await blocked.page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await blocked.page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();await blocked.page.waitForFunction(()=>!document.querySelector('.octi-listening-source').paused);
    assert.ok((await state(blocked.page)).lastError,'The original failure is retained for diagnosis');assert.deepEqual(blocked.errors,[]);
   }finally{await blocked.page.close();}
@@ -64,7 +78,7 @@ async function pixels(page){return page.locator('.octi-listening-canvas').evalua
      await page.waitForFunction(()=>!window.OktiEventMotion.getState()&&document.querySelector('.octi-dock[data-channel=event]')?.octiListening?.getState().rendering);
      const layers=await page.evaluate(()=>{const main=document.querySelector('.octi-dock[data-channel=main]'),event=document.querySelector('.octi-dock[data-channel=event]'),actor=event.querySelector('.octi-listening-media'),glass=event.querySelector('.octi-motion-media'),mic=document.querySelector('#eventVoice'),rect=mic.getBoundingClientRect(),a=actor.getBoundingClientRect(),g=glass.getBoundingClientRect();return {mainPlaying:main.octiListening.getState().rendering,mainPainted:main.querySelector('.water-float').getClientRects().length>0,actorInEvent:actor.closest('#eventModal')===glass.closest('#eventModal')&&!!actor.closest('#eventModal'),sameHost:actor.parentElement===glass.parentElement,centre:Math.hypot(a.x+a.width/2-g.x-g.width/2,a.y+a.height/2-g.y-g.height/2),hit:mic.contains(document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)),filter:getComputedStyle(actor).filter};});
      assert.equal(layers.mainPlaying,false,'The background calendar does not render a second actor');assert.equal(layers.mainPainted,false,'The background actor and glass are both absent below the event shade');assert.equal(layers.actorInEvent,true);assert.equal(layers.sameHost,true,'Glass and mascot share the foreground event coordinate space');assert.ok(layers.centre<1,'Glass cannot drift away from the mascot');assert.equal(layers.hit,true);assert.equal(layers.filter,'none');
-     await page.evaluate(()=>plannerRecordings.event={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=event]').octiListening.getState().approach===1);
+     await page.evaluate(()=>plannerRecordings.event={mode:'recording',deadline:Date.now()+RECORDING_SECONDS*1000,chunks:[]});await page.waitForFunction(()=>document.querySelector('.octi-dock[data-channel=event]').octiListening.getState().isRecording);
      await page.screenshot({path:`test-results/okti-listening/${kind}-event-${width}-${attempt}.png`});
      await page.evaluate(()=>plannerRecordings.event=null);await page.locator('#closeEvent').click();await page.waitForFunction(()=>!document.body.classList.contains('okti-event-transitioning')&&document.querySelector('.octi-dock[data-channel=main]').octiListening.getState().rendering);
     }

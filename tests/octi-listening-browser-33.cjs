@@ -17,12 +17,12 @@ const state=page=>page.locator('#state').innerText().then(JSON.parse);
   for(const width of [320,390,430]){
    const page=await browser.newPage({viewport:{width,height:844}}),errors=[];page.on('pageerror',error=>errors.push(error.message));await routeFiles(page);await page.goto('https://planner.test/preview33/qa-octi-listening.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);
    await page.getByRole('button',{name:'Rozpocznij słuchanie',exact:true}).click();
-   await page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent||'{}');return s.rendering&&s.approach===1&&s.gesture===1},null,{timeout:15000});
+   await page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent||'{}');return s.rendering&&s.isRecording&&s.approach===0&&s.gesture===0},null,{timeout:15000});
    assert.equal((await state(page)).fallback,false,'The real GLSL renderer must run, rather than silently using its fallback');
    const pixels=await page.locator('.octi-listening-canvas').evaluate(canvas=>{const gl=canvas.getContext('webgl'),pixels=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);let blue=0,white=0;for(let i=0;i<pixels.length;i+=4){if(pixels[i+2]-pixels[i]>70&&pixels[i+1]>55)blue++;if(pixels[i]>235&&pixels[i+1]>235&&pixels[i+2]>235)white++}return {blue,white,width:canvas.getBoundingClientRect().width}});
    assert.ok(pixels.blue>1000&&pixels.white>50,'Actual rendered pixels contain the blue Okti and bright microphone marks');assert.ok(pixels.width<=180,'Phone test uses the actual small icon rather than an enlarged movie');
-   if(width===390){await page.waitForTimeout(6200);assert.equal((await state(page)).approach,1,'Recording longer than the preview remains listening');}
-   await page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await page.waitForTimeout(250);assert.ok((await state(page)).approach>0&&(await state(page)).approach<1);
+   if(width===390){await page.waitForTimeout(6200);assert.equal((await state(page)).isRecording,true,'Recording longer than the preview remains listening');assert.equal((await state(page)).approach,0);}
+   await page.getByRole('button',{name:'Zakończ słuchanie',exact:true}).click();await page.waitForTimeout(250);assert.equal((await state(page)).approach,0);assert.equal((await state(page)).isRecording,false);
    await page.waitForFunction(()=>{const layer=document.querySelector('.octi-listening-media'),opacity=Number(getComputedStyle(layer).opacity);return layer.classList.contains('is-rendered')&&opacity>.9});
    assert.equal(await page.locator('.octi-listening-canvas').evaluate(canvas=>getComputedStyle(canvas).opacity),'1','The rendered canvas remains visible throughout the dissolve');
    await page.waitForFunction(()=>{const s=JSON.parse(document.querySelector('#state').textContent);return s.rendering&&s.approach===0});

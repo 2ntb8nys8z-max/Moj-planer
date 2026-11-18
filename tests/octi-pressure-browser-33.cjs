@@ -227,11 +227,11 @@ function assertFastReturn(result){
      const contact=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>{
       const lens=root.querySelector('.octi-contact-lens'),actor=root.querySelector('.octi-touch-actor');
       const matrix=new DOMMatrix(getComputedStyle(actor).transform),pose=root.octiPressure.getActorPose();
-      return {alpha:Number(getComputedStyle(lens).opacity),y:parseFloat(lens.style.top),
+      return {alpha:Number(getComputedStyle(lens).opacity),rotation:getComputedStyle(lens).transform,
        localWidth:lens.offsetWidth/root.querySelector('.octi-motion-media').offsetWidth,identity:matrix.isIdentity,head:pose.head,arms:pose.arms};
      });
-     assert.ok(contact.alpha>.95&&contact.y<50&&contact.localWidth>.40&&contact.localWidth<.44,'The held surface catches light at the off-center touch');
-     assert.ok(contact.identity&&contact.head===1&&contact.arms===1,'The actor plane stays fixed while the renderer deforms the head and free tips');
+     assert.ok(contact.alpha>.95&&contact.rotation!=='none'&&contact.localWidth>.88&&contact.localWidth<.94,'The held surface catches light at the off-center touch');
+     assert.ok(contact.identity&&contact.head===.38&&contact.arms===.19,'The actor plane stays fixed while the renderer deforms the head and free tips');
      console.log(kind+' real onset: '+JSON.stringify(onset));await page.screenshot({path:`test-results/okti-listening/${kind}-pressure-held.png`})}
     const release=await samples(page);await page.mouse.up();const returning=await release();
     assert.equal(returning[0].duration,240,'A long hold returns as quickly as a short tap');
@@ -346,10 +346,10 @@ function assertFastReturn(result){
    assert.ok(observed.every(t=>t.frames>=3&&t.distinct>=3&&t.wall<1000),'Every actual mobile tap paints multiple moving frames, without a main-thread freeze: '+JSON.stringify(observed));
    console.log(kind+' DPR3 native idle frames: '+JSON.stringify({observed:observed.map(({trace,native,...summary})=>summary),running}));
    assert.ok(running.offThread,'The fallback projection runs in a background worker: '+JSON.stringify(running));
-   // Also verify touch responsiveness during the actual historical approach,
+   // Also verify touch responsiveness during the active recording,
    // not only while the idle image can take over from the software renderer.
    await page.evaluate(()=>{plannerRecordings.main={mode:'recording',deadline:Date.now()+60000,chunks:[]}});
-   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.approach===1&&s.paintCount>=2});
+   await page.waitForFunction(()=>{const s=document.querySelector('.octi-dock[data-channel=main]').octiListening.getState();return s.offThread&&!s.nativeIdle&&s.isRecording&&s.approach===0&&s.paintCount>=2});
    const activeBefore=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount),active=[],activeTraces=[];
    for(let i=0;i<2;i++){
     const tap=await observeTap(page),b=await page.locator('.octi-dock[data-channel=main] .voice').boundingBox();await page.touchscreen.tap(b.x+b.width/2,b.y+b.height/2);const result=await tap();assertFastReturn(result);
@@ -359,7 +359,7 @@ function assertFastReturn(result){
    const activeAfter=await page.locator('.octi-dock[data-channel=main]').evaluate(root=>root.octiListening.getState().paintCount);
    assert.ok(active.every(frames=>frames>=3)&&activeAfter>activeBefore,'The head keeps rendering off the main thread while every tap paints multiple frames: '+JSON.stringify({active,activeBefore,activeAfter,activeTraces}));
    await page.evaluate(()=>{plannerRecordings.main=null});
-   console.log(kind+' DPR3 background approach: '+JSON.stringify({active,activeBefore,activeAfter}));assert.deepEqual(mobile.errors,[]);
+   console.log(kind+' DPR3 background recording: '+JSON.stringify({active,activeBefore,activeAfter}));assert.deepEqual(mobile.errors,[]);
   }finally{await mobile.page.close()}
   // Loading the optical atlas is optional: an unavailable asset must leave
   // one visible resting surface and working press/click controls.

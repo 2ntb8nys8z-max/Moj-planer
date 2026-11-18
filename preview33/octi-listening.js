@@ -200,15 +200,13 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  const plane=document.createElement('span');plane.className='octi-touch-actor';
  plane.append(canvas,fallback);layer.append(plane);floating.append(layer);
  const video=document.createElement('video');video.muted=video.defaultMuted=true;video.loop=video.playsInline=true;video.preload='auto';video.setAttribute('muted','');video.setAttribute('playsinline','');video.className='octi-listening-source';video.setAttribute('aria-hidden','true');layer.append(video);
- let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastFrame=0,lastDraw=0,pose=0,follow=0,headTurn=0,recordStart=0,starting=false,lastVideoTime=-1,lastProgress=0,reason='';
+ let visible=false,isRecording=false,ready=false,rendering=false,preparing=null,renderer=null,raf=0,lastDraw=0,lastVideoTime=-1,lastProgress=0,reason='';
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
- let transition={from:0,to:0,start:0,duration:720},turnTransition=null;
  const now=()=>performance.now();
- const value=t=>transition.from+(transition.to-transition.from)*smooth((t-transition.start)/transition.duration);
  function staticFrame(){const src=motion?.matches?'octi-actor-poster.webp?v=9b20c4f5b0d17977':'octi-actor-idle.webp?v=d571dd888f44cb66';if(fallback.getAttribute('src')!==src)fallback.src=src;layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
- function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();lastFrame=0;starting=false;}
+ function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
  function fail(error,stage='artwork'){remember(error,stage);generation++;preparing=null;stop();releaseRenderer();retryAt=retries<delays.length?now()+delays[retries++]:Infinity;if(visible)staticFrame();}
  function lost(event){event.preventDefault();if(!destroyed&&visible)useSoftware(Error('WebGL context lost'),'context-lost');}
@@ -229,18 +227,14 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  }
  function animate(t){raf=0;if(!visible||destroyed||!ready||motion?.matches)return;
   if(renderer.kind==='canvas2d'||video.readyState>=2){
-   if(starting){lastFrame=t;lastProgress=t;starting=false;if(isRecording){transition.start=t;recordStart=t;}}
-   const elapsed=lastFrame?t-lastFrame:0;if(elapsed>50){transition.start+=elapsed-50;recordStart+=elapsed-50;if(turnTransition)turnTransition.start+=elapsed-50;}
-   pose=value(t);headTurn=turnTransition?turnTransition.from*(1-smooth((t-turnTransition.start)/650)):(isRecording?smooth((t-recordStart-550)/900):0);
-   const dt=lastFrame?Math.min(.1,(t-lastFrame)/1000):1/30;lastFrame=t;follow+=(pose-follow)*(1-Math.exp(-dt/.07));
    if(t-lastDraw>=30){try{
     // Native animated WebP is already the approved idle artwork. In the CPU
     // fallback it keeps moving without blocking touch with a per-pixel loop.
-    const nativeIdle=renderer.kind==='canvas2d'&&!isRecording&&pose<.00001&&follow<.00001&&headTurn<.00001;
+    const nativeIdle=renderer.kind==='canvas2d'&&!isRecording;
     if(nativeIdle){
      if(!layer.classList.contains('is-native-idle')){fallback.src='octi-actor-idle.webp?v=d571dd888f44cb66';layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
-     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:pose,lag:follow,gesture:headTurn,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
+     const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
     }
     rendering=true;reason='';lastDraw=t;
@@ -251,16 +245,16 @@ window.createOctiListeningArtwork=function(root,floating,motion){
   if(mediaBlocked&&t>=mediaRetryAt){playPending=false;play();}
   raf=requestAnimationFrame(animate);
  }
- function start(){if(!ready||!visible||destroyed||motion?.matches||raf)return;starting=true;lastProgress=now();play();raf=requestAnimationFrame(animate);}
+ function start(){if(!ready||!visible||destroyed||motion?.matches||raf)return;lastProgress=now();play();raf=requestAnimationFrame(animate);}
  function resetRetries(){retryAt=mediaRetryAt=0;retries=mediaRetries=0;}
- function setRecording(next){next=!!next;if(next===isRecording)return;const t=now();pose=value(t);isRecording=next;transition={from:pose,to:next?1:0,start:t,duration:next?720:700};if(next){recordStart=t;turnTransition=null;resetRetries();}else turnTransition={from:headTurn,start:t};}
- function update(options){if(destroyed)return;const returning=!visible&&!!options.visible;visible=!!options.visible;if(returning)resetRetries();setRecording(options.isRecording);if(!visible){stop();rendering=false;isRecording=false;pose=follow=headTurn=0;transition={from:0,to:0,start:now(),duration:700};layer.classList.remove('is-active');return;}
+ function setRecording(next){next=!!next;if(isRecording===next)return;isRecording=next;if(next)resetRetries();}
+ function update(options){if(destroyed)return;const returning=!visible&&!!options.visible;visible=!!options.visible;if(returning)resetRetries();setRecording(options.isRecording);if(!visible){stop();rendering=false;isRecording=false;layer.classList.remove('is-active');return;}
   layer.classList.add('is-active');if(motion?.matches){stop();staticFrame();return;}if(preparing&&now()-loadingSince>5000)fail(Error('Artwork load timed out'),'artwork-timeout');if(!ready){staticFrame();prepare();}else start();
  }
  function resume(){if(destroyed||!visible||motion?.matches)return;resetRetries();source(true);if(!ready)prepare();play();if(ready)start();}
  function visibility(){if(document.hidden)stop();else resume();}
  const videoError=()=>playbackFailed(Error('Video unavailable'),'video-error');
  video.addEventListener('error',videoError);canvas.addEventListener('webglcontextlost',lost);root.addEventListener('pointerdown',resume,{passive:true});document.addEventListener('visibilitychange',visibility);window.addEventListener('pageshow',resume);window.addEventListener('online',resume);
- return {update,setRecording,getState:()=>({isRecording,approach:pose,gesture:headTurn,rendering,nativeIdle:layer.classList.contains('is-native-idle'),offThread:!!renderer?.offThread,backgroundError:renderer?.backgroundError||'',paintCount:renderer?.paintCount||0,fallback:layer.classList.contains('is-fallback'),renderer:renderer?.kind||'image',ready,reason,lastError,retries,mediaRetries}),destroy(){destroyed=true;generation++;preparing=null;stop();releaseRenderer();canvas.removeEventListener('webglcontextlost',lost);video.removeEventListener('error',videoError);root.removeEventListener('pointerdown',resume);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('online',resume);}};
+ return {update,setRecording,getState:()=>({isRecording,approach:0,gesture:0,rendering,nativeIdle:layer.classList.contains('is-native-idle'),offThread:!!renderer?.offThread,backgroundError:renderer?.backgroundError||'',paintCount:renderer?.paintCount||0,fallback:layer.classList.contains('is-fallback'),renderer:renderer?.kind||'image',ready,reason,lastError,retries,mediaRetries}),destroy(){destroyed=true;generation++;preparing=null;stop();releaseRenderer();canvas.removeEventListener('webglcontextlost',lost);video.removeEventListener('error',videoError);root.removeEventListener('pointerdown',resume);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('online',resume);}};
 };
 })();
