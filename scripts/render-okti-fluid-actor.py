@@ -27,6 +27,11 @@ def main():
     head=Image.open(ROOT/'octi-water-poster-332.webp').convert('RGBA')
     head=np.asarray(head).astype(float)
     y,x=np.indices(head.shape[:2])
+    # Preserve a white core in the three small printed bars after WebP chroma
+    # subsampling and Safari's final bilinear reduction to button size.
+    ink=(head[:,:,0]>189)&(abs(x-192)<21)&(y>144)&(y<185)
+    white=ndi.gaussian_filter(ndi.maximum_filter(ink.astype(float),size=3),.4)[:,:,None]
+    head[:,:,:3]+=(255-head[:,:,:3])*white
     # Keep the approved rest head and its marking. Only blend in the neck
     # where the source and the printed material occupy the same body.
     weight=np.clip((207-y)/12,0,1)*np.clip((44-abs(x-192))/5,0,1)

@@ -228,7 +228,7 @@ function assertFastReturn(result){
     assert.equal(pressed.pixelHash,resting.pixelHash,'All original RGBA material pixels stay unchanged during pressure');
     assert.equal(pressed.materialFilter,resting.materialFilter,'No pressure-dependent hue, saturation or material filter is applied');
     assert.equal(pressed.lightStyles.length,0,'Only the original blue surface is painted');
-    assert.ok(pressed.glassZ>pressed.actorZ,'The front-surface reflection remains visible over the live octopus');
+    assert.ok(pressed.actorZ>pressed.glassZ,'The sweeping reflection cannot erase the opaque tentacle tips');
     const footprint=pressed.footprint.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number);
     assert.ok(Math.abs(footprint[0]-1.08)<.001&&Math.abs(footprint[3]-1.04)<.001,'Both cast layers expand with the approved shell');
     assert.equal(pressed.transmittedShadow.transform,resting.transmittedShadow.transform,'The contact does not create another shadow animation');
