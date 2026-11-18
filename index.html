@@ -4427,7 +4427,7 @@ initializeEventCommands();
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
 <script src="octi-pressure.js?v=3073d802acfdb024"></script>
-<script src="octi-listening.js?v=392aae462bf717a1"></script>
+<script src="octi-listening.js?v=0095700493cfbb74"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -6275,7 +6275,9 @@ window.OktiEventMotion=(()=>{
  scale:1;transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
  transform-origin:50% 50%;opacity:1;will-change:transform,translate;
 }
-.octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y);transform:translate3d(-50%,-50%,0);will-change:transform;contain:paint;isolation:isolate}
+/* Opaque blue skin retains its contour under a passing white reflection;
+   the transparent space between tentacles exposes the original glass. */
+.octi-dock .octi-listening-media{z-index:15;scale:1;translate:var(--okti-drift-x) var(--okti-drift-y);transform:translate3d(-50%,-50%,0);will-change:transform;contain:paint;isolation:isolate}
 .octi-dock .octi-motion-media.is-pressure-ready{
  background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:14;
 }

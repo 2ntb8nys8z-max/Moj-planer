@@ -152,9 +152,8 @@ async function createBackgroundRenderer(canvas,video,head,poster){
  const ctx=canvas.getContext('2d'),staging=document.createElement('canvas'),stage=staging.getContext('2d',{willReadFrequently:true});
  function snapshot(image,live=false){
   const rawWidth=image.videoWidth||image.naturalWidth||image.width,rawHeight=image.videoHeight||image.naturalHeight||image.height;
-  // This atlas has two halves. A 512 px transfer still supplies 256 px of
-  // artwork for the small dock, without a large synchronous video readback.
-  const width=live?Math.min(512,rawWidth):rawWidth,height=Math.round(rawHeight*width/rawWidth);
+  // Keep the 384-pixel alpha half intact; a second resize blurs narrow tips.
+  const width=live?Math.min(768,rawWidth):rawWidth,height=Math.round(rawHeight*width/rawWidth);
   if(staging.width!==width)staging.width=width;if(staging.height!==height)staging.height=height;
   stage.clearRect(0,0,width,height);stage.drawImage(image,0,0,width,height);return {width,height,data:stage.getImageData(0,0,width,height).data};
  }
@@ -212,7 +211,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
  let destroyed=false,generation=0,playGeneration=0,assets=null,software=false,mediaBlocked=false,playPending=false,retryAt=0,retries=0,mediaRetryAt=0,mediaRetries=0,mediaReloads=0,reloadMedia=false,loadingSince=0,lastError=null;
  const delays=[350,1200,3000];
  const now=()=>performance.now();
- function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=0aa461e0800b698e';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
+ function staticFrame(){const src=motion?.matches?'octi-water-poster-332.webp?v=01be661c80c0c917':'octi-water-idle-332.webp?v=8df2d7c698bbcd86';setNativeImage(src);layer.classList.add('is-active','is-fallback');layer.classList.remove('is-rendered','is-native-idle');rendering=false;}
  function remember(error,stage){reason=error?.message||'Artwork unavailable';lastError={stage,name:error?.name||'Error',message:reason,mediaCode:video.error?.code||0,at:Date.now()};}
  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;playGeneration++;playPending=false;video.pause();}
  function releaseRenderer(){renderer?.destroy();renderer=null;ready=false;}
@@ -242,7 +241,7 @@ window.createOctiListeningArtwork=function(root,floating,motion){
     // on screen across both states. A failed image still has the live CPU renderer.
     const nativeIdle=renderer.kind==='canvas2d'&&!nativeImageFailed;
     if(nativeIdle){
-     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=0aa461e0800b698e');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
+     if(!layer.classList.contains('is-native-idle')){setNativeImage('octi-water-idle-332.webp?v=8df2d7c698bbcd86');layer.classList.add('is-active','is-rendered','is-native-idle');layer.classList.remove('is-fallback')}
     }else{
      const touch=root.octiPressure?.getActorPose?.();renderer.draw({touchSide:touch?.side||0,touchHead:touch?.head||0,touchArms:touch?.arms||0,approach:0,lag:0,gesture:0,clock:t/1000,phase:video.currentTime,videoAvailable:!mediaBlocked});
      if((!renderer.offThread||renderer.paintCount>0)&&(!rendering||layer.classList.contains('is-native-idle')||layer.classList.contains('is-fallback'))){layer.classList.add('is-active','is-rendered');layer.classList.remove('is-fallback','is-native-idle')}
