@@ -1,12 +1,17 @@
 /* One static blue material and one native transform; no video or hover control. */
 (()=>{
 'use strict';
-const TEXTURE='octi-glass-33-329.png?v=3b92b3d7da48a5d9',SIZE=384,CONTACT=120,RETURN=390;
-const ease=v=>{const t=Math.max(0,Math.min(1,v));return t*(.75+t*(1.05-.8*t))};
-const recover=v=>1-Math.pow(1-Math.max(0,Math.min(1,v)),2);
-const EASING='cubic-bezier(.333333,.25,.666667,.85)',RECOVER='cubic-bezier(.333333,.666667,.666667,1)';
+const TEXTURE='octi-water-shell-332.png?v=b52c46cccd774fd5',SIZE=384,CONTACT=600,RETURN=1750;
 const settle=v=>{const t=Math.max(0,Math.min(1,v));return t*t*(3-2*t)};
-const SETTLE='cubic-bezier(.333333,0,.666667,1)';
+const smoothLoad=t=>t*t*t*(10+t*(-15+6*t));
+// Pressure extrema from the reference membrane, spaced 250 ms apart.
+const unloading=[1,-.38,.11,-.075,.038,-.022,.008,0];
+function pressureAt(curve,fraction){
+ const t=Math.max(0,Math.min(1,fraction));
+ if(curve.to)return curve.from+(curve.to-curve.from)*smoothLoad(t);
+ const position=t*(unloading.length-1),i=Math.min(unloading.length-2,Math.floor(position));
+ return unloading[i]+(unloading[i+1]-unloading[i])*smoothLoad(position-i);
+}
 function splitSurface(source,ctx){
  const surface=ctx.createImageData(SIZE,SIZE),rim=source.data,light=surface.data;
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
@@ -34,41 +39,6 @@ function loadTexture(){
  return texturePromise;
 }
 
-// The native idle image and the last-resort poster have no shader. Two small
-// displacement maps move their colored pixels locally with the same envelopes.
-let nativeMaps;
-function idleMaps(){
- if(nativeMaps)return nativeMaps;
- const size=96,c=document.createElement('canvas');c.width=c.height=size;
- const ctx=c.getContext('2d'),pixels=ctx.createImageData(size,size);
- const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
- nativeMaps=['head','arms'].map(part=>{
-  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-   const ax=(x+.5)*4-192,ay=(y+.5)*4-210;
-   const head=smooth(-ay/76)*(1-smooth((Math.abs(ax)-29)/17));
-   const arm=smooth((Math.hypot(ax,ay)-34)/62)*(1-smooth((-ay-7)/40)*(1-smooth((Math.abs(ax)-30)/18)));
-   const dx=part==='head'?head*(ax*.10-6.4):-arm*ax*.19;
-   const dy=part==='head'?head*ay*.21:-arm*(3.5+15.5*Math.min(1,Math.abs(ax)/70));
-   const at=(y*size+x)*4;pixels.data[at]=128+255*dx/96;pixels.data[at+1]=128+255*dy/96;pixels.data[at+2]=128;pixels.data[at+3]=255;
-  }
-  ctx.putImageData(pixels,0,0);return c.toDataURL();
- });return nativeMaps;
-}
-function nativeTouchFilter(root){
- const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
- svg.setAttribute('class','octi-touch-defs');svg.setAttribute('aria-hidden','true');
- const id='octi-regional-'+root.dataset.channel,[head,arms]=idleMaps();
- svg.innerHTML=`<defs><filter id="${id}" x="0" y="0" width="1" height="1" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
- <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${head}" result="headMap"/>
- <feDisplacementMap in="SourceGraphic" in2="headMap" scale="0" xChannelSelector="R" yChannelSelector="G" result="head"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap>
- <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" href="${arms}" result="armMap"/>
- <feDisplacementMap in="head" in2="armMap" scale="0" xChannelSelector="R" yChannelSelector="G"><animate attributeName="scale" begin="indefinite" fill="freeze"/></feDisplacementMap></filter></defs>`;
- root.append(svg);
- const anim=svg.querySelectorAll('animate');
- return {id,play(keys,duration){for(const [i,part] of ['head','arms'].entries()){
-  const a=anim[i];a.setAttribute('values',keys.map(p=>p[part]*.25).join(';'));a.setAttribute('keyTimes',keys.map(p=>p.offset).join(';'));a.setAttribute('dur',duration+'ms');a.beginElement?.();
- }}};
-}
 // Soft window, thin strip and compact glints from three lighting directions.
 const lights=[
  {angle:-2.25,radius:.76,length:.40,width:.105},
@@ -101,6 +71,16 @@ function glassSheen(index){
  }
  ctx.putImageData(sheenPixels[index],0,0);return node;
 }
+// The output context is separate from every recorder and its input stream.
+let feedbackAudio;
+function unlockFeedback(){
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(!Audio)return;
+  feedbackAudio??=new Audio();
+  if(feedbackAudio.state!=='running')return feedbackAudio.resume().catch(()=>{});
+ }catch{}
+}
 window.createOctiPressureArtwork=function(root,floating,motion){
  const button=root.querySelector('.voice'),glass=root.querySelector('.octi-motion-media');
  if(!button||!glass)return {reset(){}};
@@ -108,19 +88,45 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  const legacy=document.createElement('canvas');legacy.className='octi-glass-surface';legacy.width=legacy.height=SIZE;legacy.setAttribute('aria-hidden','true');glass.append(legacy);
  const legacyCtx=legacy.getContext('2d');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let texture=null,pendingTexture=null,drawCount=0,lastDrawMs=0;
- for(const name of ['octi-pressure-shadow','octi-pressure-caustic']){const node=document.createElement('span');node.className=name;node.setAttribute('aria-hidden','true');floating.append(node)}
+ const footprint=document.createElement('span');footprint.className='octi-shadow-footprint';footprint.setAttribute('aria-hidden','true');floating.append(footprint);
+ for(const name of ['octi-pressure-shadow','octi-pressure-caustic']){const node=document.createElement('span');node.className=name;node.setAttribute('aria-hidden','true');footprint.append(node)}
  floating.classList.add('has-composited-pressure');
  const wall=document.createElement('span');wall.className='octi-pressed-wall';wall.setAttribute('aria-hidden','true');glass.append(wall);
- let active=null,curve=null,primary=null,wallRun=null,phase='idle',settled=0;
+ let active=null,curve=null,primary=null,wallRun=null,footprintRun=null,phase='idle',settled=0;
+ let presentedAttack=null,peakFrame=0,plum=null,audioReady;
+ function silencePlum(){
+  if(!plum)return;
+  try{plum.stop()}catch{}
+  plum=null;
+ }
+ async function schedulePlum(){
+  const audio=feedbackAudio,releaseRun=primary;
+  if(!audio)return;
+  if(audio.state!=='running')await audioReady;
+  const delay=.25-(Number(releaseRun?.currentTime)||0)/1000;
+  if(audio.state!=='running'||primary!==releaseRun||delay<0)return;
+  try{
+   const tone=audio.createOscillator(),gain=audio.createGain();
+   const t=audio.currentTime+delay;
+   tone.frequency.setValueAtTime(530,t);
+   tone.frequency.exponentialRampToValueAtTime(230,t+.095);
+   gain.gain.setValueAtTime(.0001,t);
+   gain.gain.exponentialRampToValueAtTime(.065,t+.008);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+.14);
+   tone.connect(gain);gain.connect(audio.destination);
+   tone.onended=()=>{tone.disconnect();gain.disconnect();if(plum===tone)plum=null};
+   plum=tone;tone.start(t);tone.stop(t+.15);
+  }catch{}
+ }
  const initialTransform=glass.style.transform;
  const scatter=document.createElement('span');scatter.className='octi-glass-scatter';scatter.setAttribute('aria-hidden','true');glass.append(scatter);
  const reflections=lights.map(({angle,radius},index)=>{
   const node=glassSheen(index);node.className='octi-contact-lens';node.setAttribute('aria-hidden','true');glass.append(node);
   return {node,x:radius*Math.cos(angle),y:radius*Math.sin(angle),pull:0};
  });
- let details=[],poses=null,nativeFilter=null,filteredImage=null,touchX=0,touchY=0;
+ let details=[],poses=null,touchX=0,touchY=0;
  const headResponse=.38,armResponse=.19;
- function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse}}
+ function actorPose(){const p=currentPose();return {head:p.head*headResponse,arms:p.arms*armResponse,side:touchX/50}}
  const rest={head:0,arms:0,light:0,rim:0};
  const pose=(offset,head,arms,light,rim=0)=>({offset,head,arms,light,rim});
  function currentPose(){
@@ -133,18 +139,40 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   return keys[keys.length-1];
  }
- function clearDetails(){for(const run of details)run.cancel();details=[];poses=null;if(filteredImage){filteredImage.style.removeProperty('filter');filteredImage=null}}
- function startDetails(next,held){
+ function clearDetails(){for(const run of details)run.cancel();details=[];poses=null}
+ function startDetails(next,held,stops){
   const actor=floating.querySelector('.octi-touch-actor');
   if(!actor||motion?.matches||typeof actor.animate!=='function')return;
   const first={...currentPose(),offset:0};
-  const keys=held?[first,pose(.23,.67,.06,.43),pose(.60,.98,.70,.86),pose(1,1,1,1)]:
-   [first,...(next.peakTime?[pose(.17,1,.20,1),pose(.31,.61,1,.89)]:[]),
-    pose(.46,-.22,.38,.44,-.032),pose(.62,-.30,-.55,.11,-.017),pose(.80,.12,.23,0,.017),pose(.91,-.035,-.08,0,-.004),pose(1,0,0,0)];
-  const detailDuration=held?next.duration:240;
+  const detailDuration=next.duration;
+  // Sample the load and its delayed response over the complete visual cycle.
+  // Start from the presented pose when a new tap interrupts the previous one.
+  const intervals=held?12:35;
+  const contact=v=>smoothLoad(Math.max(0,Math.min(1,v)));
+  const keys=Array.from({length:intervals+1},(_,i)=>{
+   const t=i/intervals;
+   if(i===0)return first;
+   if(held){
+    const head=.18*Math.min(1,t/.16)+.82*contact(t/.88);
+    const arms=.08*Math.min(1,t/.25)+.92*contact((t-.025)/.975);
+    return pose(t,first.head+(1-first.head)*head,first.arms+(1-first.arms)*arms,0);
+   }
+   const tail=contact((1-t)/.14);
+   const response=delay=>pressureAt(next,Math.max(0,t-delay))*tail;
+   return pose(t,response(.009),response(.034),0);
+  });
   clearDetails();poses={keys,duration:detailDuration};
-  filteredImage=floating.querySelector('.octi-listening-media:is(.is-native-idle,.is-fallback) .octi-listening-fallback');
-  if(nativeFilter&&filteredImage){filteredImage.style.filter='url(#'+nativeFilter.id+')';nativeFilter.play(keys.map(p=>({...p,head:p.head*headResponse,arms:p.arms*armResponse})),detailDuration)}
+  const native=actor.querySelector('.octi-listening-fallback');
+  if(native){
+   // One continuous affine field across the animated silhouette. The crown
+   // and distal arms sit on opposite sides of its stationary neck pivot.
+   const side=touchX/50;
+   const frames=keys.map(({offset,head,arms})=>({offset,
+    transform:`translate(-50%,-50%) matrix(1,${arms*(.012+.018*side)},${head*(.024+.060*side)},1,0,0)`}));
+   const run=native.animate(frames,{duration:detailDuration,fill:'forwards'});
+   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
+   details.push(run);
+  }
   // Contract each optical band toward the contact in glass-local coordinates.
   // The nearby band bends most; a central touch draws both bands inward.
   const layers=reflections.map(({node,pull})=>[node,p=>{
@@ -156,37 +184,33 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    return {transform:`translate3d(${touchX*.91/1.06*bend}%,${touchY*.91/1.06*bend}%,0) scale(${1-bend})`};
   }]);
   for(const [node,make] of layers){
-   const frames=keys.map(p=>({offset:p.offset,...make(p)}));
+   const frames=stops.map(({p,...timing})=>({...timing,...make({light:Math.max(0,p)})}));
    if(next.carry?.has(node))frames[0].transform=next.carry.get(node);
-   const run=node.animate(frames,{duration:detailDuration,fill:'forwards'});
+   const run=node.animate(frames,{duration:next.duration,fill:'forwards'});
    if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
    details.push(run);
   }
  }
  function sample(time){
-  if(!curve)return settled;
-  if(curve.peakTime&&time<curve.peakTime)return curve.from+(curve.peak-curve.from)*ease(time/curve.peakTime);
-  if(curve.shoulderEnd&&time<curve.shoulderEnd)return curve.peak+(.965-curve.peak)*settle((time-curve.peakTime)/(curve.shoulderEnd-curve.peakTime));
-  const from=curve.shoulderEnd ? .965 : curve.from,start=curve.shoulderEnd||0;
-  if(curve.echo){
-   const {low,high}=curve.echo,t=(time-start)/(curve.duration-start);
-   if(t<=.43)return from+(low-from)*recover(t/.43);
-   if(t<=.76)return low+(high-low)*settle((t-.43)/.33);
-   return high*(1-settle((t-.76)/.24));
-  }
-  return from+(curve.to-from)*(curve.to===0?recover:ease)((time-start)/(curve.duration-start));
+  return curve?pressureAt(curve,time/curve.duration):settled;
  }
  function value(){return primary?sample(Number(primary.currentTime)||0):settled}
- function style(p){return {transform:`translate(-50%,-50%) scale(${1+.22*p},${1+.16*p})`}}
+ function style(p,returning=false){
+  // Carry the extra contact volume out with the initial release. Subsequent
+  // rebound extrema retain the projected proportions of the approved V3 pose.
+  const extra=returning?Math.max(0,(p-.11)/.89):Math.max(0,p);
+  const lift=Math.min(0,p)*4.5;
+  return {transform:`translate(-50%,${-50+lift}%) scale(${1+.106*p+.039*extra},${1+(p<0?-.19:.045)*p+.025*extra})`};
+ }
  function install(){
   if(!pendingTexture||!ctx||phase!=='idle')return;
   const start=performance.now();ctx.putImageData(pendingTexture.rim,0,0);legacyCtx.putImageData(pendingTexture.surface,0,0);texture=pendingTexture;pendingTexture=null;drawCount++;lastDrawMs=performance.now()-start;
   glass.prepend(canvas);glass.classList.add('is-pressure-ready');
  }
- function clear(){clearDetails();wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
+ function clear(){silencePlum();cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;clearDetails();footprintRun?.cancel();footprintRun=null;wallRun?.cancel();wallRun=null;if(primary){primary.onfinish=null;primary.cancel()}primary=null;curve=null;glass.style.transform=initialTransform;}
  function reset(){active=null;clear();settled=0;phase='idle';delete floating.dataset.pressState;install()}
  function start(next,nextPhase){
-  startDetails(next,nextPhase==='held');
+  cancelAnimationFrame(peakFrame);peakFrame=0;presentedAttack=null;
   const previous=primary;primary=null;curve=next;phase=nextPhase;floating.dataset.pressState=nextPhase;
   if(motion?.matches||typeof glass.animate!=='function'){
    if(previous){previous.onfinish=null;previous.cancel()}settled=next.to;curve=null;
@@ -194,17 +218,17 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   }
   // The shell crosses rest once in each direction on its native timeline.
   // The actor and detached highlights keep their independent motion.
-  const stops=[{p:next.from,offset:0,easing:next.peakTime||next.to?EASING:RECOVER}];
-  if(next.peakTime){
-   stops.push({p:next.peak,offset:next.peakTime/next.duration,easing:SETTLE});
-   stops.push({p:.965,offset:next.shoulderEnd/next.duration,easing:RECOVER});
-  }
-  if(next.echo){
-   const start=(next.shoulderEnd||0)/next.duration;
-   for(const [offset,p] of [[.43,next.echo.low],[.76,next.echo.high]])stops.push({p,offset:start+(1-start)*offset,easing:SETTLE});
-  }
-  stops.push({p:next.to,offset:1});
-  const frames=stops.map(({p,...timing})=>({...style(p),...timing}));
+  // Sample the original quintic load at 50 ms intervals, including each
+  // peak, then let the browser interpolate the shell on its own compositor.
+  const intervals=next.to?12:35;
+  const stops=Array.from({length:intervals+1},(_,i)=>({offset:i/intervals,p:pressureAt(next,i/intervals)}));
+  startDetails(next,nextPhase==='held',stops);
+  const frames=stops.map(({p,...timing})=>({...style(p,!next.to),...timing}));
+  footprintRun?.cancel();
+  footprintRun=footprint.animate(stops.map(({p,...timing})=>({
+   transform:`translateY(calc(var(--octi-size,100px) * ${.051*p})) scale(${1+.08*p},${1+.04*p})`,...timing
+  })),{duration:next.duration,fill:'forwards'});
+  if(document.timeline.currentTime!==null)footprintRun.startTime=document.timeline.currentTime;
   wallRun?.cancel();
   wallRun=wall.animate(stops.map(({p,...timing})=>({opacity:Math.max(0,p),...timing})),{duration:next.duration,fill:'forwards'});
   if(document.timeline.currentTime!==null)wallRun.startTime=document.timeline.currentTime;
@@ -212,10 +236,24 @@ window.createOctiPressureArtwork=function(root,floating,motion){
   if(document.timeline.currentTime!==null)run.startTime=document.timeline.currentTime;
   primary=run;
   if(previous){previous.onfinish=null;previous.cancel()}
-  run.onfinish=()=>{if(primary!==run)return;settled=next.to;if(!active)reset()};
+  run.onfinish=()=>{
+   if(primary!==run)return;
+   settled=next.to;
+   if(next.to===0){reset();return}
+   // Finishing a timeline can precede presentation of its final sample.
+   // Leave the native fill in place for one rendering opportunity. The very
+   // next rendering update may start the return, with no timed plateau.
+   peakFrame=requestAnimationFrame(()=>{peakFrame=requestAnimationFrame(()=>{
+    if(primary!==run)return;
+    peakFrame=0;presentedAttack=run;
+    if(!active)returnFromPeak();
+   })});
+  };
  }
  function begin(input){
   if(button.disabled||active)return;
+  silencePlum();
+  if(!motion?.matches)unlockFeedback();
   const from=value(),bounds=glass.getBoundingClientRect();active={...input,bounds,downAt:performance.now()};
   // A second finger-down can redirect a reflection before it has returned.
   const carry=phase==='release'?new Map([...reflections.map(({node})=>node),legacy].map(node=>[node,getComputedStyle(node).transform])):null;
@@ -226,18 +264,23 @@ window.createOctiPressureArtwork=function(root,floating,motion){
    const proximity=Math.max(0,1-Math.hypot(band.x-touchX/50,band.y-touchY/50)/1.85);
    band.pull=.17+.39*proximity;
   }
-  start({from:motion?.matches?from:Math.max(.115,from),to:1,duration:CONTACT,carry},'held');
+  start({from:motion?.matches?from:Math.max(.035,from),to:1,duration:CONTACT,carry},'held');
   if(!texture&&!pendingTexture)prepare();
+ }
+ function returnFromPeak(){
+  start({from:1,to:0,duration:RETURN},'release');
+  schedulePlum();
  }
  function release(){
   if(!active)return;
-  const from=value(),elapsed=performance.now()-active.downAt;active=null;
+  active=null;
   if(motion?.matches||typeof glass.animate!=='function'){reset();return}
-  // A light tap finishes opening after lift. A hold starts returning on lift.
-  const impulse=elapsed<105,amplitude=impulse?1:from;
-  const peakTime=impulse?Math.max(18,94*(1-from)):0;
-  const shoulderEnd=impulse?peakTime+64:0;
-  start({from,to:0,duration:RETURN+shoulderEnd,echo:{low:-.24*amplitude,high:.105*amplitude},...(impulse?{peak:1,peakTime,shoulderEnd}:{})},'release');
+  audioReady=unlockFeedback();
+  phase='release';floating.dataset.pressState='release';
+  // Keep the original native attack. Its finish event hands the full-size
+  // painted state directly to the return, even if down/up shared one JS task.
+  // A hold already at its maximum starts returning in this input event.
+  if(presentedAttack===primary)returnFromPeak();
  }
  function prepare(){loadTexture().then(asset=>{if(asset&&!texture){pendingTexture=asset;install()}})}
  button.draggable=false;
@@ -250,9 +293,9 @@ window.createOctiPressureArtwork=function(root,floating,motion){
  window.addEventListener('keyup',event=>{if(active?.key===event.key)release()},true);
  button.addEventListener('blur',()=>{if(button.disabled&&!active&&phase==='release')return;reset()});window.addEventListener('blur',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});motion?.addEventListener?.('change',reset);
- const controls={reset,getActorPose:actorPose,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?value()*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
+ const controls={reset,getActorPose:actorPose,getPaintState:()=>({pressure:value(),count:drawCount,ms:lastDrawMs,engine:'compositor'}),getState:()=>({pressure:value(),effective:motion?.matches?value()*.14:value(),ready:!!texture,rendering:!!texture,buffer:SIZE,source:TEXTURE,atPresentedPeak:!!primary&&presentedAttack===primary,holding:!!active,phase,engine:'compositor',paintCount:drawCount})};
  root.octiPressure=controls;prepare();
- if(ctx&&typeof SVGElement!=='undefined')nativeFilter=nativeTouchFilter(root);
+
  return controls;
 };
 })();

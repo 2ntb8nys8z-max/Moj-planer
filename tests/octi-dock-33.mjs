@@ -7,7 +7,7 @@ try{
  const dock=w.document.querySelector('.octi-dock[data-channel=main]'),menu=dock.querySelector('.bubble-menu'),toggle=dock.querySelector('.menu-toggle');
  // A missing optional animation controller keeps a transparent static mascot.
  const media=dock.querySelector('.octi-motion-media'),poster=media.querySelector('img');
- assert.match(poster.src,/octi-actor-poster/);
+ assert.match(poster.src,/octi-water-poster-332/);
  assert.equal(w.getComputedStyle(poster).filter,'none');
  assert.equal(w.document.querySelector('#octi-actor-alpha'),null);
  assert.equal(media.querySelector('video'),null,'There is no second opaque movie under the actor');

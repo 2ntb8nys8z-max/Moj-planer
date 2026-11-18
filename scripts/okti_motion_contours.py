@@ -8,7 +8,10 @@ from scipy.signal import find_peaks
 def mascot_mask(image):
     b,g,r=cv2.split(image)
     mask=((b.astype(np.int16)-r>65)&(r<195)&(g>55)).astype(np.uint8)
-    mask[:130]=0;mask[435:]=0;mask[:,:120]=0;mask[:,424:]=0
+    mask[:130]=0;mask[:,:120]=0;mask[:,424:]=0
+    # The deep blue lower tips extend below row 435 in the original. Isolate
+    # their central corridor from the lateral caustics without a horizontal cut.
+    mask[419:,:187]=0;mask[419:,357:]=0
     mask=cv2.morphologyEx(mask,cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))
     _,labels,stats,_=cv2.connectedComponentsWithStats(mask)
     label=labels[240,272]

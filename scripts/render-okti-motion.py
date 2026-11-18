@@ -4,7 +4,9 @@ import json
 import subprocess
 import tempfile
 import math
+import sys
 from okti_motion_contours import mascot_mask, signed_distance, prepare_pairs, motion_blend, clear_background
+from okti_side_tips import restore_side_material
 import cv2
 import numpy as np
 
@@ -52,6 +54,7 @@ def eye_art(time):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{SIZE}" height="{SIZE}"><g transform="translate(0,{.65*math.sin(2*math.pi*time/4.8)})">'+''.join(parts)+'</g></svg>'
 
 def main():
+    export_tips = "--live-tips" in sys.argv
     with tempfile.TemporaryDirectory(prefix='okti-forward-loop-') as folder:
         temp=Path(folder)
         # Use the original approved capsule. The taller alpha also clears the
@@ -74,7 +77,12 @@ def main():
         head_rgba=cv2.imread(str(head),cv2.IMREAD_UNCHANGED)
         head_alpha=head_rgba[...,3:4].astype(np.float32)/255
         qa={}
+        if export_tips:
+            tiles=np.zeros((18*74,8*174,4),np.uint8)
+            sides=np.zeros((18*110,8*172,4),np.uint8)
         for i in range(COUNT):
+            if export_tips and i%2!=0:
+                continue
             if i<COUNT-OVERLAP:
                 color=frames[i+OVERLAP].astype(np.float32)
                 opacity=np.clip(signed_distance(mascot_mask(frames[i+OVERLAP]))+.5,0,1)
@@ -83,6 +91,25 @@ def main():
                 u=k/OVERLAP
                 alpha=u*u*u*(10+u*(-15+6*u))
                 color,opacity=motion_blend(frames[start+k],frames[k],points_a[k],points_b[k],alpha,grid)
+            if export_tips:
+                # Use exactly the same forward phase, overlap and vertical bob
+                # as the approved master, before glass and H.264 are composited.
+                rgba=np.dstack((color*opacity[...,None],255*opacity))
+                bob=.65*math.sin(2*math.pi*i/COUNT)
+                rgba=cv2.warpAffine(rgba,np.float32([[1,0,0],[0,1,bob]]),(SIZE,SIZE),
+                                    flags=cv2.INTER_LINEAR)
+                tile=rgba[407:481,185:359].copy()
+                tile[:,:,:3]*=255/np.maximum(tile[:,:,3:],.001)
+                k=i//2;row,col=divmod(k,8)
+                tiles[row*74:(row+1)*74,col*174:(col+1)*174]=np.uint8(np.clip(tile+.5,0,255))
+                # Retain original alpha here: a colour key applied after the
+                # glass composite cuts pale holes through the oblique tips.
+                pair=np.concatenate((rgba[309:419,134:220],rgba[309:419,324:410]),axis=1).copy()
+                pair[:,:,:3]*=255/np.maximum(pair[:,:,3:],.001)
+                if i>COUNT-OVERLAP:
+                    rgba_pair=np.uint8(np.clip(pair[..., [2,1,0,3]]+.5,0,255))
+                    sides[row*110:(row+1)*110,col*172:(col+1)*172]=restore_side_material(rgba_pair)[..., [2,1,0,3]]
+                continue
             frame=np.clip(np.rint(opacity[...,None]*color+(1-opacity[...,None])*background),0,255).astype(np.uint8)
             # Keep the capsule fixed while the arms follow the reference wave.
             frame=np.rint(head_alpha*head_rgba[...,:3]+(1-head_alpha)*frame).astype(np.uint8)
@@ -91,6 +118,10 @@ def main():
             assert cv2.imwrite(str(temp/f'body-{i:03d}.png'),frame)
             (temp/f'eyes-{i:03d}.svg').write_text(eye_art(i/FPS))
             if i in [0,1,2,COUNT-3,COUNT-2,COUNT-1]:qa[i]=frame
+        if export_tips:
+            assert cv2.imwrite(str(ART/'live-lower-tips.png'),tiles)
+            assert cv2.imwrite(str(ART/'live-side-tips.png'),sides)
+            return
         region=np.s_[280:435,120:424]
         difference=lambda a,b:float(np.mean(np.abs(a[region].astype(float)-b[region])))
         seam=difference(qa[COUNT-1],qa[0])

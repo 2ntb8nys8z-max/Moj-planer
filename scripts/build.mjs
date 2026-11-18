@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.18.33.331-integration';
-const PREVIEW_VERSION='2026.11.18.33.331-test';
+const APP_VERSION='2026.11.18.33.344-integration';
+const PREVIEW_VERSION='2026.11.18.33.344-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.14.33.59-test';
 const WORKER_LABEL='Worker 33.59-test';
@@ -56,11 +56,17 @@ for(const item of calendarArtCatalog.backgrounds){
 }
 output('preview33/'+calendarArtDir+'/catalog.json',fs.readFileSync(calendarArtDir+'/catalog.json'),false);
 // One immutable blue material; pressure moves compositor layers only.
-const pressureTexture='octi-glass-33-329.png';
+const pressureTexture='octi-water-shell-332.png';
 output('preview33/'+pressureTexture,fs.readFileSync(pressureTexture),false);
 const pressureTextureHash=createHash('sha256').update(fs.readFileSync(pressureTexture)).digest('hex').slice(0,16);
 let pressure=fs.readFileSync('octi-pressure.js','utf8');
-pressure=pressure.replace(/octi-glass-33-329\.png(?:\?v=[a-z0-9]+)?/g,pressureTexture+'?v='+pressureTextureHash);
+pressure=pressure.replace(/octi-water-shell-332\.png(?:\?v=[a-z0-9]+)?/g,pressureTexture+'?v='+pressureTextureHash);
+const depthFile='octi-water-depth-332.png',depth=fs.readFileSync(depthFile);
+output('preview33/'+depthFile,depth,false);
+canonical=canonical.replace(/octi-water-depth-332\.png(?:\?v=[a-z0-9]+)?/g,depthFile+'?v='+createHash('sha256').update(depth).digest('hex').slice(0,16));
+const faceFile='octi-water-face-332.png',face=fs.readFileSync(faceFile);
+output('preview33/'+faceFile,face,false);
+canonical=canonical.replace(/octi-water-face-332\.png(?:\?v=[a-z0-9]+)?/g,faceFile+'?v='+createHash('sha256').update(face).digest('hex').slice(0,16));
 const pressureLights='octi-pressure-lights-33-319.webp';
 const pressureLightsHash=createHash('sha256').update(fs.readFileSync(pressureLights)).digest('hex').slice(0,16);
 pressure=pressure.replace(/octi-pressure-lights-33-319\.webp(?:\?v=[a-z0-9]+)?/g,pressureLights+'?v='+pressureLightsHash);
@@ -69,13 +75,13 @@ output('octi-pressure.js',pressure,false);
 const pressureBuildId=createHash('sha256').update(pressure).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-pressure\.js(?:\?v=[a-z0-9]+)?/g,'octi-pressure.js?v='+pressureBuildId);
 output('preview33/octi-pressure.js',pressure,false);
-const listeningAssets=['octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
+const listeningAssets=['octi-water-head-332.webp','octi-water-idle-332.webp','octi-water-poster-332.webp','octi-listening-body.mp4','octi-listening-head.webp','octi-listening-background.webp','octi-listening-fallback.webp','octi-listening-poster.webp','octi-actor-poster.webp','octi-actor-idle.webp'];
 let listening=fs.readFileSync('octi-listening.js','utf8');
 for(const file of listeningAssets){const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);listening=listening.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);}
 output('octi-listening.js',listening,false);
 const listeningBuildId=createHash('sha256').update(listening).digest('hex').slice(0,16);
 canonical=canonical.replace(/octi-listening\.js(?:\?v=[a-z0-9]+)?/g,'octi-listening.js?v='+listeningBuildId);
-for(const file of ['octi-glass-key-33-309.webp','octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp']){
+for(const file of ['octi-glass-key-33-309.webp','octi-water-poster-332.webp','octi-actor-poster.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp']){
   const hash=createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0,16);
   canonical=canonical.replace(new RegExp(file.replace('.','\\.')+'(?:\\?v=[a-z0-9]+)?','g'),file+'?v='+hash);
 }

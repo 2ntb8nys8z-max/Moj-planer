@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.331</title>
+<title>Mój Planer — test integracji 33.344</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.331</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.331</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.18.33.331-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.344</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.344</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.18.33.344-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.18.33.331-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.18.33.344-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -4381,7 +4381,7 @@ initializeEventCommands();
 }
 .octi-dock .bubble-menu .menu-bud-skin:after{display:none}
 .octi-dock .menu-bud-shadow{
-  position:absolute;left:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;
+  position:absolute;right:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;
   background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c46 65%,#52759e22 80%,transparent 100%);
   translate:var(--bud-idle-x) calc(var(--bud-idle-y) * -.6);
   scale:calc(1 + var(--bud-idle-swell) * .045);
@@ -4404,13 +4404,13 @@ initializeEventCommands();
 /* 33.190: the action shadow remains present while its glass forms the first bud. */
 .octi-dock .action-skin:after{display:none}
 .octi-dock .action-fixed-shadow{
-  position:absolute;left:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;opacity:.85;
+  position:absolute;right:22%;top:78%;width:95%;height:40%;border-radius:50%;pointer-events:none;z-index:-1;opacity:.85;
   background:radial-gradient(ellipse closest-side,transparent 0 35%,#42638c46 65%,#52759e22 80%,transparent 100%);
   filter:blur(2px)
 }
 .octi-dock .action-fixed-shadow:before,.octi-dock .menu-bud-shadow:before{
-  content:'';position:absolute;inset:-12% 12% 8% -4%;border-radius:50%;
-  background:radial-gradient(ellipse at 43% 40%,#fff 0 16%,#ffffffe6 30%,#f5fbff99 48%,transparent 78%);
+  content:'';position:absolute;inset:-12% -4% 8% 12%;border-radius:50%;
+  background:radial-gradient(ellipse at 57% 40%,#fff 0 16%,#ffffffe6 30%,#f5fbff99 48%,transparent 78%);
   filter:blur(.3px)
 }
 
@@ -4428,8 +4428,8 @@ initializeEventCommands();
 }
 @media(prefers-reduced-motion:reduce){.phone-travel-animation:not(.travel-demo){display:none!important;animation:none!important}}
 </style>
-<script src="octi-pressure.js?v=5c7a9ea0995875d5"></script>
-<script src="octi-listening.js?v=a23ee31af2f760b2"></script>
+<script src="octi-pressure.js?v=3073d802acfdb024"></script>
+<script src="octi-listening.js?v=50ab199c9b72a326"></script>
 <script>
 // 33.58: presentation adapters delegate to existing controls; Worker and dialogue logic stay authoritative.
 function octiCurrentContext(){
@@ -4524,7 +4524,7 @@ function octiMotionArtwork(root,floating,motion){
  const glass=document.createElement('span');glass.className='octi-motion-media';glass.setAttribute('aria-hidden','true');floating.append(glass);
  const pressure=octiBubblePressure(root,floating,motion);
  const artwork=window.createOctiListeningArtwork?.(root,floating,motion);root.octiListening=artwork;
- if(!artwork){const poster=document.createElement('img');poster.src='octi-actor-poster.webp?v=9b20c4f5b0d17977';poster.alt='';glass.append(poster);return ()=>{};}
+ if(!artwork){const poster=document.createElement('img');poster.src='octi-water-poster-332.webp?v=01be661c80c0c917';poster.alt='';glass.append(poster);return ()=>{};}
  return ()=>{const context=octiCurrentContext(),leavingEvent=root.dataset.channel==='event'&&$('eventModal').classList.contains('okti-event-exiting'),visibleContext=context===root.dataset.channel||leavingEvent,visible=root.isConnected&&!root.classList.contains('memo-open')&&!document.hidden&&visibleContext&&root.getClientRects().length>0;if(!visible)pressure.reset();artwork.update({visible,isRecording:root.dataset.mode==='recording'&&!leavingEvent})};
 }
 
@@ -4609,32 +4609,78 @@ function octiActionBubble(root,toggle,stage,recorder,motion,setMenu,channel){
  toggle.innerHTML='<span class="action-fixed-shadow" aria-hidden="true"></span><span class="action-skin" aria-hidden="true"><img class="action-glass" src="octi-water-glass.webp?v=babdb581839accf9" alt=""><span class="action-warm"></span><span class="action-rotation"><span class="action-mark"></span></span></span>';
  const skin=toggle.querySelector('.action-skin'),rotation=toggle.querySelector('.action-rotation');
  let target=false,amount=0,flow=0,frame=0,lastTime=0,elapsed=0,from=0,fromFlow=0,visible=true;
+ const warmLayer=skin.querySelector('.action-warm'),warmMark=rotation.firstElementChild.cloneNode(true);
+ warmMark.classList.add('action-travel-mark');rotation.append(warmMark);
+ let runs=[],painted=false;
+ function geometry(){
+  const circle=recorder.getBoundingClientRect(),box=stage.getBoundingClientRect();
+  return circle.width?{cx:circle.left+circle.width/2-box.left,cy:circle.top+circle.height/2-box.top,distance:circle.width/2+39}:null;
+ }
+ function shape(e,stretchFlow,g){
+  const angle=Math.atan2(89,63)*e,radius=g.distance*(1+(Math.hypot(63,89)/110-1)*e);
+  const warm=Math.max(0,Math.min(1,e)),size=1-.28*e,stretch=1+.34*stretchFlow,tilt=-angle*180/Math.PI;
+  return {x:radius*Math.cos(angle)+9*(1-warm),y:-radius*Math.sin(angle)-11*(1-warm),
+   skin:`rotate(${tilt}deg) scale(${size/stretch},${size*stretch}) rotate(${-tilt}deg)`,warm};
+ }
  function paint(e,stretchFlow){
-  amount=e;flow=stretchFlow;const circle=recorder.getBoundingClientRect(),box=stage.getBoundingClientRect();if(!circle.width)return;
-  const cx=circle.left+circle.width/2-box.left,cy=circle.top+circle.height/2-box.top,distance=circle.width/2+39,angle=Math.atan2(89,63)*e,radius=distance+(Math.hypot(63,89)/110-1)*distance*e,size=1-.28*e,stretch=1+.34*stretchFlow,tilt=-angle*180/Math.PI,warm=Math.max(0,Math.min(1,e));
-  toggle.style.left=(cx+radius*Math.cos(angle)+9*(1-warm))+'px';toggle.style.top=(cy-radius*Math.sin(angle)-11*(1-warm))+'px';
-  skin.style.transform=`rotate(${tilt}deg) scale(${size/stretch},${size*stretch}) rotate(${-tilt}deg)`;
-  const menuOpen=root.querySelector('.extras').classList.contains('expanded');rotation.style.transform=`rotate(${45*(menuOpen?1:e)}deg)`;
-  const tint=menuOpen?1:warm,rgb=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*tint)).join(',');
+  amount=e;flow=stretchFlow;const g=geometry();if(!g){painted=false;return}painted=true;
+  const form=shape(e,stretchFlow,g);
+  toggle.style.left=(g.cx+form.x)+'px';toggle.style.top=(g.cy+form.y)+'px';skin.style.transform=form.skin;
+  const menuOpen=root.querySelector('.extras').classList.contains('expanded'),tint=menuOpen?1:form.warm;
+  rotation.style.transform=`rotate(${45*(menuOpen?1:e)}deg)`;
+  const rgb=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*tint)).join(',');
   skin.style.setProperty('--action-top',`rgb(${rgb([104,199,237],[242,147,164])})`);skin.style.setProperty('--action-bottom',`rgb(${rgb([38,117,172],[196,65,98])})`);skin.style.setProperty('--action-warm',String(tint));
  }
- function stop(){cancelAnimationFrame(frame);frame=0;delete root.dataset.actionMoving;}
- function settle(){stop();paint(target?1:0,0);}
- function animate(now){
-  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;const p=Math.min(1,elapsed/1900),stopAt=.72;let travel,arrival=0;
+ function pose(p){
+  const stopAt=.72;let travel,arrival=0;
   if(p<=stopAt){const u=p/stopAt,m=stopAt*.045*4*Math.PI/(1-stopAt);travel=(m-2)*u*u*u+(3-m)*u*u;}
   else{const u=(p-stopAt)/(1-stopAt);arrival=Math.sin(u*Math.PI*4)*(1-u)*(1-u);travel=1+.045*arrival;}
-  const changing=(target?1:0)-from,shape=p<stopAt?Math.sin(Math.PI*p/stopAt)**2:.12*arrival;
-  paint(from+changing*travel,shape*Math.min(1,Math.abs(changing))+fromFlow*(1-p));
+  const changing=(target?1:0)-from,bend=p<stopAt?Math.sin(Math.PI*p/stopAt)**2:.12*arrival;
+  return {amount:from+changing*travel,flow:bend*Math.min(1,Math.abs(changing))+fromFlow*(1-p)};
+ }
+ function stop(){
+  cancelAnimationFrame(frame);frame=0;
+  if(runs.length){
+   const current=pose(Math.min(1,(Number(runs[0].currentTime)||0)/1900));
+   amount=current.amount;flow=current.flow;
+   for(const run of runs){run.onfinish=null;run.cancel()}runs=[];
+  }
+  delete root.dataset.actionMoving;
+ }
+ function settle(){stop();paint(target?1:0,0);}
+ function animate(now){
+  elapsed+=Math.min(48,Math.max(0,now-lastTime));lastTime=now;const p=Math.min(1,elapsed/1900),current=pose(p);
+  paint(current.amount,current.flow);
   if(p<1&&visible&&!document.hidden)frame=requestAnimationFrame(animate);else settle();
  }
+ function travel(){
+  const g=geometry();if(!g){settle();return}
+  if(typeof toggle.animate!=='function'){frame=requestAnimationFrame(animate);return}
+  toggle.style.left=g.cx+'px';toggle.style.top=g.cy+'px';
+  skin.style.setProperty('--action-top','rgb(104,199,237)');skin.style.setProperty('--action-bottom','rgb(38,117,172)');
+  const positions=[],shapes=[],angles=[],warmth=[];
+  for(let i=0;i<=64;i++){
+   const offset=i/64,current=pose(offset),form=shape(current.amount,current.flow,g);
+   positions.push({offset,transform:`translate(calc(-50% + ${form.x}px),calc(-50% + ${form.y}px))`});
+   shapes.push({offset,transform:form.skin});angles.push({offset,transform:`rotate(${45*current.amount}deg)`});warmth.push({offset,opacity:form.warm});
+  }
+  const timeline=document.timeline.currentTime;
+  for(const [node,keys] of [[toggle,positions],[skin,shapes],[rotation,angles],[warmLayer,warmth],[warmMark,warmth]]){
+   const run=node.animate(keys,{duration:1900,fill:'both'});
+   if(timeline!==null)run.startTime=timeline;runs.push(run);
+  }
+  runs[0].onfinish=settle;
+ }
  function update(show,enabled,isVisible){
-  visible=isVisible;toggle.disabled=!enabled;root.dataset.actionState=show?'cancel':'menu';toggle.setAttribute('aria-label',show?'Skasuj nagranie':root.querySelector('.extras').classList.contains('expanded')?'Zwiń dodatkowe działania':'Dodatkowe działania');
-  if(show!==target){target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');stop();from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';frame=requestAnimationFrame(animate);}}
-  else if((!visible||document.hidden||motion?.matches)&&frame)settle();else if(!frame)paint(target?1:0,0);
+  const wasVisible=visible;visible=isVisible;toggle.disabled=!enabled;root.dataset.actionState=show?'cancel':'menu';toggle.setAttribute('aria-label',show?'Skasuj nagranie':root.querySelector('.extras').classList.contains('expanded')?'Zwiń dodatkowe działania':'Dodatkowe działania');
+  if(show!==target){stop();target=show;setMenu(false);toggle.setAttribute('aria-expanded','false');from=amount;fromFlow=flow;elapsed=0;lastTime=performance.now();if(motion?.matches||!visible||document.hidden)settle();else{root.dataset.actionMoving='true';travel();}}
+  else if((!visible||document.hidden||motion?.matches)&&(frame||runs.length))settle();
+  else if(visible&&(!wasVisible||!painted)&&!frame&&!runs.length)paint(target?1:0,0);
  }
  toggle.onclick=()=>{const state=plannerRecordings[channel];if(state&&state.mode!=='sending'){cancelPlannerRecording(channel);update(false,true,visible);}else if(!state&&!voiceDialogues[channel]?.busy){setMenu(!root.querySelector('.extras').classList.contains('expanded'));paint(amount,flow);}};
- window.addEventListener('resize',()=>paint(amount,flow));document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
+ const refit=()=>{if(runs.length)settle();else if(visible)paint(amount,flow)};
+ if(typeof ResizeObserver==='function'){const size=new ResizeObserver(refit);size.observe(stage);size.observe(recorder)}
+ window.addEventListener('resize',refit);document.addEventListener('visibilitychange',()=>{if(document.hidden)settle();});motion?.addEventListener?.('change',()=>{if(motion.matches)settle();});
  requestAnimationFrame(()=>paint(0,0));return update;
 }
 
@@ -6197,7 +6243,7 @@ window.OktiEventMotion=(()=>{
  .phone-layout:has(.octi-listening-media.is-active) #dayTitle::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
  .phone-layout:has(.octi-listening-media.is-active) .phone-bottom-bar{background-color:#e7edf2ed}
 }
-.octi-touch-defs{position:absolute;width:0;height:0;pointer-events:none;overflow:hidden}
+.octi-dock .octi-listening-fallback{transform-origin:50% 54%}
 .octi-dock .octi-touch-actor{position:absolute;inset:0;pointer-events:none;transform-origin:center;transform:translateZ(0);will-change:transform}
 .octi-dock .octi-pressure-canvas{transform:translateZ(0);will-change:transform}
 .octi-dock .octi-glass-scatter{
@@ -6205,12 +6251,18 @@ window.OktiEventMotion=(()=>{
  background:
  radial-gradient(ellipse 28% 24% at 32% 27%,rgba(77,168,224,.16),transparent 100%),
  radial-gradient(ellipse 29% 27% at 76% 65%,rgba(69,168,219,.12),transparent 100%),
- radial-gradient(ellipse 52% 23% at 58% 92%,rgba(90,187,205,.19),transparent 100%),
- radial-gradient(circle closest-side,transparent 15%,rgba(116,191,232,.055) 37%,rgba(99,181,229,.15) 58%,rgba(92,178,228,.23) 76%,rgba(122,197,232,.13) 87%,transparent 99%);
+ radial-gradient(ellipse 52% 23% at 58% 92%,rgba(90,187,205,.19),transparent 100%);
+}
+/* Both transmitted layers share the same optical axis, shear-free expansion and rebound. */
+.octi-dock .action-travel-mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;--action-top:#f293a4;--action-bottom:#c44162}
+.octi-dock .octi-shadow-footprint{
+ position:absolute;inset:0;z-index:2;pointer-events:none;
+ transform-origin:calc(50% - var(--octi-size,100px) * .31) calc(50% + var(--octi-size,100px) * .625);
+ will-change:transform;
 }
 .octi-dock .octi-pressed-wall{
- position:absolute;inset:3.5%;z-index:1;border-radius:50%;pointer-events:none;opacity:0;
- background:radial-gradient(circle closest-side,transparent 75%,rgba(84,169,209,.08) 79%,rgba(77,157,198,.32) 83%,rgba(69,143,186,.56) 87%,rgba(108,185,218,.43) 90%,rgba(232,250,255,.88) 93.5%,rgba(246,253,255,.94) 95%,rgba(184,222,241,.16) 97.6%,transparent 99%);
+ position:absolute;inset:-3%;z-index:1;pointer-events:none;opacity:0;
+ background:url("octi-water-depth-332.png?v=f57a9fdfb745c892") center/100% 100% no-repeat;
 }
 .octi-dock .octi-motion-media>.octi-contact-lens{
  position:absolute;left:50%;top:50%;width:91%;height:91%;border-radius:50%;pointer-events:none;z-index:1;
@@ -6233,7 +6285,9 @@ window.OktiEventMotion=(()=>{
  scale:1;transform:translate(-50%,-50%);translate:var(--okti-drift-x) var(--okti-drift-y);
  transform-origin:50% 50%;opacity:1;will-change:transform,translate;
 }
-.octi-dock .octi-listening-media{scale:1;translate:var(--okti-drift-x) var(--okti-drift-y);transform:translate3d(-50%,-50%,0);will-change:transform;contain:paint;isolation:isolate}
+/* Opaque blue skin retains its contour under a passing white reflection;
+   the transparent space between tentacles exposes the original glass. */
+.octi-dock .octi-listening-media{z-index:15;scale:1;translate:var(--okti-drift-x) var(--okti-drift-y);transform:translate3d(-50%,-50%,0);will-change:transform;contain:paint;isolation:isolate}
 .octi-dock .octi-motion-media.is-pressure-ready{
  background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:14;
 }
@@ -6246,19 +6300,22 @@ window.OktiEventMotion=(()=>{
 /* Real shadow layers let native transform/opacity animations run independently
    of the actor's JavaScript renderer. Their resting material stays unchanged. */
 .octi-dock .water-float.has-composited-pressure:before,.octi-dock .water-float.has-composited-pressure:after{visibility:hidden}
-.octi-dock :is(.octi-pressure-shadow,.octi-pressure-caustic){position:absolute;display:block;pointer-events:none;transform:translate(-50%,-50%) rotate(-12deg);translate:var(--okti-drift-x) calc(var(--okti-drift-y) * -.65);will-change:transform,translate,opacity}
+.octi-dock :is(.octi-pressure-shadow,.octi-pressure-caustic){position:absolute;display:block;pointer-events:none;transform:translate(-50%,-50%) rotate(12deg) scaleX(-1);translate:var(--okti-drift-x) calc(var(--okti-drift-y) * -.65);will-change:transform,translate,opacity}
 .octi-dock .octi-pressure-shadow{
- left:calc(50% + var(--octi-size,100px) * .26);top:calc(50% + var(--octi-size,100px) * .54);
+ left:calc(50% - var(--octi-size,100px) * .26);top:calc(50% + var(--octi-size,100px) * .54);
  width:calc(var(--octi-size,100px) * 1.2);height:calc(var(--octi-size,100px) * .53);z-index:2;
  scale:calc(1 + var(--okti-lift) * .14);opacity:calc(.85 - var(--okti-lift) * .17);
  background:radial-gradient(ellipse closest-side,transparent 0 40%,#587ba312 49%,#42638c49 66%,#52759e2e 79%,transparent 100%);
  filter:blur(calc(3px + var(--okti-lift) * 1.8px));
 }
 .octi-dock .octi-pressure-caustic{
- left:calc(50% + var(--octi-size,100px) * .34);top:calc(50% + var(--octi-size,100px) * .64);
+ left:calc(50% - var(--octi-size,100px) * .34);top:calc(50% + var(--octi-size,100px) * .64);
  width:calc(var(--octi-size,100px) * .94);height:calc(var(--octi-size,100px) * .34);z-index:3;
  scale:calc(1 + var(--okti-lift) * .1);opacity:1;background:url('octi-caustic-33-196.svg?v=a643000053e3f996') center/100% 100% no-repeat;
 }
+.octi-dock .water-float:not(.has-composited-pressure):before,.octi-dock .water-float:not(.has-composited-pressure):after{transform:translate(-50%,-50%) rotate(12deg) scaleX(-1)}
+.octi-dock .water-float:not(.has-composited-pressure):before{left:calc(50% - var(--octi-size,100px) * .34)}
+.octi-dock .water-float:not(.has-composited-pressure):after{left:calc(50% - var(--octi-size,100px) * .26)}
 /* This is a control, not a selectable image. Keep native iOS callouts and drag
    previews off this stage while preserving normal clicks and keyboard focus. */
 .octi-dock .stage,.octi-dock .stage .voice,.octi-dock .water-float,.octi-dock .water-float *{

@@ -8,7 +8,7 @@ async function fixture(browser,{noGL=false,blocked=false,missingHead=false,app=f
   if(url.protocol==='blob:')return route.continue();
   if(url.origin!=='https://planner.test')return route.fulfill({body:route.request().resourceType()==='script'?'':'{}',contentType:route.request().resourceType()==='script'?'application/javascript':'application/json'});
   if(!file.startsWith(base+'/')||!fs.existsSync(file))return route.fulfill({status:404,body:'missing'});
-  if(headBlocked&&file.endsWith('octi-listening-head.webp'))return route.fulfill({status:404,body:'temporary image error',headers:{'cache-control':'no-store'}});
+  if(headBlocked&&file.endsWith('octi-water-head-332.webp'))return route.fulfill({status:404,body:'temporary image error',headers:{'cache-control':'no-store'}});
   const bytes=fs.readFileSync(file),type={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.mp4':'video/mp4','.woff2':'font/woff2','.ttf':'font/ttf'}[path.extname(file)]||'application/json';
   if(file.endsWith('.mp4')){const range=route.request().headers().range?.match(/bytes=(\d+)-(\d*)/);if(range){const start=Number(range[1]),end=range[2]?Math.min(Number(range[2]),bytes.length-1):bytes.length-1;return route.fulfill({status:206,body:bytes.subarray(start,end+1),contentType:type,headers:{'accept-ranges':'bytes','content-range':`bytes ${start}-${end}/${bytes.length}`}})}}
   return route.fulfill({body:bytes,contentType:type});
