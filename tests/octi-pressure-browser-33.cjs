@@ -185,11 +185,17 @@ function assertFastReturn(result){
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
  fs.mkdirSync('test-results/okti-listening',{recursive:true});
  try{
-  // Exercise the real recorder and audio analyser with a controlled microphone signal.
+  // Exercise the recorder UI and real audio analyser with a controlled microphone signal.
   {
    const {page}=await fixture(browser,390,844,{software:true,dpr:3});
    try{
     await page.evaluate(()=>{
+     // The Linux WebKit runner provides Web Audio but omits the MediaRecorder API.
+     if(!window.MediaRecorder)window.MediaRecorder=class{
+      static isTypeSupported(){return true}
+      start(){this.state='recording';queueMicrotask(()=>this.onstart())}
+      stop(){this.state='inactive';queueMicrotask(()=>this.onstop())}
+     };
      navigator.mediaDevices.getUserMedia=async()=>{
       const context=new AudioContext(),output=context.createMediaStreamDestination();
       const oscillator=context.createOscillator(),gain=context.createGain();
