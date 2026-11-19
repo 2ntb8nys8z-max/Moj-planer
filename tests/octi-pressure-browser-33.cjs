@@ -4,6 +4,22 @@ const engines=require('playwright'),kind=process.env.PLANNER_BROWSER||'chromium'
 // hundreds of milliseconds. Keep the real-time smoothness assertions free of
 // that observer overhead; request a separate recording only for visual review.
 const recordVideo=process.env.PLANNER_PRESSURE_VIDEO==='1';
+async function installRecordingProbe(page,speakImmediately){
+ await page.evaluate(speakImmediately=>{
+     // The Linux WebKit runner provides Web Audio but omits the MediaRecorder API.
+     if(!window.MediaRecorder)window.MediaRecorder=class{
+      static isTypeSupported(){return true}
+      start(){this.state='recording';queueMicrotask(()=>this.onstart())}
+      stop(){this.state='inactive';queueMicrotask(()=>this.onstop())}
+     };
+     navigator.mediaDevices.getUserMedia=async()=>{
+      const context=new AudioContext(),output=context.createMediaStreamDestination();
+      const oscillator=context.createOscillator(),gain=context.createGain();
+      gain.gain.value=speakImmediately ? .22 : 0;oscillator.connect(gain);gain.connect(output);oscillator.start();
+      window.recordingProbe={context,gain};context.resume().catch(()=>{});return output.stream;
+     };
+    },speakImmediately);
+}
 async function fixture(browser,width=390,height=844,{blockOptics=false,software=false,dpr=1}={}){
  const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:dpr,hasTouch:true,...(recordVideo&&width===390?{recordVideo:{dir:'test-results/okti-listening/raw-video',size:{width,height}}}:{})}),errors=[];let atlasRequests=0,lightRequests=0;
  if(software)await page.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl'?null:get.call(this,type,...args)}});
@@ -189,20 +205,7 @@ function assertFastReturn(result){
   {
    const {page}=await fixture(browser,390,844,{software:true,dpr:3});
    try{
-    await page.evaluate(()=>{
-     // The Linux WebKit runner provides Web Audio but omits the MediaRecorder API.
-     if(!window.MediaRecorder)window.MediaRecorder=class{
-      static isTypeSupported(){return true}
-      start(){this.state='recording';queueMicrotask(()=>this.onstart())}
-      stop(){this.state='inactive';queueMicrotask(()=>this.onstop())}
-     };
-     navigator.mediaDevices.getUserMedia=async()=>{
-      const context=new AudioContext(),output=context.createMediaStreamDestination();
-      const oscillator=context.createOscillator(),gain=context.createGain();
-      gain.gain.value=window.speakImmediately ? .22 : 0;oscillator.connect(gain);gain.connect(output);oscillator.start();
-      window.recordingProbe={context,gain};context.resume().catch(()=>{});return output.stream;
-     };
-    });
+    await installRecordingProbe(page,false);
     await page.locator('.octi-dock[data-channel=main] .voice').click();
     const arc=page.locator('.octi-recording-arc');
     try{await arc.waitFor()}catch(error){
@@ -230,7 +233,13 @@ function assertFastReturn(result){
     await page.evaluate(()=>cancelPlannerRecording('main'));await arc.waitFor({state:'detached'});
     assert.equal(await page.locator('.octi-recording-bars').count(),0);
     await page.evaluate(()=>recordingProbe.context.close());
-    await page.evaluate(()=>window.speakImmediately=true);
+   }finally{await page.close()}
+  }
+  {
+   const {page}=await fixture(browser,390,844,{software:true,dpr:3});
+   try{
+    const arc=page.locator('.octi-recording-arc');
+    await installRecordingProbe(page,true);
     await page.locator('.octi-dock[data-channel=main] .voice').click();
     await arc.waitFor();
     await page.waitForFunction(()=>parseFloat(document.querySelector('.octi-recording-bars i')?.style.transform.slice(7))>1.3);
