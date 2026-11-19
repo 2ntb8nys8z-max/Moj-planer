@@ -39,5 +39,18 @@ const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r
  for(const control of d.querySelectorAll('.okti-route-controls')){assert.equal(control.dataset.risk,'late');assert.equal(control.querySelector('.okti-route-duration').textContent,'1 h 13 min')}
  // A new opening while the prior focus is fading must not leak layers or leave the app inert.
  w.matchMedia=()=>({matches:false});d.querySelector('.okti-route-badge').click();d.querySelector('.okti-route-close').click();d.querySelectorAll('#taskList .okti-route-badge')[1].click();assert.equal(d.querySelectorAll('.okti-route-focus').length,1);w.flushPlannerRouteLayout();assert.equal(d.querySelectorAll('.okti-route-focus,.okti-route-menu').length,0);assert.equal(!!d.querySelector('.app').inert,false);
+ // The first trip remains visible before permission, during GPS acquisition, and without a route.
+ w.tasks=[{...records(60)[0],date:'2099-01-01'}];
+ let weather={enabled:false},requests=[];
+ w.OktiLocalWeather={snapshot:()=>weather,refresh(){weather.busy=true}};
+ w.plannerApiRequest=async(path,options)=>{requests.push(JSON.parse(options.body));return {route:{available:false}}};
+ const firstLabel=()=>d.querySelector('.okti-route-duration')?.textContent;
+ render();await until(()=>firstLabel()==='Włącz GPS');
+ weather={enabled:true,place:{latitude:52,longitude:21,checkedAt:Date.now()-3600000}};
+ w.flushPlannerRouteLayout();assert.equal(weather.busy,true);
+ w.flushPlannerRouteLayout();assert.equal(firstLabel(),'Ustalam…');assert.equal(requests.length,0);
+ weather={enabled:true,place:{latitude:51,longitude:20,checkedAt:Date.now()}};
+ w.dispatchEvent(new w.Event('okti-local-weather'));
+ await until(()=>firstLabel()==='Brak trasy');assert.deepEqual(requests.map(r=>r.origin),[{latitude:51,longitude:20}]);
  console.log('Travel focus: 320/390/430px, 1/2/3/4 columns, controls inside destination cards, separate duration, exact source/destination center line, four modes, inert/focus cleanup, late status and unchanged event data passed (simulated geometry/provider).');
 }finally{dom.window.close()}})().catch(e=>{console.error(e);process.exitCode=1});

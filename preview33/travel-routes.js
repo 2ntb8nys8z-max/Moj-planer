@@ -98,7 +98,7 @@
  async function calculate(key,from,to,mode,origin){
   const cache=cacheKey(key,mode,from,to);if(inflight.has(cache))return inflight.get(cache);routes.set(cache,{pending:true});queue();
   const work=(async()=>{
-   try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:origin||from.deviceOrigin||plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters,at:Date.now()}:{hidden:true})}
+   try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:origin||from.deviceOrigin||plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters,at:Date.now()}:from.deviceOrigin?{error:'Brak trasy',at:Date.now()}:{hidden:true})}
    catch(error){routes.set(cache,{error:error.message||'Błąd trasy',at:Date.now()})}
    finally{inflight.delete(cache);queue()}return routes.get(cache);
   })();inflight.set(cache,work);return work;
@@ -247,19 +247,17 @@
   const cards=[...timeline.querySelectorAll('.phone-event')].map(node=>({node,task:tasks.find(task=>String(task.id)===node.dataset.eventId)})).filter(item=>item.task).sort((a,b)=>phoneMinutes(a.task.time)-phoneMinutes(b.task.time));
   for(const card of cards){const copy=card.node.nextElementSibling;copy?.classList.remove('has-inline-route');copy?.removeAttribute('data-route-layout');const clock=copy?.querySelector?.('.phone-event-time');if(clock)clock.style.maxWidth=''}
   const located=cards.filter(card=>plannerLocation(card.task)),bounds=timeline.getBoundingClientRect();let menuTrigger=null;
-  // Use the existing, consented phone fix only for a still-upcoming first stop.
-  const first=located[0]?.task,now=new Date(),start=first&&new Date(first.date+'T'+first.time);
-  if(start && start>now){
-   const weather=window.OktiLocalWeather?.snapshot(),fix=weather?.place;
-   if(weather?.enabled && fix && Number.isFinite(fix.latitude) && Number.isFinite(fix.longitude) && Date.now()-fix.checkedAt<900000){
-    const deviceOrigin={latitude:fix.latitude,longitude:fix.longitude};
-    located.unshift({task:{id:'@device',title:'Moja lokalizacja',location:fix.latitude+','+fix.longitude,deviceOrigin}});
-   }
-  }
-  for(let i=0;i<located.length-1;i++){
-   const a=located[i],b=located[i+1];if(plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task)))continue;
-   const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
-   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=a.task.deviceOrigin?(start-now)/60000:availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
+  const now=new Date(),upcoming=located.find(card=>new Date(card.task.date+'T'+card.task.time)>now);
+  const weather=upcoming&&window.OktiLocalWeather?.snapshot(),fix=weather?.place;
+  const fresh=weather?.enabled && Number.isFinite(fix?.latitude) && Number.isFinite(fix?.longitude) && Date.now()-fix.checkedAt<900000;
+  const device={task:{id:'@device',title:'Moja lokalizacja',location:fresh?fix.latitude+','+fix.longitude:'',deviceOrigin:fresh?{latitude:fix.latitude,longitude:fix.longitude}:null}};
+  if(upcoming && weather?.enabled && !fresh && !weather.busy && !weather.error)window.OktiLocalWeather.refresh();
+  for(let i=0;i<located.length;i++){
+   const b=located[i],firstTrip=b===upcoming,a=firstTrip?device:located[i-1];
+   if(!a || (!firstTrip && plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task))))continue;
+   const needsFix=firstTrip&&!fresh,key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));
+   if(state?.hidden)continue;
+   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=firstTrip?(new Date(b.task.date+'T'+b.task.time)-now)/60000:availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=needsFix?!!weather?.busy:!state||state.pending,label=needsFix?(weather?.busy?'Ustalam…':weather?.enabled?'Odśwież GPS':'Włącz GPS'):ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
    const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='wide'?Math.min(144,Math.max(96,rect.width-116)):layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
    controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-inset)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
@@ -267,9 +265,16 @@
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
    const displayMinutes=ready?Math.round(state.minutes):0,duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=layout==='compact'&&ready&&displayMinutes>=60?Math.floor(displayMinutes/60)+':'+String(displayMinutes%60).padStart(2,'0'):label;
    for(const button of [modeButton,duration]){button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.dataset.routeDuration=label;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label',names[mode]+', '+label+'. Dojazd z '+a.task.title+' do '+b.task.title+'. '+(button===modeButton?'Zmień środek transportu':'Pokaż szczegóły dojazdu'));button.disabled=!!busy;button.onclick=event=>{event.stopPropagation();showModes(key,a.task,b.task,button)}}
+   if(needsFix){
+    const action=weather?.enabled?'Odśwież położenie telefonu':'Udostępnij położenie';
+    for(const button of [modeButton,duration]){
+     button.setAttribute('aria-label',action+'. Dojazd do '+b.task.title);
+     button.onclick=event=>{event.stopPropagation();if(weather?.enabled)window.OktiLocalWeather.refresh(true,{freshGPS:true});else window.OktiPermissions?.open()};
+    }
+   }
    duration.title=state?.error?state.error:risk==='late'?'Za mało czasu na dojazd':risk==='tight'?'Mały zapas czasu':(a.task.deviceOrigin?'Dojazd z mojej lokalizacji':'Dojazd z poprzedniego wydarzenia');controls.append(modeButton,duration);timeline.append(controls);
    const copy=b.node.nextElementSibling;if(copy?.matches('.phone-event-title')){copy.classList.add('has-inline-route');copy.dataset.routeLayout=layout}
-   if(activeMenu?.dataset.routeKey===key){menuTrigger=activeMenu.routeTrigger?.classList.contains('okti-route-duration')?duration:modeButton;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
+   if(!needsFix&&activeMenu?.dataset.routeKey===key){menuTrigger=activeMenu.routeTrigger?.classList.contains('okti-route-duration')?duration:modeButton;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!needsFix&&!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
   }
   if(activeMenu){if(menuTrigger){updateMenu(activeMenu,menuTrigger);positionMenu(activeMenu);refreshFocus(activeMenu)}else closeMenu(false,true)}
  }
