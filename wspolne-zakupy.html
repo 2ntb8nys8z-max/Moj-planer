@@ -4,13 +4,13 @@
 @font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}body{margin:0;background:#ebeff0;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
 main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(2px 7px 7px #24364238);transform-origin:70% 80%;animation:arrive .85s ease-out both}
 @keyframes arrive{0%{transform:translate(-75%,12%) rotate(-8deg)}75%{transform:translate(1%,0) rotate(1deg)}100%{transform:none}}@media(prefers-reduced-motion:reduce){main{animation:none}}
-h1{font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
+h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
 .item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
 .item:before{content:'□';flex:none}.item[aria-pressed=true]:before{content:'✓'}.item[aria-pressed=true] span{text-decoration:line-through}
 em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #status{font-size:16px}#status:empty{display:none}
-</style></head><body><main><header><h1>Do kupienia</h1><p>Wspólna lista zakupów</p></header>
+</style></head><body><main><header><h1 id="listTitle">Do kupienia</h1><p>Wspólna lista zakupów</p></header>
 <div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p></main>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
@@ -27,6 +27,8 @@ async function request(action,data){
 function show(data){
   if(data.revision<=revision)return;
   revision=data.revision;
+  $('listTitle').textContent=data.title||'Do kupienia';
+  document.title=$('listTitle').textContent+' · Okti';
   const groups=new Map();
   for(const row of data.rows){
     const key=JSON.stringify([row.text,row.done,row.by]);

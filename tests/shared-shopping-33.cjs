@@ -39,6 +39,28 @@ try{
  assert.equal(g("document.querySelector('#shoppingOwnerActions')"),null);
  const rejected=await worker.fetch(new Request('https://example.test/shopping/publish',{method:'POST',body:'{}'}),env);assert.equal(rejected.status,403);
  const g2=page('wspolne-zakupy.html','#'+id);await wait(()=>g2('revision')>0);assert.match(g2("$('bought').textContent"),/Jaga/);
+ // Rename an existing link without changing its rows. A recipient cannot edit the title.
+ assert.equal(g("document.getElementById('shoppingNameEdit')"),null);
+ o("$('shoppingNameEdit').click();$('shoppingNameInput').value='Zakupy na sobotę';$('shoppingNameSave').click()");
+ await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).title==='Zakupy na sobotę');
+ await g('refresh()');assert.equal(g("$('listTitle').textContent"),'Zakupy na sobotę');
+ o("closeShoppingSummary(true);openShoppingSummary()");
+ assert.equal(o("$('shoppingNameText').textContent"),'Zakupy na sobotę');
+ o("$('shoppingNameEdit').click();$('shoppingNameInput').value='Porzucona nazwa';$('shoppingNameCancel').click()");
+ assert.equal(o("shoppingStore('title')"),'Zakupy na sobotę');
+ // Exercise start/stop, isolated transcription, draft preview, correction and save.
+ o(`window.stoppedTracks=0;window.transcriptions=0;
+   navigator.mediaDevices={getUserMedia:async()=>({getTracks:()=>[{stop(){stoppedTracks++}}]})};
+   window.MediaRecorder=class{state='inactive';mimeType='audio/mp4';start(){this.state='recording'}stop(){this.state='inactive';this.ondataavailable({data:new Blob(['sample'])});this.onstop()}};
+   plannerAudioPayload=async()=>({type:'audio/mp4',base64:'c2FtcGxl'});
+   plannerApiRequest=async(path,opts)=>{if(JSON.parse(opts.body).operation!=='transcribe_audio')throw Error('wrong operation');transcriptions++;return {transcription:'Dla Zosi'}};
+   $('shoppingNameEdit').click();$('shoppingNameVoice').click();`);
+ await wait(()=>o("titleRecording?.recorder?.state==='recording'"));
+ o("$('shoppingNameVoice').click()");await wait(()=>o("titleRecording===null"));
+ assert.equal(o("$('shoppingNameInput').value"),'Dla Zosi');assert.equal(o('transcriptions'),1);
+ assert.ok(o('stoppedTracks')>=1);assert.equal(o("shoppingStore('title')"),'Zakupy na sobotę');
+ o("$('shoppingNameInput').value='Dla Zosi i Roberta';$('shoppingNameSave').click()");
+ await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).title==='Dla Zosi i Roberta');
  console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});

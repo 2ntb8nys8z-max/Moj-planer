@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.354</title>
+<title>Mój Planer — test integracji 33.355</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.354</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.354</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.354-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.355</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.355</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.355-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -267,7 +267,7 @@ body.okti-weather-open{overflow:hidden}
 <div id="entryResultsModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeEntryResults" class="close-x" type="button" aria-label="Zamknij">×</button><h2 id="entryResultsTitle">Wpisy</h2><div id="entryResultsCount" class="action-meta"></div><div id="entryResults" class="entry-results"></div></div></div>
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
-<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingSummaryTitle"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle">Do kupienia<img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingOwnerActions" hidden><span id="shoppingSharedLabel" hidden>Lista wspólna</span><button type="button" id="shoppingCreateShared">Lista wspólna</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div></div>
+<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingNameText"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle"><button type="button" id="shoppingNameEdit" disabled aria-label="Zmień nazwę kartki" aria-controls="shoppingNameForm" aria-expanded="false"><span id="shoppingNameText">Do kupienia</span><small id="shoppingNamePencil" hidden aria-hidden="true"> ✎</small></button><img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><form id="shoppingNameForm" hidden><label for="shoppingNameInput">Zmień nazwę kartki</label><input id="shoppingNameInput" maxlength="80" required><div><button type="button" id="shoppingNameVoice"><img src="octi-actor-poster.webp?v=9b20c4f5b0d17977" alt=""> <span id="shoppingNameVoiceLabel">Dyktuj</span></button><button type="submit" id="shoppingNameSave">Zapisz</button><button type="button" id="shoppingNameCancel">Anuluj</button></div><small id="shoppingNameStatus" role="status"></small></form><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingOwnerActions" hidden><span id="shoppingSharedLabel" hidden>Lista wspólna</span><button type="button" id="shoppingCreateShared">Lista wspólna</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div></div>
 <div id="eventModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="actionTitle"><section class="action-card event-sheet">
 <header id="eventHeader"><div class="okti-event-header-art" aria-hidden="true"></div><div class="event-header-top"><h2 id="actionTitle"></h2><div id="eventHeaderActions"><button id="eventActionsToggle" type="button" aria-label="Więcej działań wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button><button id="closeEvent" class="close-x" type="button" aria-label="Zamknij wydarzenie"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div><div id="eventHeaderMeta"><div id="eventDate"></div><div class="event-time-row"><div id="eventTime"></div><div id="eventReminderBadge" class="hidden"></div></div></div></header>
 <div id="eventMainRegion"><div id="eventContent"><div id="eventWeather" class="hidden"></div><div id="eventLocationRow" class="event-location-row hidden"><div class="okti-event-location-copy"><div id="eventLocationText"></div><div id="eventTravelSummary" aria-live="polite"></div></div><button id="navigateBtn" class="secondary hidden" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m20 3-7 18-3-7-7-3 17-8Z"/></svg><span>Nawiguj</span></button></div><section id="eventPeopleCard" class="event-people-card hidden" aria-labelledby="eventPeopleHeading"><div class="event-people-heading"><h3 id="eventPeopleHeading">Osoby</h3><button id="editEventPeople" type="button" aria-label="Zmień osoby w wydarzeniu">Zmień</button></div><div id="eventPeopleList" class="event-people-list"></div></section><div id="actionMeta" class="action-meta"></div><div id="eventNotesCards"></div><section id="eventChangePreview" class="preview hidden"><h3>Potwierdź zmianę wydarzenia</h3><div id="eventChangeInfo"></div><div class="preview-actions"><button id="eventChangeConfirm" class="primary" type="button">Potwierdź</button><button id="eventChangeCancel" class="secondary" type="button">Anuluj</button></div></section><div id="eventEditBox" class="event-edit-box hidden"><h3>Edytuj wydarzenie</h3><div class="field"><label>Nazwa</label><input id="editTitle"></div><div class="row" style="margin-top:10px"><div class="field"><label>Data</label><input id="editDate" type="date"></div><div class="field"><label>Od</label><input id="editStart" type="time"></div><div class="field"><label>Do</label><input id="editEnd" type="time"></div><div class="field"><label>Przypomnienie (min wcześniej)</label><input id="editReminder" type="number" min="0" placeholder="Brak"></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres</label><input id="editLocation" placeholder="Np. Hauptstraße 15, Dresden"></div><div class="field" style="margin-top:10px"><label>Notatka</label><textarea id="editNotes" style="min-height:80px"></textarea></div><button id="saveEdit" class="primary" style="margin-top:12px">Zapisz zmiany</button></div><div id="timerBox" class="timer-box hidden"><h3>Włącz minutnik</h3><div id="eventDurationHint" class="action-meta"></div><div class="timer-presets"><button data-min="5">5 min</button><button data-min="10">10 min</button><button data-min="15">15 min</button><button data-min="30">30 min</button><button data-min="60">60 min</button><button id="durationPreset">Czas wydarzenia</button><button id="customTimer">Własny</button></div></div></div><button id="eventActionsToggle" type="button" aria-label="Działania wydarzenia" aria-controls="eventActionsMenu" aria-expanded="false">+</button><div id="eventActionsMenu" class="action-buttons hidden" aria-label="Działania wydarzenia"><button id="actionPeople" class="secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 11a2.7 2.7 0 1 0 0-5.4M15 13c3.2 0 5 1.9 5.4 5.5"/></svg><span>Dodaj osoby</span></button><button id="actionDone" class="primary">✓ Gotowe</button><button id="actionEdit" class="secondary">✏️ Edytuj ręcznie</button><button id="actionTimer" class="secondary">⏱ Minutnik</button><button id="actionDelete" class="danger">🗑 Usuń</button></div></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.354-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.355-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -420,7 +420,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.19.33.60-test',EXPECTED_WORKER_BUILD_ID='9d62ab2ceb939cc4';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.61-test',EXPECTED_WORKER_BUILD_ID='2bca0066bd7d707a';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -969,7 +969,7 @@ function askApiAccess(force=false){
   });return apiAccessPending;
 }
 function plannerWorkerCompatible(info){
-  return info.apiVersion===EXPECTED_WORKER_VERSION&&info.buildId===EXPECTED_WORKER_BUILD_ID||info.apiVersion==='2026.11.14.33.59-test'&&info.buildId==='a5c5546c4518a3df'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.47-test'&&info.buildId==='efe8501394c50ac1'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.46-test'&&info.buildId==='3bc31d3df4e2bbe5'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.45-test'&&info.buildId==='6a0b8cd63510b638'&&info.protocolVersion===2||info.apiVersion==='2026.11.09.33.44-test'&&info.buildId==='6eed2c5377cbdab0'&&info.protocolVersion===2||info.apiVersion==='2026.11.05.33.37-test'&&info.buildId==='3703188b14dbb33d'&&info.protocolVersion===2||info.apiVersion==='2026.10.12.33.36-test'&&info.buildId==='23c0806de3a19eeb'&&info.protocolVersion===2;
+  return info.apiVersion===EXPECTED_WORKER_VERSION&&info.buildId===EXPECTED_WORKER_BUILD_ID||info.apiVersion==='2026.11.19.33.60-test'&&info.buildId==='9d62ab2ceb939cc4'&&info.protocolVersion===2||info.apiVersion==='2026.11.14.33.59-test'&&info.buildId==='a5c5546c4518a3df'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.47-test'&&info.buildId==='efe8501394c50ac1'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.46-test'&&info.buildId==='3bc31d3df4e2bbe5'&&info.protocolVersion===2||info.apiVersion==='2026.11.10.33.45-test'&&info.buildId==='6a0b8cd63510b638'&&info.protocolVersion===2||info.apiVersion==='2026.11.09.33.44-test'&&info.buildId==='6eed2c5377cbdab0'&&info.protocolVersion===2||info.apiVersion==='2026.11.05.33.37-test'&&info.buildId==='3703188b14dbb33d'&&info.protocolVersion===2||info.apiVersion==='2026.10.12.33.36-test'&&info.buildId==='23c0806de3a19eeb'&&info.protocolVersion===2;
 }
 async function getApiInfo(){
   if(apiInfoCache&&Date.now()-apiInfoAt<60000)return apiInfoCache;
@@ -1947,6 +1947,7 @@ function closeShoppingSummary(force=false){
   const modal=$('shoppingModal');if(modal.classList.contains('hidden'))return true;
   if(shoppingPaperMotion?.closing&&!force)return true;
   if(!force&&shoppingPending()&&!confirm('Zamknąć bez aktualizacji list?'))return false;
+  closeShoppingName();
   if(force){finishShoppingSummaryClose();return true}
   modal.classList.add('shopping-modal-closing');startShoppingPaper(true);return true;
 }
@@ -1970,6 +1971,7 @@ function animateShoppingPaper(){
 function openShoppingSummary(filter={}){
   if(entryRecording){toast('Najpierw zapisz lub anuluj nagranie.');return}
   if(shoppingPending()&&!confirm('Odrzucić zaznaczenia i otworzyć nowe zestawienie?'))return;
+  closeShoppingName();
   const state=collectShoppingSummary(ideas,filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
 }
 function updateShoppingSources(){
@@ -1992,8 +1994,92 @@ async function shoppingRequest(action,body,token){
   if(!r.ok)throw Object.assign(Error(data.error||'Nie udało się połączyć z listą.'),{status:r.status});
   return data;
 }
+const defaultShoppingTitle='Do kupienia';
+let titleRecording=null;
+function resetTitleRecording(){
+  const state=titleRecording;
+  titleRecording=null;
+  if(state){
+    clearTimeout(state.timer);
+    if(state.recorder?.state==='recording')state.recorder.stop();
+    state.stream?.getTracks().forEach(track=>track.stop());
+    state.controller.abort();
+  }
+  $('shoppingNameVoice').disabled=false;
+  $('shoppingNameVoiceLabel').textContent='Dyktuj';
+  $('shoppingNameInput').readOnly=false;
+  $('shoppingNameSave').disabled=false;
+}
+function closeShoppingName(){
+  resetTitleRecording();
+  $('shoppingNameForm').hidden=true;
+  $('shoppingNameStatus').textContent='';
+  $('shoppingNameEdit').setAttribute('aria-expanded','false');
+}
+async function dictateShoppingName(){
+  if(titleRecording){
+    if(titleRecording.recorder?.state==='recording')titleRecording.recorder.stop();
+    return;
+  }
+  const state={controller:new AbortController()},voice=$('shoppingNameVoice'),status=$('shoppingNameStatus');
+  titleRecording=state;
+  voice.disabled=true;$('shoppingNameSave').disabled=true;$('shoppingNameInput').readOnly=true;
+  status.textContent='Uruchamiam mikrofon…';
+  try{
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)throw Error('Mikrofon jest niedostępny. Możesz wpisać nazwę.');
+    state.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(titleRecording!==state){state.stream.getTracks().forEach(track=>track.stop());return}
+    const recorder=state.recorder=new MediaRecorder(state.stream),chunks=[];
+    const stopped=new Promise((resolve,reject)=>{
+      recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+      recorder.onerror=()=>reject(Error('Nie udało się nagrać nazwy.'));
+      recorder.onstop=resolve;
+    });
+    recorder.start();voice.disabled=false;
+    $('shoppingNameVoiceLabel').textContent='Zakończ';status.textContent='Powiedz nazwę kartki.';
+    state.timer=setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},15000);
+    await stopped;
+    clearTimeout(state.timer);state.stream.getTracks().forEach(track=>track.stop());
+    if(titleRecording!==state)return;
+    voice.disabled=true;status.textContent='Zamieniam nagranie na tekst…';
+    const blob=new Blob(chunks,{type:recorder.mimeType||chunks[0]?.type||'audio/mp4'});
+    if(!blob.size)throw Error('Nie udało się nagrać nazwy.');
+    const result=await plannerApiRequest('',{method:'POST',signal:state.controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({operation:'transcribe_audio',audio:await plannerAudioPayload(blob)})});
+    if(titleRecording!==state)return;
+    const name=result.transcription?.trim();
+    if(!name)throw Error('Nie rozpoznano nazwy. Spróbuj ponownie.');
+    $('shoppingNameInput').value=name;
+    status.textContent='Sprawdź nazwę i stuknij Zapisz.';
+  }catch(e){if(titleRecording===state)status.textContent=e.name==='NotAllowedError'?'Zezwól na użycie mikrofonu lub wpisz nazwę.':e.message}
+  finally{if(titleRecording===state)resetTitleRecording()}
+}
+function initializeShoppingName(){
+  const edit=$('shoppingNameEdit'),form=$('shoppingNameForm'),input=$('shoppingNameInput');
+  edit.onclick=()=>{
+    if(edit.disabled)return;
+    input.value=shoppingStore('title')||defaultShoppingTitle;
+    form.hidden=false;edit.setAttribute('aria-expanded','true');input.focus();input.select();
+  };
+  form.onsubmit=e=>{
+    e.preventDefault();
+    const name=input.value.trim();
+    if(!shoppingOwner||titleRecording)return;
+    if(!name||name.length>80){$('shoppingNameStatus').textContent='Wpisz nazwę od 1 do 80 znaków.';input.focus();return}
+    try{saveShopping('title',name)}catch{ $('shoppingNameStatus').textContent='Nie udało się zapisać nazwy.';return}
+    closeShoppingName();shoppingOwnerButtons();edit.focus();syncSharedShopping();
+  };
+  $('shoppingNameCancel').onclick=()=>{closeShoppingName();edit.focus()};
+  $('shoppingNameVoice').onclick=dictateShoppingName;
+  form.onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();e.preventDefault();$('shoppingNameCancel').click()}};
+  window.addEventListener('pagehide',closeShoppingName);
+}
+
 function shoppingOwnerButtons(){
   const all=shoppingOwner && shoppingSummary && !shoppingSummary.range.from && !shoppingSummary.range.to;
+  $('shoppingNameEdit').disabled=!all;
+  $('shoppingNamePencil').hidden=!all;
+  const title=(shoppingOwner&&shoppingStore('title'))||defaultShoppingTitle;
+  if($('shoppingNameText').textContent!==title)$('shoppingNameText').textContent=title;
   $('shoppingOwnerActions').hidden=!all;
   $('shoppingCreateShared').hidden=shoppingCreated;
   $('shoppingSendShared').hidden=!shoppingCreated;
@@ -2043,8 +2129,10 @@ async function syncSharedShopping(){
         return {...row,done:shared.done,by:shared.by};
       return {...row,by:row.done?'Robert':''};
     });
-    if(!remote.revision||JSON.stringify(merged)!==JSON.stringify(remote.rows))
-      await shoppingRequest('publish',{id,revision:remote.revision,rows:merged},shoppingStore('owner'));
+    const title=shoppingStore('title')||remote.title||defaultShoppingTitle;
+    if(!shoppingStore('title')&&remote.title)saveShopping('title',remote.title);
+    if(!remote.revision||title!==(remote.title||defaultShoppingTitle)||JSON.stringify(merged)!==JSON.stringify(remote.rows))
+      await shoppingRequest('publish',{id,revision:remote.revision,rows:merged,title},shoppingStore('owner'));
     const refs=shoppingLocalRows(),now=shoppingSnapshot(refs);
     if(JSON.stringify(now)!==JSON.stringify(local))return;
     const changes=merged.filter((r,i)=>r.done!==local[i].done||r.by!==local[i].by);
@@ -2112,12 +2200,13 @@ async function sendShoppingLink(){
   const url=new URL('wspolne-zakupy.html',location.href);
   url.hash=shoppingStore('id');
   try{
-    if(navigator.share)await navigator.share({title:'Wspólna lista zakupów',url:url.href});
+    if(navigator.share)await navigator.share({title:shoppingStore('title')||'Wspólna lista zakupów',url:url.href});
     else{await navigator.clipboard.writeText(url.href);$('shoppingShareStatus').textContent='Link skopiowany.'}
   }catch(e){if(e.name!=='AbortError')window.prompt('Skopiuj link do listy',url.href)}
 }
 
 function initializeShoppingSummary(){
+  initializeShoppingName();
   $('shoppingCreateShared').onclick=async()=>{
     if(!shoppingStore('id'))saveShopping('id',crypto.randomUUID());
     await syncSharedShopping();
@@ -5525,6 +5614,15 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 #shoppingModal .shopping-sheet h2{position:relative;display:inline-block;font-family:'Okti Kalam',cursive!important;font-style:normal;font-weight:700;font-size:38px;line-height:1.18;letter-spacing:-1px;color:#153f76;margin:0 0 10px;transform:rotate(-2deg);text-shadow:.45px .25px 0 #123766,.9px .15px 0 #173b65}
 .shopping-title-underline{position:absolute;display:block;bottom:-3px;left:-3px;width:114%;height:6px;pointer-events:none;transform:rotate(-.8deg);transform-origin:left center}
 #shoppingModal .shopping-sheet header button{width:52px;height:52px;flex:none;margin:-8px -7px 0 0;padding:3px;background:transparent;border:0}
+#shoppingModal .shopping-sheet header>div{min-width:0}
+#shoppingModal .shopping-sheet h2{max-width:100%}
+#shoppingModal #shoppingNameEdit{display:inline;width:auto;height:auto;margin:0;padding:0;font:inherit;font-style:italic;line-height:inherit;text-shadow:inherit;letter-spacing:inherit;color:inherit;text-align:left;overflow-wrap:anywhere;border:0;background:none;opacity:1}
+#shoppingNamePencil{font:17px sans-serif}
+#shoppingNameForm{margin:0 20px 10px 32px;font:18px 'Okti Kalam',cursive;color:#153f76}
+#shoppingNameForm input{display:block;width:100%;font:italic 21px 'Okti Kalam',cursive;margin:3px 0 6px}
+#shoppingNameForm button{padding:5px 9px;color:inherit;font:inherit}
+#shoppingNameForm img{width:24px;height:24px;object-fit:contain;vertical-align:middle}
+#shoppingNameForm[hidden],#shoppingNamePencil[hidden]{display:none}
 .shopping-close-art{display:block;width:100%;height:100%;object-fit:contain;filter:saturate(1.05) contrast(1.06)}
 #shoppingModal .shopping-summary-meta{font-family:'Okti Kalam',cursive;font-size:17px;color:#244f79;line-height:1.35;transform:rotate(-.35deg)}
 #shoppingModal .shopping-summary-scroll{position:relative;min-height:52px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1 1 auto;padding:0 31px 12px 50px;background:transparent;scrollbar-width:none}
