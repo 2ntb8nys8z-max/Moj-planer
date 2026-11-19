@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Wspólna lista zakupów · Okti</title>
+<style>
+@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}body{margin:0;background:#ebeff0;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
+main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(2px 7px 7px #24364238);transform-origin:70% 80%;animation:arrive .85s ease-out both}
+@keyframes arrive{0%{transform:translate(-75%,12%) rotate(-8deg)}75%{transform:translate(1%,0) rotate(1deg)}100%{transform:none}}@media(prefers-reduced-motion:reduce){main{animation:none}}
+h1{font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
+.item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
+.item:before{content:'□';flex:none}.item[aria-pressed=true]:before{content:'✓'}.item[aria-pressed=true] span{text-decoration:line-through}
+em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
+dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
+#status{font-size:16px}#status:empty{display:none}
+</style></head><body><main><header><h1>Do kupienia</h1><p>Wspólna lista zakupów</p></header>
+<div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p></main>
+<dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
+<script>
+const api='https://moj-planer-api.yd7ynvj864.workers.dev/shopping/';
+const id=location.hash.slice(1),$=s=>document.getElementById(s),store='okti:uczestnik:'+id;
+let person={},revision=-1,busy=false,reading=false;
+try{person=JSON.parse(localStorage.getItem(store)||'{}')}catch{}
+async function request(action,data){
+  const r=await fetch(api+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,...data})});
+  const result=await r.json();
+  if(!r.ok)throw Object.assign(Error(result.error||'Nie udało się wczytać listy.'),{status:r.status});
+  return result;
+}
+function show(data){
+  if(data.revision<=revision)return;
+  revision=data.revision;
+  const groups=new Map();
+  for(const row of data.rows){
+    const key=JSON.stringify([row.text,row.done,row.by]);
+    if(!groups.has(key))groups.set(key,{...row,keys:[]});
+    groups.get(key).keys.push(row.key);
+  }
+  $('pending').replaceChildren();$('bought').replaceChildren();
+  for(const group of groups.values()){
+    const button=document.createElement('button'),label=document.createElement('span');
+    button.className='item';button.setAttribute('aria-pressed',String(group.done));label.textContent=group.text;button.append(label);
+    if(group.done&&group.by){const sig=document.createElement('em');sig.textContent='('+group.by+')';button.append(sig)}
+    button.onclick=()=>mark(group);
+    $(group.done?'bought':'pending').append(button);
+  }
+  $('count').textContent='· '+$('bought').children.length;
+  if(!$('pending').children.length)$('pending').textContent='Brak produktów do kupienia.';
+}
+async function refresh(){
+  if(busy||reading)return;reading=true;
+  try{const data=await request('read',{});if(!busy){show(data);$('status').textContent=''}}
+  catch(e){$('status').textContent=e.message}finally{reading=false}
+}
+async function mark(group){
+  if(busy)return;busy=true;
+  const expected=revision;
+  try{
+    if(!person.nick){
+      const dialog=$('identity');dialog.returnValue='';dialog.showModal();
+      await new Promise(resolve=>dialog.addEventListener('close',resolve,{once:true}));
+      if(dialog.returnValue!=='ok'||!$('nick').value.trim())return;
+      person={actor:crypto.randomUUID(),nick:$('nick').value.trim()};
+    }
+    const data=await request('mark',{...person,keys:group.keys,done:!group.done,revision:expected});
+    try{localStorage.setItem(store,JSON.stringify(person))}catch{}
+    show(data);$('status').textContent='';
+  }catch(e){
+    if(e.status===409){show(await request('read',{}));$('status').textContent='Lista zmieniła się w międzyczasie. Sprawdź produkt.'}
+    else $('status').textContent=e.message;
+  }finally{busy=false}
+}
+refresh();setInterval(()=>{if(!document.hidden)refresh()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+</script></body></html>

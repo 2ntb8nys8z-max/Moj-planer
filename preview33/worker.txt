@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.59-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.60-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="a5c5546c4518a3df";
+const BUILD_ID="9d62ab2ceb939cc4";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1410,6 +1410,56 @@ Używaj zwykłych form „masz”, „możesz”. Bez pouczania, sztucznego entu
  try{const result=await response.json();return OktiBriefNarrative.validate(JSON.parse(result.choices?.[0]?.message?.content||''),context)}catch(_){throw new PlannerApiError('Nie udało się potwierdzić treści AI. Pokazuję fakty z kalendarza.',502,'invalid_brief_narrative','briefing')}
 }
 
+const SHOP_OWNER_DIGEST = '250a01ed5c7d244e1c8a196d6c59f2242be6cde7ed8ef775059f847bb71096b1';
+async function shoppingOwnerKey(value) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2,'0')).join('');
+}
+async function sharedShoppingRequest(request, env, json) {
+  const [, , action] = new URL(request.url).pathname.split('/');
+  if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
+  const owner = ['owner','publish'].includes(action);
+  if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
+    return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
+  if (action === 'owner') return json({owner:true});
+  if (!['publish','read','mark'].includes(action)) return json({error:'Nieznana operacja.'},404);
+  const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,250000)));
+  const uuid = v => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(v);
+  if (!uuid(body?.id)) return json({error:'Niepoprawny link.'},400);
+  const db = env.API_LIMITS_DB;
+  await db.prepare('CREATE TABLE IF NOT EXISTS shared_shopping (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, content TEXT NOT NULL)').run();
+  const record = await db.prepare('SELECT revision, content FROM shared_shopping WHERE id=?').bind(body.id).first();
+  if (!record && action !== 'publish') return json({error:'Nie znaleziono listy.'},404);
+  const state = record ? JSON.parse(record.content) : {rows:[],participants:{}};
+  const revision = record?.revision || 0;
+  if (action === 'read') return json({revision,rows:state.rows});
+  if (revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
+  if (action === 'publish') {
+    if (!Array.isArray(body.rows) || body.rows.length > 1500 || !body.rows.every(row =>
+      row && typeof row.key==='string' && row.key.length<=1800 && typeof row.text==='string' && row.text.length>0 && row.text.length<=1400 &&
+      typeof row.done==='boolean' && typeof row.by==='string' && row.by.length<=60) ||
+      new Set(body.rows.map(row=>row.key)).size!==body.rows.length) return json({error:'Nieprawidłowe produkty lub lista jest zbyt długa.'},400);
+    state.rows = body.rows.map(({key,text,done,by})=>({key,text,done,by:done?by:''}));
+  } else {
+    if (!uuid(body.actor) || !Array.isArray(body.keys) || !body.keys.length || typeof body.done!=='boolean') return json({error:'Niepoprawna zmiana.'},400);
+    const actor = await shoppingOwnerKey(body.actor);
+    const nick = state.participants[actor] || (typeof body.nick==='string'?body.nick.trim():'');
+    if (!nick || nick.length>60) return json({error:'Podaj swój nick (do 60 znaków).'},400);
+    if (state.rows.filter(row=>body.keys.includes(row.key)).length!==body.keys.length) return json({error:'Produkt już się zmienił.'},409);
+    state.participants[actor]=nick;
+    for (const row of state.rows) if(body.keys.includes(row.key) && row.done!==body.done) {
+      row.done=body.done; row.by=body.done?nick:'';
+    }
+  }
+  const content=JSON.stringify(state);
+  const write = record
+    ? db.prepare('UPDATE shared_shopping SET content=?, revision=revision+1 WHERE id=? AND revision=?').bind(content,body.id,revision)
+    : db.prepare('INSERT OR IGNORE INTO shared_shopping(id,revision,content) VALUES (?,1,?)').bind(body.id,content);
+  const result=await write.run();
+  if (!result.meta.changes) return json({error:'Lista została zmieniona.'},409);
+  return json({revision:revision+1,rows:state.rows});
+}
+
 export default {
   async fetch(request, env) {
 
@@ -1435,7 +1485,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.14.33.59-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.19.33.60-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1443,6 +1493,7 @@ export default {
 
     let apiUsage=null, spokenText="";
     try {
+      if(new URL(request.url).pathname.startsWith("/shopping/"))return await sharedShoppingRequest(request,env,json);
       if(request.method!=="POST" && !(request.method==="GET" && new URL(request.url).pathname==="/usage")){
         return json({success:false,error:"Użyj POST do rozpoznawania wypowiedzi.",code:"method_not_allowed"},405);
       }
