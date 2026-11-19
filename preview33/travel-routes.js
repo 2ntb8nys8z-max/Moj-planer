@@ -25,6 +25,22 @@
  .okti-route-particle,.okti-route-dot{fill:currentColor}
  .okti-route-ring{fill:#fbfcfe;stroke:currentColor;stroke-width:2.2}
  .okti-route-halo{fill:none;stroke:currentColor;stroke-width:1.5}
+ /* 1.5 s travel, then 3 s from arrival to the next departure. */
+ .okti-route-streak,.okti-route-arrival-light{opacity:0}
+ @media(prefers-reduced-motion:no-preference){
+  .okti-route-focus-lines[data-state=complete] .okti-route-streak{animation:okti-route-glide 4.5s linear infinite}
+  .okti-route-focus-lines[data-state=complete] .okti-route-arrival-light{animation:okti-route-arrival 4.5s linear infinite}
+ }
+ @keyframes okti-route-glide{
+  0%{transform:translateY(0);opacity:0}
+  4%{opacity:1}
+  33.3333%{transform:translateY(var(--okti-route-length));opacity:1}
+  36%,100%{transform:translateY(var(--okti-route-length));opacity:0}
+ }
+ @keyframes okti-route-arrival{
+  0%,33.3333%,52%,100%{opacity:0}
+  36%,39%{opacity:1}
+ }
  .okti-route-focus[data-state=closing] .okti-route-focus-lines{opacity:0}.okti-route-focus[data-state=closing] .okti-route-focus-copy{opacity:0;transition:opacity 520ms ease!important}
  .okti-route-menu{position:fixed;z-index:25000;box-sizing:border-box;width:300px;max-width:calc(100vw - 20px);padding:10px;display:flex;flex-direction:column;gap:7px;border:1px solid #dadddf;border-top-color:#fff;border-radius:10px;background:linear-gradient(150deg,#fff,#fcfcfc);color:#193b5c;font-family:var(--okti-font,sans-serif);box-shadow:inset 0 1px 1px #fff,0 14px 32px -12px #1f30435c,0 3px 8px #26394b20}
  .okti-route-detail{min-height:35px;display:flex;align-items:center;gap:10px;padding:0 3px}.okti-route-detail-icon{display:grid;place-items:center;color:#69727c}.okti-route-detail-icon svg{width:30px;height:30px}
@@ -128,6 +144,8 @@
   menu.style.setProperty('--okti-route-accent',accent);layer.style.setProperty('--okti-route-accent',accent);
   const drawing=menu.routeDrawing;drawing.line.setAttribute('d',`M ${x1} ${y1} L ${x2} ${y2}`);
   drawing.points[0].group.setAttribute('transform',`translate(${x1} ${y1})`);drawing.points[1].group.setAttribute('transform',`translate(${x2} ${y2})`);
+  drawing.beam.setAttribute('transform',`translate(${x1} ${y1}) rotate(${menu.routeGeometry.angle})`);
+  drawing.beam.style.setProperty('--okti-route-length',menu.routeGeometry.length+'px');
   if(animate)startConnection(menu);else if(menu.routeFrame)paintConnection(menu,performance.now()-menu.routeStarted);else settleConnection(menu);
   return true;
  }
@@ -139,7 +157,19 @@
   const line=node('path','okti-route-solid',{pathLength:1});drawing.append(line);
   const particles=Array.from({length:5},()=>{const particle=node('ellipse','okti-route-particle',{rx:3.3,ry:3.3,opacity:0});drawing.append(particle);return particle});
   const points=Array.from({length:2},()=>{const group=node('g','okti-route-point'),halo=node('circle','okti-route-halo',{r:11,opacity:0}),ring=node('circle','okti-route-ring',{r:11,pathLength:1}),dot=node('circle','okti-route-dot',{r:4.5});group.append(halo,ring,dot);drawing.append(group);return {group,halo,ring,dot}});
-  menu.routeDrawing={svg:drawing,line,particles,points};layer.append(drawing);
+  const glowId='okti-route-light-'+menuSerial;
+  const defs=node('defs',''),glow=node('radialGradient','',{id:glowId});
+  for(const [offset,colour,opacity] of [['0%','#fffef2',1],['32%','#fff4c9',.96],['67%','#ffd687',.62],['100%','#ffd687',0]]){
+   glow.append(node('stop','',{offset,'stop-color':colour,'stop-opacity':opacity}));
+  }
+  defs.append(glow);drawing.prepend(defs);
+  const light='url(#'+glowId+')',beam=node('g',''),streak=node('g','okti-route-streak');
+  streak.append(node('ellipse','',{cy:-5.5,rx:4.6,ry:10,fill:light}),node('ellipse','',{rx:3.3,ry:3.8,fill:light}));
+  beam.append(streak);drawing.append(beam);
+  const arrival=node('g','okti-route-arrival-light');
+  arrival.append(node('circle','',{r:16,fill:light}),node('circle','',{r:11,fill:'none',stroke:'#ffe2a5','stroke-width':2.2}),node('circle','',{r:4.5,fill:'#fff4cd'}));
+  points[1].group.append(arrival);
+  menu.routeDrawing={svg:drawing,line,particles,points,beam};layer.append(drawing);
   menu.focusLayer=layer;document.body.append(layer);refreshFocus(menu,true);
   requestAnimationFrame(()=>{if(activeMenu===menu)layer.dataset.state='open'});
  }
