@@ -21,6 +21,15 @@
  .okti-route-focus-copy.phone-event-title{color:#173b5b}.okti-route-focus-copy.okti-calendar-card{outline:1px solid #c58e2733;outline-offset:0}
  .okti-route-focus-lines{position:absolute;inset:0;overflow:visible;z-index:5;pointer-events:none;transition:opacity 420ms ease}
  .okti-route-focus-lines{color:var(--okti-route-accent,#4d95c3)}
+ .okti-route-person{position:absolute;width:32px;height:40px;overflow:hidden;z-index:6;pointer-events:none;visibility:hidden}
+ .okti-route-person img{display:block;width:1568px;height:40px;max-width:none;transform:translateX(-1536px)}
+ .okti-route-person.is-ready{visibility:visible}
+ @media(prefers-reduced-motion:no-preference){
+  .okti-route-person.is-ready{animation:okti-person-approach .8s ease-out both}
+  .okti-route-person.is-ready img{animation:okti-person-poses 1.6s steps(48,end) both}
+ }
+ @keyframes okti-person-approach{from{transform:translateX(-26px)}to{transform:none}}
+ @keyframes okti-person-poses{from{transform:translateX(0)}to{transform:translateX(-1536px)}}
  .okti-route-solid{fill:none;stroke:currentColor;stroke-width:6.6;stroke-linecap:round}
  .okti-route-particle,.okti-route-dot{fill:currentColor}
  .okti-route-ring{fill:#fbfcfe;stroke:currentColor;stroke-width:2.2}
@@ -89,7 +98,7 @@
  async function calculate(key,from,to,mode,origin){
   const cache=cacheKey(key,mode,from,to);if(inflight.has(cache))return inflight.get(cache);routes.set(cache,{pending:true});queue();
   const work=(async()=>{
-   try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:origin||plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters,at:Date.now()}:{hidden:true})}
+   try{const result=await plannerApiRequest('/routes/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({origin:origin||from.deviceOrigin||plannerLocation(from),destination:plannerLocation(to),mode:mode.toUpperCase()})});routes.set(cache,result.route?.available?{minutes:result.route.durationMinutes,distanceMeters:result.route.distanceMeters,at:Date.now()}:{hidden:true})}
    catch(error){routes.set(cache,{error:error.message||'Błąd trasy',at:Date.now()})}
    finally{inflight.delete(cache);queue()}return routes.get(cache);
   })();inflight.set(cache,work);return work;
@@ -130,15 +139,18 @@
  }
  function startConnection(menu){
   stopConnection(menu);if(!motionEnabled()){settleConnection(menu);return}
-  menu.routeStarted=performance.now();menu.routeDrawing.svg.dataset.state='drawing';paintConnection(menu,0);
+  menu.routeStarted=performance.now()+(menu.routePerson?1600:0);menu.routeDrawing.svg.dataset.state='drawing';paintConnection(menu,0);
   const tick=now=>{if(activeMenu!==menu)return;const elapsed=now-menu.routeStarted;paintConnection(menu,elapsed);if(elapsed<3400)menu.routeFrame=requestAnimationFrame(tick);else{menu.routeFrame=0;settleConnection(menu)}};
   menu.routeFrame=requestAnimationFrame(tick);
  }
  function refreshFocus(menu,animate=false){
-  const from=taskCard(menu.routeFrom.id),to=taskCard(menu.routeTo.id);if(!from||!to)return false;
+  const from=taskCard(menu.routeFrom.id),to=taskCard(menu.routeTo.id);if((!from&&!menu.routeFrom.deviceOrigin)||!to)return false;
   const layer=menu.focusLayer;layer.querySelectorAll('.okti-route-focus-copy').forEach(node=>node.remove());
-  for(const card of [from,to]){cloneSurface(card,layer,2);if(card.nextElementSibling?.matches('.phone-event-title'))cloneSurface(card.nextElementSibling,layer,6);const controls=[...document.querySelectorAll('#taskList .okti-route-controls')].find(node=>node.dataset.destinationEventId===card.dataset.eventId);cloneSurface(controls,layer,6)}
-  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),x1=a.left+a.width/2,y1=a.top+a.height/2,x2=b.left+b.width/2,y2=b.top+b.height/2;
+  for(const card of [from,to].filter(Boolean)){cloneSurface(card,layer,2);if(card.nextElementSibling?.matches('.phone-event-title'))cloneSurface(card.nextElementSibling,layer,6);const controls=[...document.querySelectorAll('#taskList .okti-route-controls')].find(node=>node.dataset.destinationEventId===card.dataset.eventId);cloneSurface(controls,layer,6)}
+  const b=to.getBoundingClientRect(),x2=b.left+b.width/2,y2=b.top+b.height/2;
+  const a=from?.getBoundingClientRect(),x1=a?a.left+a.width/2:x2;
+  const y1=a?a.top+a.height/2:Math.max((window.visualViewport?.offsetTop||0)+22,b.top-58);
+  if(menu.routePerson){menu.routePerson.style.left=(x1-46)+'px';menu.routePerson.style.top=(y1-20)+'px'}
   menu.routeGeometry={x1,y1,x2,y2,length:Math.hypot(x2-x1,y2-y1),angle:Math.atan2(y2-y1,x2-x1)*180/Math.PI-90};
   const accent=getComputedStyle(to).getPropertyValue('--key-rim-deep').trim()||getComputedStyle(to).getPropertyValue('--key-rim').trim()||'#4d95c3';
   menu.style.setProperty('--okti-route-accent',accent);layer.style.setProperty('--okti-route-accent',accent);
@@ -146,9 +158,11 @@
   drawing.points[0].group.setAttribute('transform',`translate(${x1} ${y1})`);drawing.points[1].group.setAttribute('transform',`translate(${x2} ${y2})`);
   drawing.beam.setAttribute('transform',`translate(${x1} ${y1}) rotate(${menu.routeGeometry.angle})`);
   drawing.beam.style.setProperty('--okti-route-length',menu.routeGeometry.length+'px');
+  if(menu.waitForPerson)return true;
   if(animate)startConnection(menu);else if(menu.routeFrame)paintConnection(menu,performance.now()-menu.routeStarted);else settleConnection(menu);
   return true;
  }
+ let nextActor=0;
  function makeFocus(menu){
   const layer=document.createElement('div');layer.className='okti-route-focus';layer.dataset.state='opening';layer.setAttribute('aria-hidden','true');
   const scrim=document.createElement('div');scrim.className='okti-route-scrim';scrim.onpointerdown=event=>{event.preventDefault();closeMenu(true)};layer.append(scrim);
@@ -170,7 +184,22 @@
   arrival.append(node('circle','',{r:16,fill:light}),node('circle','',{r:11,fill:'none',stroke:'#ffe2a5','stroke-width':2.2}),node('circle','',{r:4.5,fill:'#fff4cd'}));
   points[1].group.append(arrival);
   menu.routeDrawing={svg:drawing,line,particles,points,beam};layer.append(drawing);
-  menu.focusLayer=layer;document.body.append(layer);refreshFocus(menu,true);
+  menu.focusLayer=layer;
+  if(menu.routeFrom.deviceOrigin){
+   const person=document.createElement('div'),image=new Image();person.className='okti-route-person';
+   image.alt='';menu.routePerson=person;menu.waitForPerson=true;drawing.style.visibility='hidden';
+   person.append(image);layer.append(person);
+   const reveal=loaded=>{
+    if(activeMenu!==menu)return;
+    menu.waitForPerson=false;drawing.style.visibility='';
+    if(loaded)person.classList.add('is-ready');else{person.remove();menu.routePerson=null}
+    refreshFocus(menu,true);
+   };
+   image.onload=()=>reveal(true);image.onerror=()=>reveal(false);
+   const actor=['hiker','dancer'][nextActor++%2];
+   image.src=new URL('assets/transport/'+actor+'-walk-v1.webp',iconBase).href;
+  }
+  document.body.append(layer);refreshFocus(menu,true);
   requestAnimationFrame(()=>{if(activeMenu===menu)layer.dataset.state='open'});
  }
  function showModes(key,from,to,button){
@@ -218,10 +247,19 @@
   const cards=[...timeline.querySelectorAll('.phone-event')].map(node=>({node,task:tasks.find(task=>String(task.id)===node.dataset.eventId)})).filter(item=>item.task).sort((a,b)=>phoneMinutes(a.task.time)-phoneMinutes(b.task.time));
   for(const card of cards){const copy=card.node.nextElementSibling;copy?.classList.remove('has-inline-route');copy?.removeAttribute('data-route-layout');const clock=copy?.querySelector?.('.phone-event-time');if(clock)clock.style.maxWidth=''}
   const located=cards.filter(card=>plannerLocation(card.task)),bounds=timeline.getBoundingClientRect();let menuTrigger=null;
+  // Use the existing, consented phone fix only for a still-upcoming first stop.
+  const first=located[0]?.task,now=new Date(),start=first&&new Date(first.date+'T'+first.time);
+  if(start && start>now){
+   const weather=window.OktiLocalWeather?.snapshot(),fix=weather?.place;
+   if(weather?.enabled && fix && Number.isFinite(fix.latitude) && Number.isFinite(fix.longitude) && Date.now()-fix.checkedAt<900000){
+    const deviceOrigin={latitude:fix.latitude,longitude:fix.longitude};
+    located.unshift({task:{id:'@device',title:'Moja lokalizacja',location:fix.latitude+','+fix.longitude,deviceOrigin}});
+   }
+  }
   for(let i=0;i<located.length-1;i++){
    const a=located[i],b=located[i+1];if(plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task)))continue;
    const key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));if(state?.hidden)continue;
-   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
+   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=a.task.deviceOrigin?(start-now)/60000:availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=!state||state.pending,label=ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
    const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='wide'?Math.min(144,Math.max(96,rect.width-116)):layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
    controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-inset)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
@@ -229,7 +267,7 @@
    const modeButton=document.createElement('button');modeButton.type='button';modeButton.className='okti-route-badge';modeButton.innerHTML=busy?'<span class="okti-route-spinner" aria-hidden="true"></span>':svg(mode);
    const displayMinutes=ready?Math.round(state.minutes):0,duration=document.createElement('button');duration.type='button';duration.className='okti-route-duration';duration.textContent=layout==='compact'&&ready&&displayMinutes>=60?Math.floor(displayMinutes/60)+':'+String(displayMinutes%60).padStart(2,'0'):label;
    for(const button of [modeButton,duration]){button.dataset.destinationEventId=String(b.task.id);button.dataset.risk=risk;button.dataset.routeMode=mode;button.dataset.routeDuration=label;button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label',names[mode]+', '+label+'. Dojazd z '+a.task.title+' do '+b.task.title+'. '+(button===modeButton?'Zmień środek transportu':'Pokaż szczegóły dojazdu'));button.disabled=!!busy;button.onclick=event=>{event.stopPropagation();showModes(key,a.task,b.task,button)}}
-   duration.title=state?.error?state.error:risk==='late'?'Za mało czasu na dojazd':risk==='tight'?'Mały zapas czasu':'Dojazd z poprzedniego wydarzenia';controls.append(modeButton,duration);timeline.append(controls);
+   duration.title=state?.error?state.error:risk==='late'?'Za mało czasu na dojazd':risk==='tight'?'Mały zapas czasu':(a.task.deviceOrigin?'Dojazd z mojej lokalizacji':'Dojazd z poprzedniego wydarzenia');controls.append(modeButton,duration);timeline.append(controls);
    const copy=b.node.nextElementSibling;if(copy?.matches('.phone-event-title')){copy.classList.add('has-inline-route');copy.dataset.routeLayout=layout}
    if(activeMenu?.dataset.routeKey===key){menuTrigger=activeMenu.routeTrigger?.classList.contains('okti-route-duration')?duration:modeButton;activeMenu.routeFrom=a.task;activeMenu.routeTo=b.task}if(!state)setTimeout(()=>calculate(key,a.task,b.task,mode),0);
   }
@@ -248,5 +286,6 @@
  document.addEventListener('visibilitychange',()=>{if(document.hidden)closeMenu(false,true)});
  window.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(activeMenu&&!motionEnabled()){stopConnection(activeMenu);settleConnection(activeMenu)}});
  const observer=new MutationObserver(records=>{if(records.some(record=>record.target===$('taskList')||[...record.addedNodes].some(node=>node.classList?.contains('phone-timeline-scroll'))))queue()});observer.observe($('taskList'),{childList:true,subtree:true});
+ window.addEventListener('okti-local-weather',queue);
  window.addEventListener('resize',()=>{closeMenu(false,true);queue()});window.visualViewport?.addEventListener('resize',()=>{closeMenu(false,true);queue()});if(typeof ResizeObserver==='function')new ResizeObserver(queue).observe($('taskList'));queue();
 })();

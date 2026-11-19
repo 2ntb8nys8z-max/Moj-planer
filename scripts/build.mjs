@@ -104,6 +104,10 @@ for(const file of ['sync-core.js','google-calendar.js']){
   output('preview33/'+file,content,false);
 }
 const travelRoutes=fs.readFileSync('travel-routes.js','utf8');
+for(const actor of ['hiker','dancer']){
+  const path='assets/transport/'+actor+'-walk-v1.webp';
+  output('preview33/'+path,fs.readFileSync(path),false);
+}
 for(const file of ['porsche','bus','road-bike'])output('preview33/assets/transport/'+file+'-33-314.webp',fs.readFileSync('assets/transport/'+file+'-33-314.webp'),false);
 const travelRoutesBuildId=createHash('sha256').update(travelRoutes).digest('hex').slice(0,16);
 canonical=canonical.replace(/travel-routes\.js(?:\?v=[a-z0-9]+)?/g,'travel-routes.js?v='+travelRoutesBuildId);
