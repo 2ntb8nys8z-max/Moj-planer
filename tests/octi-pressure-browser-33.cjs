@@ -185,6 +185,38 @@ function assertFastReturn(result){
  const browser=await engines[kind].launch({headless:true,...(kind==='chromium'&&process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),...(kind==='chromium'?{args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
  fs.mkdirSync('test-results/okti-listening',{recursive:true});
  try{
+  // Exercise the real recorder and audio analyser with a controlled microphone signal.
+  {
+   const {page}=await fixture(browser,390,844,{software:true,dpr:3});
+   try{
+    await page.evaluate(()=>{
+     navigator.mediaDevices.getUserMedia=async()=>{
+      const context=new AudioContext(),output=context.createMediaStreamDestination();
+      const oscillator=context.createOscillator(),gain=context.createGain();
+      gain.gain.value=0;oscillator.connect(gain);gain.connect(output);oscillator.start();
+      window.recordingProbe={context,gain};await context.resume();return output.stream;
+     };
+    });
+    await page.locator('.octi-dock[data-channel=main] .voice').click();
+    const arc=page.locator('.octi-recording-arc');await arc.waitFor();
+    const coverage=()=>arc.evaluate(canvas=>{
+     const bytes=canvas.getContext('2d').getImageData(0,0,256,256).data;
+     let covered=0;for(let i=3;i<bytes.length;i+=4)if(bytes[i]>80)covered++;
+     return covered;
+    });
+    const full=await coverage();assert.ok(full>500);
+    await page.evaluate(()=>recordingProbe.gain.gain.value=.22);
+    await page.waitForFunction(()=>Number(document.querySelector('.octi-recording-bars')?.style.opacity)>.8);
+    await page.evaluate(()=>recordingProbe.gain.gain.value=0);
+    await page.waitForFunction(()=>Number(document.querySelector('.octi-recording-bars')?.style.opacity)<.1);
+    await page.evaluate(()=>plannerRecordings.main.deadline=Date.now()+12500);
+    await page.waitForTimeout(200);const half=await coverage();assert.ok(half>full*.39&&half<full*.62);
+    await page.evaluate(()=>cancelPlannerRecording('main'));await arc.waitFor({state:'detached'});
+    assert.equal(await page.locator('.octi-recording-bars').count(),0);
+    await page.evaluate(()=>recordingProbe.context.close());
+    console.log(kind+': microphone level, pause, half-time arc and cancellation passed.');
+   }finally{await page.close()}
+  }
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    const {page,errors}=await fixture(browser,width,height);try{
     await visualOnly(page);const resting=await read(page);

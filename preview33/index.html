@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.344</title>
+<title>Mój Planer — test integracji 33.345</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.344</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.344</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.18.33.344-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.345</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.345</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.345-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.18.33.344-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.345-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2578,7 +2578,56 @@ const RECORDING_SECONDS=25;
 const plannerRecordings={main:null,event:null,idea:null};
 const recordingUi={main:{button:'voice',cancel:'recordCancel',count:'voiceCountdown',hint:'voiceHint',icon:'🎙️'},event:{button:'eventVoice',cancel:'eventRecordCancel',count:'eventVoiceCountdown',hint:'eventVoiceHint',icon:'🎤'},idea:{button:'ideaVoice',cancel:'ideaRecordCancel',count:'ideaVoiceCountdown',hint:'ideaVoiceHint',icon:'🎤'}};
 function resetRecordingUi(channel){const u=recordingUi[channel];$(u.button).classList.remove('recording');if(channel==='idea'){$(u.button).innerHTML=entryIcon('mic');$(u.button).classList.remove('entry-send');$(u.button).setAttribute('aria-label','Edytuj ten wpis głosem')}else $(u.button).textContent=u.icon;$(u.cancel).classList.add('hidden');$(u.count).textContent=''}
-function stopRecordingTimers(state){clearInterval(state.timer);clearTimeout(state.timeout)}
+function octiRecordingFeedback(channel,state){
+ const dock=document.querySelector('.octi-dock[data-channel="'+channel+'"]');
+ const glass=dock?.querySelector('.octi-motion-media'),actor=dock?.querySelector('.octi-touch-actor');
+ if(!glass||!actor)return;
+ const ring=document.createElement('canvas');
+ ring.width=ring.height=256;ring.className='octi-recording-arc';
+ const ctx=ring.getContext('2d');
+ if(!ctx)return;
+ glass.append(ring);
+ const bars=document.createElement('span');bars.className='octi-recording-bars';
+ for(let i=0;i<3;i++)bars.append(document.createElement('i'));
+ actor.append(bars);
+ let audio,source,analyser,samples,timer,level=0;
+ state.stopFeedback=()=>{
+  clearTimeout(timer);ring.remove();bars.remove();
+  source?.disconnect();analyser?.disconnect();audio?.close().catch(()=>{});
+  state.stopFeedback=null;
+ };
+ try{
+  audio=new (window.AudioContext||window.webkitAudioContext)();
+  source=audio.createMediaStreamSource(state.stream);analyser=audio.createAnalyser();
+  analyser.fftSize=512;samples=new Uint8Array(analyser.fftSize);
+  source.connect(analyser);audio.resume().catch(()=>{});
+ }catch{/* The recording clock also works when audio analysis is unavailable. */}
+ function paint(){
+  const remaining=Math.max(0,Math.min(1,(state.deadline-Date.now())/(RECORDING_SECONDS*1000)));
+  ctx.clearRect(0,0,256,256);
+  if(!remaining)return;
+  const end=1.5*Math.PI,start=end-remaining*2*Math.PI,r=121;
+  ctx.save();ctx.beginPath();ctx.arc(128,128,r+.6,0,2*Math.PI);ctx.clip();
+  ctx.lineCap='round';ctx.beginPath();ctx.arc(128,128,r,start,end);
+  // Superimposed translucent strokes feather inward and around both arc tips.
+  for(const [width,alpha] of [[19,.012],[14,.02],[10,.026],[7,.035],[4,.05],[1.65,.76]]){
+   ctx.lineWidth=width;ctx.strokeStyle='rgba(235,66,86,'+alpha+')';ctx.stroke();
+  }
+  ctx.restore();
+  if(samples&&audio.state==='running'){
+   analyser.getByteTimeDomainData(samples);
+   let sum=0;for(const v of samples)sum+=((v-128)/128)**2;
+   const target=Math.min(1,Math.max(0,Math.sqrt(sum/samples.length)-.009)*9);
+   level+=(target-level)*(target>level?.8:.42);
+   for(let i=0;i<3;i++)bars.children[i].style.transform='scaleY('+(1+level*[.95,.65,1.12][i])+')';
+   bars.style.opacity=String(Math.min(1,level*6));
+  }
+  timer=setTimeout(paint,65);
+ }
+ paint();
+}
+
+function stopRecordingTimers(state){state.stopFeedback?.();clearInterval(state.timer);clearTimeout(state.timeout)}
 // Closing an event invalidates its request immediately; late results must not own the next recorder.
 function cancelPlannerRecording(channel,discardSending=false){const state=plannerRecordings[channel];if(!state||state.mode==='sending'&&!discardSending)return;state.cancelled=true;stopRecordingTimers(state);state.chunks=[];if(state.recorder?.state==='recording')state.recorder.stop();state.stream?.getTracks().forEach(t=>t.stop());plannerRecordings[channel]=null;resetRecordingUi(channel);$(recordingUi[channel].hint).textContent=''}
 async function plannerRecordingAudible(blob){
@@ -2598,7 +2647,7 @@ async function plannerRecordingAudible(blob){
   }catch(_){return true}finally{try{await context?.close()}catch(_){}}
 }
 async function sendPlannerRecording(channel,state){if(plannerRecordings[channel]!==state||state.mode!=='ready')return;if(!voiceDialogueValid(state.session)){cancelPlannerRecording(channel);return}state.mode='sending';const u=recordingUi[channel];resetRecordingUi(channel);$(u.hint).textContent=channel==='main'?'':'⏳ Rozpoznaję wypowiedź…';try{const blob=new Blob(state.chunks,{type:state.chunks[0]?.type||'audio/mp4'});const audible=await plannerRecordingAudible(blob);if(state.cancelled||plannerRecordings[channel]!==state)return;if(!audible){cancelPlannerRecording(channel,true);return}const result=await requestVoiceDialogue(state.session,blob);if(state.cancelled||plannerRecordings[channel]!==state)return;state.chunks=[];plannerRecordings[channel]=null;if(result)await applyVoiceDialogueResult(state.session,result)}catch(error){if(state.cancelled||plannerRecordings[channel]!==state)return;console.error(error);state.chunks=[];plannerRecordings[channel]=null;if(error.code==='empty_transcription'){$(u.hint).textContent='';return}$(u.hint).textContent=error.message||'Nie udało się rozpoznać wypowiedzi';if(error.transcription&&voiceDialogueValid(state.session)){state.session.history.push({role:'user',content:error.transcription});showVoiceClarification(state.session,'Wypowiedź zachowano, ale wystąpił błąd techniczny: '+error.message+' Możesz ponowić próbę, wpisując „spróbuj ponownie”, lub doprecyzować polecenie.')}else if(!error.cancelled&&channel!=='main')toast(error.message||'Błąd rozpoznawania')}}
-async function startPlannerRecording(channel,makeSession){if(plannerSchedulePending?.channel===channel)plannerSchedulePending.cancel();const old=plannerRecordings[channel];if(old){if(old.mode==='ready')return sendPlannerRecording(channel,old);if(old.mode==='recording'){old.sendRequested=true;stopRecordingTimers(old);old.recorder.stop()}return}if(voiceDialogues[channel]?.busy)return;const session=makeSession();if(!session)return;const state={session,chunks:[],mode:'opening',cancelled:false,sendRequested:false};plannerRecordings[channel]=state;const u=recordingUi[channel];$(u.hint).textContent=channel==='main'?'':'Uruchamiam mikrofon…';$(u.cancel).classList.remove('hidden');try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});if(state.cancelled||plannerRecordings[channel]!==state||!voiceDialogueValid(session)){state.stream.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state)cancelPlannerRecording(channel);return}const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));state.recorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);state.recorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};state.recorder.onstart=()=>{state.mode='recording';state.deadline=Date.now()+RECORDING_SECONDS*1000;$(u.button).classList.add('recording');$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.count).textContent=RECORDING_SECONDS;$(u.hint).textContent=channel==='main'?'':'🔴 Nagrywanie — naciśnij Wyślij, gdy skończysz';const finish=()=>{if(state.mode==='recording'&&state.recorder.state==='recording'){stopRecordingTimers(state);state.recorder.stop()}};state.timer=setInterval(()=>{const seconds=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));$(u.count).textContent=seconds;if(!seconds)finish()},1000);state.timeout=setTimeout(finish,RECORDING_SECONDS*1000)};state.recorder.onstop=async()=>{stopRecordingTimers(state);state.stream.getTracks().forEach(t=>t.stop());if(state.cancelled||plannerRecordings[channel]!==state)return;$(u.button).classList.remove('recording');$(u.count).textContent='';if(!state.chunks.length){cancelPlannerRecording(channel);return}state.mode='ready';$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.cancel).classList.remove('hidden');$(u.hint).textContent=channel==='main'?'':'Nagranie gotowe. Naciśnij Wyślij albo Skasuj.';if(state.sendRequested)await sendPlannerRecording(channel,state)};state.recorder.start()}catch(error){state.stream?.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state){plannerRecordings[channel]=null;resetRecordingUi(channel);$(u.hint).textContent='Nie udało się uruchomić mikrofonu';toast(error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':error.name==='NotFoundError'?'Nie znaleziono mikrofonu.':typeof MediaRecorder==='undefined'?'Ta przeglądarka nie obsługuje nagrywania.':'Nie udało się rozpocząć nagrania. Sprawdź, czy mikrofon nie jest zajęty.')}}}
+async function startPlannerRecording(channel,makeSession){if(plannerSchedulePending?.channel===channel)plannerSchedulePending.cancel();const old=plannerRecordings[channel];if(old){if(old.mode==='ready')return sendPlannerRecording(channel,old);if(old.mode==='recording'){old.sendRequested=true;stopRecordingTimers(old);old.recorder.stop()}return}if(voiceDialogues[channel]?.busy)return;const session=makeSession();if(!session)return;const state={session,chunks:[],mode:'opening',cancelled:false,sendRequested:false};plannerRecordings[channel]=state;const u=recordingUi[channel];$(u.hint).textContent=channel==='main'?'':'Uruchamiam mikrofon…';$(u.cancel).classList.remove('hidden');try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});if(state.cancelled||plannerRecordings[channel]!==state||!voiceDialogueValid(session)){state.stream.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state)cancelPlannerRecording(channel);return}const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(type=>MediaRecorder.isTypeSupported(type));state.recorder=new MediaRecorder(state.stream,mime?{mimeType:mime}:undefined);state.recorder.ondataavailable=e=>{if(!state.cancelled&&e.data?.size)state.chunks.push(e.data)};state.recorder.onstart=()=>{state.mode='recording';state.deadline=Date.now()+RECORDING_SECONDS*1000;if(channel!=='idea'&&!state.cancelled)octiRecordingFeedback(channel,state);$(u.button).classList.add('recording');$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.count).textContent=RECORDING_SECONDS;$(u.hint).textContent=channel==='main'?'':'🔴 Nagrywanie — naciśnij Wyślij, gdy skończysz';const finish=()=>{if(state.mode==='recording'&&state.recorder.state==='recording'){stopRecordingTimers(state);state.recorder.stop()}};state.timer=setInterval(()=>{const seconds=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));$(u.count).textContent=seconds;if(!seconds)finish()},1000);state.timeout=setTimeout(finish,RECORDING_SECONDS*1000)};state.recorder.onstop=async()=>{stopRecordingTimers(state);state.stream.getTracks().forEach(t=>t.stop());if(state.cancelled||plannerRecordings[channel]!==state)return;$(u.button).classList.remove('recording');$(u.count).textContent='';if(!state.chunks.length){cancelPlannerRecording(channel);return}state.mode='ready';$(u.button).textContent='Wyślij';if(channel==='idea'){$(u.button).classList.add('entry-send');$(u.button).setAttribute('aria-label','Zatrzymaj i wyślij polecenie głosowe')}$(u.cancel).classList.remove('hidden');$(u.hint).textContent=channel==='main'?'':'Nagranie gotowe. Naciśnij Wyślij albo Skasuj.';if(state.sendRequested)await sendPlannerRecording(channel,state)};state.recorder.start()}catch(error){state.stream?.getTracks().forEach(t=>t.stop());if(plannerRecordings[channel]===state){plannerRecordings[channel]=null;resetRecordingUi(channel);$(u.hint).textContent='Nie udało się uruchomić mikrofonu';toast(error.name==='NotAllowedError'?'Zezwól na dostęp do mikrofonu.':error.name==='NotFoundError'?'Nie znaleziono mikrofonu.':typeof MediaRecorder==='undefined'?'Ta przeglądarka nie obsługuje nagrywania.':'Nie udało się rozpocząć nagrania. Sprawdź, czy mikrofon nie jest zajęty.')}}}
 function startVoiceRecording(isCorrection=false){if(memoSession){toast('Najpierw zapisz lub anuluj nagranie.');return}return startPlannerRecording('main',()=>beginVoiceDialogue('main',null,isCorrection||pendingVoiceItem?pendingVoiceItem:null))}
 function cancelVoiceRecording(){cancelPlannerRecording('main')}
 $("voice").onclick=()=>startVoiceRecording(false);$("recordCancel").onclick=cancelVoiceRecording;$("correctVoice").onclick=()=>{if(pendingVoiceItem)startVoiceRecording(true)};
@@ -6335,6 +6384,11 @@ window.OktiEventMotion=(()=>{
  .octi-dock .water-float{animation:none!important;transform:none}
  .octi-dock .octi-motion-media,.octi-dock .octi-listening-media{translate:0 0}
 }
+.octi-dock .octi-recording-arc{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}
+.octi-dock .octi-recording-bars{position:absolute;left:50%;top:50%;width:125%;height:125%;transform:translate(-50%,-50%);pointer-events:none;opacity:0}
+.octi-recording-bars i{position:absolute;top:40.05%;height:5.35%;width:1.07%;left:45.8%;background:white;border-radius:100px}
+.octi-recording-bars i:nth-child(2){left:49.47%;top:38.5%;height:8.3%}
+.octi-recording-bars i:nth-child(3){left:53.15%}
 </style>
 <script src="event-delete.js?v=252559d65ddfea7b"></script>
 <script src="device-permissions.js?v=6862ddc083a8bb9d"></script>
