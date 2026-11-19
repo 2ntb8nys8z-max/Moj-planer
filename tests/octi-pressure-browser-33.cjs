@@ -199,7 +199,7 @@ function assertFastReturn(result){
      navigator.mediaDevices.getUserMedia=async()=>{
       const context=new AudioContext(),output=context.createMediaStreamDestination();
       const oscillator=context.createOscillator(),gain=context.createGain();
-      gain.gain.value=0;oscillator.connect(gain);gain.connect(output);oscillator.start();
+      gain.gain.value=window.speakImmediately ? .22 : 0;oscillator.connect(gain);gain.connect(output);oscillator.start();
       window.recordingProbe={context,gain};context.resume().catch(()=>{});return output.stream;
      };
     });
@@ -216,16 +216,29 @@ function assertFastReturn(result){
      return covered;
     });
     const full=await coverage();assert.ok(full>500);
+    // During an otherwise silent recording the invitation rises and settles once.
+    await page.waitForFunction(()=>{
+     const value=Number(document.querySelector('.octi-recording-bars i')?.style.transform.match(/scaleY\(([^)]+)\)/)?.[1]);
+     return value<.39;
+    },null,{timeout:2500});
     await page.evaluate(()=>recordingProbe.gain.gain.value=.22);
-    await page.waitForFunction(()=>Number(document.querySelector('.octi-recording-bars')?.style.opacity)>.8);
+    await page.waitForFunction(()=>parseFloat(document.querySelector('.octi-recording-bars i')?.style.transform.slice(7))>1.3);
     await page.evaluate(()=>recordingProbe.gain.gain.value=0);
-    await page.waitForFunction(()=>Number(document.querySelector('.octi-recording-bars')?.style.opacity)<.1);
+    await page.waitForFunction(()=>parseFloat(document.querySelector('.octi-recording-bars i')?.style.transform.slice(7))<.4);
     await page.evaluate(()=>plannerRecordings.main.deadline=Date.now()+12500);
     await page.waitForTimeout(200);const half=await coverage();assert.ok(half>full*.39&&half<full*.62);
     await page.evaluate(()=>cancelPlannerRecording('main'));await arc.waitFor({state:'detached'});
     assert.equal(await page.locator('.octi-recording-bars').count(),0);
     await page.evaluate(()=>recordingProbe.context.close());
-    console.log(kind+': microphone level, pause, half-time arc and cancellation passed.');
+    await page.evaluate(()=>window.speakImmediately=true);
+    await page.locator('.octi-dock[data-channel=main] .voice').click();
+    await arc.waitFor();
+    await page.waitForFunction(()=>parseFloat(document.querySelector('.octi-recording-bars i')?.style.transform.slice(7))>1.3);
+    await page.waitForTimeout(1150);
+    assert.ok(await page.locator('.octi-recording-bars i').first().evaluate(bar=>parseFloat(bar.style.transform.slice(7))>1.3),'Speech continues after the invitation');
+    await page.evaluate(()=>cancelPlannerRecording('main'));await arc.waitFor({state:'detached'});
+    await page.evaluate(()=>recordingProbe.context.close());
+    console.log(kind+': listening invitation, quiet rest, continuing speech, half-time arc and cancellation passed.');
    }finally{await page.close()}
   }
   for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
