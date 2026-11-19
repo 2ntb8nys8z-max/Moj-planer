@@ -22,6 +22,13 @@ try{
  await wait(()=>o('shoppingOwner'));
  o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['mleko','chleb','ser']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingCreateShared').click()");
  await wait(()=>o('shoppingCreated'));
+ const installed=page('index.html','');
+ installed("ideas=[normalizeIdea({text:'Moje dotychczasowe zakupy',list:{type:'shopping',items:['masło']}})];saveIdeas();window.closeCount=0;document.body.append(shoppingDeviceActivation(()=>++window.closeCount));window.prompt=()=>location.href.replace(/#.*$/,'')+'#lista-roberta=test-only-shopping-owner';$('shoppingActivateDevice').click()");
+ await wait(()=>installed('shoppingOwner && window.closeCount===1'));
+ assert.equal(installed("$('shoppingCreateShared').hidden"),false);
+ assert.match(installed("$('shoppingSummaryRows').textContent"),/masło/);
+ assert.equal(installed("shoppingStore('id')"),null);
+ assert.equal(installed("$('shoppingActivateDevice').hidden"),true);
  const id=o("shoppingStore('id')"), g=page('wspolne-zakupy.html','#'+id);
  await wait(()=>g('revision')===1);
  g("identity.showModal=()=>{};document.querySelector('#pending button').click();nick.value='Jaga';identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.353</title>
+<title>Mój Planer — test integracji 33.354</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.353</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.353</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.353-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.354</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.354</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.354-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.353-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.354-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2068,21 +2068,45 @@ async function syncSharedShopping(){
   }catch(e){$('shoppingShareStatus').textContent=e.status===409?'Aktualizowanie listy…':'Wspólna lista: '+e.message}
   finally{shoppingSyncBusy=false;if(shoppingSyncAgain){shoppingSyncAgain=false;queueMicrotask(syncSharedShopping)}}
 }
-async function setupShoppingOwner(){
+async function setupShoppingOwner(pastedToken){
   const activation=new URLSearchParams(location.hash.slice(1)).get('lista-roberta');
-  const token=activation||shoppingStore('owner');
+  const token=pastedToken||activation||shoppingStore('owner');
   if(!token)return;
   try{
     const result=await shoppingRequest('owner',{},token);
     if(!result.owner)return;
     saveShopping('owner',token);
     if(activation)history.replaceState(null,'',location.pathname+location.search);
-    shoppingOwner=true;shoppingCreated=!!shoppingStore('base');shoppingOwnerButtons();
+    const alreadyActive=shoppingOwner;
+    shoppingOwner=true;
+    const activateButton=$('shoppingActivateDevice');
+    if(activateButton)activateButton.hidden=true;
+    shoppingCreated=!!shoppingStore('base');shoppingOwnerButtons();
     if(activation&&!shoppingSummary)openShoppingSummary();
+    if(alreadyActive)return true;
     syncSharedShopping();
     setInterval(()=>{if(!document.hidden)syncSharedShopping()},4000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncSharedShopping()});
-  }catch(e){if(activation)toast('Nie udało się włączyć wspólnej listy. '+e.message)}
+    return true;
+  }catch(e){if(pastedToken)throw e;if(activation)toast('Nie udało się włączyć wspólnej listy. '+e.message)}
+}
+function shoppingDeviceActivation(closeSettings){
+  const button=document.createElement('button');
+  button.type='button';button.id='shoppingActivateDevice';button.className='secondary';
+  button.textContent='Wklej link aktywacyjny';button.hidden=shoppingOwner;
+  button.onclick=async()=>{
+    const value=window.prompt('Wklej prywatny link aktywacyjny z rozmowy o Okti.');
+    if(!value?.trim())return;
+    try{
+      const url=new URL(value.trim());
+      const key=new URLSearchParams(url.hash.slice(1)).get('lista-roberta');
+      if(url.origin!==location.origin||!key||!/^[-_A-Za-z0-9]{20,128}$/.test(key))throw Error('Wybierz prywatny link aktywacyjny Roberta.');
+      button.disabled=true;
+      if(await setupShoppingOwner(key)){closeSettings();openShoppingSummary()}
+    }catch(e){window.alert('Aktywacja nie powiodła się. '+e.message)}
+    finally{button.disabled=false}
+  };
+  return button;
 }
 async function sendShoppingLink(){
   const url=new URL('wspolne-zakupy.html',location.href);
@@ -3197,6 +3221,7 @@ function initializePhoneSkin(){
  document.body.classList.add('phone-layout');const app=document.querySelector('.app'),header=document.createElement('header');header.className='phone-header';app.prepend(header);header.append(app.querySelector('h1'));header.querySelector('h1').textContent='Mój Planer';
  const settings=document.createElement('details');settings.className='phone-settings';settings.innerHTML='<summary>Ustawienia, synchronizacja i kopie danych</summary>';settings.open=true;const settingsModal=document.createElement('dialog');settingsModal.id='phoneSettingsModal';settingsModal.className='modal-backdrop hidden';settingsModal.setAttribute('role','dialog');settingsModal.setAttribute('aria-modal','true');settingsModal.setAttribute('aria-labelledby','phoneSettingsTitle');settingsModal.innerHTML='<section class="phone-settings-sheet"><header><h2 id="phoneSettingsTitle">Ustawienia i narzędzia</h2><button type="button" aria-label="Zamknij ustawienia">×</button></header></section>';settingsModal.firstChild.append(settings);document.body.append(settingsModal);let settingsFocus=null;function closeSettings(){if(settingsModal.open){if(typeof settingsModal.close==='function')settingsModal.close();else settingsModal.removeAttribute('open');}settingsModal.classList.add('hidden');app.inert=false;document.body.classList.remove('entry-open');settingsFocus?.focus()}function openSettings(){settingsFocus=document.activeElement;settingsModal.classList.remove('hidden');if(!settingsModal.open){if(typeof settingsModal.showModal==='function')settingsModal.showModal();else settingsModal.setAttribute('open','');}app.inert=true;document.body.classList.add('entry-open');settingsModal.querySelector('header button').focus()}settingsModal.addEventListener('cancel',event=>{event.preventDefault();closeSettings()});settingsModal.querySelector('header button').onclick=closeSettings;settingsModal.onclick=e=>{if(e.target===settingsModal)closeSettings()};document.addEventListener('keydown',e=>{if(settingsModal.classList.contains('hidden'))return;if(e.key==='Escape'){e.preventDefault();closeSettings()}if(e.key==='Tab'){const nodes=[...settingsModal.querySelectorAll('button:not(:disabled),input:not(:disabled),select,textarea,a[href]')].filter(n=>!n.closest('.hidden')&&n.getClientRects().length);const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}});
  const gear=entryButton('⚙',openSettings,'phone-settings-button');gear.setAttribute('aria-label','Ustawienia');gear.textContent='⚙︎';
+ const shoppingActivation=shoppingDeviceActivation(closeSettings);settings.append(shoppingActivation);
  const planSettings=document.createElement('section');planSettings.className='card';planSettings.innerHTML='<h2>Widok planu dnia</h2><label style="display:flex;align-items:center;gap:12px;font-size:16px;color:inherit"><input id="showFreeTime" type="checkbox" style="width:auto">Pokazuj wolny czas</label>';settings.prepend(planSettings);
  const actorOptions=document.createElement('fieldset');actorOptions.className='route-actor-options';
  actorOptions.innerHTML='<legend>Postać przy dojeździe</legend><label><input type="radio" name="routeActor" value="hiker">Chłopiec</label><label><input type="radio" name="routeActor" value="dancer">Dziewczynka</label>';
