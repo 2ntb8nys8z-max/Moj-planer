@@ -194,11 +194,16 @@ function assertFastReturn(result){
       const context=new AudioContext(),output=context.createMediaStreamDestination();
       const oscillator=context.createOscillator(),gain=context.createGain();
       gain.gain.value=0;oscillator.connect(gain);gain.connect(output);oscillator.start();
-      window.recordingProbe={context,gain};await context.resume();return output.stream;
+      window.recordingProbe={context,gain};context.resume().catch(()=>{});return output.stream;
      };
     });
     await page.locator('.octi-dock[data-channel=main] .voice').click();
-    const arc=page.locator('.octi-recording-arc');await arc.waitFor();
+    const arc=page.locator('.octi-recording-arc');
+    try{await arc.waitFor()}catch(error){
+     console.error('Recorder fixture:',await page.evaluate(()=>({mode:plannerRecordings.main?.mode,
+      hint:document.querySelector('#voiceHint').textContent,toast:document.querySelector('#toast').textContent,
+      recorder:typeof MediaRecorder,probe:window.recordingProbe?.context.state})));throw error;
+    }
     const coverage=()=>arc.evaluate(canvas=>{
      const bytes=canvas.getContext('2d').getImageData(0,0,256,256).data;
      let covered=0;for(let i=3;i<bytes.length;i+=4)if(bytes[i]>80)covered++;
