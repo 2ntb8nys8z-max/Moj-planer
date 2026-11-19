@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.350-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.351-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -311,7 +311,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.350-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.351-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1802,40 +1802,52 @@ async function shoppingPaperSnapshot(includeData){
     return {texture,backTexture,pad,center,angle:Math.atan2(finalMatrix.b,finalMatrix.a),width:w+pad*2,height:h+pad*2,left:bounds.left-pad,top:bounds.top-pad,ratio,includesData:includeData};
   }finally{sheet.classList.remove('shopping-paper-measuring')}
 }
-// The same continuous scroll as the approved Rive prototype, sized to live content.
-// Back and front share one surface; the last turn opens from left to right.
-function shoppingPaperFlat(u,progress,height){
-  const frame=24+156*Math.max(0,Math.min(1,progress)),initial=height*78/530,remaining=height*150/530;
-  let flat;
-  if(frame<=96){const t=Math.max(0,(frame-24)/72);flat=(2*t**3-3*t*t+1)*initial+(-2*t**3+3*t*t)*(height-remaining)+(t**3-t*t)*(remaining/150*216)}
-  else{const duration=48+36*Math.max(0,Math.min(1,u)),t=Math.min(1,(frame-96)/duration);flat=(2*t**3-3*t*t+1)*(height-remaining)+(t**3-2*t*t+t)*(remaining/150*3*duration)+(-2*t**3+3*t*t)*height}
-  return flat+(u-.5)*height*10/530*(height-flat)/(height-initial);
-}
+// Bend both edges of the live shopping sheet along arcs of constant paper length.
+const shoppingTossDuration=850;
+const shoppingPaperGrid={cols:48,rows:28};
 function shoppingPaperMesh(snapshot,progress,closing,anchor){
-  const {width:w,height:h,left,top,pad=24}=snapshot,points=[],cols=snapshot.fallback?8:16,rows=snapshot.fallback?72:144,W=w-2*pad,H=h-2*pad;
-  const travel=closing?shoppingPaperEase(progress):1-Math.pow(1-Math.min(1,progress*156/120/.56),3),scale=closing?1-.93*travel:.12+.88*travel;
-  const start=snapshot.center||{x:left+w/2,y:top+h/2},finalAngle=snapshot.angle??(-.35*Math.PI/180),initialY=anchor.y+(H/2-H*78/530)*.12;
-  const cx=closing?start.x+(anchor.x-start.x)*travel-Math.sin(progress*Math.PI)*w*.035:anchor.x+(start.x-anchor.x)*travel-Math.sin(travel*Math.PI)*W*9/350;
-  const cy=closing?start.y+(anchor.y-start.y)*travel-Math.sin(progress*Math.PI)*h*.02:initialY+(start.y-initialY)*travel;
-  const angle=closing?finalAngle+9*Math.sin(progress*Math.PI/2)*Math.PI/180:-.20*(1-travel)+finalAngle*travel+.035*Math.sin(Math.min(1,progress*156/120)*Math.PI)*(1-Math.min(1,progress*156/120));
+  const {width:w,height:h,left,top,pad=24}=snapshot;
+  const W=w-2*pad,H=h-2*pad,points=[];
+  const {cols,rows}=snapshot.fallback?{cols:24,rows:12}:shoppingPaperGrid;
+  const center=snapshot.center||{x:left+w/2,y:top+h/2};
+  const t=progress*shoppingTossDuration/1000;
+  const flight=Math.max(0,1-t/.46)**2;
+  const travel=shoppingPaperEase(progress),wave=Math.sin(progress*Math.PI);
+  const cx=closing?center.x+(anchor.x-center.x)*travel-wave*w*.035:center.x-(center.x+w*.52)*flight;
+  const cy=closing?center.y+(anchor.y-center.y)*travel-wave*h*.02:center.y+W*.2575*flight;
+  const angle=(snapshot.angle??(-.35*Math.PI/180))+(closing?9*Math.sin(progress*Math.PI/2):-7.2*flight)*Math.PI/180;
+  const scale=closing?1-.93*travel:1,cos=Math.cos(angle),sin=Math.sin(angle);
   for(let col=0;col<=cols;col++){
-    const u=col/cols,paperU=Math.max(0,Math.min(1,(u*w-pad)/W)),flat=shoppingPaperFlat(paperU,progress,H);
+    const u=col/cols;
     for(let row=0;row<=rows;row++){
-      const v=row/rows,s=v*h-pad,core=Math.max(0,Math.min(H,s));let y=core-H/2,z=0,bend=0;
-      if(!closing&&core>flat){
-        const radius0=W*24/350,tightness=W*.20/350,length=core-flat;
-        bend=(radius0-Math.sqrt(Math.max(.01,radius0**2-2*tightness*length)))/tightness;
-        const radius=radius0-tightness*bend;y=flat+radius*Math.sin(bend)-H/2;z=radius0-radius*Math.cos(bend);
+      const v=row/rows;
+      let x=(u-.5)*w,y=(v-.5)*h,z=0,light=1;
+      if(closing){
+        x+=Math.sin(v*Math.PI)*wave*w*.055;
+        y+=Math.sin(u*Math.PI)*wave*w*.035;
+        z=Math.sin(v*Math.PI)*wave*w*.13;
+        const perspective=1+z/Math.max(1200,h*3);
+        x*=perspective;y*=perspective;light-=wave*.025;
+      }else{
+        const vertical=Math.max(0,Math.min(1,(v*h-pad)/H));
+        const right=x>=0;
+        const width=W*(right ? .25+.06*(1-vertical) : .29+.05*vertical);
+        const distance=Math.max(0,Math.abs(x)-(W/2-width));
+        const settle=Math.max(0,Math.min(1,(t-.19-.32*(1-vertical)**1.2)/.32));
+        const trailing=Math.max(0,Math.min(1,(t-.12-.13*(1-vertical))/.46));
+        const curvature=right?(1.88+.60*(1-vertical))*(1-settle*settle*(3-2*settle)):(1.05+.28*vertical)*Math.sin(Math.PI*trailing)**2;
+        if(distance>0&&curvature>.00001){
+          const radius=width/curvature,bend=Math.min(distance,width)/radius;
+          const margin=Math.max(0,distance-width);
+          x+=(right?1:-1)*(radius*Math.sin(bend)+margin*Math.cos(bend)-distance);
+          z=radius*(1-Math.cos(bend))+margin*Math.sin(bend);
+          light+=.07*Math.sin((right?1:-1)*2*bend)-.075*(1-Math.cos(bend));
+        }
       }
-      // Extend only the transparent shadow margin along the end tangent.
-      y+=(s-core)*Math.cos(bend);z+=(s-core)*Math.sin(bend);
-      let x=(u-.5)*w;
-      if(closing){x+=Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.055;y=(v-.5)*h+Math.sin(u*Math.PI)*Math.sin(progress*Math.PI)*w*.035;z=Math.sin(v*Math.PI)*Math.sin(progress*Math.PI)*w*.13;x*=1+z/Math.max(1200,h*3);y*=1+z/Math.max(1200,h*3)}
-      else{x*=1+z/Math.max(1200,W*6);y-=z*.15}
-      points.push({x:cx+(x*Math.cos(angle)-y*Math.sin(angle))*scale,y:cy+(x*Math.sin(angle)+y*Math.cos(angle))*scale,z,light:closing?1-Math.sin(progress*Math.PI)*.025:1-.32*(1-Math.abs(Math.cos(bend))),u,v});
+      points.push({x:cx+(x*cos-y*sin)*scale,y:cy+(x*sin+y*cos)*scale-(closing?0:.56*z),z,light,u,v});
     }
   }
-  return {points,cols,rows,scale,cx,cy,unfold:progress};
+  return {points,cols,rows,scale,cx,cy};
 }
 function drawShoppingPaperTriangle(ctx,texture,source,target){
   const [a,b,c]=source,[p,q,r]=target,det=(b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);if(Math.abs(det)<.001)return;
@@ -1862,7 +1874,7 @@ function prepareShoppingPaperGL(canvas,snapshot){
       const texture=gl.createTexture();textures.push(texture);gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,i?'back':'front'),i);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12],['lighting',1,20]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,24,offset)}
-    const cols=16,rows=144,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
+    const {cols,rows}=shoppingPaperGrid,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.frontFace(gl.CW);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     const data=new Float32Array((cols+1)*(rows+1)*6);
     return {draw(mesh,opacity){
@@ -1871,7 +1883,20 @@ function prepareShoppingPaperGL(canvas,snapshot){
   }catch(error){dispose();throw error}
 }
 function drawShoppingPaper(motion,progress){
-  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;if(motion.gpu){motion.gpu.draw(mesh,opacity);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);ctx.globalAlpha=opacity;
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;
+  if(!closing){
+    const lift=(1-progress)**2;
+    canvas.style.filter=progress===1?'none':`drop-shadow(2px ${2+18*lift}px ${2+9*lift}px rgba(45,35,29,${.25*(1-progress)}))`;
+  }
+  if(motion.gpu){motion.gpu.draw(mesh,opacity);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);ctx.globalAlpha=opacity;
+  if(!closing&&progress===1){
+    ctx.save();
+    ctx.translate(mesh.cx,mesh.cy);
+    ctx.rotate(snapshot.angle??(-.35*Math.PI/180));
+    ctx.drawImage(snapshot.texture,-snapshot.width/2,-snapshot.height/2,snapshot.width,snapshot.height);
+    ctx.restore();
+    return;
+  }
   const {points,cols,rows}=mesh,source=p=>({x:p.u*snapshot.texture.width,y:p.v*snapshot.texture.height}),triangles=[];
   for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
     const a=points[col*(rows+1)+row],b=points[(col+1)*(rows+1)+row],c=points[(col+1)*(rows+1)+row+1],d=points[col*(rows+1)+row+1];triangles.push([a,b,c],[a,c,d]);
@@ -1896,7 +1921,7 @@ function startShoppingPaper(closing=false){
     motion.snapshot=snapshot;const canvas=document.createElement('canvas');canvas.className='shopping-paper-canvas';canvas.setAttribute('aria-hidden','true');motion.canvas=canvas;motion.dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.ceil(innerWidth*motion.dpr);canvas.height=Math.ceil(innerHeight*motion.dpr);modal.querySelector('.shopping-paper-stage').append(canvas);
     try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot)}catch{const replacement=canvas.cloneNode();canvas.replaceWith(replacement);motion.canvas=replacement}
     snapshot.fallback=!motion.gpu;
-    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:2600;motion.canvas.addEventListener('webglcontextlost',motion.resize);
+    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:shoppingTossDuration;motion.canvas.addEventListener('webglcontextlost',motion.resize);
     const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');motion.canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
   }).catch(()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()});
 }
