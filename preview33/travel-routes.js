@@ -247,18 +247,17 @@
   const cards=[...timeline.querySelectorAll('.phone-event')].map(node=>({node,task:tasks.find(task=>String(task.id)===node.dataset.eventId)})).filter(item=>item.task).sort((a,b)=>phoneMinutes(a.task.time)-phoneMinutes(b.task.time));
   for(const card of cards){const copy=card.node.nextElementSibling;copy?.classList.remove('has-inline-route');copy?.removeAttribute('data-route-layout');const clock=copy?.querySelector?.('.phone-event-time');if(clock)clock.style.maxWidth=''}
   const located=cards.filter(card=>plannerLocation(card.task)),bounds=timeline.getBoundingClientRect();let menuTrigger=null;
-  const now=new Date(),todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  const first=located[0],usePhone=first && new Date(first.task.date+'T00:00')>=todayStart;
-  const weather=usePhone&&window.OktiLocalWeather?.snapshot(),fix=weather?.place;
+  const now=new Date(),upcoming=located.find(card=>new Date(card.task.date+'T'+card.task.time)>now);
+  const weather=upcoming&&window.OktiLocalWeather?.snapshot(),fix=weather?.place;
   const fresh=weather?.enabled && Number.isFinite(fix?.latitude) && Number.isFinite(fix?.longitude) && Date.now()-fix.checkedAt<900000;
   const device={task:{id:'@device',title:'Moja lokalizacja',location:fresh?fix.latitude+','+fix.longitude:'',deviceOrigin:fresh?{latitude:fix.latitude,longitude:fix.longitude}:null}};
-  if(usePhone && weather?.enabled && !fresh && !weather.busy && !weather.error)window.OktiLocalWeather.refresh();
+  if(upcoming && weather?.enabled && !fresh && !weather.busy && !weather.error)window.OktiLocalWeather.refresh();
   for(let i=0;i<located.length;i++){
-   const b=located[i],firstTrip=usePhone && i===0,a=firstTrip?device:located[i-1];
+   const b=located[i],firstTrip=b===upcoming,a=firstTrip?device:located[i-1];
    if(!a || (!firstTrip && plannerLocationKey(plannerLocation(a.task))===plannerLocationKey(plannerLocation(b.task))))continue;
    const needsFix=firstTrip&&!fresh,key=pairKey(a.task,b.task),mode=saved[key] in icons?saved[key]:'drive',state=routes.get(cacheKey(key,mode,a.task,b.task));
    if(state?.hidden)continue;
-   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=firstTrip?(new Date(b.task.date+'T'+b.task.time)-now)/60000:availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=needsFix?!!weather?.busy:!state||state.pending,label=needsFix?(weather?.busy?'Ustalam…':weather?.enabled?'Odśwież GPS':'Włącz GPS'):ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready&&firstTrip&&gap<=0?'safe':ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
+   const rect=b.node.getBoundingClientRect();if(rect.width<44)continue;const layout=rect.width>=220?'wide':rect.width>=105?'narrow':'compact',gap=firstTrip?(new Date(b.task.date+'T'+b.task.time)-now)/60000:availableGap(a.task,b.task,cards.map(card=>card.task)),ready=Number.isFinite(state?.minutes),busy=needsFix?!!weather?.busy:!state||state.pending,label=needsFix?(weather?.busy?'Ustalam…':weather?.enabled?'Odśwież GPS':'Włącz GPS'):ready?durationLabel(state.minutes):state?.error?'Brak trasy':'Liczymy…',risk=ready?(state.minutes>gap?'late':state.minutes+10>gap?'tight':'safe'):state?.error?'error':'tight';
    const controls=document.createElement('div');controls.className='okti-route-controls';controls.dataset.layout=layout;controls.dataset.destinationEventId=String(b.task.id);controls.dataset.risk=risk;
    const inset=Math.min(8,Math.max(0,(rect.width-44)/2)),controlWidth=layout==='wide'?Math.min(144,Math.max(96,rect.width-116)):layout==='compact'?Math.min(76,rect.width-inset*2):Math.min(104,rect.width-inset*2),controlHeight=layout==='compact'?74:44;
    controls.style.width=controlWidth+'px';controls.style.height=controlHeight+'px';controls.style.left=(rect.right-bounds.left-controlWidth-inset)+'px';controls.style.top=(rect.bottom-bounds.top-controlHeight-6)+'px';
