@@ -196,7 +196,8 @@
     refreshFocus(menu,true);
    };
    image.onload=()=>reveal(true);image.onerror=()=>reveal(false);
-   const actor=['hiker','dancer'][nextActor++%2];
+   const preference=window.PlannerData?.storage.getItem('okti-route-actor');
+   const actor=preference==='hiker'||preference==='dancer'?preference:['hiker','dancer'][nextActor++%2];
    image.src=new URL('assets/transport/'+actor+'-walk-v1.webp',iconBase).href;
   }
   document.body.append(layer);refreshFocus(menu,true);
