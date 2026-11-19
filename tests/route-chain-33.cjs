@@ -52,5 +52,17 @@ const until=async fn=>{for(let i=0;i<100;i++){if(fn())return;await new Promise(r
  weather={enabled:true,place:{latitude:51,longitude:20,checkedAt:Date.now()}};
  w.dispatchEvent(new w.Event('okti-local-weather'));
  await until(()=>firstLabel()==='Brak trasy');assert.deepEqual(requests.map(r=>r.origin),[{latitude:51,longitude:20}]);
+ // At 17:27 the completed 15:00 appointment still anchors the later journey.
+ const NativeDate=w.Date,instant=new NativeDate('2026-11-19T17:27:00').getTime();
+ w.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:[instant]))}static now(){return instant}};
+ w.tasks=[
+  {id:'tyres',title:'Wymiana opon',date:'2026-11-19',time:'15:00',endTime:'16:00',location:'Warsztat'},
+  {id:'shopping',title:'zakupy',date:'2026-11-19',time:'20:00',endTime:'21:00',location:'Sklep'}
+ ];
+ requests=[];weather.place.checkedAt=instant;
+ w.plannerApiRequest=async(path,options)=>{const body=JSON.parse(options.body);requests.push(body);return {route:{available:true,durationMinutes:body.destination==='Warsztat'?12:23}}};
+ render();await until(()=>d.querySelectorAll('.okti-route-duration:not(:disabled)').length===2);
+ assert.deepEqual(requests.map(r=>[r.origin,r.destination]),[[{latitude:51,longitude:20},'Warsztat'],['Warsztat','Sklep']]);
+ assert.deepEqual([...d.querySelectorAll('.okti-route-duration')].map(button=>[button.dataset.destinationEventId,button.textContent]),[['tyres','12 min'],['shopping','23 min']]);
  console.log('Travel focus: 320/390/430px, 1/2/3/4 columns, controls inside destination cards, separate duration, exact source/destination center line, four modes, inert/focus cleanup, late status and unchanged event data passed (simulated geometry/provider).');
 }finally{dom.window.close()}})().catch(e=>{console.error(e);process.exitCode=1});
