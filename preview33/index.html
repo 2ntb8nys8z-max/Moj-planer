@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.351</title>
+<title>Mój Planer — test integracji 33.352</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.351</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.351</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.351-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.352</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.352</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.19.33.352-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.351-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.19.33.352-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -1814,22 +1814,35 @@ function shoppingPaperMesh(snapshot,progress,closing,anchor){
   const center=snapshot.center||{x:left+w/2,y:top+h/2};
   const t=progress*shoppingTossDuration/1000;
   const flight=Math.max(0,1-t/.46)**2;
-  const travel=shoppingPaperEase(progress),wave=Math.sin(progress*Math.PI);
-  const cx=closing?center.x+(anchor.x-center.x)*travel-wave*w*.035:center.x-(center.x+w*.52)*flight;
-  const cy=closing?center.y+(anchor.y-center.y)*travel-wave*h*.02:center.y+W*.2575*flight;
-  const angle=(snapshot.angle??(-.35*Math.PI/180))+(closing?9*Math.sin(progress*Math.PI/2):-7.2*flight)*Math.PI/180;
-  const scale=closing?1-.93*travel:1,cos=Math.cos(angle),sin=Math.sin(angle);
+  // The wrist lifts the close corner around a pivot beside the lower left edge.
+  const travel=Math.max(0,(progress-.23)/.77);
+  const lift=shoppingPaperEase(progress/.29);
+  const turn=(5.8*shoppingPaperEase(progress/.46)+2*shoppingPaperEase((progress-.375)/.58))*Math.PI/180;
+  const pivotX=-.475*W,pivotY=.469*H;
+  const pivotShiftX=pivotX*(1-Math.cos(turn))+pivotY*Math.sin(turn);
+  const pivotShiftY=pivotY*(1-Math.cos(turn))-pivotX*Math.sin(turn);
+  const cx=closing?center.x+pivotShiftX+(innerWidth-center.x+w*.58)*travel**1.65:center.x-(center.x+w*.52)*flight;
+  const cy=closing?center.y+pivotShiftY-.06*W*travel:center.y+W*.2575*flight;
+  const angle=(snapshot.angle??(-.35*Math.PI/180))+(closing?turn:-7.2*flight*Math.PI/180);
+  const scale=1,cos=Math.cos(angle),sin=Math.sin(angle);
+  const ripple=shoppingPaperEase((progress-.27)/.19)*(1-shoppingPaperEase((progress-.71)/.29));
   for(let col=0;col<=cols;col++){
     const u=col/cols;
     for(let row=0;row<=rows;row++){
       const v=row/rows;
       let x=(u-.5)*w,y=(v-.5)*h,z=0,light=1;
       if(closing){
-        x+=Math.sin(v*Math.PI)*wave*w*.055;
-        y+=Math.sin(u*Math.PI)*wave*w*.035;
-        z=Math.sin(v*Math.PI)*wave*w*.13;
-        const perspective=1+z/Math.max(1200,h*3);
-        x*=perspective;y*=perspective;light-=wave*.025;
+        const across=.5+x/W,down=.5+y/H;
+        const corner=Math.max(0,Math.min(1,(across-.56*down-.46)/.54));
+        const bend=1.62*lift*corner;
+        if(lift>.00001){
+          const radius=.54*W/(1.62*lift);
+          x-=radius*(bend-Math.sin(bend));
+          z=radius*(1-Math.cos(bend));
+        }
+        const wavePosition=(across+.27*down-1.08+1.176*progress)/.26;
+        z+=.07*W*ripple*Math.exp(-(wavePosition**2));
+        light+=.07*Math.sin(2*bend)-.075*(1-Math.cos(bend));
       }else{
         const vertical=Math.max(0,Math.min(1,(v*h-pad)/H));
         const right=x>=0;
@@ -1846,7 +1859,7 @@ function shoppingPaperMesh(snapshot,progress,closing,anchor){
           light+=.07*Math.sin((right?1:-1)*2*bend)-.075*(1-Math.cos(bend));
         }
       }
-      points.push({x:cx+(x*cos-y*sin)*scale,y:cy+(x*sin+y*cos)*scale-(closing?0:.56*z),z,light,u,v});
+      points.push({x:cx+(x*cos-y*sin)*scale,y:cy+(x*sin+y*cos)*scale-(closing ? .62 : .56)*z,z,light,u,v});
     }
   }
   return {points,cols,rows,scale,cx,cy};
@@ -1885,7 +1898,7 @@ function prepareShoppingPaperGL(canvas,snapshot){
   }catch(error){dispose();throw error}
 }
 function drawShoppingPaper(motion,progress){
-  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=closing?1-shoppingPaperEase((progress-.76)/.24):1;motion.progress=progress;motion.mesh=mesh;
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=1;motion.progress=progress;motion.mesh=mesh;
   if(!closing){
     const lift=(1-progress)**2;
     canvas.style.filter=progress===1?'none':`drop-shadow(2px ${2+18*lift}px ${2+9*lift}px rgba(45,35,29,${.25*(1-progress)}))`;
@@ -1923,7 +1936,7 @@ function startShoppingPaper(closing=false){
     motion.snapshot=snapshot;const canvas=document.createElement('canvas');canvas.className='shopping-paper-canvas';canvas.setAttribute('aria-hidden','true');motion.canvas=canvas;motion.dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.ceil(innerWidth*motion.dpr);canvas.height=Math.ceil(innerHeight*motion.dpr);modal.querySelector('.shopping-paper-stage').append(canvas);
     try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot)}catch{const replacement=canvas.cloneNode();canvas.replaceWith(replacement);motion.canvas=replacement}
     snapshot.fallback=!motion.gpu;
-    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=closing?680:shoppingTossDuration;motion.canvas.addEventListener('webglcontextlost',motion.resize);
+    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=shoppingTossDuration;motion.canvas.addEventListener('webglcontextlost',motion.resize);
     const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');motion.canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
   }).catch(()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()});
 }
