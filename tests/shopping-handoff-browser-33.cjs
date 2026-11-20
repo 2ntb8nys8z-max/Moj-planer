@@ -55,7 +55,8 @@ async function checkGuestHandoff(page){
  assert.ok(pencil.width>=52 && Math.abs(pencil.x+pencil.width-foot.x-foot.width)<3);
  await page.getByRole('button',{name:'Dodaj produkt'}).click();
  await page.locator('#newProduct').fill('Jarmuż');
- await page.getByRole('button',{name:'Dodaj',exact:true}).click();
+ await page.getByRole('button',{name:'Dodaj produkt',exact:true}).click();
+ assert.equal(await page.locator('#newProduct').isHidden(),true);
  const ownRow=page.locator('.shopping-has-options').filter({has:page.getByRole('button',{name:'Opcje produktu: Jarmuż',exact:true})});
  await ownRow.locator('.item-name').click({force:true});
  await ownRow.locator('.shopping-item-trash').waitFor({state:'visible'});

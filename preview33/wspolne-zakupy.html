@@ -38,9 +38,9 @@ button,summary{-webkit-appearance:none;appearance:none;-webkit-user-select:none;
 @media(prefers-reduced-motion:reduce){.switch-track::after{transition:none}}
 #joinMessage:empty{display:none}
 #joinMessage:not(:empty){padding:10px 12px;border-radius:9px;background:#fff9ef;color:#253e55}
-#addProductForm label{display:block}#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
-#addProductForm button{min-height:44px;text-decoration:underline}
-#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f;font-size:17px;line-height:1.1}
+#addProductForm{width:100%;display:flex;align-items:center;gap:12px}
+#newProduct{flex:1;min-width:0;min-height:44px;padding:4px 2px;border:0;border-bottom:1px solid #869cb1;border-radius:0;background:transparent}
+#openAddProduct{display:grid;place-items:center;flex:none;margin-left:auto;padding:0;color:#28479f;font-size:17px;line-height:1.1}
 #addProductIcon{display:block;width:clamp(58px,16vw,68px);height:auto;transition:transform .14s ease}
 .shopping-foot{display:flex;justify-content:flex-end;margin-top:8px}
 summary{list-style:none;display:flex;align-items:center;gap:6px}
@@ -133,8 +133,11 @@ button.shopping-item-trash[hidden]{display:none}
   <button type="button" id="animationSounds" role="switch" aria-checked="true"><span class="switch-track" aria-hidden="true"></span>Dźwięki animacji</button>
 </form><p id="joinMessage" role="status"></p></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div>
-<form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
-<footer class="shopping-foot"><button id="openAddProduct" type="button" aria-label="Dodaj produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"><span>Dodaj</span></button></footer></main>
+<details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
+<footer class="shopping-foot"><form id="addProductForm" hidden>
+  <input id="newProduct" aria-label="Nazwa produktu" placeholder="Nazwa produktu" maxlength="160" enterkeyhint="done" autocomplete="off" hidden>
+  <button id="openAddProduct" type="submit" aria-label="Dodaj produkt" aria-controls="newProduct" aria-expanded="false"><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"><span>Dodaj</span></button>
+</form></footer></main>
 <p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
 <!-- Landing foley adapted from “Page Turn (1)” by OwlStorm / Ashe Kirk (CC0): https://freesound.org/people/OwlStorm/sounds/151220/ -->
 <audio id="flightSound" preload="auto" src="shopping-paper-turn.m4a"></audio>
@@ -583,8 +586,8 @@ async function request(action,data){
 function show(data,landingKey){
   let landing;
   if(data.revision<revision)return;
-  $('openAddProduct').hidden=!data.canAdd||!$('addProductForm').hidden;
-  if(!data.canAdd)$('addProductForm').hidden=true;
+  productForm.hidden=!data.canAdd;
+  if(productForm.hidden)resetProductEntry();
   const label=$('shoppingSharedLabel');
   if(data.shoppersLabel && label.textContent!==data.shoppersLabel)label.textContent=data.shoppersLabel;
   if(data.revision===revision)return;
@@ -713,7 +716,7 @@ async function displayInvite(){
   $('pending').replaceChildren();$('bought').replaceChildren();$('listTitle').textContent='Do kupienia';
   document.title='Wspólna lista zakupów · Okti';
   const form=$('joinForm'),submit=form.querySelector('[type=submit]');
-  $('addProductForm').hidden=true;$('newProduct').value='';
+  productForm.hidden=true;resetProductEntry();
   form.hidden=!invite;submit.disabled=true;
   $('joinMessage').textContent=invite?'':'Poproś osobę, która udostępnia listę, o link do zakupów.';
   if(!invite)return;
@@ -746,25 +749,46 @@ $('joinForm').onsubmit=async event=>{
   }finally{busy=false;button.disabled=false}
   if(!gated)await openSharedSheet();
 };
+const productForm=$('addProductForm'),productInput=$('newProduct'),addButton=$('openAddProduct');
 let pendingAddition=null;
-$('openAddProduct').onclick=()=>{$('openAddProduct').hidden=true;$('addProductForm').hidden=false;$('newProduct').focus()};
-$('cancelAddProduct').onclick=()=>{
-  $('newProduct').value='';pendingAddition=null;$('addProductForm').hidden=true;$('openAddProduct').hidden=false;$('openAddProduct').focus();
+function setProductEntry(open){
+  productInput.hidden=!open;
+  addButton.setAttribute('aria-expanded',String(open));
+}
+function resetProductEntry(){
+  setProductEntry(false);
+  productInput.value='';
+  pendingAddition=null;
+}
+document.addEventListener('pointerdown',event=>{
+  if(!productInput.hidden&&!productForm.contains(event.target))setProductEntry(false);
+});
+window.addEventListener('pagehide',()=>setProductEntry(false));
+productInput.onkeydown=event=>{
+  if(event.key==='Escape'){
+    event.preventDefault();resetProductEntry();addButton.focus();
+  }
 };
-$('addProductForm').onsubmit=async event=>{
+productForm.onsubmit=async event=>{
   event.preventDefault();
-  const input=$('newProduct'),text=input.value.trim(),submit=$('addProductForm').querySelector('button');
-  if(!text||busy||gated)return;
+  if(busy||gated||productForm.hidden)return;
+  if(productInput.hidden){
+    setProductEntry(true);productInput.focus();return;
+  }
+  const text=productInput.value.trim();
+  if(!text){resetProductEntry();addButton.focus();return}
   if(!pendingAddition||pendingAddition.text!==text)pendingAddition={text,itemId:crypto.randomUUID()};
-  busy=true;submit.disabled=input.disabled=$('cancelAddProduct').disabled=true;
+  busy=true;addButton.disabled=productInput.disabled=true;
   try{
     const data=await request('add',pendingAddition);
-    $('addProductForm').hidden=true;input.value='';pendingAddition=null;show(data);fitPurchased();
-    $('status').textContent='Dodano produkt.';$('openAddProduct').focus();
-  }catch(e){if(e.status===403)await displayInvite();else $('status').textContent=e.message}
-  finally{busy=false;submit.disabled=input.disabled=$('cancelAddProduct').disabled=false}
-};
-async function startGuest(){
+    resetProductEntry();show(data);fitPurchased();
+    $('status').textContent='Dodano produkt.';
+  }catch(e){
+    if(e.status===403)await displayInvite();else $('status').textContent=e.message;
+    return;
+  }finally{busy=false;addButton.disabled=productInput.disabled=false}
+  if(!productForm.hidden)addButton.focus({preventScroll:true});
+};async function startGuest(){
   if(invite){
     if(!person.actor){await displayInvite();return}
     try{

@@ -162,7 +162,15 @@ try{
  assert.equal(returning("$('flightSound').muted"),true);
  await assert.rejects(forwarded("request('read',{})"),e=>e.status===403);
  await assert.rejects(forwarded("request('mark',{...person,keys:[],done:true,revision})"),e=>e.status===403);
- assert.equal(zosia("$('openAddProduct').hidden"),false);
+ assert.equal(zosia("$('addProductForm').hidden"),false);
+ assert.equal(zosia("$('newProduct').hidden"),true);
+ zosia("$('openAddProduct').click()");
+ assert.equal(zosia("$('newProduct').hidden"),false);
+ assert.equal(zosia("$('openAddProduct').closest('[hidden]')"),null);
+ await zosia('refresh()');
+ assert.equal(zosia("$('newProduct').hidden"),false);
+ zosia("$('openAddProduct').click()");
+ assert.equal(zosia("$('newProduct').hidden"),true);
  await zosia("$('openAddProduct').click();$('newProduct').value='Marchew 2 kg';$('addProductForm').onsubmit({preventDefault(){}})");
  await host('syncSharedShopping()');assert.match(host("$('shoppingSummaryRows').textContent"),/Marchew/);
  assert.equal(host("shoppingLocalRows().size"),3);
@@ -172,7 +180,7 @@ try{
  await accept(ania,'Ania');await zosia('refresh()');await host('syncSharedShopping()');
  for(const session of [host,zosia,ania])assert.equal(subtitle(session),'Razem kupują: Robert, Zosia i Ania');
  assert.match(ania("$('pending').textContent"),/Marchew 2 kg/);
- assert.equal(ania("$('openAddProduct').hidden"),true);
+ assert.equal(ania("$('addProductForm').hidden"),true);
  await assert.rejects(ania("request('add',{text:'Produkt',itemId:crypto.randomUUID()})"),e=>e.status===403);
  assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
  assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
@@ -350,7 +358,7 @@ try{
  const restoreRevision=(await shop('read',{},true)).data.joinEvents.length;
  await host("document.querySelector('[aria-label=\"Przywróć dostęp: Marek\"]').onclick()");
  await observer('refresh()');
- assert.ok(observer("!gated && !document.querySelector('main').hidden && !$('openAddProduct').hidden"));
+ assert.ok(observer("!gated && !document.querySelector('main').hidden && !$('addProductForm').hidden"));
  const sameLink=page('wspolne-zakupy.html',openHash,JSON.parse(observer('JSON.stringify(localStorage)')));
  await wait(()=>sameLink('revision>0 && !gated'));
  assert.equal((await sameLink("request('read',{})")).rows.find(r=>r.text==='Daktyle').canDelete,true);
