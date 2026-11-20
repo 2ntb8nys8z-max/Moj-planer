@@ -18,11 +18,17 @@ em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #arrivalLoading{position:fixed;inset:40% 0 auto;text-align:center;color:#fff8eb;text-shadow:0 1px 3px #362518}
 [hidden]{display:none!important}
-#guestGate{max-width:400px;margin:8vh auto;padding:26px;background:#fff9ed;border-radius:6px}
-#guestGate h2{line-height:1.2;margin:0 0 12px}#guestGate label,#addProductForm label{display:block}
-#guestGate input,#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
-#guestGate button,#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
-#joinHint,#joinMessage{font-size:16px}#joinMessage:empty{display:none}#joinNick{min-height:44px}#joinForm button{margin-top:8px}
+#guestGate{width:calc(100% - 24px);max-width:350px;margin:8vh auto;font:16px/1.3 system-ui,sans-serif}
+#joinForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+#joinForm input,#joinForm button{min-height:44px;border-radius:9px;box-shadow:0 2px 5px #32241636}
+#joinNick{width:100%;min-width:0;padding:8px 10px;border:1px solid #b1bac4;background:#fff;color:#192d42}
+#joinNick::placeholder{color:#4b5866;opacity:1}
+#joinForm button{padding:8px 14px;background:#244d77;color:white;font-weight:600}
+#joinForm button:active{background:#183a5d}
+#joinForm :focus-visible{outline:2px solid white;outline-offset:2px}
+#joinMessage:empty{display:none}
+#addProductForm label{display:block}#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
+#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
 #addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f}
 #addProductIcon{display:block;width:clamp(58px,16vw,68px);height:auto;transition:transform .14s ease}
 .shopping-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:8px}
@@ -109,9 +115,7 @@ button.shopping-item-trash[hidden]{display:none}
 
 </style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><section id="guestGate" hidden>
 <form id="joinForm" hidden>
-  <h2><label for="joinNick">Wpisz swoje imię</label></h2>
-  <p id="joinHint">Pod tym imieniem zobaczą Cię inne osoby na liście.</p>
-  <input id="joinNick" aria-describedby="joinHint" maxlength="60" autocomplete="given-name" enterkeyhint="done" required>
+  <input id="joinNick" aria-label="Wpisz swoje imię (nick)" placeholder="Wpisz swoje imię (nick)" maxlength="60" autocomplete="nickname" enterkeyhint="done" required>
   <button type="submit">Zatwierdź</button>
 </form><p id="joinMessage" role="status"></p></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div>
