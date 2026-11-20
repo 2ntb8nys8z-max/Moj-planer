@@ -4,12 +4,14 @@
 <link rel="preload" as="image" href="shopping-wood-table.webp">
 <script>if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('arrival-wait')</script>
 <style>
-@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}
+@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{min-height:100%;background:#906b4c;overflow-x:clip}
 body{margin:0;min-height:100vh;min-height:100dvh;isolation:isolate;overflow-x:clip;color:#193e66;font:20px/1.45 Kalam,cursive;padding:max(6px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}
 /* Wood Table, Poly Haven (CC0), toned for the paper: https://polyhaven.com/a/wood_table */
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(118deg,#ffe8c929,transparent 48%,#29180e28),url(shopping-wood-table.webp) center / max(960px,100vw) auto repeat}
-main{margin:0 auto;max-width:480px;padding:clamp(26px,7vw,36px) clamp(22px,7vw,34px) 22px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a);transform-origin:67% min(180px,28vh)}
+main{margin:0 auto;max-width:480px;padding:clamp(26px,7vw,36px) clamp(22px,7vw,34px) 22px;position:relative;isolation:isolate;transform-origin:67% min(180px,28vh)}
+/* Keep the paper shadow off the interactive rows when WebKit repaints a tap. */
+main::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a)}
 h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}#shoppingSharedLabel{overflow-wrap:anywhere}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
 .item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:7px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
 .item[aria-pressed=true] span{text-decoration:line-through}
@@ -18,7 +20,7 @@ em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #arrivalLoading{position:fixed;inset:40% 0 auto;text-align:center;color:#fff8eb;text-shadow:0 1px 3px #362518}
 [hidden]{display:none!important}
-button,summary,label,input{-webkit-tap-highlight-color:transparent}
+button,summary{-webkit-appearance:none;appearance:none;-webkit-user-select:none;user-select:none}
 .item:not(:disabled):active .pen-box,summary:active .fold-marker,.shopping-item-trash:active svg{opacity:.68}
 #guestGate{width:calc(100% - 24px);max-width:350px;margin:8vh auto;font:16px/1.3 system-ui,sans-serif}
 #joinForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
@@ -67,6 +69,7 @@ details[open] .fold-closed,details:not([open]) .fold-open{display:none}
 .arriving .plane-shadow{animation:castShadow var(--fly-time) ease-in-out}
 .arriving main{visibility:hidden;pointer-events:none}
 .fallback-drop main{animation:deskDrop .85s both}
+.fallback-drop main::before{animation:deskDropShadow .85s both}
 .guest-toss{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
 @keyframes incoming{
   from{visibility:visible;transform:translate3d(calc(100vw + 22%),-142%,0)}
@@ -86,11 +89,15 @@ details[open] .fold-closed,details:not([open]) .fold-open{display:none}
   100%{transform:translate(10%,16%) rotate(calc(var(--heading) + 4deg)) scale(.88);filter:brightness(0) blur(2.8px);opacity:.43}
 }
 @keyframes deskDrop{
-  0%{visibility:hidden;transform:translate3d(calc(-50vw - 65% - 48px),-24vh,0) rotate(9deg) scale(1.04);filter:drop-shadow(14px 29px 13px #301a1047);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
+  0%{visibility:hidden;transform:translate3d(calc(-50vw - 65% - 48px),-24vh,0) rotate(9deg) scale(1.04);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
   1%{visibility:visible}
-  69%{transform:translate3d(-4%,-16px,0) rotate(-2.6deg) scale(1.014);filter:drop-shadow(6px 14px 7px #301a1052);animation-timing-function:ease-out}
+  69%{transform:translate3d(-4%,-16px,0) rotate(-2.6deg) scale(1.014);animation-timing-function:ease-out}
   87%{transform:translate3d(.6%,1px,0) rotate(.65deg) scale(.998);animation-timing-function:ease-in-out}
   100%{visibility:visible;transform:none}
+}
+@keyframes deskDropShadow{
+  0%{filter:drop-shadow(14px 29px 13px #301a1047);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
+  69%{filter:drop-shadow(6px 14px 7px #301a1052);animation-timing-function:ease-out}
 }
 .item{align-items:center;position:relative;min-height:44px}
 .item-name{flex:1;min-width:0}.item em{min-width:0;overflow-wrap:anywhere}
