@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.66-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.67-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="d36112d81803332a";
+const BUILD_ID="5172c78baf480aec";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1443,24 +1443,455 @@ function shoppingAuthorMarks(participants) {
   return marks;
 }
 const shoppingUuid = v => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(v);
-async function sharedShoppingRequest(request, env, json) {
+// BEGIN SHOPPING PUSH LIB
+/*
+Copyright 2024 Block65 Pte Ltd
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+MIT License
+
+Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+let cachedShoppingPushLib;
+function shoppingPushLib(){
+  if(cachedShoppingPushLib)return cachedShoppingPushLib;
+var ShoppingWebPush = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // <stdin>
+  var stdin_exports = {};
+  __export(stdin_exports, {
+    buildPushPayload: () => buildPushPayload
+  });
+
+  // node_modules/uint8array-extras/index.js
+  var objectToString = Object.prototype.toString;
+  var uint8ArrayStringified = "[object Uint8Array]";
+  var arrayBufferStringified = "[object ArrayBuffer]";
+  function isType(value, typeConstructor, typeStringified) {
+    if (!value) {
+      return false;
+    }
+    if (value.constructor === typeConstructor) {
+      return true;
+    }
+    return objectToString.call(value) === typeStringified;
+  }
+  function isUint8Array(value) {
+    return isType(value, Uint8Array, uint8ArrayStringified);
+  }
+  function isArrayBuffer(value) {
+    return isType(value, ArrayBuffer, arrayBufferStringified);
+  }
+  function isUint8ArrayOrArrayBuffer(value) {
+    return isUint8Array(value) || isArrayBuffer(value);
+  }
+  function toUint8ArrayIfArrayBuffer(value) {
+    return isArrayBuffer(value) ? new Uint8Array(value) : value;
+  }
+  function assertUint8ArrayOrArrayBuffer(value) {
+    if (!isUint8ArrayOrArrayBuffer(value)) {
+      throw new TypeError(`Expected \`Uint8Array\` or \`ArrayBuffer\`, got \`${typeof value}\``);
+    }
+  }
+  function toUint8Array(value) {
+    if (value instanceof ArrayBuffer) {
+      return new Uint8Array(value);
+    }
+    if (ArrayBuffer.isView(value)) {
+      return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    }
+    throw new TypeError(`Unsupported value, got \`${typeof value}\`.`);
+  }
+  function concatUint8Arrays(arrays, totalLength) {
+    if (arrays.length === 0) {
+      return new Uint8Array(0);
+    }
+    totalLength ??= arrays.reduce((accumulator, currentValue) => accumulator + currentValue.byteLength, 0);
+    const returnValue = new Uint8Array(totalLength);
+    let offset = 0;
+    for (let array of arrays) {
+      assertUint8ArrayOrArrayBuffer(array);
+      array = toUint8ArrayIfArrayBuffer(array);
+      returnValue.set(array, offset);
+      offset += array.length;
+    }
+    return returnValue;
+  }
+  var cachedDecoders = {
+    utf8: new globalThis.TextDecoder("utf8")
+  };
+  function assertString(value) {
+    if (typeof value !== "string") {
+      throw new TypeError(`Expected \`string\`, got \`${typeof value}\``);
+    }
+  }
+  var cachedEncoder = new globalThis.TextEncoder();
+  function stringToUint8Array(string) {
+    assertString(string);
+    return cachedEncoder.encode(string);
+  }
+  function base64ToBase64Url(base64) {
+    return base64.replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  }
+  function base64UrlToBase64(base64url) {
+    const base64 = base64url.replaceAll("-", "+").replaceAll("_", "/");
+    const padding = (4 - base64.length % 4) % 4;
+    return base64 + "=".repeat(padding);
+  }
+  var MAX_BLOCK_SIZE = 65535;
+  function uint8ArrayToBase64(array, { urlSafe = false } = {}) {
+    assertUint8ArrayOrArrayBuffer(array);
+    array = toUint8ArrayIfArrayBuffer(array);
+    let base64 = "";
+    for (let index = 0; index < array.length; index += MAX_BLOCK_SIZE) {
+      const chunk = array.subarray(index, index + MAX_BLOCK_SIZE);
+      base64 += globalThis.btoa(String.fromCodePoint.apply(void 0, chunk));
+    }
+    return urlSafe ? base64ToBase64Url(base64) : base64;
+  }
+  function base64ToUint8Array(base64String) {
+    assertString(base64String);
+    return Uint8Array.from(globalThis.atob(base64UrlToBase64(base64String)), (x) => x.codePointAt(0));
+  }
+  var byteToHexLookupTable = Array.from({ length: 256 }, (_, index) => index.toString(16).padStart(2, "0"));
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/utils.js
+  function encodeRecordSize(size) {
+    const bytes = new Uint8Array(4);
+    new DataView(bytes.buffer).setUint32(0, size);
+    return bytes;
+  }
+  function invariant(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/client-keys.js
+  async function deriveClientKeys(sub) {
+    const bytes = base64ToUint8Array(sub.keys.p256dh);
+    const authSecretBytes = base64ToUint8Array(sub.keys.auth);
+    invariant(bytes.byteLength === 65 && bytes[0] === 4, "Subscription p256dh is not an uncompressed P-256 point");
+    invariant(authSecretBytes.byteLength === 16, "Subscription auth secret is not 16 bytes");
+    return {
+      publicKeyBytes: bytes,
+      publicKey: await crypto.subtle.importKey("raw", bytes, {
+        name: "ECDH",
+        namedCurve: "P-256"
+      }, false, []),
+      authSecretBytes
+    };
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/hkdf.js
+  function createHMAC(data) {
+    const keyPromise = crypto.subtle.importKey("raw", data, {
+      name: "HMAC",
+      hash: "SHA-256"
+    }, false, ["sign"]);
+    return {
+      hash: async (input) => {
+        const k = await keyPromise;
+        return crypto.subtle.sign("HMAC", k, input);
+      }
+    };
+  }
+  async function hkdf(salt, ikm) {
+    const prkhPromise = createHMAC(salt).hash(ikm).then((prk) => createHMAC(prk));
+    return {
+      extract: async (info, len) => {
+        const prkh = await prkhPromise;
+        const blocks = await Array.from({ length: Math.ceil(len / 32) }, (_, i) => i).reduce(async (acc, i) => {
+          const previous = await acc;
+          const hash = await prkh.hash(new Uint8Array([...previous.at(-1) ?? [], ...info, i + 1]));
+          return [...previous, new Uint8Array(hash)];
+        }, Promise.resolve([]));
+        return concatUint8Arrays(blocks).slice(0, len);
+      }
+    };
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/info.js
+  function createKeyInfo(clientPublic, serverPublic) {
+    return new Uint8Array([
+      ...stringToUint8Array("WebPush: info\0"),
+      ...clientPublic,
+      ...serverPublic
+    ]);
+  }
+  function createInfo(type) {
+    return stringToUint8Array(`Content-Encoding: ${type}\0`);
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/local-keys.js
+  async function generateLocalKeys() {
+    const keyPair = await crypto.subtle.generateKey({
+      name: "ECDH",
+      namedCurve: "P-256"
+    }, false, ["deriveBits"]);
+    return {
+      privateKey: keyPair.privateKey,
+      publicKeyBytes: new Uint8Array(await crypto.subtle.exportKey("raw", keyPair.publicKey))
+    };
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/salt.js
+  async function getSalt() {
+    return crypto.getRandomValues(new Uint8Array(16));
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/encrypt.js
+  var recordSize = 4096;
+  var headerSize = 21 + 65;
+  var maxPlaintextSize = recordSize - headerSize - 17;
+  async function encryptNotification(subscription, plaintext, options = {}) {
+    invariant(plaintext.byteLength <= maxPlaintextSize, `Payload is ${plaintext.byteLength} bytes, the maximum is ${maxPlaintextSize}`);
+    const clientKeys = await deriveClientKeys(subscription);
+    const salt = await getSalt();
+    const localKeys = await generateLocalKeys();
+    const sharedSecret = await crypto.subtle.deriveBits({
+      name: "ECDH",
+      public: clientKeys.publicKey
+    }, localKeys.privateKey, 256);
+    const keyInfo = createKeyInfo(clientKeys.publicKeyBytes, localKeys.publicKeyBytes);
+    const cekInfo = createInfo("aes128gcm");
+    const nonceInfo = createInfo("nonce");
+    const ikmHkdf = await hkdf(clientKeys.authSecretBytes, sharedSecret);
+    const ikm = await ikmHkdf.extract(keyInfo, 32);
+    const messageHkdf = await hkdf(salt, ikm);
+    const cekBytes = await messageHkdf.extract(cekInfo, 16);
+    const nonceBytes = await messageHkdf.extract(nonceInfo, 12);
+    const cekCryptoKey = await crypto.subtle.importKey("raw", cekBytes, {
+      name: "AES-GCM",
+      length: 128
+    }, false, ["encrypt"]);
+    const padTo = options.pad ?? true ? maxPlaintextSize : plaintext.byteLength;
+    const padded = new Uint8Array(padTo + 1);
+    padded.set(plaintext);
+    padded[plaintext.byteLength] = 2;
+    const encrypted = await crypto.subtle.encrypt({
+      name: "AES-GCM",
+      iv: nonceBytes
+    }, cekCryptoKey, padded);
+    return new Uint8Array([
+      ...salt,
+      ...encodeRecordSize(recordSize),
+      localKeys.publicKeyBytes.byteLength,
+      ...localKeys.publicKeyBytes,
+      ...new Uint8Array(encrypted)
+    ]);
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/base64.js
+  function encodeBase64Url(value) {
+    return uint8ArrayToBase64(toUint8Array(value), { urlSafe: true });
+  }
+  function objectToBase64Url(obj) {
+    return encodeBase64Url(stringToUint8Array(JSON.stringify(obj)));
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/jwt.js
+  async function sign(payload, key) {
+    const headerStr = objectToBase64Url({
+      typ: "JWT",
+      alg: "ES256"
+    });
+    const payloadStr = objectToBase64Url({
+      iat: Math.floor(Date.now() / 1e3),
+      ...payload
+    });
+    const dataStr = `${headerStr}.${payloadStr}`;
+    const signature = await crypto.subtle.sign({
+      name: "ECDSA",
+      hash: "SHA-256"
+    }, key, stringToUint8Array(dataStr));
+    return `${dataStr}.${encodeBase64Url(signature)}`;
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/vapid.js
+  async function vapidHeaders(subscription, vapid) {
+    invariant(vapid.subject, "Vapid subject is empty");
+    invariant(vapid.privateKey, "Vapid private key is empty");
+    invariant(vapid.publicKey, "Vapid public key is empty");
+    const endpoint = new URL(subscription.endpoint);
+    invariant(endpoint.protocol === "https:", `Subscription endpoint is not https: ${endpoint.protocol}`);
+    const vapidPublicKeyBytes = base64ToUint8Array(vapid.publicKey);
+    const publicKey = await crypto.subtle.importKey("jwk", {
+      kty: "EC",
+      crv: "P-256",
+      x: encodeBase64Url(vapidPublicKeyBytes.slice(1, 33)),
+      y: encodeBase64Url(vapidPublicKeyBytes.slice(33, 65)),
+      d: vapid.privateKey
+    }, {
+      name: "ECDSA",
+      namedCurve: "P-256"
+    }, false, ["sign"]);
+    const jwt = await sign({
+      aud: endpoint.origin,
+      exp: Math.floor(Date.now() / 1e3) + 12 * 60 * 60,
+      sub: vapid.subject
+    }, publicKey);
+    return {
+      headers: {
+        authorization: `vapid t=${jwt}, k=${vapid.publicKey}`
+      }
+    };
+  }
+
+  // node_modules/@block65/webcrypto-web-push/dist/lib/payload.js
+  async function buildPushPayload(message, subscription, vapid) {
+    const { headers } = await vapidHeaders(subscription, vapid);
+    const body = await encryptNotification(subscription, stringToUint8Array(
+      // if its a primitive, convert to string, otherwise stringify
+      typeof message.data === "string" || typeof message.data === "number" ? message.data.toString() : JSON.stringify(message.data)
+    ));
+    return {
+      headers: {
+        ...headers,
+        ttl: (message.options?.ttl || 60).toString(),
+        ...message.options?.urgency && {
+          urgency: message.options.urgency
+        },
+        ...message.options?.topic && {
+          topic: message.options.topic
+        },
+        "content-encoding": "aes128gcm",
+        "content-length": body.byteLength.toString(),
+        "content-type": "application/octet-stream"
+      },
+      method: "post",
+      body
+    };
+  }
+  return __toCommonJS(stdin_exports);
+})();
+  return cachedShoppingPushLib=ShoppingWebPush;
+}
+// END SHOPPING PUSH LIB
+// BEGIN SHOPPING PUSH SERVER
+// The subscription store and the application signing key are only used server-side.
+async function shoppingPushKeys(db){
+  await db.prepare('CREATE TABLE IF NOT EXISTS shopping_push_identity (id INTEGER PRIMARY KEY, identity TEXT NOT NULL)').run();
+  const read=()=>db.prepare('SELECT identity FROM shopping_push_identity WHERE id=1').first();
+  let row=await read();
+  if(!row){
+    const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+    const raw=new Uint8Array(await crypto.subtle.exportKey('raw',pair.publicKey));
+    const privateJwk=await crypto.subtle.exportKey('jwk',pair.privateKey);
+    const identity={publicKey:btoa(String.fromCharCode(...raw)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),privateKey:privateJwk.d,subject:'https://github.com/2ntb8nys8z-max/Moj-planer'};
+    await db.prepare('INSERT OR IGNORE INTO shopping_push_identity(id,identity) VALUES (1,?)').bind(JSON.stringify(identity)).run();
+    row=await read();
+  }
+  return JSON.parse(row.identity);
+}
+async function shoppingPushTable(db){
+  await db.prepare('CREATE TABLE IF NOT EXISTS shopping_push_devices (list_id TEXT, endpoint TEXT, subscription TEXT NOT NULL, PRIMARY KEY(list_id,endpoint))').run();
+}
+function validShoppingPushEndpoint(value){
+  try{
+    const u=new URL(value),host=u.hostname;
+    return typeof value==='string' && value.length<=2048 && u.protocol==='https:' && !u.port && !u.username && !u.password && !u.hash &&
+      (host.endsWith('.push.apple.com') || host==='fcm.googleapis.com' || host==='updates.push.services.mozilla.com' || host.endsWith('.notify.windows.com'));
+  }catch{return false}
+}
+async function manageShoppingPush(action,body,db,json){
+  if(action==='push-key')return json({publicKey:(await shoppingPushKeys(db)).publicKey});
+  const sub=body.subscription,endpoint=sub?.endpoint;
+  if(!validShoppingPushEndpoint(endpoint))return json({error:'Nieprawidłowy adres powiadomień.'},400);
+  await shoppingPushTable(db);
+  if(action==='push-off'){
+    await db.prepare('DELETE FROM shopping_push_devices WHERE list_id=? AND endpoint=?').bind(body.id,endpoint).run();
+  }else{
+    if(!/^[A-Za-z0-9_-]{87}$/.test(sub.keys?.p256dh) || !/^[A-Za-z0-9_-]{22}$/.test(sub.keys?.auth))
+      return json({error:'Nieprawidłowy klucz urządzenia.'},400);
+    const record={endpoint,keys:{auth:sub.keys.auth,p256dh:sub.keys.p256dh}};
+    await db.prepare('INSERT OR REPLACE INTO shopping_push_devices(list_id,endpoint,subscription) VALUES (?,?,?)').bind(body.id,endpoint,JSON.stringify(record)).run();
+  }
+  return json({enabled:action==='push-on'});
+}
+async function sendShoppingJoinPush(db,id,event){
+  await shoppingPushTable(db);
+  const {results}=await db.prepare('SELECT subscription FROM shopping_push_devices WHERE list_id=?').bind(id).all();
+  if(!results.length)return;
+  const identity=await shoppingPushKeys(db);
+  await Promise.all(results.map(async({subscription})=>{
+    const sub=JSON.parse(subscription);
+    const payload=await shoppingPushLib().buildPushPayload({data:{id,nick:event.nick,key:event.key,revision:event.revision},options:{ttl:3600,urgency:'high'}},sub,identity);
+    for(let attempt=0;attempt<2;attempt++){
+      try{
+        const res=await fetch(sub.endpoint,{...payload,redirect:'error',signal:AbortSignal.timeout(6000)});
+        if(res.status===404 || res.status===410){
+          await db.prepare('DELETE FROM shopping_push_devices WHERE list_id=? AND endpoint=? AND subscription=?').bind(id,sub.endpoint,subscription).run();
+          return;
+        }
+        if(res.ok)return;
+        if(res.status<500 || attempt)throw Error('Push '+res.status);
+      }catch(error){if(attempt)throw error}
+    }
+  }));
+}
+
+// END SHOPPING PUSH SERVER
+async function sharedShoppingRequest(request, env, json, execution) {
   const [, , action] = new URL(request.url).pathname.split('/');
   if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
-  const owner = ['owner','publish','invite','revoke'].includes(action) || (['read','remove'].includes(action) && request.headers.has('Authorization'));
+  const owner = ['owner','publish','invite','open-invite','close-joining','revoke','push-key','push-on','push-off'].includes(action) || (['read','remove'].includes(action) && request.headers.has('Authorization'));
   if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
     return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
   if (action === 'owner') return json({owner:true});
-  if (!['publish','read','mark','invite','invite-info','join','revoke','add','remove'].includes(action)) return json({error:'Nieznana operacja.'},404);
+  if (!['publish','read','mark','invite','invite-info','join','revoke','add','remove','open-invite','close-joining','push-key','push-on','push-off'].includes(action)) return json({error:'Nieznana operacja.'},404);
   const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,250000)));
   if (!shoppingUuid(body?.id)) return json({error:'Niepoprawny link.'},400);
   const db = env.API_LIMITS_DB;
   await db.prepare('CREATE TABLE IF NOT EXISTS shared_shopping (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, content TEXT NOT NULL)').run();
-  return applySharedShoppingAction({action,body,owner,db,json});
+  return applySharedShoppingAction({action,body,owner,db,json,execution});
 }
 async function applySharedShoppingAction(context,attempt=0){
   const {action,body,owner,db,json}=context;
   const record = await db.prepare('SELECT revision, content FROM shared_shopping WHERE id=?').bind(body.id).first();
   if (!record && action !== 'publish') return json({error:'Nie znaleziono listy.'},404);
+  if(action.startsWith('push-'))return manageShoppingPush(action,body,db,json);
+  let joined=null;
   const state = record ? JSON.parse(record.content) : {rows:[],participants:{}};
   // Older rows kept the signature only. Resolve it against participants already
   // known to this list, before registering anyone under a possibly identical nick.
@@ -1481,9 +1912,19 @@ async function applySharedShoppingAction(context,attempt=0){
   const seats=Object.entries(state.invites || {}).filter(([key,seat])=>(seat.group || key)===inviteKey);
   const availableSeat=seats.find(([,seat])=>!seat.actor && !seat.revoked)?.[1];
   const ownSeat=actor && seats.find(([,seat])=>seat.actor===actor)?.[1];
+  const openLink=inviteKey && state.openLinks?.[inviteKey];
+  function protectExistingGuests(){
+    if(state.invites)return;
+    state.invites=Object.fromEntries(Object.keys(state.participants).map(key=>[key,{actor:key,canAdd:false}]));
+  }
+  function closeJoining(){
+    protectExistingGuests();
+    state.openLinks={};
+    for(const [key,seat] of Object.entries(state.invites))if(!seat.actor)delete state.invites[key];
+  }
   const membership = () => actor && Object.values(state.invites || {}).find(seat=>!seat.revoked && seat.actor===actor);
   const locked = () => json({error:'Ta kartka wymaga zaproszenia od właściciela.'},403);
-  if (action === 'invite-info') return json({available:!!availableSeat && !ownSeat?.revoked,used:seats.length>0 && !availableSeat});
+  if (action === 'invite-info') return json({available:(!!availableSeat || !!openLink && !state.blocked?.[actor]) && !ownSeat?.revoked,used:seats.length>0 && !availableSeat});
   if (state.invites && !owner && action !== 'join' && !membership()) return locked();
   if (action === 'add' && !membership()?.canAdd) return locked();
   function view(revision) {
@@ -1497,12 +1938,14 @@ async function applySharedShoppingAction(context,attempt=0){
       revision, title: state.title || 'Do kupienia', shoppersLabel,
       ...(action==='invite'?{inviteSeats:members.filter(([key,seat])=>(seat.group || key)===inviteKey).length}:{}),
       ...(owner ? {participantNames:[...new Set(guests)],inviteOnly:!!state.invites,
-        invitations:members.map(([key,entry])=>({key,nick:state.participants[entry.actor] || '',canAdd:entry.canAdd,...(entry.group?{group:entry.group}:{})}))}
+        joiningOpen:!state.invites || !!Object.keys(state.openLinks || {}).length || members.some(([,s])=>!s.actor),
+        joinEvents:state.joinEvents || [],
+        invitations:(state.invites?members:Object.keys(state.participants).map(key=>[key,{actor:key,canAdd:false}])).map(([key,entry])=>({key,nick:state.participants[entry.actor] || '',canAdd:entry.canAdd,...(entry.group?{group:entry.group}:{})}))}
         : state.invites ? {canAdd:!!membership()?.canAdd} : {}),
       rows: state.rows.map(({key,text,done,by,buyer}) => {
         const row = {key,text,done,by};
-        const author=state.authors?.[key] || (!state.added?.[key] && state.invites ? 'owner' : null);
-        if(author && (!owner || author!=='owner')){
+        const author=state.authors?.[key];
+        if(author){
           row.authorName=author==='owner'?SHOP_OWNER_NAME:state.participants[author];
           row.authorMark=marks.get(author);
         }
@@ -1524,7 +1967,15 @@ async function applySharedShoppingAction(context,attempt=0){
   const revision = record?.revision || 0;
   if (action === 'read') return json(view(revision));
   if (['publish','mark'].includes(action) && revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
-  if (action === 'invite') {
+  if(action==='open-invite'){
+    if(!inviteKey || typeof body.canAdd!=='boolean')return json({error:'Niepoprawne zaproszenie.'},400);
+    protectExistingGuests();
+    state.openLinks ||= {};
+    if(!openLink && Object.keys(state.openLinks).length>=200)return json({error:'Zamknij stare linki przed kolejnym udostępnieniem.'},400);
+    state.openLinks[inviteKey]={canAdd:body.canAdd};
+  }else if(action==='close-joining'){
+    closeJoining();
+  }else if (action === 'invite') {
     const count=body.seats===undefined?1:body.seats;
     if (!inviteKey || typeof body.canAdd!=='boolean' || !Number.isInteger(count) || count<1 || count>200)
       return json({error:'Podaj liczbę zapraszanych osób od 1 do 200.'},400);
@@ -1536,16 +1987,27 @@ async function applySharedShoppingAction(context,attempt=0){
       state.invites[key]={actor:null,canAdd:body.canAdd,...(count>1?{group:inviteKey}:{})};
     }
   } else if (action === 'join') {
-    if (!seats.length || ownSeat?.revoked) return locked();
+    if ((!seats.length && !openLink) || ownSeat?.revoked || (openLink && state.blocked?.[actor])) return locked();
     const nick=typeof body.nick==='string' ? body.nick.trim() : '';
     if (!actor || !nick || nick.length>60) return json({error:'Wpisz swój podpis.'},400);
     if (ownSeat || membership()) return json(view(revision));
-    if (!availableSeat) return json({error:'Wszystkie miejsca w tym zaproszeniu są już zajęte.'},403);
-    availableSeat.actor=actor;
+    if (!availableSeat && !openLink) return json({error:'Wszystkie miejsca w tym zaproszeniu są już zajęte.'},403);
+    let key;
+    if(openLink){
+      key=await shoppingOwnerKey('member:'+actor);
+      state.invites[key]={actor,canAdd:openLink.canAdd};
+    }else{
+      key=seats.find(([,seat])=>seat===availableSeat)[0];
+      availableSeat.actor=actor;
+    }
+    joined={key,nick,revision:revision+1};
     state.participants[actor]=nick;
   } else if (action === 'revoke') {
+    protectExistingGuests();
     if (!/^[0-9a-f]{64}$/.test(body.key) || !Object.hasOwn(state.invites || {},body.key)) return json({error:'Zaproszenie jest już nieaktywne.'},404);
     const seat=state.invites[body.key];
+    if(seat.actor){state.blocked ||= {};state.blocked[seat.actor]=true}
+    if(body.closeJoining===true)closeJoining();
     // Revocation closes this seat permanently without reopening the shared link.
     if(seat.actor && seat.group)seat.revoked=true;
     else delete state.invites[body.key];
@@ -1608,6 +2070,7 @@ async function applySharedShoppingAction(context,attempt=0){
     if (selected.length!==body.keys.length) return json({error:'Produkt już się zmienił.'},409);
     if (!body.done && selected.some(row=>row.done && row.buyer!==actor))
       return json({error:'Możesz przywrócić tylko swoje zakupy.'},403);
+    if(!state.invites && !state.participants[actor])joined={key:actor,nick,revision:revision+1};
     state.participants[actor]=nick;
     for (const row of selected) if(row.done!==body.done) {
       row.done=body.done; row.by=body.done?nick:'';
@@ -1615,19 +2078,25 @@ async function applySharedShoppingAction(context,attempt=0){
       else delete row.buyer;
     }
   }
+  if(joined)state.joinEvents=[...(state.joinEvents || []).slice(-99),joined];
   const content=JSON.stringify(state);
   const write = record
     ? db.prepare('UPDATE shared_shopping SET content=?, revision=revision+1 WHERE id=? AND revision=?').bind(content,body.id,revision)
     : db.prepare('INSERT OR IGNORE INTO shared_shopping(id,revision,content) VALUES (?,1,?)').bind(body.id,content);
   const result=await write.run();
   // Two people can accept the same message simultaneously. Re-read the list after a lost write.
-  if (!result.meta.changes && action==='join' && attempt<4) return applySharedShoppingAction(context,attempt+1);
+  if (!result.meta.changes && ['join','close-joining','revoke'].includes(action) && attempt<4) return applySharedShoppingAction(context,attempt+1);
   if (!result.meta.changes) return json({error:'Lista została zmieniona.'},409);
+  if(joined){
+    const delivery=sendShoppingJoinPush(db,body.id,joined).catch(()=>console.warn('Shopping join push delivery unavailable'));
+    if(context.execution?.waitUntil)context.execution.waitUntil(delivery);
+    else await delivery;
+  }
   return json(view(revision+1));
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, execution) {
 
     const origin=request.headers.get("Origin");
     const allowedOrigins=new Set(["https://2ntb8nys8z-max.github.io","https://okti-glass-test-33-170.oakgait2.chatgpt.site"]),allowedOrigin=allowedOrigins.has(origin)?origin:"https://2ntb8nys8z-max.github.io";
@@ -1651,7 +2120,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.20.33.66-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.20.33.67-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -1659,7 +2128,7 @@ export default {
 
     let apiUsage=null, spokenText="";
     try {
-      if(new URL(request.url).pathname.startsWith("/shopping/"))return await sharedShoppingRequest(request,env,json);
+      if(new URL(request.url).pathname.startsWith("/shopping/"))return await sharedShoppingRequest(request,env,json,execution);
       if(request.method!=="POST" && !(request.method==="GET" && new URL(request.url).pathname==="/usage")){
         return json({success:false,error:"Użyj POST do rozpoznawania wypowiedzi.",code:"method_not_allowed"},405);
       }

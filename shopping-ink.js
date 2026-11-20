@@ -68,7 +68,7 @@ const shoppingRowOptions=(()=>{
 })();
 function shoppingAuthorNote(mark,name){
   const note=document.createElement('sup');
-  note.className='shopping-author';note.textContent=mark;
+  note.className='shopping-author';note.textContent='('+mark+')';
   note.title='Produkt dopisuje '+name;note.setAttribute('aria-label',note.title);
   return note;
 }

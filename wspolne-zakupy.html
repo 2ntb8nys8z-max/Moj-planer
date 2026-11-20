@@ -32,7 +32,7 @@ summary{list-style:none;display:flex;align-items:center;gap:6px}
 summary::-webkit-details-marker{display:none}
 .fold-marker{width:12px;height:12px;flex:none;fill:currentColor;stroke:none}
 details[open] .fold-closed,details:not([open]) .fold-open{display:none}
-.shopping-author{font-size:.67em;line-height:1;font-style:italic;color:#9d343b;align-self:center;max-width:32%;overflow-wrap:anywhere}
+.shopping-author{display:inline-block;vertical-align:baseline;margin-left:.32em;text-decoration:none;font-size:.67em;line-height:1;font-style:italic;color:#9d343b;align-self:center;max-width:32%;overflow-wrap:anywhere}
 #openAddProduct:active svg{transform:rotate(-5deg) scale(.94)}
 #openAddProduct:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
 @media(prefers-reduced-motion:reduce){#openAddProduct svg{transition:none}}
@@ -479,13 +479,13 @@ const shoppingRowOptions=(()=>{
 })();
 function shoppingAuthorNote(mark,name){
   const note=document.createElement('sup');
-  note.className='shopping-author';note.textContent=mark;
+  note.className='shopping-author';note.textContent='('+mark+')';
   note.title='Produkt dopisuje '+name;note.setAttribute('aria-label',note.title);
   return note;
 }
 // END SHOPPING INK
 async function moveProductName(source,group,data){
-  const start=shoppingInk.capture(source.querySelector('.item-name'));
+  const start=shoppingInk.capture(source.querySelector('.item-name'),group.text);
   const focused=document.activeElement===source;
   if(!group.done)document.querySelector('details').open=true;
   const landing=show(data,group.keys[0]);
@@ -524,7 +524,7 @@ function show(data,landingKey){
     button.disabled=group.done&&!group.canRestore;
     if(!button.disabled)button.onclick=()=>mark(group,button);
     if(group.canRestore)button.setAttribute('aria-label','Przywróć do kupienia: '+group.text);
-    if(group.authorMark)button.append(shoppingAuthorNote(group.authorMark,group.authorName));
+    if(group.authorMark&&typeof group.canDelete==='boolean')label.append(shoppingAuthorNote(group.authorMark,group.authorName));
     let row=button;
     if(group.canDelete){
       row=document.createElement('div');row.append(button);
@@ -551,7 +551,7 @@ async function showIncoming(data){
   busy=true;
   try{
     await Promise.all(moves.map(({button,changed})=>shoppingInk.draw(button,!changed.done)));
-    for(const move of moves)move.start=shoppingInk.capture(move.button.querySelector('.item-name'));
+    for(const move of moves)move.start=shoppingInk.capture(move.button.querySelector('.item-name'),move.changed.text);
     if(moves.some(move=>move.changed.done))document.querySelector('details').open=true;
     show(data);
     const buttons=[...document.querySelectorAll('.item')];

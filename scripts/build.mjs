@@ -1,12 +1,13 @@
 import fs from 'node:fs';
+import {buildSync} from 'esbuild';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.20.33.363-integration';
-const PREVIEW_VERSION='2026.11.20.33.363-test';
+const APP_VERSION='2026.11.20.33.364-integration';
+const PREVIEW_VERSION='2026.11.20.33.364-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
-const WORKER_VERSION='2026.11.20.33.66-test';
-const WORKER_LABEL='Worker 33.66-test';
+const WORKER_VERSION='2026.11.20.33.67-test';
+const WORKER_LABEL='Worker 33.67-test';
 
 function replaceOnce(text,from,to,label){
   const first=text.indexOf(from);
@@ -26,12 +27,15 @@ function output(path,content,normalize=true){
 }
 
 let worker=fs.readFileSync('worker.js','utf8');
-for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','prompts.js'],['BRIEF NARRATIVE','brief-narrative.js']]){
+const pushLib=buildSync({stdin:{contents:"export {buildPushPayload} from '@block65/webcrypto-web-push'",resolveDir:process.cwd()},bundle:true,write:false,format:'iife',globalName:'ShoppingWebPush',target:'es2022'}).outputFiles[0].text;
+const pushLicenses=['@block65/webcrypto-web-push/LICENSE.md','uint8array-extras/license'].map(file=>fs.readFileSync('node_modules/'+file,'utf8')).join('\n');
+worker=worker.replace(/(\/\/ BEGIN SHOPPING PUSH LIB\n)[\s\S]*?(\/\/ END SHOPPING PUSH LIB)/,(_,a,b)=>a+'/*\n'+pushLicenses+'\n*/\nlet cachedShoppingPushLib;\nfunction shoppingPushLib(){\n  if(cachedShoppingPushLib)return cachedShoppingPushLib;\n'+pushLib+'  return cachedShoppingPushLib=ShoppingWebPush;\n}\n'+b);
+for(const [name,file] of [['DIALOGUE CORE','dialogue-core.js'],['PROMPTS','prompts.js'],['SHOPPING PUSH SERVER','shopping-push-server.js'],['BRIEF NARRATIVE','brief-narrative.js']]){
   const start=worker.indexOf('// BEGIN '+name),end=worker.indexOf('// END '+name,start);
   if(start<0||end<0)throw Error('Missing generated block '+name);
   worker=worker.slice(0,start)+'// BEGIN '+name+'\n'+fs.readFileSync(file,'utf8')+'\n'+worker.slice(end);
 }
-worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.66-TEST — CONVERSATION 33');
+worker=worker.replace(/^\/\/ MÓJ PLANER — WORKER .*$/m,'// MÓJ PLANER — WORKER 33.67-TEST — CONVERSATION 33');
 worker=worker.replace(/apiVersion:"[^"]*"/,`apiVersion:"${WORKER_VERSION}"`);
 worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";');
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
@@ -42,7 +46,7 @@ function inlineShoppingInk(html){
   if(!block.test(html))throw Error('Missing shopping ink block');
   return html.replace(block,(_,start,end)=>start+fs.readFileSync('shopping-ink.js','utf8')+end);
 }
-let canonical=inlineShoppingInk(fs.readFileSync('index.html','utf8'));
+let canonical=inlineShoppingInk(fs.readFileSync('index.html','utf8')).replace(/(\/\/ BEGIN SHOPPING ACCESS PANEL\n)[\s\S]*?(\/\/ END SHOPPING ACCESS PANEL)/,(_,a,b)=>a+fs.readFileSync('shopping-access.js','utf8')+b);
 // Reuse the exact opening mesh and renderers used by the installed planner.
 const slicePaper=(from,to)=>{const a=canonical.indexOf(from),b=canonical.indexOf(to,a);if(a<0||b<=a)throw Error('Missing paper renderer '+from);return canonical.slice(a,b)};
 const toss=slicePaper('const shoppingPaperEase=','function shoppingPaperAnchor')+
@@ -165,7 +169,7 @@ for(const file of ['catalog.json','index.html'])output('preview33/'+eventBackgro
 
 const frontendBuildId=createHash('sha256').update(preview).digest('hex').slice(0,16);
 const release=JSON.stringify({version:PREVIEW_VERSION,source:'integration/conversation33/index.html',frontendBuildId,workerVersion:WORKER_VERSION,workerBuildId,protocolVersion:2},null,2)+'\n';
-const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261120-33.66-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
+const workerPage=fs.readFileSync('worker-code.html','utf8').replace(/<title>Worker .*? —/,`<title>${WORKER_LABEL} —`).replace(/<h1>Worker .*?<\/h1>/,`<h1>${WORKER_LABEL}</h1>`).replace(/worker\.txt\?v=[^"']+/g,'worker.txt?v=20261120-33.67-test').replace(/download="[^"]+"/,`download="${WORKER_LABEL.replace(' ','-')}.txt"`).replace(/Pobierz Worker-[^<]+\.txt/,`Pobierz ${WORKER_LABEL.replace(' ','-')}.txt`).replace(/text\.includes\('[^']+'\)/,`text.includes('${WORKER_VERSION}')`);
 
 output('worker.js',worker);
 output('worker.txt',worker);
@@ -176,7 +180,7 @@ output('preview33/wspolne-zakupy.html',fs.readFileSync('wspolne-zakupy.html','ut
 output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['octi-glass-key-33-309.webp','fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
-for(const file of ['shopping-plane-arrival.webp','shopping-paper-turn.m4a','shopping-wood-table.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['shopping-access-sw.js','shopping-plane-arrival.webp','shopping-paper-turn.m4a','shopping-wood-table.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

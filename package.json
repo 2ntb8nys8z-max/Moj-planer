@@ -17,6 +17,8 @@
     "test:brief-browser": "node tests/day-briefing-browser-33.cjs"
   },
   "devDependencies": {
+    "@block65/webcrypto-web-push": "2.0.0",
+    "esbuild": "0.25.12",
     "jsdom": "30.1.2",
     "playwright": "1.62.1"
   }

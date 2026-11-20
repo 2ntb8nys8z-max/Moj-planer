@@ -5,7 +5,7 @@ const digest=require('node:crypto').createHash('sha256').update('Bearer '+token)
 const source=fs.readFileSync('worker.js','utf8').replace(/const SHOP_OWNER_DIGEST = '[a-f0-9]{64}'/, "const SHOP_OWNER_DIGEST = '"+digest+"'");
 const worker=(await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))).default;
 const db=new DatabaseSync(':memory:');
-function query(sql,args=[]){const stmt=db.prepare(sql);return{bind:(...x)=>query(sql,x),first:async()=>stmt.get(...args),run:async()=>({meta:stmt.run(...args)})}}
+function query(sql,args=[]){const stmt=db.prepare(sql);return{bind:(...x)=>query(sql,x),first:async()=>stmt.get(...args),all:async()=>({results:stmt.all(...args)}),run:async()=>({meta:stmt.run(...args)})}}
 const env={API_LIMITS_DB:{prepare:query}},site='https://2ntb8nys8z-max.github.io/Moj-planer/';
 const windows=[];
 function page(file,hash,stored){
@@ -113,6 +113,7 @@ try{
  assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
  // Each invitation is independent, with a browser-bound membership and per-person write permissions.
  const host=installed;
+ host("$('shoppingLimitInvite').checked=true");
  host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingCreateShared').click()");
  await wait(()=>host('shoppingCreated'));
  assert.ok(host('shoppingInviteState.inviteOnly'));
@@ -161,7 +162,9 @@ try{
  // Authorship, purchases and deletion belong to independent identities.
  const carrot=(await zosia("request('read',{})")).rows.find(row=>row.text==='Marchew 2 kg');
  assert.equal(carrot.authorMark,'Z');assert.equal(carrot.canDelete,true);
- assert.equal(host("document.querySelector('.shopping-author').textContent"),'Z');
+ assert.equal(host("document.querySelector('.shopping-author').textContent"),'(Z)');
+ assert.ok(zosia("document.querySelector('.item-name .shopping-author').textContent==='(Z)'"));
+ assert.equal((await zosia("request('read',{})")).rows.find(r=>r.text==='woda').authorMark,undefined);
  const ownBin=zosia("document.querySelector('.shopping-item-trash')");
  zosia("document.querySelector('.shopping-item-options').click()");
  assert.equal(ownBin.hidden,false);
@@ -179,7 +182,8 @@ try{
  const staleRevision=(await host("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))")).revision;
  const latePublish=await host("shoppingRequest('publish',{id:shoppingStore('id'),revision:"+staleRevision+",rows:"+JSON.stringify(staleCopy)+"},shoppingStore('owner'))");
  assert.ok(!latePublish.rows.some(r=>r.key===carrot.key));
- await host("$('shoppingInviteMembers').querySelector('li button').onclick()");
+ host("$('shoppingInviteMembers').querySelector('li button').onclick()");
+ await host("$('shoppingConfirmRevoke').onclick()");
  await zosia('refresh()');assert.ok(zosia("gated && document.querySelector('main').hidden"));
  await assert.rejects(returning("request('read',{})"),e=>e.status===403);
  assert.match((await ania("request('read',{})")).shoppersLabel,/Robert i Ania/);
@@ -273,6 +277,83 @@ try{
  for(const seats of [0,-1,1.5,201]){
    assert.equal((await shop('invite',{canAdd:true,seats,invite:crypto.randomUUID()},true)).status,400);
  }
+ // The default link admits multiple named guests and reports each committed join exactly once.
+ host("$('shoppingLimitInvite').checked=false;$('shoppingInviteAdd').checked=true");
+ await host('prepareShoppingInvite()');await host('sendShoppingLink()');
+ const openHash=new URL(host('sharedLink')).hash;
+ const openToken=new URLSearchParams(openHash.slice(1)).get('zaproszenie');
+ const supplier=page('wspolne-zakupy.html',openHash);
+ const observer=page('wspolne-zakupy.html',openHash);
+ await accept(supplier,'Hania');await accept(observer,'Marek');await host('syncSharedShopping()');
+ assert.ok(host("!$('shoppingAccess').hidden && !$('shoppingJoinAlert').hidden"));
+ assert.match(host("$('shoppingJoinAlert').textContent"),/Marek/);
+ const history=await shop('read',{},true);
+ const marek=history.data.invitations.find(seat=>seat.nick==='Marek');
+ assert.equal(history.data.joinEvents.filter(e=>e.key===marek.key).length,1);
+ await observer("request('join',{invite,nick:person.nick})");
+ assert.equal((await shop('read',{},true)).data.revision,history.data.revision);
+ host("$('shoppingAccessDialog').showModal=function(){this.open=true};$('shoppingJoinAlert').click()");
+ assert.ok(host("$('shoppingAccessDialog').open && $('shoppingJoinAlert').hidden"));
+ assert.equal(host("$('shoppingInviteMembers').querySelector('li.is-new span').textContent"),'Marek');
+ assert.ok(!host("$('shoppingSummaryInfo').closest('dialog')"));
+ await observer("$('openAddProduct').click();$('newProduct').value='Daktyle';$('addProductForm').onsubmit({preventDefault(){}})");
+ await supplier('refresh()');
+ assert.match(supplier("[...document.querySelectorAll('.item-name')].find(n=>n.textContent.startsWith('Daktyle')).textContent"),/^Daktyle\(M/);
+ assert.equal(supplier("document.querySelector('.item-name .shopping-author[title$=Robert]')"),null);
+ host("document.querySelector('[aria-label=\"Usuń dostęp: Marek\"]').click()");
+ await host("$('shoppingConfirmRevoke').onclick()");
+ await observer('refresh()');assert.ok(observer("gated && document.querySelector('main').hidden"));
+ await assert.rejects(observer("request('join',{invite,nick:person.nick})"),e=>e.status===403);
+ assert.equal((await shop('invite-info',{invite:openToken})).data.available,true);
+ host("document.querySelector('[aria-label=\"Usuń dostęp: Hania\"]').click()");
+ await host("$('shoppingRevokeClose').onclick()");
+ assert.equal((await shop('invite-info',{invite:openToken})).data.available,false);
+ assert.equal((await shop('join',{invite:openToken,actor:crypto.randomUUID(),nick:'Nowa osoba'})).status,403);
+ assert.equal((await shop('read',{},true)).data.rows.find(r=>r.text==='Daktyle').authorName,'Marek');
+ assert.equal((await twoGuests[0].page("request('read',{})")).canAdd,true);
+ // Verify signing, independent decryption, idempotency and stale-device removal with a local push receiver.
+ const nodeCrypto=require('node:crypto'),receiver=nodeCrypto.createECDH('prime256v1');
+ const pub=receiver.generateKeys(),auth=nodeCrypto.randomBytes(16);
+ const subscription={endpoint:'https://web.push.apple.com/test-fixture',keys:{p256dh:pub.toString('base64url'),auth:auth.toString('base64url')}};
+ assert.equal((await shop('push-key',{})).status,403);
+ const pushKey=(await shop('push-key',{},true)).data;
+ assert.equal(pushKey.publicKey,(await shop('push-key',{},true)).data.publicKey);
+ assert.deepEqual(Object.keys(pushKey),['publicKey']);
+ assert.equal((await shop('push-on',{subscription:{...subscription,endpoint:'https://example.org/test'}},true)).status,400);
+ assert.equal((await shop('push-on',{subscription},true)).status,200);
+ const messages=[],nativeFetch=globalThis.fetch,linkForPush=crypto.randomUUID();
+ try{
+   globalThis.fetch=async(url,options)=>{
+     assert.equal(url,subscription.endpoint);messages.push(options);return new Response(null,{status:201});
+   };
+   await shop('open-invite',{invite:linkForPush,canAdd:true},true);
+   const guest={invite:linkForPush,nick:'Lena',actor:crypto.randomUUID()};
+   assert.equal((await shop('join',guest)).status,200);await shop('join',guest);
+   assert.equal(messages.length,1);
+   const request=messages[0],body=Buffer.from(request.body),salt=body.subarray(0,16),serverPub=body.subarray(21,86);
+   const derive=(secret,salt,info,length)=>Buffer.from(nodeCrypto.hkdfSync('sha256',secret,salt,info,length));
+   const ikm=derive(receiver.computeSecret(serverPub),auth,Buffer.concat([Buffer.from('WebPush: info\0'),pub,serverPub]),32);
+   const decrypt=nodeCrypto.createDecipheriv('aes-128-gcm',derive(ikm,salt,'Content-Encoding: aes128gcm\0',16),derive(ikm,salt,'Content-Encoding: nonce\0',12));
+   decrypt.setAuthTag(body.subarray(-16));
+   const plaintext=Buffer.concat([decrypt.update(body.subarray(86,-16)),decrypt.final()]);
+   const event=JSON.parse(plaintext.subarray(0,plaintext.lastIndexOf(2)).toString());
+   assert.equal(event.nick,'Lena');assert.equal(event.id,listId);
+   const jwt=request.headers.authorization.match(/^vapid t=([^,]+), k=(.+)$/);
+   assert.equal(jwt[2],pushKey.publicKey);
+   const raw=Buffer.from(jwt[2],'base64url'),parts=jwt[1].split('.');
+   const verification=nodeCrypto.createPublicKey({format:'jwk',key:{kty:'EC',crv:'P-256',x:raw.subarray(1,33).toString('base64url'),y:raw.subarray(33).toString('base64url')}});
+   assert.ok(nodeCrypto.verify('sha256',Buffer.from(parts.slice(0,2).join('.')),{key:verification,dsaEncoding:'ieee-p1363'},Buffer.from(parts[2],'base64url')));
+   const handlers={},shown=[],opened=[];
+   const sw={registration:{scope:site,showNotification:async(title,opts)=>shown.push({title,...opts})},clients:{matchAll:async()=>[],openWindow:async url=>opened.push(url)},addEventListener:(type,fn)=>handlers[type]=fn};
+   vm.runInNewContext(fs.readFileSync('shopping-access-sw.js','utf8'),{self:sw,URL,URLSearchParams});
+   let job;handlers.push({data:{json:()=>event},waitUntil:p=>job=p});await job;
+   assert.match(shown[0].body,/Lena/);
+   handlers.notificationclick({notification:{...shown[0],close(){}},waitUntil:p=>job=p});await job;
+   assert.equal(new URLSearchParams(new URL(opened[0]).hash.slice(1)).get('osoba'),event.key);
+   globalThis.fetch=async()=>new Response(null,{status:410});
+   await shop('join',{...guest,actor:crypto.randomUUID(),nick:'Ala'});
+   assert.equal(db.prepare('SELECT count(*) AS n FROM shopping_push_devices WHERE list_id=?').get(listId).n,0);
+ }finally{globalThis.fetch=nativeFetch}
  // Exercise the ink → confirmed move → landing sequence with a visible row.
  const motionId=require('node:crypto').randomUUID();
  await o("shoppingRequest('publish',"+JSON.stringify({id:motionId,revision:0,rows:[{key:'move',text:'Jabłka',done:false,by:''}]})+",shoppingStore('owner'))");

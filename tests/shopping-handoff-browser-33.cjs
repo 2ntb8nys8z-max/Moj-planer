@@ -39,7 +39,7 @@ async function checkGuestHandoff(page){
  await page.getByRole('button',{name:'Dopisz produkt'}).click();
  await page.locator('#newProduct').fill('Jarmuż');
  await page.getByRole('button',{name:'Dodaj',exact:true}).click();
- const ownRow=page.locator('.shopping-has-options').filter({has:page.getByText('Jarmuż',{exact:true})});
+ const ownRow=page.locator('.shopping-has-options').filter({has:page.getByRole('button',{name:'Opcje produktu: Jarmuż',exact:true})});
  await ownRow.locator('.item-name').click({force:true});
  await ownRow.locator('.shopping-item-trash').waitFor({state:'visible'});
  assert.equal(await ownRow.locator('.item').getAttribute('aria-pressed'),'false');
