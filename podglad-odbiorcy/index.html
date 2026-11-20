@@ -18,18 +18,38 @@ em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #status{font-size:16px}#status:empty{display:none}
 /* The sheet stays outside the viewport until the plane has cleared the opposite corner. */
-:root{--fly-time:840ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
+:root{--fly-time:1580ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
 @supports(height:100dvh){:root{--flight-height:100dvh}}
 @media(max-aspect-ratio:4/5){:root{--heading:163deg}}
 @media(min-aspect-ratio:3/2){:root{--heading:194deg}}
 .arrival-wait main{visibility:hidden;pointer-events:none}
-#incomingPlane{position:fixed;z-index:5;left:0;top:0;width:clamp(118px,34vw,200px);height:auto;visibility:hidden;pointer-events:none;filter:drop-shadow(8px 16px 7px #301c1259)}
-.arriving #incomingPlane{animation:incoming var(--fly-time) linear}
+/* The shadow stays on the tabletop while the folded paper banks above it. */
+.flyby{position:fixed;z-index:5;inset:0 auto auto 0;width:clamp(136px,37vw,215px);aspect-ratio:346/336;visibility:hidden;pointer-events:none}
+.plane-shadow,.folded-plane{position:absolute;inset:0}
+.plane-shadow{background:url(shopping-plane-arrival.webp) center/contain no-repeat;filter:brightness(0) blur(4px);opacity:.4}
+#incomingPlane{display:block;width:100%;height:100%}
+.folded-plane::after{content:"";position:absolute;inset:0;background:linear-gradient(132deg,#fff7e033,#73563c66 90%);clip-path:polygon(99.4% .8%,35.3% 61.5%,52.4% 98.8%);opacity:.42}
+.arriving .flyby{animation:incoming var(--fly-time) cubic-bezier(.30,.27,.71,.73)}
+.arriving .folded-plane{animation:planeBank var(--fly-time) ease-in-out}
+.arriving .folded-plane::after{animation:wingLight var(--fly-time) ease-in-out}
+.arriving .plane-shadow{animation:castShadow var(--fly-time) ease-in-out}
 .arriving main{animation:deskDrop var(--drop-time) var(--fly-time) both;pointer-events:none}
 @keyframes incoming{
-  from{visibility:visible;transform:translate3d(calc(100vw + 14%),-118%,0) rotate(var(--heading)) scale(.86)}
-  48%{visibility:visible;transform:translate3d(calc(51vw - 46%),calc(var(--flight-height) * .47 - 54%),0) rotate(calc(var(--heading) - 4deg)) scale(1.05)}
-  to{visibility:visible;transform:translate3d(-130%,calc(var(--flight-height) + 22%),0) rotate(calc(var(--heading) + 2deg)) scale(.90)}
+  from{visibility:visible;transform:translate3d(calc(100vw + 22%),-142%,0)}
+  to{visibility:visible;transform:translate3d(-158%,calc(var(--flight-height) + 28%),0)}
+}
+@keyframes planeBank{
+  0%{transform:translate3d(0,0,0) rotate(var(--heading)) perspective(650px) rotate3d(-.73,.68,0,-12deg) scale(.9)}
+  34%{transform:translate3d(5%,-4%,0) rotate(calc(var(--heading) - 6deg)) perspective(650px) rotate3d(-.73,.68,0,19deg) scale(1.05)}
+  64%{transform:translate3d(2%,-6%,0) rotate(calc(var(--heading) + 2deg)) perspective(650px) rotate3d(-.73,.68,0,-9deg) scale(1.08)}
+  100%{transform:translate3d(0,0,0) rotate(calc(var(--heading) + 4deg)) perspective(650px) rotate3d(-.73,.68,0,-3deg) scale(.92)}
+}
+@keyframes wingLight{0%,100%{opacity:.38}34%{opacity:.74}64%{opacity:.18}}
+@keyframes castShadow{
+  0%{transform:translate(10%,16%) rotate(var(--heading)) scale(.85);filter:brightness(0) blur(3px);opacity:.39}
+  43%{transform:translate(28%,40%) rotate(calc(var(--heading) - 4deg)) scale(.89);filter:brightness(0) blur(6px);opacity:.31}
+  72%{transform:translate(20%,28%) rotate(calc(var(--heading) + 3deg)) scale(.96);filter:brightness(0) blur(4.5px);opacity:.38}
+  100%{transform:translate(10%,16%) rotate(calc(var(--heading) + 4deg)) scale(.88);filter:brightness(0) blur(2.8px);opacity:.43}
 }
 @keyframes deskDrop{
   0%{visibility:hidden;transform:translate3d(calc(-50vw - 65% - 48px),-24vh,0) rotate(9deg) scale(1.04);filter:drop-shadow(14px 29px 13px #301a1047);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
@@ -46,20 +66,22 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
 .pen-box .ink{stroke-width:2.8;stroke-dasharray:1;stroke-dashoffset:1}
 .item[aria-pressed=true] .ink,.item.is-marking .ink{stroke-dashoffset:0}
 .item.is-marking .ink{transition:stroke-dashoffset .33s cubic-bezier(.42,.02,.28,1)}
+.item.is-unmarking .ink{stroke-dashoffset:1;transition:stroke-dashoffset .22s ease-in-out}
+.item.is-unmarking .item-name{text-decoration:none}
 .item:focus-visible,#flightReplay:focus-visible{outline:2px solid #315d7c;outline-offset:2px}
-.landing{opacity:0!important}
-.item-flight{position:fixed;z-index:6;margin:0;pointer-events:none;transform-origin:left center;opacity:1;background:#fff8eccc;border-radius:3px;box-shadow:0 3px 5px #56483218;color:#193e66;will-change:transform;overflow:hidden}
+.landing .item-name,.landing em{visibility:hidden}
+.item-flight{position:fixed;z-index:6;pointer-events:none;transform-origin:left center;will-change:transform;overflow-wrap:anywhere}
 #flightReplay{display:flex;align-items:center;gap:7px;margin:14px 0 0 auto;padding:8px 2px;min-height:44px;font-size:15px;color:#365773}
 #flightReplay svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 @media(prefers-reduced-motion:reduce){
-  .arrival-wait main,.arriving main{visibility:visible;animation:none;pointer-events:auto}.arriving #incomingPlane{animation:none}
-  .item.is-marking .ink{transition:none}
+  .arrival-wait main,.arriving main{visibility:visible;animation:none;pointer-events:auto}.arriving .flyby,.arriving .plane-shadow,.arriving .folded-plane,.arriving .folded-plane::after{animation:none}
+  .item.is-marking .ink,.item.is-unmarking .ink{transition:none}
 }
 
-</style></head><body><img id="incomingPlane" src="shopping-plane-arrival.webp" alt="" aria-hidden="true"><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
+</style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
 <button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button></main>
-<audio id="flightSound" preload="auto" src="shopping-flyby.m4a"></audio>
+<audio id="flightSound" preload="auto" src="shopping-flyby-glide.m4a"></audio>
 <template id="pen"><svg class="pen-box" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
@@ -94,23 +116,24 @@ async function arrive(userGesture=false){
     root.classList.remove('arrival-wait');root.classList.add('arriving');
     const drop=sheet.getAnimations?.().find(animation=>animation.animationName==='deskDrop');
     if(drop)await drop.finished.catch(()=>{});
-    else if(!sheet.getAnimations)await new Promise(resolve=>setTimeout(resolve,1670));
+    else if(!sheet.getAnimations)await new Promise(resolve=>setTimeout(resolve,2410));
   }finally{root.classList.remove('arrival-wait','arriving');arriving=false}
 }
 replay.onclick=()=>arrive(true);
 
-function waitForInk(button){
-  button.classList.add('is-marking');
+function waitForInk(button,restoring){
+  button.classList.add(restoring?'is-unmarking':'is-marking');
   if(reducedMotion()||!button.getClientRects().length)return Promise.resolve();
-  return new Promise(resolve=>setTimeout(resolve,350));
+  return new Promise(resolve=>setTimeout(resolve,restoring?240:350));
 }
-async function flyToBought(source,group,data){
-  const start=source.getBoundingClientRect();
-  const ghost=source.cloneNode(true);
+async function moveProductName(source,group,data){
+  const label=source.querySelector('.item-name');
+  const start=label.getBoundingClientRect();
   const focused=document.activeElement===source;
-  document.querySelector('details').open=true;
+  if(!group.done)document.querySelector('details').open=true;
   const landing=show(data,group.keys[0]);
   if(!landing)return;
+  const target=landing.querySelector('.item-name');
   const destination=landing.getBoundingClientRect();
   if(focused)landing.focus({preventScroll:true});
   const inView=destination.top>=0&&destination.bottom<=innerHeight-8;
@@ -118,21 +141,23 @@ async function flyToBought(source,group,data){
     if(destination.height&&!inView)landing.scrollIntoView({block:'nearest'});
     return;
   }
-  ghost.classList.add('item-flight');ghost.removeAttribute('aria-label');
-  ghost.setAttribute('aria-hidden','true');ghost.tabIndex=-1;
-  Object.assign(ghost.style,{left:start.left+'px',top:start.top+'px',width:start.width+'px',height:start.height+'px'});
+  const ghost=document.createElement('span');
+  ghost.textContent=label.textContent;ghost.className='item-flight';
+  ghost.setAttribute('aria-hidden','true');
+  Object.assign(ghost.style,{left:start.left+'px',top:start.top+'px',width:start.width+'px'});
   document.body.append(ghost);landing.classList.add('landing');
   if(!inView)landing.scrollIntoView({block:'nearest',behavior:'smooth'});
   try{
     await new Promise(resolve=>{
-      const begin=performance.now();
+      const begin=performance.now(),direction=group.done?-1:1;
       function frame(now){
         const t=Math.min(1,(now-begin)/470);
-        if(t>=1||document.hidden||reducedMotion()){resolve();return}
-        const end=landing.getBoundingClientRect(),ease=t*t*(3-2*t),arc=Math.sin(Math.PI*t);
-        const x=(end.left-start.left)*ease+9*arc,y=(end.top-start.top)*ease-5*arc;
-        ghost.style.transform='translate3d('+x+'px,'+y+'px,0) rotate('+(-2.7*arc)+'deg)';
-        ghost.style.opacity=String(1-Math.max(0,(t-.86)/.14)*.5);
+        const end=target.getBoundingClientRect();
+        if(t>=1||!end.height||document.hidden||reducedMotion()){resolve();return}
+        const ease=t*t*(3-2*t),arc=Math.sin(Math.PI*t);
+        const x=(end.left-start.left)*ease+9*arc*direction,y=(end.top-start.top)*ease-5*arc;
+        ghost.style.transform='translate3d('+x+'px,'+y+'px,0) rotate('+(-2.7*arc*direction)+'deg)';
+        ghost.style.width=(start.width+(end.width-start.width)*ease)+'px';
         requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
@@ -173,7 +198,7 @@ function show(data,landingKey){
     if(!button.disabled)button.onclick=()=>mark(group,button);
     if(group.canRestore)button.setAttribute('aria-label','Przywróć do kupienia: '+group.text);
     $(group.done?'bought':'pending').append(button);
-    if(group.done && group.keys.includes(landingKey))landing=button;
+    if(group.keys.includes(landingKey))landing=button;
   }
   $('count').textContent='· '+$('bought').children.length;
   if(!$('pending').children.length)$('pending').textContent='Brak produktów do kupienia.';
@@ -194,14 +219,13 @@ async function mark(group,button){
       if(dialog.returnValue!=='ok'||!$('nick').value.trim())return;
       person={actor:crypto.randomUUID(),nick:$('nick').value.trim()};
     }
-    const ink=group.done?Promise.resolve():waitForInk(button);
+    const ink=waitForInk(button,group.done);
     const data=await request('mark',{...person,keys:group.keys,done:!group.done,revision:expected});
     await ink;
-    if(group.done)show(data);
-    else await flyToBought(button,group,data);
+    await moveProductName(button,group,data);
     $('status').textContent='';
   }catch(e){
-    button.classList.remove('is-marking');
+    button.classList.remove('is-marking','is-unmarking');
     if(e.status===409){
       try{show(await request('read',{}));$('status').textContent='Lista zmieniła się w międzyczasie. Sprawdź produkt.'}
       catch(readError){$('status').textContent=readError.message}
