@@ -627,7 +627,7 @@ async function displayInvite(){
   try{
     const info=await request('invite-info',{invite});
     $('joinForm').hidden=!info.available;
-    $('joinMessage').textContent=info.available?'Wpisz podpis, który zobaczą inni kupujący.':info.used?'To zaproszenie zostało już wykorzystane.':'To zaproszenie jest już nieaktywne.';
+    $('joinMessage').textContent=info.available?'Wpisz podpis, który zobaczą inni kupujący.':info.used?'Wszystkie miejsca w tym zaproszeniu zostały już wykorzystane.':'To zaproszenie jest już nieaktywne.';
     if(info.available)$('joinNick').value=person.nick||'';
   }catch(e){$('joinMessage').textContent=e.message}
 }
@@ -642,7 +642,7 @@ $('joinForm').onsubmit=async event=>{
   busy=true;button.disabled=true;
   try{
     const next={actor:person.actor||crypto.randomUUID(),nick};
-    // Retain the browser credential before consuming a one-use invitation.
+    // Retain the browser credential before claiming a seat.
     localStorage.setItem(store,JSON.stringify(next));person=next;
     const data=await request('join',{invite,nick});
     revealInvitation();$('status').textContent='';show(data);

@@ -232,6 +232,47 @@ try{
  assert.equal(afterOwner.rows.filter(r=>r.text==='Gruszki').length,2);
  await host("document.querySelector('[data-product=woda] .shopping-item-options').click();document.querySelector('[data-product=woda] .shopping-item-trash').onclick()");
  assert.ok(!(await shop('read',{},true)).data.rows.some(row=>row.text==='woda'));
+ // Share once from the owner UI. Only explicit acceptance uses a place.
+ host("$('shoppingInviteSeats').value='2';$('shoppingInviteAdd').checked=true");
+ await host('prepareShoppingInvite()');
+ assert.match(host("$('shoppingInviteStatus').textContent"),/Liczba miejsc: 2/);
+ await host('sendShoppingLink()');
+ const groupHash=new URL(host('sharedLink')).hash;
+ const groupInvite=new URLSearchParams(groupHash.slice(1)).get('zaproszenie');
+ const twoGuests=['Dorota','Ewa'].map(nick=>({nick,page:page('wspolne-zakupy.html',groupHash)}));
+ for(const guest of twoGuests)await wait(()=>guest.page("!$('joinForm').hidden"));
+ assert.equal((await shop('invite-info',{invite:groupInvite})).data.available,true);
+ await Promise.all(twoGuests.map(guest=>accept(guest.page,guest.nick)));
+ await host('syncSharedShopping()');
+ assert.match(host("$('shoppingInviteMembers').textContent"),/zajęte miejsca 2\/2/);
+ for(const guest of twoGuests){
+   const existing=(await guest.page("request('read',{})"));
+   assert.match(existing.shoppersLabel,/Dorota/);assert.match(existing.shoppersLabel,/Ewa/);
+   const reopened=await guest.page("request('join',{invite,nick:person.nick})");
+   assert.equal(reopened.revision,existing.revision);
+   const again=page('wspolne-zakupy.html',groupHash,JSON.parse(guest.page('JSON.stringify(localStorage)')));
+   await wait(()=>again('revision>0&&!gated'));
+ }
+ const third=page('wspolne-zakupy.html',groupHash);
+ await wait(()=>third("$('joinMessage').textContent.includes('wykorzystane')"));
+ assert.ok(third("gated && $('joinForm').hidden && !$('pending').childElementCount"));
+ const blocked={actor:crypto.randomUUID(),nick:'Trzecia osoba',invite:groupInvite};
+ assert.equal((await shop('join',blocked)).status,403);
+ const member=(await shop('read',{},true)).data.invitations.find(s=>s.nick==='Ewa');
+ await shop('revoke',{key:member.key},true);
+ assert.equal((await shop('join',blocked)).status,403);
+ await assert.rejects(twoGuests[1].page("request('read',{})"),e=>e.status===403);
+ assert.ok((await twoGuests[0].page("request('read',{})")).canAdd);
+ // Race three separate claims for two seats and retry after a lost CAS. No overbooking.
+ const secondLink=crypto.randomUUID();
+ assert.equal((await shop('invite',{invite:secondLink,canAdd:false,seats:2},true)).data.inviteSeats,2);
+ const racers=Array.from({length:3},(_,i)=>({invite:secondLink,actor:crypto.randomUUID(),nick:'Gość '+i}));
+ const attempts=await Promise.all(racers.map(guest=>shop('join',guest)));
+ assert.deepEqual(attempts.map(r=>r.status).sort(),[200,200,403]);
+ assert.ok(attempts.filter(r=>r.status===200).every(r=>r.data.canAdd===false));
+ for(const seats of [0,-1,1.5,201]){
+   assert.equal((await shop('invite',{canAdd:true,seats,invite:crypto.randomUUID()},true)).status,400);
+ }
  // Exercise the ink → confirmed move → landing sequence with a visible row.
  const motionId=require('node:crypto').randomUUID();
  await o("shoppingRequest('publish',"+JSON.stringify({id:motionId,revision:0,rows:[{key:'move',text:'Jabłka',done:false,by:''}]})+",shoppingStore('owner'))");
