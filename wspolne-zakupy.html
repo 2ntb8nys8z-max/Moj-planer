@@ -18,15 +18,29 @@ em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #arrivalLoading{position:fixed;inset:40% 0 auto;text-align:center;color:#fff8eb;text-shadow:0 1px 3px #362518}
 [hidden]{display:none!important}
-#guestGate{max-width:400px;margin:8vh auto;padding:26px;background:#fff9ed;border-radius:6px}
-#guestGate h2{line-height:1.2;margin:0 0 12px}#guestGate label,#addProductForm label{display:block}
-#guestGate input,#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
-#guestGate button,#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
-#joinHint,#joinMessage{font-size:16px}#joinMessage:empty{display:none}#joinNick{min-height:44px}#joinForm button{margin-top:8px}
-#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f}
+button,summary,label,input{-webkit-tap-highlight-color:transparent}
+.item:not(:disabled):active .pen-box,summary:active .fold-marker,.shopping-item-trash:active svg{opacity:.68}
+#guestGate{width:calc(100% - 24px);max-width:350px;margin:8vh auto;font:16px/1.3 system-ui,sans-serif}
+#joinForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+#joinForm input,#joinForm button[type=submit]{min-height:44px;border-radius:9px;box-shadow:0 2px 5px #32241636}
+#joinNick{width:100%;min-width:0;padding:8px 10px;border:1px solid #b1bac4;background:#fff;color:#192d42}
+#joinNick::placeholder{color:#4b5866;opacity:1}
+#joinForm button[type=submit]{padding:8px 14px;background:#244d77;color:white;font-weight:600}
+#joinForm button[type=submit]:active{background:#183a5d}
+#joinForm :focus-visible{outline:2px solid white;outline-offset:2px}
+#animationSounds{grid-column:1/-1;justify-self:start;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border-radius:9px;background:#fff9ef;color:#253e55;font-size:15px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.switch-track{box-sizing:content-box;display:block;width:38px;height:22px;padding:2px;border-radius:20px;background:#67717b}
+.switch-track::after{content:"";display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 3px #0004;transform:translateX(var(--knob-x,0px));transition:transform .15s}
+#animationSounds[aria-checked=true] .switch-track{background:#244d77;--knob-x:16px}
+#animationSounds.is-dragging .switch-track::after{transition:none}
+@media(prefers-reduced-motion:reduce){.switch-track::after{transition:none}}
+#joinMessage:empty{display:none}
+#joinMessage:not(:empty){padding:10px 12px;border-radius:9px;background:#fff9ef;color:#253e55}
+#addProductForm label{display:block}#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
+#addProductForm button{min-height:44px;text-decoration:underline}
+#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f;font-size:17px;line-height:1.1}
 #addProductIcon{display:block;width:clamp(58px,16vw,68px);height:auto;transition:transform .14s ease}
-.shopping-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:8px}
-.shopping-foot #flightReplay{margin:0 auto 0 0;font-size:14px}
+.shopping-foot{display:flex;justify-content:flex-end;margin-top:8px}
 summary{list-style:none;display:flex;align-items:center;gap:6px}
 summary::-webkit-details-marker{display:none}
 .fold-marker{width:12px;height:12px;flex:none;fill:currentColor;stroke:none}
@@ -89,11 +103,9 @@ details[open] .fold-closed,details:not([open]) .fold-open{display:none}
 .item.is-marking .ink{transition:stroke-dashoffset .33s cubic-bezier(.42,.02,.28,1)}
 .item.is-unmarking .ink{stroke-dashoffset:1;transition:stroke-dashoffset .22s ease-in-out}
 .item.is-unmarking .item-name{text-decoration:none}
-.item:focus-visible,#flightReplay:focus-visible{outline:2px solid #315d7c;outline-offset:2px}
+.item:focus-visible{outline:2px solid #315d7c;outline-offset:2px}
 .landing .item-name,.landing em{visibility:hidden}
 .item-flight{position:fixed;z-index:6;pointer-events:none;transform-origin:left center;will-change:transform;overflow-wrap:anywhere}
-#flightReplay{display:flex;align-items:center;gap:7px;margin:14px 0 0 auto;padding:8px 2px;min-height:44px;font-size:15px;color:#365773}
-#flightReplay svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 @media(prefers-reduced-motion:reduce){
   .arrival-wait main,.arriving main{visibility:visible;animation:none;pointer-events:auto}.arriving .flyby,.arriving .plane-shadow,.arriving .folded-plane,.arriving .folded-plane::after{animation:none}
   .item.is-marking .ink,.item.is-unmarking .ink{transition:none}
@@ -109,14 +121,13 @@ button.shopping-item-trash[hidden]{display:none}
 
 </style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><section id="guestGate" hidden>
 <form id="joinForm" hidden>
-  <h2><label for="joinNick">Wpisz swoje imię</label></h2>
-  <p id="joinHint">Pod tym imieniem zobaczą Cię inne osoby na liście.</p>
-  <input id="joinNick" aria-describedby="joinHint" maxlength="60" autocomplete="given-name" enterkeyhint="done" required>
+  <input id="joinNick" aria-label="Wpisz swoje imię (nick)" placeholder="Wpisz swoje imię (nick)" maxlength="60" autocomplete="nickname" enterkeyhint="done" required>
   <button type="submit">Zatwierdź</button>
+  <button type="button" id="animationSounds" role="switch" aria-checked="true"><span class="switch-track" aria-hidden="true"></span>Dźwięki animacji</button>
 </form><p id="joinMessage" role="status"></p></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div>
 <form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
-<footer class="shopping-foot"><button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button><button id="openAddProduct" type="button" aria-label="Dopisz produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"></button></footer></main>
+<footer class="shopping-foot"><button id="openAddProduct" type="button" aria-label="Dodaj produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"><span>Dodaj</span></button></footer></main>
 <p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
 <!-- Landing foley adapted from “Page Turn (1)” by OwlStorm / Ashe Kirk (CC0): https://freesound.org/people/OwlStorm/sounds/151220/ -->
 <audio id="flightSound" preload="auto" src="shopping-paper-turn.m4a"></audio>
@@ -132,7 +143,49 @@ if(gated)document.querySelector('main').hidden=true;
 let person={},revision=-1,busy=false,reading=false;
 try{person=JSON.parse(localStorage.getItem(store)||'{}')}catch{}
 const reducedMotion=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const plane=$('incomingPlane'),sound=$('flightSound'),replay=$('flightReplay');
+const plane=$('incomingPlane'),sound=$('flightSound');
+const soundsSwitch=$('animationSounds'),track=soundsSwitch.querySelector('.switch-track');
+const soundsKey='okti.shopping.animationSounds';
+function setSounds(enabled){
+  soundsSwitch.setAttribute('aria-checked',String(enabled));
+  sound.muted=!enabled;
+}
+try{setSounds(localStorage.getItem(soundsKey)!=='off')}catch{setSounds(true)}
+function saveSounds(enabled){
+  setSounds(enabled);
+  try{localStorage.setItem(soundsKey,enabled?'on':'off')}catch{}
+}
+// A tap toggles anywhere on the label. A horizontal drag explicitly selects a side.
+let drag=null,ignoreDragClick=false;
+soundsSwitch.onpointerdown=event=>{
+  if(!event.isPrimary||event.button!==0)return;
+  ignoreDragClick=false;
+  drag={id:event.pointerId,x:event.clientX,start:sound.muted?0:16};
+  soundsSwitch.setPointerCapture(event.pointerId);
+};
+soundsSwitch.onpointermove=event=>{
+  if(drag?.id!==event.pointerId)return;
+  const dx=event.clientX-drag.x;
+  if(Math.abs(dx)<5&&!soundsSwitch.classList.contains('is-dragging'))return;
+  soundsSwitch.classList.add('is-dragging');
+  track.style.setProperty('--knob-x',Math.max(0,Math.min(16,drag.start+dx))+'px');
+};
+function finishDrag(event){
+  if(drag?.id!==event.pointerId)return;
+  const dx=event.clientX-drag.x;
+  if(event.type==='pointerup'&&(Math.abs(dx)>=5||soundsSwitch.classList.contains('is-dragging'))){
+    if(Math.abs(dx)>=5)saveSounds(dx>0);
+    ignoreDragClick=true;
+  }
+  drag=null;
+  soundsSwitch.classList.remove('is-dragging');
+  track.style.removeProperty('--knob-x');
+}
+soundsSwitch.onpointerup=soundsSwitch.onpointercancel=soundsSwitch.onlostpointercapture=finishDrag;
+soundsSwitch.onclick=event=>{
+  if(!ignoreDragClick||event.detail===0)saveSounds(sound.muted);
+  ignoreDragClick=false;
+};
 // BEGIN GUEST TOSS
 const shoppingPaperEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
 const shoppingTossDuration=850;
@@ -372,26 +425,47 @@ function fitPurchased(){
 }
 window.addEventListener('resize',fitPurchased);
 window.visualViewport?.addEventListener('resize',fitPurchased);
-async function arrive(userGesture=false){
+// Unlock audio on the name-confirmation tap. Joining the real list makes a network
+// request first, so on iOS the original gesture is over when the animation begins.
+let arrivalContext,arrivalClip;
+function prepareArrivalSound(){
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(sound.muted||reducedMotion()||!Audio)return;
+  try{
+    arrivalContext||=new Audio();
+    arrivalContext.resume().catch(()=>{});
+    arrivalClip||=fetch(sound.currentSrc||sound.src).then(response=>response.arrayBuffer())
+      .then(bytes=>arrivalContext.decodeAudioData(bytes)).catch(()=>{arrivalClip=null;return null});
+  }catch{}
+}
+function playArrivalSound(){
+  if(sound.muted||reducedMotion())return;
+  const start=performance.now();
+  function play(clip){
+    const offset=(performance.now()-start)/1000;
+    if(document.hidden||sound.muted||reducedMotion()||!arriving)return;
+    if(clip&&arrivalContext.state==='running'){
+      if(offset>=clip.duration)return;
+      const source=arrivalContext.createBufferSource();
+      source.buffer=clip;source.connect(arrivalContext.destination);source.start(0,offset);
+    }else{
+      try{sound.currentTime=offset;sound.play()?.catch(()=>{})}catch{}
+    }
+  }
+  if(arrivalClip)arrivalClip.then(play).catch(()=>{});else play(null);
+}
+async function arrive(){
   if(arriving||busy)return;
   const root=document.documentElement,sheet=document.querySelector('main');
   if(document.hidden){root.classList.remove('arrival-wait');return}
   arriving=true;
-  const audible=userGesture||!reducedMotion();
-  function playSound(){
-    if(!audible)return;
-    try{sound.currentTime=0;sound.play()?.catch(()=>{})}catch{}
-  }
-  // Start audio inside the replay tap on iOS. A rejected autoplay never delays the sheet.
-  if(userGesture)playSound();
   try{
     if(reducedMotion())return;
     if(!plane.complete && plane.decode){
       await Promise.race([plane.decode().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,550))]);
     }
     if(!plane.naturalWidth||document.hidden)return;
-    if(userGesture && window.scrollY)window.scrollTo(0,0);
-    if(!userGesture)playSound();
+    playArrivalSound();
     root.classList.remove('arrival-wait');root.classList.add('arriving');
     const pass=plane.closest('.flyby').getAnimations?.().find(a=>a.animationName==='incoming');
     if(pass)await pass.finished.catch(()=>{});
@@ -407,7 +481,6 @@ async function arrive(userGesture=false){
     else await new Promise(resolve=>setTimeout(resolve,850));
   }finally{root.classList.remove('arrival-wait','arriving','fallback-drop');arriving=false}
 }
-replay.onclick=()=>arrive(true);
 
 // BEGIN SHOPPING INK
 // Shared by the installed planner and the recipient page. Inlined at build time.
@@ -632,7 +705,7 @@ async function displayInvite(){
   document.querySelector('main').hidden=true;$('guestGate').hidden=false;
   $('pending').replaceChildren();$('bought').replaceChildren();$('listTitle').textContent='Do kupienia';
   document.title='Wspólna lista zakupów · Okti';
-  const form=$('joinForm'),submit=form.querySelector('button');
+  const form=$('joinForm'),submit=form.querySelector('[type=submit]');
   $('addProductForm').hidden=true;$('newProduct').value='';
   form.hidden=!invite;submit.disabled=true;
   $('joinMessage').textContent=invite?'':'Poproś osobę, która udostępnia listę, o link do zakupów.';
@@ -650,8 +723,9 @@ function revealInvitation(playArrival=true){
 }
 $('joinForm').onsubmit=async event=>{
   event.preventDefault();
-  const nick=$('joinNick').value.trim(),button=$('joinForm').querySelector('button');
+  const nick=$('joinNick').value.trim(),button=$('joinForm').querySelector('[type=submit]');
   if(busy||button.disabled||!nick)return;
+  prepareArrivalSound();
   busy=true;button.disabled=true;
   try{
     const next={actor:person.actor||crypto.randomUUID(),nick};

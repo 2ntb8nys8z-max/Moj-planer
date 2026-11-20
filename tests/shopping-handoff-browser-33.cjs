@@ -3,9 +3,23 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 async function checkGuestHandoff(page){
  await page.setViewportSize({width:390,height:688});
  await page.goto('https://planner.test/podglad-odbiorcy/index.html?imie=1');
- await page.getByLabel('Wpisz swoje imię').fill('Zosia');
+ const sounds=page.getByRole('switch',{name:'Dźwięki animacji'});
+ assert.equal(await sounds.getAttribute('aria-checked'),'true');
+ const track=await sounds.locator('.switch-track').boundingBox();
+ const y=track.y+track.height/2;
+ await page.mouse.move(track.x+track.width-8,y);
+ await page.mouse.down();
+ await page.mouse.move(track.x+8,y,{steps:5});
+ await page.mouse.up();
+ assert.equal(await sounds.getAttribute('aria-checked'),'false');
+ await page.reload();
+ assert.equal(await sounds.getAttribute('aria-checked'),'false');
+ await page.getByLabel('Wpisz swoje imię (nick)',{exact:true}).fill('Zosia');
  await page.getByRole('button',{name:'Zatwierdź'}).click();
+ await page.waitForFunction(()=>document.documentElement.classList.contains('arriving'));
+ assert.equal(await page.locator('#flightSound').evaluate(el=>el.muted),true);
  await page.waitForFunction(()=>revision>0&&!arriving&&!document.documentElement.classList.contains('arrival-wait'));
+ assert.equal(await page.locator('#flightReplay').count(),0);
  const details=page.locator('details');
  assert.equal(await details.evaluate(el=>el.open),true);
  assert.equal(await page.locator('#pending .item').count(),3);
@@ -39,7 +53,7 @@ async function checkGuestHandoff(page){
  const pencil=await page.locator('#addProductIcon').boundingBox(),foot=await page.locator('.shopping-foot').boundingBox();
  assert.equal(await page.locator('#addProductIcon').evaluate(img=>img.complete && img.naturalWidth>0),true);
  assert.ok(pencil.width>=52 && Math.abs(pencil.x+pencil.width-foot.x-foot.width)<3);
- await page.getByRole('button',{name:'Dopisz produkt'}).click();
+ await page.getByRole('button',{name:'Dodaj produkt'}).click();
  await page.locator('#newProduct').fill('Jarmuż');
  await page.getByRole('button',{name:'Dodaj',exact:true}).click();
  const ownRow=page.locator('.shopping-has-options').filter({has:page.getByRole('button',{name:'Opcje produktu: Jarmuż',exact:true})});

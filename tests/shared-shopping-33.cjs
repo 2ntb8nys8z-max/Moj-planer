@@ -141,9 +141,14 @@ try{
  }
  await wait(()=>zosia("!$('joinForm').hidden && !$('joinForm').querySelector('button').disabled"));
  assert.equal(zosia("document.querySelector('main').hidden && !$('pending').children.length"),true);
- assert.equal(zosia("$('joinNick').labels[0].textContent"),'Wpisz swoje imię');
- assert.equal(zosia("$('joinHint').textContent"),'Pod tym imieniem zobaczą Cię inne osoby na liście.');
- assert.equal(zosia("$('joinForm').querySelector('button').textContent"),'Zatwierdź');
+ assert.equal(zosia("$('joinNick').placeholder"),'Wpisz swoje imię (nick)');
+ assert.equal(zosia("$('joinNick').getAttribute('aria-label')"),'Wpisz swoje imię (nick)');
+ assert.equal(zosia("$('joinForm').querySelector('[type=submit]').textContent"),'Zatwierdź');
+ assert.equal(zosia("$('animationSounds').getAttribute('aria-checked')"),'true');
+ zosia("$('animationSounds').click()");
+ assert.equal(zosia("$('flightSound').muted"),true);
+ assert.equal(zosia("$('flightReplay')"),null);
+ assert.equal(zosia("$('openAddProduct').textContent"),'Dodaj');
  assert.equal(zosia("$('joinMessage').textContent"),'');
  await accept(zosia,'Zosia');await host('syncSharedShopping()');
  assert.equal(subtitle(zosia),'Razem kupują: Robert i Zosia');assert.equal(subtitle(host),subtitle(zosia));
@@ -153,6 +158,8 @@ try{
  assert.ok(forwarded("gated && $('pending').childElementCount===0"));
  const returning=page('wspolne-zakupy.html',new URL(invite).hash,JSON.parse(zosia('JSON.stringify(localStorage)')));
  await wait(()=>returning('revision>0'));assert.equal(subtitle(returning),subtitle(zosia));
+ assert.equal(returning("$('animationSounds').getAttribute('aria-checked')"),'false');
+ assert.equal(returning("$('flightSound').muted"),true);
  await assert.rejects(forwarded("request('read',{})"),e=>e.status===403);
  await assert.rejects(forwarded("request('mark',{...person,keys:[],done:true,revision})"),e=>e.status===403);
  assert.equal(zosia("$('openAddProduct').hidden"),false);
