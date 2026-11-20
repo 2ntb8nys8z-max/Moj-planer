@@ -152,8 +152,23 @@ try{
  await moving('confirmPurchase()');
  await wait(()=>moving("!!document.querySelector('.item-flight')"));
  assert.equal(moving("document.querySelector('details').open && !!$('bought').querySelector('.landing')"),true);
+ assert.equal(moving("document.querySelector('.item-flight').matches('span') && !document.querySelector('.item-flight').childElementCount"),true);
+ assert.equal(moving("document.querySelector('.item-flight').textContent"),moving("pendingRow.querySelector('.item-name').textContent"));
+ assert.equal(moving("document.querySelector('.item-flight').style.top"),'100px');
  await wait(()=>moving('!busy'));
  assert.equal(moving("document.querySelector('.item-flight,.landing')"),null);
+ // Reverse the same purchase. The signed row stays put until the save succeeds.
+ moving(`const restored=$('bought').querySelector('button:not(:disabled)');restored.getClientRects=()=>[{}];restored.click()`);
+ assert.equal(moving("restored.classList.contains('is-unmarking')"),true);
+ assert.equal(moving("restored.isConnected && !document.querySelector('.item-flight')"),true);
+ await moving('confirmPurchase()');
+ await wait(()=>moving("!!$('pending').querySelector('.landing')"));
+ assert.equal(moving("document.querySelector('.item-flight').style.top"),'300px');
+ assert.equal(moving("document.querySelector('.item-flight').textContent"),moving("restored.querySelector('.item-name').textContent"));
+ assert.equal(moving("document.querySelector('.item-flight').childElementCount"),0);
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("document.querySelector('.item-flight,.landing')"),null);
+ assert.equal(moving("$('pending').textContent.includes(restored.querySelector('.item-name').textContent)"),true);
  moving(`request=async()=>{throw new Error('Brak połączenia')};$('pending').querySelector('button').click()`);
  await wait(()=>moving('!busy'));
  assert.equal(moving("$('pending').querySelector('.is-marking')"),null);
