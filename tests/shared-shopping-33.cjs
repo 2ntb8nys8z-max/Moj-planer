@@ -113,7 +113,7 @@ try{
  assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
  // Each invitation is independent, with a browser-bound membership and per-person write permissions.
  const host=installed;
- host("$('shoppingLimitInvite').checked=true");
+ assert.equal(host("$('shoppingLimitInvite')"),null);
  host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingCreateShared').click()");
  await wait(()=>host('shoppingCreated'));
  assert.ok(host('shoppingInviteState.inviteOnly'));
@@ -121,8 +121,14 @@ try{
  host("$('shoppingNameEdit').click();$('shoppingNameInput').value='Na wyjazd';$('shoppingNameSave').click()");
  await wait(()=>!host('shoppingSyncBusy'));
  host("navigator.share=undefined;navigator.clipboard={writeText:async url=>window.sharedLink=url}");
- await host('prepareShoppingInvite()');await host('sendShoppingLink()');
- const invite=host('sharedLink');
+ // Previously issued single-use links still have their original semantics.
+ const listId=host("shoppingStore('id')");
+ async function oldInvitation(seats){
+   const token=crypto.randomUUID();
+   assert.equal((await shop('invite',{invite:token,canAdd:true,seats},true)).status,200);
+   return site+'wspolne-zakupy.html#'+new URLSearchParams({lista:listId,zaproszenie:token});
+ }
+ const invite=await oldInvitation(1);
  const zosia=page('wspolne-zakupy.html',new URL(invite).hash);
  async function join(session,nick){
    session("identity.showModal=()=>{};document.querySelector('#pending button').click();$('nick').value="+JSON.stringify(nick)+";identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
@@ -188,7 +194,7 @@ try{
  await assert.rejects(returning("request('read',{})"),e=>e.status===403);
  assert.match((await ania("request('read',{})")).shoppersLabel,/Robert i Ania/);
  // A preview does not claim a slot. Two simultaneous acceptances yield only one membership.
- const raceLink=require('node:crypto').randomUUID(),listId=host("shoppingStore('id')");
+ const raceLink=require('node:crypto').randomUUID();
  async function shop(action,body,owner=false){
    const headers=owner?{Authorization:'Bearer '+token}:{};
    const response=await worker.fetch(new Request('https://planner.test/shopping/'+action,{method:'POST',headers,body:JSON.stringify({id:listId,...body})}),env);
@@ -236,12 +242,8 @@ try{
  assert.equal(afterOwner.rows.filter(r=>r.text==='Gruszki').length,2);
  await host("document.querySelector('[data-product=woda] .shopping-item-options').click();document.querySelector('[data-product=woda] .shopping-item-trash').onclick()");
  assert.ok(!(await shop('read',{},true)).data.rows.some(row=>row.text==='woda'));
- // Share once from the owner UI. Only explicit acceptance uses a place.
- host("$('shoppingInviteSeats').value='2';$('shoppingInviteAdd').checked=true");
- await host('prepareShoppingInvite()');
- assert.match(host("$('shoppingInviteStatus').textContent"),/Liczba miejsc: 2/);
- await host('sendShoppingLink()');
- const groupHash=new URL(host('sharedLink')).hash;
+ // A group invitation created before 33.365 retains its original capacity.
+ const groupHash=new URL(await oldInvitation(2)).hash;
  const groupInvite=new URLSearchParams(groupHash.slice(1)).get('zaproszenie');
  const twoGuests=['Dorota','Ewa'].map(nick=>({nick,page:page('wspolne-zakupy.html',groupHash)}));
  for(const guest of twoGuests)await wait(()=>guest.page("!$('joinForm').hidden"));
@@ -278,7 +280,7 @@ try{
    assert.equal((await shop('invite',{canAdd:true,seats,invite:crypto.randomUUID()},true)).status,400);
  }
  // The default link admits multiple named guests and reports each committed join exactly once.
- host("$('shoppingLimitInvite').checked=false;$('shoppingInviteAdd').checked=true");
+ host("$('shoppingInviteAdd').checked=true");
  await host('prepareShoppingInvite()');await host('sendShoppingLink()');
  const openHash=new URL(host('sharedLink')).hash;
  const openToken=new URLSearchParams(openHash.slice(1)).get('zaproszenie');
@@ -311,6 +313,34 @@ try{
  assert.equal((await shop('join',{invite:openToken,actor:crypto.randomUUID(),nick:'Nowa osoba'})).status,403);
  assert.equal((await shop('read',{},true)).data.rows.find(r=>r.text==='Daktyle').authorName,'Marek');
  assert.equal((await twoGuests[0].page("request('read',{})")).canAdd,true);
+ // Restore the original credential, including its add/purchase rights, with joining still closed.
+ assert.equal(host("document.querySelector('[aria-label=\"Przywróć dostęp: Marek\"]').parentElement.querySelector('s').textContent"),'Marek');
+ const former=(await shop('read',{},true)).data.removedParticipants.find(p=>p.nick==='Marek');
+ assert.equal((await shop('restore-access',{key:former.key})).status,403);
+ assert.equal((await twoGuests[0].page("request('read',{})")).removedParticipants,undefined);
+ const restoreRevision=(await shop('read',{},true)).data.joinEvents.length;
+ await host("document.querySelector('[aria-label=\"Przywróć dostęp: Marek\"]').onclick()");
+ await observer('refresh()');
+ assert.ok(observer("!gated && !document.querySelector('main').hidden && !$('openAddProduct').hidden"));
+ const sameLink=page('wspolne-zakupy.html',openHash,JSON.parse(observer('JSON.stringify(localStorage)')));
+ await wait(()=>sameLink('revision>0 && !gated'));
+ assert.equal((await sameLink("request('read',{})")).rows.find(r=>r.text==='Daktyle').canDelete,true);
+ const restored=(await shop('read',{},true)).data;
+ assert.equal(restored.joiningOpen,false);
+ assert.equal(restored.joinEvents.length,restoreRevision);
+ assert.equal(restored.invitations.filter(p=>p.nick==='Marek').length,1);
+ assert.equal((await shop('restore-access',{key:former.key},true)).data.revision,restored.revision);
+ assert.equal((await shop('invite-info',{invite:openToken})).data.available,false);
+ await assert.rejects(supplier("request('read',{})"),e=>e.status===403);
+ // 33.364 persisted a bare blocked flag, sometimes without a surviving seat.
+ const saved=JSON.parse(db.prepare('SELECT content FROM shared_shopping WHERE id=?').get(listId).content);
+ const legacyKey=restored.removedParticipants.find(p=>p.nick==='Hania').key;
+ saved.blocked[legacyKey]=true;
+ db.prepare('UPDATE shared_shopping SET content=? WHERE id=?').run(JSON.stringify(saved),listId);
+ await host("document.querySelector('[aria-label=\"Przywróć dostęp: Hania\"]').onclick()");
+ await supplier('refresh()');
+ assert.equal((await supplier("request('read',{})")).canAdd,false);
+ await assert.rejects(supplier("request('add',{itemId:crypto.randomUUID(),text:'Test'})"),e=>e.status===403);
  // Verify signing, independent decryption, idempotency and stale-device removal with a local push receiver.
  const nodeCrypto=require('node:crypto'),receiver=nodeCrypto.createECDH('prime256v1');
  const pub=receiver.generateKeys(),auth=nodeCrypto.randomBytes(16);

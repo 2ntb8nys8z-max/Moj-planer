@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.364-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.365-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -271,8 +271,6 @@ body.okti-weather-open{overflow:hidden}
 <div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingNameText"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle"><button type="button" id="shoppingNameEdit" disabled aria-label="Zmień nazwę kartki" aria-controls="shoppingNameForm" aria-expanded="false"><span id="shoppingNameText">Do kupienia</span><small id="shoppingNamePencil" hidden aria-hidden="true"> ✎</small></button><img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSharedLabel" class="shopping-summary-meta shopping-variable" aria-live="polite" hidden></div><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button type="button" id="shoppingAccess" aria-haspopup="dialog" aria-controls="shoppingAccessDialog" hidden>Uczestnicy</button><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><form id="shoppingNameForm" hidden><label for="shoppingNameInput">Zmień nazwę kartki</label><input id="shoppingNameInput" maxlength="80" required><div><button type="button" id="shoppingNameVoice"><img src="octi-actor-poster.webp?v=9b20c4f5b0d17977" alt=""> <span id="shoppingNameVoiceLabel">Dyktuj</span></button><button type="submit" id="shoppingNameSave">Zapisz</button><button type="button" id="shoppingNameCancel">Anuluj</button></div><small id="shoppingNameStatus" role="status"></small></form><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingOwnerActions" hidden><button type="button" id="shoppingCreateShared">Lista wspólna</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer></div></section></div></div>
 <dialog id="shoppingInviteDialog" aria-labelledby="shoppingInviteTitle">
   <h2 id="shoppingInviteTitle">Zaproś do zakupów</h2>
-  <label><input type="checkbox" id="shoppingLimitInvite"> Ogranicz liczbę osób</label>
-  <label for="shoppingInviteSeats" id="shoppingSeatsLabel" hidden>Liczba zapraszanych osób <input id="shoppingInviteSeats" type="number" min="1" max="200" step="1" value="1" inputmode="numeric" required></label>
   <p>Wybierz odbiorców podczas wysyłania. Każda osoba z linkiem może się podpisać i dołączyć, dopóki nie zamkniesz dołączania.</p>
   <p id="shoppingInviteMigration" hidden>Nowe zaproszenie wyłączy anonimowy dostęp przez stary link.</p>
   <label><input type="checkbox" id="shoppingInviteAdd" checked> Pozwól dopisywać produkty</label>
@@ -339,7 +337,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.364-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.365-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -446,7 +444,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.67-test',EXPECTED_WORKER_BUILD_ID='5172c78baf480aec';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.68-test',EXPECTED_WORKER_BUILD_ID='0864843d0f0560df';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -2585,8 +2583,10 @@ function announceShoppingJoins(data){
 function updateShoppingInvitations(data){
   if(!Array.isArray(data.invitations)||data.revision<shoppingInviteState.revision)return;
   announceShoppingJoins(data);
-  const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations);
-  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen};
+  const removed=data.removedParticipants || [];
+  const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations) ||
+    JSON.stringify(shoppingInviteState.removedParticipants)!==JSON.stringify(removed);
+  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
   $('shoppingInviteMigration').hidden=data.inviteOnly;
   $('shoppingLegacyAccess').hidden=data.inviteOnly;
   $('shoppingCloseJoining').hidden=!data.joiningOpen;
@@ -2616,16 +2616,24 @@ function renderShoppingMembers(){
     };
     row.append(name,bin);ul.append(row);
   }
+  for(const person of shoppingInviteState.removedParticipants || []){
+    const row=document.createElement('li'),name=document.createElement('s'),restore=document.createElement('button');
+    name.textContent=person.nick;
+    restore.type='button';restore.className='shopping-member-restore';restore.textContent='Przywróć';
+    restore.setAttribute('aria-label','Przywróć dostęp: '+person.nick);
+    restore.onclick=()=>changeShoppingAccess('restore-access',false,person.key);
+    row.append(name,restore);ul.append(row);
+  }
 }
-async function changeShoppingAccess(action,closeJoining=false){
-  const status=$('shoppingAccessStatus'),id=shoppingStore('id'),key=shoppingRevokeKey;
+async function changeShoppingAccess(action,closeJoining=false,key=shoppingRevokeKey){
+  const status=$('shoppingAccessStatus'),id=shoppingStore('id');
   const controls=[$('shoppingConfirmRevoke'),$('shoppingRevokeClose'),$('shoppingCloseJoining')];
   if(controls.some(b=>b.disabled))return;
   controls.forEach(b=>b.disabled=true);
   try{
     const data=await shoppingRequest(action,{id,key,closeJoining},shoppingStore('owner'));
     shoppingRevokeKey=null;$('shoppingRevokeBox').hidden=true;updateShoppingInvitations(data);resetPreparedInvite();
-    status.textContent=action==='close-joining'?'Dołączanie zamknięte.':closeJoining?'Dostęp cofnięty. Dołączanie zamknięte.':'Dostęp cofnięty.';
+    status.textContent=action==='restore-access'?'Dostęp przywrócony.':action==='close-joining'?'Dołączanie zamknięte.':closeJoining?'Dostęp cofnięty. Dołączanie zamknięte.':'Dostęp cofnięty.';
     await syncSharedShopping();
   }catch(error){status.textContent=error.message}
   finally{controls.forEach(b=>b.disabled=false)}
@@ -2705,7 +2713,6 @@ function initializeShoppingAccess(){
   $('shoppingRevokeClose').onclick=()=>changeShoppingAccess('revoke',true);
   $('shoppingCancelRevoke').onclick=()=>$('shoppingRevokeBox').hidden=true;
   $('shoppingCloseJoining').onclick=()=>changeShoppingAccess('close-joining');
-  $('shoppingLimitInvite').onchange=()=>$('shoppingSeatsLabel').hidden=!$('shoppingLimitInvite').checked;
   $('shoppingPushToggle').onclick=toggleShoppingPush;
   document.addEventListener('pointerdown',armShoppingTone,{passive:true});
   navigator.serviceWorker?.addEventListener('message',e=>{
@@ -2717,32 +2724,27 @@ function initializeShoppingAccess(){
 // END SHOPPING ACCESS PANEL
 function resetPreparedInvite(){
   shoppingPreparedInvite=null;
-  $('shoppingLimitInvite').disabled=false;$('shoppingInviteSeats').disabled=false;$('shoppingInviteAdd').disabled=false;$('shoppingPrepareInvite').hidden=false;$('shoppingShareInvite').hidden=true;
+  $('shoppingInviteAdd').disabled=false;$('shoppingPrepareInvite').hidden=false;$('shoppingShareInvite').hidden=true;
 }
 function openShoppingInvitations(){
-  resetPreparedInvite();$('shoppingLimitInvite').checked=false;$('shoppingSeatsLabel').hidden=true;$('shoppingInviteSeats').value='1';$('shoppingInviteAdd').checked=true;$('shoppingInviteStatus').textContent='';
+  resetPreparedInvite();$('shoppingInviteAdd').checked=true;$('shoppingInviteStatus').textContent='';
   $('shoppingInviteMigration').hidden=shoppingInviteState.inviteOnly;
   $('shoppingInviteDialog').showModal();syncSharedShopping();
 }
 async function prepareShoppingInvite(){
   const button=$('shoppingPrepareInvite');
   if(button.disabled)return;
-  const seatInput=$('shoppingInviteSeats');
-  const limited=$('shoppingLimitInvite').checked;
-  if(limited&&!seatInput.reportValidity())return;
-  const seats=seatInput.valueAsNumber;
-  button.disabled=true;$('shoppingLimitInvite').disabled=true;seatInput.disabled=true;$('shoppingInviteAdd').disabled=true;
+  button.disabled=true;$('shoppingInviteAdd').disabled=true;
   try{
     const id=shoppingStore('id'),invite=crypto.randomUUID(),canAdd=$('shoppingInviteAdd').checked;
-    const data=await shoppingRequest(limited?'invite':'open-invite',{id,invite,canAdd,...(limited?{seats}:{})},shoppingStore('owner'));
+    const data=await shoppingRequest('open-invite',{id,invite,canAdd},shoppingStore('owner'));
     updateShoppingInvitations(data);
-    if(limited && seats>1 && data.inviteSeats!==seats)throw Error('Nie udało się przygotować wszystkich miejsc. Spróbuj ponownie za chwilę.');
     const url=new URL('wspolne-zakupy.html',location.href);
     url.hash=new URLSearchParams({lista:id,zaproszenie:invite}).toString();
     shoppingPreparedInvite=url.href;
     button.hidden=true;$('shoppingShareInvite').hidden=false;$('shoppingShareInvite').focus();
-    $('shoppingInviteStatus').textContent=limited?'Zaproszenie gotowe. Liczba miejsc: '+seats+'.':'Link gotowy do wysłania.';
-  }catch(e){$('shoppingInviteStatus').textContent=e.message;$('shoppingLimitInvite').disabled=false;seatInput.disabled=false;$('shoppingInviteAdd').disabled=false}
+    $('shoppingInviteStatus').textContent='Link gotowy do wysłania.';
+  }catch(e){$('shoppingInviteStatus').textContent=e.message;$('shoppingInviteAdd').disabled=false}
   finally{button.disabled=false}
 }
 async function sendShoppingLink(){
@@ -6249,7 +6251,8 @@ button.shopping-item-trash[hidden]{display:none}
 #shoppingInviteDialog::backdrop{background:#17263566}
 #shoppingInviteDialog h2,#shoppingInviteDialog h3{margin:.3em 0}#shoppingInviteDialog button{min-height:44px;margin:4px 4px 0 0}
 #shoppingInviteDialog label{display:flex;align-items:center;gap:8px;min-height:44px}#shoppingInviteDialog input{width:auto}
-#shoppingInviteDialog #shoppingInviteSeats{width:4.2em;min-height:44px;margin-left:auto;padding:4px 8px;font:inherit}
+#shoppingInviteMembers s{color:#655e55;text-decoration-thickness:1.5px}
+#shoppingInviteMembers .shopping-member-restore{flex:none;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:3px 8px}
 #shoppingInviteMembers .shopping-batch-label{font-weight:600;margin-top:12px}
 #shoppingInviteMembers ul{list-style:none;padding:0}#shoppingInviteMembers li{display:flex;align-items:center;justify-content:space-between;gap:6px;overflow-wrap:anywhere}#shoppingInviteDialog [hidden]{display:none!important}
 #shoppingOwnerActions button{font:inherit;padding:4px 12px;border:1px solid #456881;border-radius:8px;background:#fffcf1;color:inherit}

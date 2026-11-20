@@ -37,8 +37,10 @@ function announceShoppingJoins(data){
 function updateShoppingInvitations(data){
   if(!Array.isArray(data.invitations)||data.revision<shoppingInviteState.revision)return;
   announceShoppingJoins(data);
-  const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations);
-  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen};
+  const removed=data.removedParticipants || [];
+  const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations) ||
+    JSON.stringify(shoppingInviteState.removedParticipants)!==JSON.stringify(removed);
+  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
   $('shoppingInviteMigration').hidden=data.inviteOnly;
   $('shoppingLegacyAccess').hidden=data.inviteOnly;
   $('shoppingCloseJoining').hidden=!data.joiningOpen;
@@ -68,16 +70,24 @@ function renderShoppingMembers(){
     };
     row.append(name,bin);ul.append(row);
   }
+  for(const person of shoppingInviteState.removedParticipants || []){
+    const row=document.createElement('li'),name=document.createElement('s'),restore=document.createElement('button');
+    name.textContent=person.nick;
+    restore.type='button';restore.className='shopping-member-restore';restore.textContent='Przywróć';
+    restore.setAttribute('aria-label','Przywróć dostęp: '+person.nick);
+    restore.onclick=()=>changeShoppingAccess('restore-access',false,person.key);
+    row.append(name,restore);ul.append(row);
+  }
 }
-async function changeShoppingAccess(action,closeJoining=false){
-  const status=$('shoppingAccessStatus'),id=shoppingStore('id'),key=shoppingRevokeKey;
+async function changeShoppingAccess(action,closeJoining=false,key=shoppingRevokeKey){
+  const status=$('shoppingAccessStatus'),id=shoppingStore('id');
   const controls=[$('shoppingConfirmRevoke'),$('shoppingRevokeClose'),$('shoppingCloseJoining')];
   if(controls.some(b=>b.disabled))return;
   controls.forEach(b=>b.disabled=true);
   try{
     const data=await shoppingRequest(action,{id,key,closeJoining},shoppingStore('owner'));
     shoppingRevokeKey=null;$('shoppingRevokeBox').hidden=true;updateShoppingInvitations(data);resetPreparedInvite();
-    status.textContent=action==='close-joining'?'Dołączanie zamknięte.':closeJoining?'Dostęp cofnięty. Dołączanie zamknięte.':'Dostęp cofnięty.';
+    status.textContent=action==='restore-access'?'Dostęp przywrócony.':action==='close-joining'?'Dołączanie zamknięte.':closeJoining?'Dostęp cofnięty. Dołączanie zamknięte.':'Dostęp cofnięty.';
     await syncSharedShopping();
   }catch(error){status.textContent=error.message}
   finally{controls.forEach(b=>b.disabled=false)}
@@ -157,7 +167,6 @@ function initializeShoppingAccess(){
   $('shoppingRevokeClose').onclick=()=>changeShoppingAccess('revoke',true);
   $('shoppingCancelRevoke').onclick=()=>$('shoppingRevokeBox').hidden=true;
   $('shoppingCloseJoining').onclick=()=>changeShoppingAccess('close-joining');
-  $('shoppingLimitInvite').onchange=()=>$('shoppingSeatsLabel').hidden=!$('shoppingLimitInvite').checked;
   $('shoppingPushToggle').onclick=toggleShoppingPush;
   document.addEventListener('pointerdown',armShoppingTone,{passive:true});
   navigator.serviceWorker?.addEventListener('message',e=>{

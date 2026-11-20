@@ -571,9 +571,19 @@ async function removeGuestProduct(key){
   finally{busy=false}
 }
 async function refresh(){
-  if(gated||busy||reading)return;reading=true;
-  try{const data=await request('read',{});if(!busy){$('status').textContent='';await showIncoming(data)}}
-  catch(e){if(e.status===403){await displayInvite()}else $('status').textContent=e.message}finally{reading=false}
+  if((gated&&!person.actor)||busy||reading)return;reading=true;
+  try{
+    const data=await request('read',{});
+    if(busy)return;
+    if(gated){
+      if(typeof data.canAdd!=='boolean')return;
+      revealInvitation(false);
+    }
+    $('status').textContent='';await showIncoming(data);
+  }catch(e){
+    if(e.status===403){if(!gated)await displayInvite()}
+    else $('status').textContent=e.message;
+  }finally{reading=false}
 }
 async function mark(group,button){
   if(busy||(group.done&&!group.canRestore))return;busy=true;
@@ -631,9 +641,9 @@ async function displayInvite(){
     if(info.available)$('joinNick').value=person.nick||'';
   }catch(e){$('joinMessage').textContent=e.message}
 }
-function revealInvitation(){
+function revealInvitation(playArrival=true){
   gated=false;$('guestGate').hidden=true;document.querySelector('main').hidden=false;
-  if(!reducedMotion())document.documentElement.classList.add('arrival-wait');
+  if(playArrival&&!reducedMotion())document.documentElement.classList.add('arrival-wait');
 }
 $('joinForm').onsubmit=async event=>{
   event.preventDefault();
