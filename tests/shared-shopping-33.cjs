@@ -46,6 +46,32 @@ try{
  await g('refresh()');assert.equal(g("$('listTitle').textContent"),'Zakupy na sobotę');
  o("closeShoppingSummary(true);openShoppingSummary()");
  assert.equal(o("$('shoppingNameText').textContent"),'Zakupy na sobotę');
+ // The same display name from a second browser cannot undo the first buyer's mark.
+ const owned=(guest,label)=>guest("[...$('bought').children].find(b=>b.querySelector('span').textContent==="+JSON.stringify(label)+").disabled");
+ assert.equal(owned(g,'mleko'),false);assert.equal(owned(g,'chleb'),true);
+ assert.equal(owned(g2,'mleko'),true);assert.equal(owned(g2,'chleb'),true);
+ await g2('refresh()');
+ g2("identity.showModal=()=>{};document.querySelector('#pending button').click();nick.value='Jaga';identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
+ await wait(()=>g2("$('bought').textContent.includes('ser(Jaga)')"));
+ await g('refresh()');
+ assert.equal(owned(g2,'ser'),false);assert.equal(owned(g,'ser'),true);
+ const state=await g("request('read',{})"),milk=state.rows.find(r=>r.text==='mleko').key, bread=state.rows.find(r=>r.text==='chleb').key;
+ assert.ok(state.rows.every(r=>!('buyer' in r)));
+ await assert.rejects(g("request('mark',{...person,keys:"+JSON.stringify([milk,bread])+",done:false,revision})"),e=>e.status===403);
+ assert.equal((await g("request('read',{})")).revision,state.revision);
+ g("$('bought').querySelector('button:not(:disabled)').click()");
+ await wait(()=>g("$('pending').textContent.includes('mleko')"));await o('syncSharedShopping()');
+ assert.ok(o("$('shoppingSummaryRows').textContent.includes('mleko')"));
+ // Previously stored signatures are recovered only when the existing identity is unambiguous.
+ const legacy=JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content);
+ delete legacy.buyerVersion;
+ const oldId=require('node:crypto').randomUUID(),oldActor=require('node:crypto').randomUUID();
+ legacy.participants[require('node:crypto').createHash('sha256').update(oldActor).digest('hex')]='Ela';
+ legacy.rows=['Ela','Jaga','Robert',''].map((by,i)=>({key:String(i),text:'Produkt '+i,done:true,by}));
+ db.prepare('INSERT INTO shared_shopping VALUES (?,1,?)').run(oldId,JSON.stringify(legacy));
+ async function legacyRead(actor){const response=await worker.fetch(new Request('https://example.test/shopping/read',{method:'POST',body:JSON.stringify({id:oldId,actor})}),env);return (await response.json()).rows}
+ assert.deepEqual((await legacyRead(oldActor)).map(r=>r.canRestore),[true,false,false,false]);
+ assert.ok((await legacyRead(g('person.actor'))).every(r=>!r.canRestore));
  o("$('shoppingNameEdit').click();$('shoppingNameInput').value='Porzucona nazwa';$('shoppingNameCancel').click()");
  assert.equal(o("shoppingStore('title')"),'Zakupy na sobotę');
  // Exercise start/stop, isolated transcription, draft preview, correction and save.
@@ -61,6 +87,14 @@ try{
  assert.ok(o('stoppedTracks')>=1);assert.equal(o("shoppingStore('title')"),'Zakupy na sobotę');
  o("$('shoppingNameInput').value='Dla Zosi i Roberta';$('shoppingNameSave').click()");
  await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).title==='Dla Zosi i Roberta');
+ // Only completion of native sharing launches the folding close.
+ o("navigator.share=async()=>{throw new DOMException('cancelled','AbortError')}");
+ await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary && !shoppingPaperMotion?.closing'));
+ o("navigator.share=undefined;navigator.clipboard={writeText:async url=>window.copied=url}");
+ await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary'));assert.ok(o('copied').endsWith('#'+id));
+ o("navigator.share=()=>new Promise(resolve=>window.completeShare=resolve);window.launchCount=0;startShoppingPaper=(closing,plane)=>{if(closing&&plane)launchCount++;finishShoppingSummaryClose()}");
+ const sharing=o('sendShoppingLink()');await o('sendShoppingLink()');assert.equal(o('launchCount'),0);o('completeShare()');await sharing;
+ assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
  console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});

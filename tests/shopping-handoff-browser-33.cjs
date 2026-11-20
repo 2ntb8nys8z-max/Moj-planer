@@ -3,7 +3,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{for(const [width,fallback,noCanvasFilters] of [[390,false,false],[430,false,true],[390,true,true]]){
-  const page=await browser.newPage({viewport:{width,height:width===430?932:844},deviceScaleFactor:1,reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const recordPlane=process.env.CI&&width===390&&!fallback;
+  const page=await browser.newPage({...(recordPlane?{recordVideo:{dir:'test-output/shopping-plane',size:{width,height:844}}}:{}),viewport:{width,height:width===430?932:844},deviceScaleFactor:1,reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(noCanvasFilters)await page.addInitScript(()=>Object.defineProperty(CanvasRenderingContext2D.prototype,'filter',{configurable:true,get(){return 'none'},set(){}}));
   await page.route('**/*',route=>{const url=new URL(route.request().url()),file=path.resolve(url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));if(url.origin==='https://planner.test'&&fs.existsSync(file)&&fs.statSync(file).isFile()){const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.ttf':'font/ttf','.woff2':'font/woff2'};return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/json'})}return route.fulfill({body:'{}',contentType:'application/json'})});
   await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
@@ -36,6 +37,24 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    return {shadowDelta:shadowError/(shadowPixels*3),middleShadowDelta:middleShadowError/(shadowPixels*3),shadowPixels,brightnessDelta:Math.abs(delta/(count*3)),paperPixels:count,inkPixels:masks.map(m=>m.size),inkAgreement:masks.map((mask,i)=>[...mask].filter(key=>near(key,masks[1-i])).length/mask.size)};
   },{before:before.toString('base64'),middle:middle.toString('base64'),after:after.toString('base64'),regions});
   assert.equal(regions.ready,true,'DOM and animation share already toned paper pixels');assert.ok(result.paperPixels>10000,'brightness compares a large opaque paper area');assert.ok(result.brightnessDelta<.5,'no visible brightness step at handoff '+JSON.stringify(result));assert.ok(result.inkPixels.every(n=>n>100)&&result.inkAgreement.every(r=>r>.95),'underline retains its shape and location, allowing one pixel of rasterization '+JSON.stringify(result));assert.ok(result.shadowPixels>5000&&result.shadowDelta<1&&result.middleShadowDelta<1,'shadow keeps its shape and strength before, during and after blending '+JSON.stringify(result));assert.deepEqual(errors,[]);
-  console.log(`Paper handoff ${width}px, ${fallback?'Canvas 2D':'WebGL'}, canvas filters ${noCanvasFilters?'disabled':'enabled'}: brightness delta ${result.brightnessDelta.toFixed(3)}/255, underline agreement ${result.inkAgreement.map(v=>v.toFixed(3))}, shadow delta ${result.shadowDelta.toFixed(3)}/${result.middleShadowDelta.toFixed(3)}/255.`);await page.close();
+  console.log(`Paper handoff ${width}px, ${fallback?'Canvas 2D':'WebGL'}, canvas filters ${noCanvasFilters?'disabled':'enabled'}: brightness delta ${result.brightnessDelta.toFixed(3)}/255, underline agreement ${result.inkAgreement.map(v=>v.toFixed(3))}, shadow delta ${result.shadowDelta.toFixed(3)}/${result.middleShadowDelta.toFixed(3)}/255.`);
+  if(width===390){
+   await page.evaluate(()=>{
+     document.querySelector('.app').style.visibility='';
+     shoppingOwner=true;shoppingCreated=true;saveShopping('id',crypto.randomUUID());shoppingOwnerButtons();
+     Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{throw new DOMException('Anulowano','AbortError')}});
+   });
+   await page.locator('#shoppingSendShared').click();
+   assert.ok(await page.locator('#shoppingModal').isVisible());
+   await page.evaluate(()=>Object.defineProperty(navigator,'share',{value:async()=>{}}));
+   await page.locator('#shoppingSendShared').click();
+   await page.waitForFunction(()=>shoppingPaperMotion?.plane && shoppingPaperMotion?.mesh && shoppingPaperMotion.progress>.1);
+   assert.equal(await page.evaluate(()=>shoppingPaperMotion.snapshot.includesData),true);
+   await page.waitForSelector('#shoppingModal.hidden',{state:'attached',timeout:20000});
+   assert.equal(await page.evaluate(()=>document.querySelector('.app').inert),false);
+   assert.deepEqual(errors,[]);
+   console.log('Sharing folded the written shopping sheet and returned to the planner.');
+  }
+  await page.close();
  }}finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

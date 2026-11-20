@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.355</title>
+<title>Mój Planer — test integracji 33.356</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.355</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.355</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.355-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.356</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.356</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.20.33.356-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -313,7 +313,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.355-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.20.33.356-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -420,7 +420,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.61-test',EXPECTED_WORKER_BUILD_ID='2bca0066bd7d707a';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.62-test',EXPECTED_WORKER_BUILD_ID='7992cacc15c2b597';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -1705,6 +1705,7 @@ function updateShoppingBadge(){const button=$('phoneShopping');if(!button)return
 function shoppingProductLabel(text){const parts=shoppingDisplayParts(text),name=document.createElement('span');name.className='shopping-product-name';name.textContent=parts.name;const quantity=document.createElement('span');quantity.className='shopping-product-quantity';quantity.textContent=parts.quantity;return [name,quantity];}
 // Local, purpose-built paper renderer: no DOM serialization, remote assets or dependency.
 let shoppingPaperMotion=null,shoppingPaperRun=0;
+let shoppingShareAttempt=null;
 const shoppingPaperImages=new Map();
 const shoppingPaperEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
 function shoppingPaperAnchor(){
@@ -1807,6 +1808,53 @@ async function shoppingPaperSnapshot(includeData){
 // Bend both edges of the live shopping sheet along arcs of constant paper length.
 const shoppingTossDuration=850;
 const shoppingPaperGrid={cols:48,rows:28};
+const shoppingPlaneDuration=4400;
+const shoppingPlaneGrid={cols:72,rows:56};
+function shoppingPlaneMesh(snapshot,progress){
+  const {width,height,pad,center}=snapshot;
+  const paperWidth=width-2*pad, paperHeight=height-2*pad;
+  const {cols,rows}=snapshot.fallback?{cols:24,rows:20}:shoppingPlaneGrid;
+  const phase=(start,end)=>shoppingPaperEase((progress-start)/(end-start));
+  const leftCorner=phase(0,.22),rightCorner=phase(.18,.39);
+  const leftWing=phase(.37,.60),rightWing=phase(.46,.70),spine=phase(.53,.76);
+  const bank=phase(.31,.82),takeoff=phase(.84,1);
+  const angle=snapshot.angle+bank*.64+takeoff*.11,cos=Math.cos(angle),sin=Math.sin(angle);
+  const scale=1-.27*bank-.20*takeoff;
+  const cx=center.x+(innerWidth-center.x+width)*takeoff;
+  const cy=center.y-.035*paperHeight*bank-(center.y+height*.35)*takeoff;
+  const tipY=-paperHeight/2+18;
+  const points=[];
+  // Rotate the outer panel around its crease. A narrow curved band lets the
+  // paper roll into the fold before the crease tightens and lies flat.
+  function fold(point,side,slope,amount){
+    if(!amount)return;
+    const length=Math.hypot(1,slope),nx=side/length,ny=-slope/length;
+    const distance=point.x*nx+(point.y-tipY)*ny;
+    if(distance<=0)return;
+    const band=paperWidth*(.12-.10*amount);
+    const bend=amount*(Math.PI-.035)*shoppingPaperEase(distance/band);
+    const cosine=Math.cos(bend),sine=Math.sin(bend);
+    const delta=distance*(cosine-1)-point.z*sine;
+    point.x+=nx*delta;point.y+=ny*delta;point.z=distance*sine+point.z*cosine;
+    point.light-=.115*Math.sin(bend)**2+.035*(1-cosine)/2;
+  }
+  const wingSlope=Math.min(.414,paperWidth*.44/(paperHeight-18));
+  for(let col=0;col<=cols;col++)for(let row=0;row<=rows;row++){
+    const u=col/cols,v=row/rows,side=u<.5?-1:1;
+    const point={x:(u-.5)*width,y:(v-.5)*height,z:0,light:1};
+    fold(point,side,1,side<0?leftCorner:rightCorner);
+    fold(point,side,wingSlope,side<0?leftWing:rightWing);
+    // A shallow central pleat separates the wings and narrows towards the nose.
+    const span=Math.abs(point.x),keel=Math.min(span,Math.max(0,point.y-tipY)*.072);
+    const inner=spine*1.05,outer=spine*.18;
+    point.x=Math.sign(point.x)*(keel*Math.cos(inner)+(span-keel)*Math.cos(outer));
+    point.z-=keel*Math.sin(inner)+(span-keel)*Math.sin(outer);
+    point.light-=spine*(span-keel<1?.19:point.x<0?.075:.008);
+    const x=point.x+point.z*.18,y=point.y-point.z*.55;
+    points.push({u,v,x:cx+scale*(x*cos-y*sin),y:cy+scale*(x*sin+y*cos),z:point.z,light:point.light});
+  }
+  return {points,cols,rows,scale,cx,cy};
+}
 function shoppingPaperMesh(snapshot,progress,closing,anchor){
   const {width:w,height:h,left,top,pad=24}=snapshot;
   const W=w-2*pad,H=h-2*pad,points=[];
@@ -1874,7 +1922,7 @@ function drawShoppingPaperTriangle(ctx,texture,source,target){
   for(let i=0;i<3;i++){const t=target[i],a=normals[(i+2)%3],b=normals[i],factor=Math.min(5,.65/Math.max(.01,1+a.x*b.x+a.y*b.y));ctx[i?'lineTo':'moveTo'](t.x+(a.x+b.x)*factor,t.y+(a.y+b.y)*factor)}ctx.closePath();ctx.clip();
   ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.max(0,Math.min(a.x,b.x,c.x)-4),sy=Math.max(0,Math.min(a.y,b.y,c.y)-4),sw=Math.min(texture.width,Math.max(a.x,b.x,c.x)+4)-sx,sh=Math.min(texture.height,Math.max(a.y,b.y,c.y)+4)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
 }
-function prepareShoppingPaperGL(canvas,snapshot){
+function prepareShoppingPaperGL(canvas,snapshot,grid=shoppingPaperGrid){
   const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,depth:true});if(!gl)return null;
   const shaders=[],buffers=[],textures=[];let program;
   const dispose=()=>{textures.forEach(t=>gl.deleteTexture(t));buffers.forEach(b=>gl.deleteBuffer(b));if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));gl.getExtension('WEBGL_lose_context')?.loseContext()};
@@ -1889,7 +1937,7 @@ function prepareShoppingPaperGL(canvas,snapshot){
       const texture=gl.createTexture();textures.push(texture);gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,i?'back':'front'),i);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12],['lighting',1,20]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,24,offset)}
-    const {cols,rows}=shoppingPaperGrid,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
+    const {cols,rows}=grid,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.frontFace(gl.CW);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     const data=new Float32Array((cols+1)*(rows+1)*6);
     return {draw(mesh,opacity){
@@ -1898,7 +1946,8 @@ function prepareShoppingPaperGL(canvas,snapshot){
   }catch(error){dispose();throw error}
 }
 function drawShoppingPaper(motion,progress){
-  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr,mesh=shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=1;motion.progress=progress;motion.mesh=mesh;
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr;
+  const mesh=motion.plane?shoppingPlaneMesh(snapshot,progress):shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=1;motion.progress=progress;motion.mesh=mesh;
   if(!closing){
     const lift=(1-progress)**2;
     canvas.style.filter=progress===1?'none':`drop-shadow(2px ${2+18*lift}px ${2+9*lift}px rgba(45,35,29,${.25*(1-progress)}))`;
@@ -1924,23 +1973,43 @@ function drawShoppingPaper(motion,progress){
   }
   ctx.globalAlpha=1;
 }
-function startShoppingPaper(closing=false){
+function startShoppingPaper(closing=false,plane=false){
   cancelShoppingPaper();const modal=$('shoppingModal'),sheet=modal.querySelector('.shopping-sheet');
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){if(closing)finishShoppingSummaryClose();return}
-  const run=shoppingPaperRun,media=window.matchMedia?.('(prefers-reduced-motion: reduce)'),motion={run,closing,raf:0,canvas:null,media,anchor:shoppingPaperAnchor(),progress:0};shoppingPaperMotion=motion;
+  const run=shoppingPaperRun,media=window.matchMedia?.('(prefers-reduced-motion: reduce)'),motion={run,closing,plane,raf:0,canvas:null,media,anchor:shoppingPaperAnchor(),progress:0};shoppingPaperMotion=motion;
   sheet.classList.add(closing?'shopping-paper-leaving':'shopping-paper-entering');if(!closing)sheet.classList.add('shopping-paper-canvas-active');
   // Resizing or changing motion preference settles immediately, without stale geometry or loops.
-  motion.resize=()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()};window.addEventListener('resize',motion.resize);window.visualViewport?.addEventListener('resize',motion.resize);media?.addEventListener?.('change',motion.resize);
+  motion.resize=()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()};window.addEventListener('resize',motion.resize);if(!plane)window.visualViewport?.addEventListener('resize',motion.resize);media?.addEventListener?.('change',motion.resize);
   shoppingPaperSnapshot(true).then(snapshot=>{
     if(shoppingPaperMotion!==motion||run!==shoppingPaperRun)return;
     motion.snapshot=snapshot;const canvas=document.createElement('canvas');canvas.className='shopping-paper-canvas';canvas.setAttribute('aria-hidden','true');motion.canvas=canvas;motion.dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.ceil(innerWidth*motion.dpr);canvas.height=Math.ceil(innerHeight*motion.dpr);modal.querySelector('.shopping-paper-stage').append(canvas);
-    try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot)}catch{const replacement=canvas.cloneNode();canvas.replaceWith(replacement);motion.canvas=replacement}
+    if(plane){
+      const reverse=snapshot.backTexture.getContext('2d');
+      reverse.save();reverse.globalCompositeOperation='source-atop';reverse.globalAlpha=.15;
+      reverse.drawImage(snapshot.texture,0,0);reverse.restore();
+    }
+    try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot,plane?shoppingPlaneGrid:shoppingPaperGrid)}catch{const replacement=canvas.cloneNode();canvas.replaceWith(replacement);motion.canvas=replacement}
     snapshot.fallback=!motion.gpu;
-    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=shoppingTossDuration;motion.canvas.addEventListener('webglcontextlost',motion.resize);
-    const frame=now=>{if(shoppingPaperMotion!==motion)return;const elapsed=now-start,progress=Math.min(1,elapsed/duration);drawShoppingPaper(motion,progress);if(progress<1)motion.raf=requestAnimationFrame(frame);else if(closing)finishShoppingSummaryClose();else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');motion.canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}else finishShoppingPaperOpen()};motion.raf=requestAnimationFrame(frame);
+    drawShoppingPaper(motion,0);sheet.classList.add('shopping-paper-canvas-active');const start=performance.now(),duration=plane?shoppingPlaneDuration:shoppingTossDuration;motion.canvas.addEventListener('webglcontextlost',motion.resize);
+    // A share target can bring another app to the foreground. Count only
+    // visible animation time, so the plane is still there on return to Okti.
+    let planeElapsed=0,lastFrame=start;
+    const frame=now=>{
+      if(shoppingPaperMotion!==motion)return;
+      if(plane&&!document.hidden)planeElapsed+=Math.min(100,Math.max(0,now-lastFrame));
+      lastFrame=now;
+      const elapsed=plane?planeElapsed:now-start,progress=Math.min(1,elapsed/duration);
+      drawShoppingPaper(motion,progress);
+      if(progress<1)motion.raf=requestAnimationFrame(frame);
+      else if(closing)finishShoppingSummaryClose();
+      else if(elapsed<duration+80){sheet.classList.add('shopping-paper-handoff');motion.canvas.style.opacity=String(1-(elapsed-duration)/80);motion.raf=requestAnimationFrame(frame)}
+      else finishShoppingPaperOpen();
+    };
+    motion.raf=requestAnimationFrame(frame);
   }).catch(()=>{if(shoppingPaperMotion!==motion)return;if(closing)finishShoppingSummaryClose();else finishShoppingPaperOpen()});
 }
 function finishShoppingSummaryClose(){
+  shoppingShareAttempt=null;
   cancelShoppingPaper();const modal=$('shoppingModal');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');shoppingSummary=null;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
 }
 function closeShoppingSummary(force=false){
@@ -1966,6 +2035,7 @@ function updateShoppingSummaryButton(){const count=shoppingSummary.groups.filter
 function setShoppingHelp(open){const help=$('shoppingSummaryHelp'),button=$('shoppingSummaryInfo');help.hidden=!open;button.setAttribute('aria-expanded',String(open))}
 function setShoppingPurchasedOpen(open){const drawer=$('shoppingSummaryPurchased'),toggle=$('shoppingPurchasedToggle'),section=toggle.closest('.shopping-purchased-section'),next=Boolean(open&&!toggle.disabled);shoppingPurchasedOpen=next;drawer.hidden=!next;toggle.setAttribute('aria-expanded',String(next));section.classList.toggle('is-open',next)}
 function animateShoppingPaper(){
+  shoppingShareAttempt=null;
   const modal=$('shoppingModal');modal.classList.remove('shopping-modal-closing');$('shoppingSummaryRows').scrollTop=0;startShoppingPaper();
 }
 function openShoppingSummary(filter={}){
@@ -2197,12 +2267,24 @@ function shoppingDeviceActivation(closeSettings){
   return button;
 }
 async function sendShoppingLink(){
+  if(shoppingShareAttempt||shoppingPaperMotion?.closing||!shoppingSummary)return;
   const url=new URL('wspolne-zakupy.html',location.href);
   url.hash=shoppingStore('id');
+  const attempt={};
+  shoppingShareAttempt=attempt;
   try{
-    if(navigator.share)await navigator.share({title:shoppingStore('title')||'Wspólna lista zakupów',url:url.href});
-    else{await navigator.clipboard.writeText(url.href);$('shoppingShareStatus').textContent='Link skopiowany.'}
+    if(!navigator.share){
+      await navigator.clipboard.writeText(url.href);$('shoppingShareStatus').textContent='Link skopiowany.';return;
+    }
+    if(shoppingPending()&&!confirm('Udostępnić zapisaną listę? Po wysłaniu kartka zamknie się i pominie niezapisane zaznaczenia.'))return;
+    await navigator.share({title:shoppingStore('title')||'Wspólna lista zakupów',url:url.href});
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    if(shoppingShareAttempt!==attempt||shoppingPaperMotion?.closing||!shoppingSummary)return;
+    closeShoppingName();
+    $('shoppingModal').classList.add('shopping-modal-closing');
+    startShoppingPaper(true,true);
   }catch(e){if(e.name!=='AbortError')window.prompt('Skopiuj link do listy',url.href)}
+  finally{if(shoppingShareAttempt===attempt)shoppingShareAttempt=null}
 }
 
 function initializeShoppingSummary(){

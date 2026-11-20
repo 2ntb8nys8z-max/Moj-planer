@@ -7,6 +7,7 @@ main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-p
 h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
 .item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
 .item:before{content:'□';flex:none}.item[aria-pressed=true]:before{content:'✓'}.item[aria-pressed=true] span{text-decoration:line-through}
+.item:disabled{cursor:default;opacity:1;color:inherit;-webkit-text-fill-color:currentColor}
 em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #status{font-size:16px}#status:empty{display:none}
@@ -19,7 +20,7 @@ const id=location.hash.slice(1),$=s=>document.getElementById(s),store='okti:ucze
 let person={},revision=-1,busy=false,reading=false;
 try{person=JSON.parse(localStorage.getItem(store)||'{}')}catch{}
 async function request(action,data){
-  const r=await fetch(api+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,...data})});
+  const r=await fetch(api+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,actor:person.actor,...data})});
   const result=await r.json();
   if(!r.ok)throw Object.assign(Error(result.error||'Nie udało się wczytać listy.'),{status:r.status});
   return result;
@@ -31,7 +32,7 @@ function show(data){
   document.title=$('listTitle').textContent+' · Okti';
   const groups=new Map();
   for(const row of data.rows){
-    const key=JSON.stringify([row.text,row.done,row.by]);
+    const key=JSON.stringify([row.text,row.done,row.by,!!row.canRestore]);
     if(!groups.has(key))groups.set(key,{...row,keys:[]});
     groups.get(key).keys.push(row.key);
   }
@@ -40,7 +41,9 @@ function show(data){
     const button=document.createElement('button'),label=document.createElement('span');
     button.className='item';button.setAttribute('aria-pressed',String(group.done));label.textContent=group.text;button.append(label);
     if(group.done&&group.by){const sig=document.createElement('em');sig.textContent='('+group.by+')';button.append(sig)}
-    button.onclick=()=>mark(group);
+    button.disabled=group.done&&!group.canRestore;
+    if(!button.disabled)button.onclick=()=>mark(group);
+    if(group.canRestore)button.setAttribute('aria-label','Przywróć do kupienia: '+group.text);
     $(group.done?'bought':'pending').append(button);
   }
   $('count').textContent='· '+$('bought').children.length;
@@ -52,7 +55,7 @@ async function refresh(){
   catch(e){$('status').textContent=e.message}finally{reading=false}
 }
 async function mark(group){
-  if(busy)return;busy=true;
+  if(busy||(group.done&&!group.canRestore))return;busy=true;
   const expected=revision;
   try{
     if(!person.nick){
@@ -60,9 +63,9 @@ async function mark(group){
       await new Promise(resolve=>dialog.addEventListener('close',resolve,{once:true}));
       if(dialog.returnValue!=='ok'||!$('nick').value.trim())return;
       person={actor:crypto.randomUUID(),nick:$('nick').value.trim()};
+      try{localStorage.setItem(store,JSON.stringify(person))}catch{}
     }
     const data=await request('mark',{...person,keys:group.keys,done:!group.done,revision:expected});
-    try{localStorage.setItem(store,JSON.stringify(person))}catch{}
     show(data);$('status').textContent='';
   }catch(e){
     if(e.status===409){show(await request('read',{}));$('status').textContent='Lista zmieniła się w międzyczasie. Sprawdź produkt.'}
