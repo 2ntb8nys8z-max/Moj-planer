@@ -1,12 +1,47 @@
 const {chromium}=require(process.env.PLANNER_PLAYWRIGHT||'playwright');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+async function checkGuestHandoff(page){
+ await page.setViewportSize({width:390,height:688});
+ await page.goto('https://planner.test/podglad-odbiorcy/index.html');
+ await page.waitForFunction(()=>revision>0&&!arriving&&!document.documentElement.classList.contains('arrival-wait'));
+ const details=page.locator('details');
+ assert.equal(await details.evaluate(el=>el.open),true);
+ assert.equal(await page.locator('#pending .item').count(),3);
+ assert.equal(await page.locator('#bought .item[aria-pressed=true] em:visible').count(),4);
+ await page.setViewportSize({width:320,height:410});
+ await page.waitForFunction(()=>!document.querySelector('details').open);
+ const pixels=await page.evaluate(async()=>{
+   const sheet=document.querySelector('main'),bought=document.querySelector('#bought');
+   const art=await guestPaperArt,texture=()=>guestPaperSnapshot(sheet,art).texture;
+   const row=sheet.querySelector('.item'),rect=row.getBoundingClientRect();
+   // Model a browser returning remembered rectangles for icons inside closed details.
+   const icons=[...bought.querySelectorAll('svg')];
+   for(const icon of icons)icon.getBoundingClientRect=()=>new DOMRect(rect.left,rect.bottom+3,25,27);
+   const closed=texture().toDataURL(),rows=[...bought.children];
+   bought.replaceChildren();
+   const withoutHiddenRows=texture().toDataURL();
+   bought.append(...rows);
+   const bounds=sheet.getBoundingClientRect(),scale=Math.min(devicePixelRatio,2);
+   const x=Math.floor((24+rect.right-bounds.left-4)*scale),y=Math.floor((24+rect.bottom-bounds.top-.5)*scale);
+   const pixel=()=>[...texture().getContext('2d').getImageData(x,y,1,1).data].join(',');
+   const ruled=pixel();
+   row.style.borderBottomColor='transparent';
+   const plain=pixel();
+   return {noHiddenInk:closed===withoutHiddenRows,hasRule:ruled!==plain};
+ });
+ assert.deepEqual(pixels,{noHiddenInk:true,hasRule:true});
+ await page.locator('summary').click();
+ await page.setViewportSize({width:320,height:395});
+ assert.equal(await details.evaluate(el=>el.open),true);
+ console.log('Guest paper fits all four signed purchases or collapses the group, honours manual expansion and draws only visible ink and rules.');
+}
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{for(const [width,fallback,noCanvasFilters] of [[390,false,false],[430,false,true],[390,true,true]]){
   const recordPlane=process.env.CI&&width===390&&!fallback;
   const page=await browser.newPage({...(recordPlane?{recordVideo:{dir:'test-output/shopping-plane',size:{width,height:844}}}:{}),viewport:{width,height:width===430?932:844},deviceScaleFactor:1,reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(noCanvasFilters)await page.addInitScript(()=>Object.defineProperty(CanvasRenderingContext2D.prototype,'filter',{configurable:true,get(){return 'none'},set(){}}));
-  await page.route('**/*',route=>{const url=new URL(route.request().url()),file=path.resolve(url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));if(url.origin==='https://planner.test'&&fs.existsSync(file)&&fs.statSync(file).isFile()){const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.ttf':'font/ttf','.woff2':'font/woff2'};return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/json'})}return route.fulfill({body:'{}',contentType:'application/json'})});
+  await page.route('**/*',route=>{const url=new URL(route.request().url()),file=path.resolve(url.pathname==='/'?'preview33/index.html':url.pathname.slice(1));if(url.origin==='https://planner.test'&&fs.existsSync(file)&&fs.statSync(file).isFile()){const types={'.html':'text/html','.js':'application/javascript','.webp':'image/webp','.ttf':'font/ttf','.woff2':'font/woff2','.m4a':'audio/mp4'};return route.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/json'})}return route.fulfill({body:'{}',contentType:'application/json'})});
   await page.goto('https://planner.test/preview33/index.html');await require('./permission-fixture.cjs').dismissInitialPermissions(page);await page.evaluate(()=>document.fonts.ready);
   await page.evaluate(fallback=>{ideas=[{id:'handoff',title:'Test',list:{type:'shopping',items:['Mleko 2 l','Chleb','Pomidory','Kawa 250 g','Jabłka 1 kg'].map((text,id)=>({id:String(id),text,done:false}))}}];renderAll();if(fallback)prepareShoppingPaperGL=()=>null;openShoppingSummary()},fallback);
   // The real Shopping anchor is captured; hide the unrelated animated dock for pixel comparisons.
@@ -55,6 +90,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    assert.deepEqual(errors,[]);
    console.log('Sharing folded the written shopping sheet and returned to the planner.');
   }
+  if(width===390&&!fallback)await checkGuestHandoff(page);
   await page.close();
  }}finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

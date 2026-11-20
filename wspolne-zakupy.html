@@ -6,16 +6,17 @@
 <style>
 @font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}
 html{min-height:100%;background:#906b4c;overflow-x:clip}
-body{margin:0;min-height:100vh;isolation:isolate;overflow-x:clip;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
+body{margin:0;min-height:100vh;min-height:100dvh;isolation:isolate;overflow-x:clip;color:#193e66;font:20px/1.45 Kalam,cursive;padding:max(6px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}
 /* Wood Table, Poly Haven (CC0), toned for the paper: https://polyhaven.com/a/wood_table */
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(118deg,#ffe8c929,transparent 48%,#29180e28),url(shopping-wood-table.webp) center / max(960px,100vw) auto repeat}
-main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a);transform-origin:67% min(180px,28vh)}
+main{margin:0 auto;max-width:480px;padding:clamp(26px,7vw,36px) clamp(22px,7vw,34px) 22px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a);transform-origin:67% min(180px,28vh)}
 h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}#shoppingSharedLabel{overflow-wrap:anywhere}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
-.item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
+.item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:7px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
 .item[aria-pressed=true] span{text-decoration:line-through}
 .item:disabled{cursor:default;opacity:1;color:inherit;-webkit-text-fill-color:currentColor}
 em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
+#arrivalLoading{position:fixed;inset:40% 0 auto;text-align:center;color:#fff8eb;text-shadow:0 1px 3px #362518}
 #status{font-size:16px}#status:empty{display:none}
 /* The sheet stays outside the viewport until the plane has cleared the opposite corner. */
 :root{--fly-time:1580ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
@@ -83,7 +84,8 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
 </style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
 <button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button></main>
-<audio id="flightSound" preload="auto" src="shopping-flyby-glide.m4a"></audio>
+<p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
+<audio id="flightSound" preload="auto" src="shopping-paper-whisper.m4a"></audio>
 <template id="pen"><svg class="pen-box" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
@@ -239,13 +241,27 @@ function guestPaperSnapshot(sheet,art){
   const backTexture=document.createElement('canvas');
   backTexture.width=texture.width;backTexture.height=texture.height;
   backTexture.getContext('2d').drawImage(texture,0,0);
+  // Closed details can retain layout rectangles in Safari. Use the same visibility
+  // decision for every layer of the handwritten page, including checkboxes.
+  function visibleRect(el){
+    if(el.closest('[hidden], details:not([open]) #bought'))return null;
+    const rect=el.getBoundingClientRect();
+    return rect.width&&rect.height&&rect.bottom>bounds.top&&rect.top<bounds.top+h?rect:null;
+  }
+  for(const row of sheet.querySelectorAll('.item')){
+    const rect=visibleRect(row);
+    if(!rect)continue;
+    const style=getComputedStyle(row),line=parseFloat(style.borderBottomWidth);
+    if(line){
+      ctx.fillStyle=style.borderBottomColor;
+      ctx.fillRect(rect.left-bounds.left,rect.bottom-bounds.top-line,rect.width,line);
+    }
+  }
   const walker=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT),range=document.createRange();
   let node;
   while((node=walker.nextNode())){
     const el=node.parentElement;
-    if(!node.textContent.trim()||el.closest('svg')||el.closest('details:not([open]) #bought'))continue;
-    const box=el.getBoundingClientRect();
-    if(!box.height||box.top>bounds.top+h)continue;
+    if(!node.textContent.trim()||el.closest('svg')||!visibleRect(el))continue;
     const st=getComputedStyle(el);
     ctx.font=[st.fontStyle,st.fontWeight,st.fontSize,st.fontFamily].join(' ');ctx.fillStyle=st.color;
     const metrics=ctx.measureText('Mg'),ascent=metrics.fontBoundingBoxAscent||parseFloat(st.fontSize)*.8,descent=metrics.fontBoundingBoxDescent||0;
@@ -258,8 +274,8 @@ function guestPaperSnapshot(sheet,art){
     }
   }
   for(const svg of sheet.querySelectorAll('svg')){
-    const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
-    if(!r.height||r.top>bounds.top+h||!vb.width)continue;
+    const r=visibleRect(svg),vb=svg.viewBox.baseVal;
+    if(!r||!vb.width)continue;
     ctx.save();ctx.translate(r.left-bounds.left,r.top-bounds.top);ctx.scale(r.width/vb.width,r.height/vb.height);
     for(const path of svg.querySelectorAll('path')){
       if(path.classList.contains('ink')&&!svg.closest('[aria-pressed=true]'))continue;
@@ -302,6 +318,20 @@ async function tossGuestPaper(sheet,art){
 }
 // END GUEST TOSS
 let arriving=false;
+const purchased=document.querySelector('details');
+let manualPurchased=false;
+purchased.querySelector('summary').addEventListener('click',()=>{manualPurchased=true});
+function fitPurchased(){
+  if(manualPurchased||revision<0)return;
+  purchased.open=!!$('bought').childElementCount;
+  if(!purchased.open)return;
+  const height=window.visualViewport?.height||innerHeight;
+  const body=getComputedStyle(document.body);
+  const sheetHeight=document.querySelector('main').offsetHeight;
+  purchased.open=sheetHeight>0&&sheetHeight+parseFloat(body.paddingTop)+parseFloat(body.paddingBottom)<=height;
+}
+window.addEventListener('resize',fitPurchased);
+window.visualViewport?.addEventListener('resize',fitPurchased);
 async function arrive(userGesture=false){
   if(arriving||busy)return;
   const root=document.documentElement,sheet=document.querySelector('main');
@@ -328,7 +358,7 @@ async function arrive(userGesture=false){
     else await new Promise(resolve=>setTimeout(resolve,1580));
     if(reducedMotion()||document.hidden)return;
     const art=await Promise.race([guestPaperArt,new Promise(resolve=>setTimeout(()=>resolve(null),100))]);
-    if(art){
+    if(art&&document.fonts?.status!=='loading'){
       try{await tossGuestPaper(sheet,art);return}catch{}
     }
     root.classList.add('fallback-drop');
@@ -352,7 +382,7 @@ const shoppingInk=(()=>{
     const style=getComputedStyle(label);
     return {rect:label.getBoundingClientRect(),text,font:style.font,color:style.color,shadow:style.textShadow};
   }
-  async function fly(start,target,landing,restoring,scrollBox){
+  async function fly(start,target,landing,restoring,scrollBox,duration=470){
     const end=target.getBoundingClientRect(),skip=reduced()||document.hidden||!start.rect.height;
     if(!end.height)return;
     const bounds=scrollBox?.getBoundingClientRect();
@@ -368,7 +398,7 @@ const shoppingInk=(()=>{
       await new Promise(resolve=>{
         const begin=performance.now(),direction=restoring?-1:1;
         function frame(now){
-          const t=Math.min(1,(now-begin)/470),end=target.getBoundingClientRect();
+          const t=Math.min(1,(now-begin)/duration),end=target.getBoundingClientRect();
           if(t>=1||!end.height||document.hidden||reduced()){resolve();return}
           const ease=t*t*(3-2*t),arc=Math.sin(Math.PI*t);
           const x=(end.left-r.left)*ease+9*arc*direction,y=(end.top-r.top)*ease-5*arc;
@@ -426,6 +456,7 @@ function show(data,landingKey){
   }
   $('count').textContent='· '+$('bought').children.length;
   if(!$('pending').children.length)$('pending').textContent='Brak produktów do kupienia.';
+  if(!busy)fitPurchased();
   return landing;
 }
 async function showIncoming(data){
@@ -452,7 +483,7 @@ async function showIncoming(data){
 }
 async function refresh(){
   if(busy||reading)return;reading=true;
-  try{const data=await request('read',{});if(!busy){await showIncoming(data);$('status').textContent=''}}
+  try{const data=await request('read',{});if(!busy){$('status').textContent='';await showIncoming(data)}}
   catch(e){$('status').textContent=e.message}finally{reading=false}
 }
 async function mark(group,button){
@@ -480,6 +511,21 @@ async function mark(group,button){
     else $('status').textContent=e.message;
   }finally{busy=false}
 }
-arrive();refresh();setInterval(()=>{if(!document.hidden)refresh()},4000);
+async function openSharedSheet(){
+  const root=document.documentElement,loading=$('arrivalLoading');
+  const notice=setTimeout(()=>{if(root.classList.contains('arrival-wait'))loading.hidden=false},400);
+  try{
+    await refresh();
+    if(revision<0)return;
+    if(document.fonts){
+      await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,600))]);
+      document.fonts.ready.then(fitPurchased);
+    }
+    fitPurchased();
+    clearTimeout(notice);loading.hidden=true;
+    await arrive();
+  }finally{clearTimeout(notice);loading.hidden=true;root.classList.remove('arrival-wait')}
+}
+openSharedSheet();setInterval(()=>{if(!document.hidden)refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 </script></body></html>

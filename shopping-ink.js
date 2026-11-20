@@ -10,7 +10,7 @@ const shoppingInk=(()=>{
     const style=getComputedStyle(label);
     return {rect:label.getBoundingClientRect(),text,font:style.font,color:style.color,shadow:style.textShadow};
   }
-  async function fly(start,target,landing,restoring,scrollBox){
+  async function fly(start,target,landing,restoring,scrollBox,duration=470){
     const end=target.getBoundingClientRect(),skip=reduced()||document.hidden||!start.rect.height;
     if(!end.height)return;
     const bounds=scrollBox?.getBoundingClientRect();
@@ -26,7 +26,7 @@ const shoppingInk=(()=>{
       await new Promise(resolve=>{
         const begin=performance.now(),direction=restoring?-1:1;
         function frame(now){
-          const t=Math.min(1,(now-begin)/470),end=target.getBoundingClientRect();
+          const t=Math.min(1,(now-begin)/duration),end=target.getBoundingClientRect();
           if(t>=1||!end.height||document.hidden||reduced()){resolve();return}
           const ease=t*t*(3-2*t),arc=Math.sin(Math.PI*t);
           const x=(end.left-r.left)*ease+9*arc*direction,y=(end.top-r.top)*ease-5*arc;

@@ -22,13 +22,27 @@ function guestPaperSnapshot(sheet,art){
   const backTexture=document.createElement('canvas');
   backTexture.width=texture.width;backTexture.height=texture.height;
   backTexture.getContext('2d').drawImage(texture,0,0);
+  // Closed details can retain layout rectangles in Safari. Use the same visibility
+  // decision for every layer of the handwritten page, including checkboxes.
+  function visibleRect(el){
+    if(el.closest('[hidden], details:not([open]) #bought'))return null;
+    const rect=el.getBoundingClientRect();
+    return rect.width&&rect.height&&rect.bottom>bounds.top&&rect.top<bounds.top+h?rect:null;
+  }
+  for(const row of sheet.querySelectorAll('.item')){
+    const rect=visibleRect(row);
+    if(!rect)continue;
+    const style=getComputedStyle(row),line=parseFloat(style.borderBottomWidth);
+    if(line){
+      ctx.fillStyle=style.borderBottomColor;
+      ctx.fillRect(rect.left-bounds.left,rect.bottom-bounds.top-line,rect.width,line);
+    }
+  }
   const walker=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT),range=document.createRange();
   let node;
   while((node=walker.nextNode())){
     const el=node.parentElement;
-    if(!node.textContent.trim()||el.closest('svg')||el.closest('details:not([open]) #bought'))continue;
-    const box=el.getBoundingClientRect();
-    if(!box.height||box.top>bounds.top+h)continue;
+    if(!node.textContent.trim()||el.closest('svg')||!visibleRect(el))continue;
     const st=getComputedStyle(el);
     ctx.font=[st.fontStyle,st.fontWeight,st.fontSize,st.fontFamily].join(' ');ctx.fillStyle=st.color;
     const metrics=ctx.measureText('Mg'),ascent=metrics.fontBoundingBoxAscent||parseFloat(st.fontSize)*.8,descent=metrics.fontBoundingBoxDescent||0;
@@ -41,8 +55,8 @@ function guestPaperSnapshot(sheet,art){
     }
   }
   for(const svg of sheet.querySelectorAll('svg')){
-    const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
-    if(!r.height||r.top>bounds.top+h||!vb.width)continue;
+    const r=visibleRect(svg),vb=svg.viewBox.baseVal;
+    if(!r||!vb.width)continue;
     ctx.save();ctx.translate(r.left-bounds.left,r.top-bounds.top);ctx.scale(r.width/vb.width,r.height/vb.height);
     for(const path of svg.querySelectorAll('path')){
       if(path.classList.contains('ink')&&!svg.closest('[aria-pressed=true]'))continue;
