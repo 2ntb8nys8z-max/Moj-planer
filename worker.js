@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.64-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.65-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="e0eec74908a53cc0";
+const BUILD_ID="8287ef55bcebba93";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1421,11 +1421,11 @@ async function shoppingOwnerKey(value) {
 async function sharedShoppingRequest(request, env, json) {
   const [, , action] = new URL(request.url).pathname.split('/');
   if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
-  const owner = ['owner','publish'].includes(action) || (action==='read' && request.headers.has('Authorization'));
+  const owner = ['owner','publish','invite','revoke'].includes(action) || (action==='read' && request.headers.has('Authorization'));
   if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
     return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
   if (action === 'owner') return json({owner:true});
-  if (!['publish','read','mark'].includes(action)) return json({error:'Nieznana operacja.'},404);
+  if (!['publish','read','mark','invite','invite-info','join','revoke','add'].includes(action)) return json({error:'Nieznana operacja.'},404);
   const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,250000)));
   const uuid = v => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(v);
   if (!uuid(body?.id)) return json({error:'Niepoprawny link.'},400);
@@ -1436,6 +1436,7 @@ async function sharedShoppingRequest(request, env, json) {
   const state = record ? JSON.parse(record.content) : {rows:[],participants:{}};
   // Older rows kept the signature only. Resolve it against participants already
   // known to this list, before registering anyone under a possibly identical nick.
+  if (!record && action==='publish' && body.inviteOnly===true) state.invites={};
   if (state.buyerVersion !== 1) {
     const uniqueBuyers = new Map();
     for (const [buyer, name] of Object.entries(state.participants)) {
@@ -1447,16 +1448,27 @@ async function sharedShoppingRequest(request, env, json) {
     state.buyerVersion = 1;
   }
   const actor = uuid(body.actor) ? await shoppingOwnerKey(body.actor) : null;
+  const inviteKey = uuid(body.invite) ? await shoppingOwnerKey(body.invite) : null;
+  const invite = inviteKey && state.invites?.[inviteKey];
+  const membership = () => actor && Object.values(state.invites || {}).find(entry => entry.actor === actor);
+  const locked = () => json({error:'Ta kartka wymaga osobistego zaproszenia.'},403);
+  if (action === 'invite-info') return json({available:!!invite && !invite.actor,used:!!invite?.actor});
+  if (state.invites && !owner && action !== 'join' && !membership()) return locked();
+  if (action === 'add' && !membership()?.canAdd) return locked();
   function view(revision) {
-    const guests=Object.values(state.participants);
+    const members=Object.entries(state.invites || {});
+    const guests=state.invites ? [...new Set(members.map(([,entry])=>entry.actor).filter(Boolean))].map(key=>state.participants[key]) : Object.values(state.participants);
     const shoppersLabel=guests.length
       ? 'Razem kupują: '+shoppingNamesFormat.format([SHOP_OWNER_NAME,...guests])
       : 'Listę udostępnia '+SHOP_OWNER_NAME;
     return {
       revision, title: state.title || 'Do kupienia', shoppersLabel,
-      ...(owner ? {participantNames:[...new Set(guests)]} : {}),
+      ...(owner ? {participantNames:[...new Set(guests)],inviteOnly:!!state.invites,
+        invitations:members.map(([key,entry])=>({key,nick:state.participants[entry.actor] || '',canAdd:entry.canAdd}))}
+        : state.invites ? {canAdd:!!membership()?.canAdd} : {}),
       rows: state.rows.map(({key,text,done,by,buyer}) => {
         const row = {key,text,done,by};
+        if (owner && state.added?.[key]) row.addedId=state.added[key];
         if (actor) row.canRestore = !!done && buyer === actor;
         return row;
       })
@@ -1464,12 +1476,41 @@ async function sharedShoppingRequest(request, env, json) {
   }
   const revision = record?.revision || 0;
   if (action === 'read') return json(view(revision));
-  if (revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
-  if (action === 'publish') {
+  if (['publish','mark'].includes(action) && revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
+  if (action === 'invite') {
+    if (!inviteKey || typeof body.canAdd !== 'boolean') return json({error:'Niepoprawne zaproszenie.'},400);
+    state.invites ||= {};
+    if (invite) return json(view(revision));
+    if (Object.keys(state.invites).length>=200) return json({error:'Usuń niepotrzebne zaproszenia.'},400);
+    state.invites[inviteKey]={actor:null,canAdd:body.canAdd};
+  } else if (action === 'join') {
+    if (!invite) return locked();
+    if (invite.actor && invite.actor!==actor) return json({error:'To zaproszenie zostało już wykorzystane.'},403);
+    const nick=typeof body.nick==='string' ? body.nick.trim() : '';
+    if (!actor || !nick || nick.length>60) return json({error:'Wpisz swój podpis.'},400);
+    if (invite.actor===actor) return json(view(revision));
+    const previous=membership();
+    if (previous) return json({error:'Masz już dostęp do tej kartki w tej przeglądarce.'},409);
+    invite.actor=actor;
+    state.participants[actor]=nick;
+  } else if (action === 'revoke') {
+    if (!/^[0-9a-f]{64}$/.test(body.key) || !Object.hasOwn(state.invites || {},body.key)) return json({error:'Zaproszenie jest już nieaktywne.'},404);
+    delete state.invites[body.key];
+  } else if (action === 'add') {
+    const text=typeof body.text==='string' ? body.text.trim() : '';
+    if (!text || text.length>160 || !uuid(body.itemId)) return json({error:'Wpisz produkt (do 160 znaków).'},400);
+    const key=JSON.stringify([JSON.stringify(['shared-shopping-'+body.id,'id',body.itemId]),0]);
+    if (state.added?.[key]) return json(view(revision));
+    if (state.rows.length>=1500) return json({error:'Lista jest już pełna.'},400);
+    state.rows.push({key,text,done:false,by:'',buyer:null});
+    state.added ||= {};
+    state.added[key]=body.itemId;
+  } else if (action === 'publish') {
     if (!Array.isArray(body.rows) || body.rows.length > 1500 || !body.rows.every(row =>
       row && typeof row.key==='string' && row.key.length<=1800 && typeof row.text==='string' && row.text.length>0 && row.text.length<=1400 &&
       typeof row.done==='boolean' && typeof row.by==='string' && row.by.length<=60) ||
       new Set(body.rows.map(row=>row.key)).size!==body.rows.length) return json({error:'Nieprawidłowe produkty lub lista jest zbyt długa.'},400);
+    if(body.removed!==undefined && (!Array.isArray(body.removed) || body.removed.length>1500 || !body.removed.every(k=>typeof k==='string')))return json({error:'Niepoprawne usunięte pozycje.'},400);
     if(body.title!==undefined){
       if(typeof body.title!=='string'||!body.title.trim()||body.title.trim().length>80)return json({error:'Niepoprawna nazwa kartki.'},400);
       state.title=body.title.trim();
@@ -1481,6 +1522,14 @@ async function sharedShoppingRequest(request, env, json) {
       if (done && old?.done && old.by === by && old.buyer) row.buyer = old.buyer;
       return row;
     });
+    // An older owner client can publish before it has imported a guest's addition.
+    const keys=new Set(state.rows.map(r=>r.key)),removed=new Set(body.removed || []);
+    for(const key of Object.keys(state.added || {})){
+      if(keys.has(key))continue;
+      if(removed.has(key))delete state.added[key];
+      else if(previous.has(key))state.rows.push(previous.get(key));
+    }
+    if(state.rows.length>1500)return json({error:'Lista jest już pełna.'},400);
   } else {
     if (!actor || !Array.isArray(body.keys) || !body.keys.length || typeof body.done!=='boolean') return json({error:'Niepoprawna zmiana.'},400);
     const nick = state.participants[actor] || (typeof body.nick==='string'?body.nick.trim():'');
@@ -1531,7 +1580,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.20.33.64-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.20.33.65-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

@@ -77,12 +77,14 @@ async function checkGuestHandoff(page){
    await page.evaluate(()=>{
      document.querySelector('.app').style.visibility='';
      shoppingOwner=true;shoppingCreated=true;saveShopping('id',crypto.randomUUID());shoppingOwnerButtons();
+     shoppingRequest=async()=>({inviteOnly:true,invitations:[],revision:1,rows:[]});
      Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{throw new DOMException('Anulowano','AbortError')}});
    });
    await page.locator('#shoppingSendShared').click();
+   await page.locator('#shoppingPrepareInvite').click();await page.locator('#shoppingShareInvite').click();
    assert.ok(await page.locator('#shoppingModal').isVisible());
    await page.evaluate(()=>Object.defineProperty(navigator,'share',{value:async()=>{}}));
-   await page.locator('#shoppingSendShared').click();
+   await page.locator('#shoppingShareInvite').click();
    await page.waitForFunction(()=>shoppingPaperMotion?.plane && shoppingPaperMotion?.mesh && shoppingPaperMotion.progress>.1);
    assert.equal(await page.evaluate(()=>shoppingPaperMotion.snapshot.includesData),true);
    await page.waitForSelector('#shoppingModal.hidden',{state:'attached',timeout:20000});

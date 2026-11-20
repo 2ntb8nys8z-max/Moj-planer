@@ -8,18 +8,24 @@ const db=new DatabaseSync(':memory:');
 function query(sql,args=[]){const stmt=db.prepare(sql);return{bind:(...x)=>query(sql,x),first:async()=>stmt.get(...args),run:async()=>({meta:stmt.run(...args)})}}
 const env={API_LIMITS_DB:{prepare:query}},site='https://2ntb8nys8z-max.github.io/Moj-planer/';
 const windows=[];
-function page(file,hash){
+function page(file,hash,stored){
  const dom=new JSDOM(fs.readFileSync(file,'utf8'),{url:site+file+hash,runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,run=s=>vm.runInContext(s,dom.getInternalVMContext());
  windows.push(w);
+ if(stored)for(const [key,value] of Object.entries(stored))w.localStorage.setItem(key,value);
  Object.assign(w,{structuredClone,TextEncoder,TextDecoder,AbortController,Response,Request,confirm:()=>true,alert(){},fetch:async(url,options)=>String(url).includes('/shopping/')?worker.fetch(new Request(url,options),env):new Response('{}')});
  w.HTMLElement.prototype.scrollIntoView=function(){};w.HTMLMediaElement.prototype.pause=function(){};w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
  for(const s of w.document.querySelectorAll('script'))if(!s.src)run(s.textContent);
  return run;
 }
 async function wait(f){for(let i=0;i<100;i++){if(f())return;await new Promise(r=>setTimeout(r,30))}throw Error('condition failed: '+f)}
+async function seedLegacyList(owner){
+ const id=require('node:crypto').randomUUID();
+ await owner("shoppingRequest('publish',"+JSON.stringify({id,revision:0,rows:[]})+",shoppingStore('owner'))");
+ owner("saveShopping('id',"+JSON.stringify(id)+")");
+}
 try{
  const o=page('index.html','#lista-roberta='+token);
- await wait(()=>o('shoppingOwner'));
+ await wait(()=>o('shoppingOwner'));await seedLegacyList(o);
  o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['mleko','chleb','ser']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingCreateShared').click()");
  await wait(()=>o('shoppingCreated'));
  const installed=page('index.html','');
@@ -30,7 +36,7 @@ try{
  assert.equal(installed("shoppingStore('id')"),null);
  assert.equal(installed("$('shoppingActivateDevice').hidden"),true);
  const id=o("shoppingStore('id')"), g=page('wspolne-zakupy.html','#'+id);
- await wait(()=>g('revision')===1);
+ await wait(()=>g('revision')>=1);
  const subtitle=session=>session("$('shoppingSharedLabel').textContent");
  await o('syncSharedShopping()');
  assert.equal(subtitle(o),'Listę udostępnia Robert');assert.equal(subtitle(g),subtitle(o));
@@ -99,39 +105,94 @@ try{
  await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).title==='Dla Zosi i Roberta');
  // Only completion of native sharing launches the folding close.
  o("navigator.share=async()=>{throw new DOMException('cancelled','AbortError')}");
- await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary && !shoppingPaperMotion?.closing'));
+ await o('prepareShoppingInvite()');await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary && !shoppingPaperMotion?.closing'));
  o("navigator.share=undefined;navigator.clipboard={writeText:async url=>window.copied=url}");
- await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary'));assert.ok(o('copied').endsWith('#'+id));
+ await o('sendShoppingLink()');assert.ok(o('!!shoppingSummary'));assert.equal(new URLSearchParams(new URL(o('copied')).hash.slice(1)).get('lista'),id);
  o("navigator.share=()=>new Promise(resolve=>window.completeShare=resolve);window.launchCount=0;startShoppingPaper=(closing,plane)=>{if(closing&&plane)launchCount++;finishShoppingSummaryClose()}");
- const sharing=o('sendShoppingLink()');await o('sendShoppingLink()');assert.equal(o('launchCount'),0);o('completeShare()');await sharing;
+ await o('prepareShoppingInvite()');const sharing=o('sendShoppingLink()');await o('sendShoppingLink()');assert.equal(o('launchCount'),0);o('completeShare()');await sharing;
  assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
- // A second send of the existing sheet gives the third person the same list and title.
+ // Each invitation is independent, with a browser-bound membership and per-person write permissions.
  const host=installed;
  host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingCreateShared').click()");
  await wait(()=>host('shoppingCreated'));
+ assert.ok(host('shoppingInviteState.inviteOnly'));
+ await assert.rejects(host("shoppingRequest('read',{id:shoppingStore('id')})"),e=>e.status===403);
  host("$('shoppingNameEdit').click();$('shoppingNameInput').value='Na wyjazd';$('shoppingNameSave').click()");
  await wait(()=>!host('shoppingSyncBusy'));
  host("navigator.share=undefined;navigator.clipboard={writeText:async url=>window.sharedLink=url}");
- await host('sendShoppingLink()');
+ await host('prepareShoppingInvite()');await host('sendShoppingLink()');
  const invite=host('sharedLink');
  const zosia=page('wspolne-zakupy.html',new URL(invite).hash);
  async function join(session,nick){
    session("identity.showModal=()=>{};document.querySelector('#pending button').click();$('nick').value="+JSON.stringify(nick)+";identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
    await wait(()=>session('!busy'));
  }
- await wait(()=>zosia('revision')>0);
- assert.equal(subtitle(zosia),'Listę udostępnia Robert');assert.equal(zosia("$('listTitle').textContent"),'Na wyjazd');
- await join(zosia,'Zosia');await host('syncSharedShopping()');
+ async function accept(session,nick){
+   await wait(()=>session("!$('joinForm').hidden"));
+   await session("$('joinNick').value="+JSON.stringify(nick)+";$('joinForm').onsubmit({preventDefault(){}})");
+   assert.ok(session("revision>0&&!gated"));
+ }
+ await wait(()=>zosia("!$('joinForm').hidden"));
+ assert.equal(zosia("document.querySelector('main').hidden && !$('pending').children.length"),true);
+ await accept(zosia,'Zosia');await host('syncSharedShopping()');
  assert.equal(subtitle(zosia),'Razem kupują: Robert i Zosia');assert.equal(subtitle(host),subtitle(zosia));
- await host('sendShoppingLink()');assert.equal(host('sharedLink'),invite);
+ assert.equal(zosia("$('listTitle').textContent"),'Na wyjazd');
+ const forwarded=page('wspolne-zakupy.html',new URL(invite).hash);
+ await wait(()=>forwarded("$('joinMessage').textContent.includes('wykorzystane')"));
+ assert.ok(forwarded("gated && $('pending').childElementCount===0"));
+ const returning=page('wspolne-zakupy.html',new URL(invite).hash,JSON.parse(zosia('JSON.stringify(localStorage)')));
+ await wait(()=>returning('revision>0'));assert.equal(subtitle(returning),subtitle(zosia));
+ await assert.rejects(forwarded("request('read',{})"),e=>e.status===403);
+ await assert.rejects(forwarded("request('mark',{...person,keys:[],done:true,revision})"),e=>e.status===403);
+ assert.equal(zosia("$('openAddProduct').hidden"),false);
+ await zosia("$('openAddProduct').click();$('newProduct').value='Marchew 2 kg';$('addProductForm').onsubmit({preventDefault(){}})");
+ await host('syncSharedShopping()');assert.match(host("$('shoppingSummaryRows').textContent"),/Marchew/);
+ assert.equal(host("shoppingLocalRows().size"),3);
+ host("$('shoppingInviteAdd').checked=false");
+ await host('prepareShoppingInvite()');await host('sendShoppingLink()');assert.notEqual(host('sharedLink'),invite);
  const ania=page('wspolne-zakupy.html',new URL(host('sharedLink')).hash);
- await wait(()=>ania('revision')>0);assert.equal(subtitle(ania),subtitle(zosia));
- await join(ania,'Ania');await zosia('refresh()');await host('syncSharedShopping()');
+ await accept(ania,'Ania');await zosia('refresh()');await host('syncSharedShopping()');
  for(const session of [host,zosia,ania])assert.equal(subtitle(session),'Razem kupują: Robert, Zosia i Ania');
+ assert.match(ania("$('pending').textContent"),/Marchew 2 kg/);
+ assert.equal(ania("$('openAddProduct').hidden"),true);
+ await assert.rejects(ania("request('add',{text:'Produkt',itemId:crypto.randomUUID()})"),e=>e.status===403);
  assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
  assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
+ await host("$('shoppingInviteMembers').querySelector('li button').onclick()");
+ await zosia('refresh()');assert.ok(zosia("gated && document.querySelector('main').hidden"));
+ await assert.rejects(returning("request('read',{})"),e=>e.status===403);
+ assert.match((await ania("request('read',{})")).shoppersLabel,/Robert i Ania/);
+ // A preview does not claim a slot. Two simultaneous acceptances yield only one membership.
+ const raceLink=require('node:crypto').randomUUID(),listId=host("shoppingStore('id')");
+ async function shop(action,body,owner=false){
+   const headers=owner?{Authorization:'Bearer '+token}:{};
+   const response=await worker.fetch(new Request('https://planner.test/shopping/'+action,{method:'POST',headers,body:JSON.stringify({id:listId,...body})}),env);
+   return {status:response.status,data:await response.json()};
+ }
+ await shop('invite',{invite:raceLink,canAdd:true},true);
+ assert.deepEqual((await shop('invite-info',{invite:raceLink})).data,{available:true,used:false});
+ const claims=['Ola','Iga'].map(nick=>({actor:require('node:crypto').randomUUID(),nick,invite:raceLink}));
+ const accepted=await Promise.all(claims.map(c=>shop('join',c)));
+ assert.equal(accepted.filter(r=>r.status===200).length,1);
+ const winner=claims[accepted.findIndex(r=>r.status===200)],other=claims[accepted.findIndex(r=>r.status!==200)];
+ assert.equal((await shop('join',other)).status,403);
+ assert.equal((await shop('read',other)).status,403);
+ assert.equal((await shop('join',winner)).status,200);
+ const add={actor:winner.actor,itemId:require('node:crypto').randomUUID(),text:'Ogórek'};
+ await shop('add',add);await shop('add',add);
+ let snapshot=(await shop('read',{},true)).data;
+ const fresh=snapshot.rows.find(r=>r.text==='Ogórek');assert.ok(fresh.addedId);
+ assert.equal(snapshot.rows.filter(r=>r.text==='Ogórek').length,1);
+ const publish={rows:snapshot.rows.filter(r=>r.key!==fresh.key),revision:snapshot.revision};
+ snapshot=(await shop('publish',publish,true)).data;
+ assert.ok(snapshot.rows.some(r=>r.key===fresh.key),'older owner must not discard unimported products');
+ snapshot=(await shop('publish',{...publish,revision:snapshot.revision,removed:[fresh.key]},true)).data;
+ assert.ok(!snapshot.rows.some(r=>r.key===fresh.key),'honour an intentional owner deletion');
+ assert.equal((await shop('revoke',{key:snapshot.invitations[0].key})).status,403);
  // Exercise the ink → confirmed move → landing sequence with a visible row.
- const moving=page('wspolne-zakupy.html','#'+id);
+ const motionId=require('node:crypto').randomUUID();
+ await o("shoppingRequest('publish',"+JSON.stringify({id:motionId,revision:0,rows:[{key:'move',text:'Jabłka',done:false,by:''}]})+",shoppingStore('owner'))");
+ const moving=page('wspolne-zakupy.html','#'+motionId);
  await wait(()=>moving('revision')>0);
  moving(`person={actor:crypto.randomUUID(),nick:'Gość'};
    const realRequest=request;
@@ -175,7 +236,7 @@ try{
  assert.equal(moving("$('status').textContent"),'Brak połączenia');
  // Exercise actual taps on the installed owner sheet, including sync and reverse moves.
  const phone=page('index.html','#lista-roberta='+token);
- await wait(()=>phone('shoppingOwner'));
+ await wait(()=>phone('shoppingOwner'));await seedLegacyList(phone);
  phone(`ideas=[normalizeIdea({text:'Zakupy',list:{type:'shopping',items:['Gruszki 2 kg','Kawa']}})];
    saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingCreateShared').click();`);
  await wait(()=>phone('shoppingCreated && !shoppingSyncBusy'));
@@ -225,6 +286,6 @@ try{
  await recipient('refresh()');
  assert.ok(recipient("$('pending').textContent.includes('Gruszki 2 kg')"));
  assert.ok(phone("!ideas[0].list.items[0].done"));
- console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
+ console.log('Independent invitations, forwarding, browser return, guest additions, permissions, revocation, legacy lists and signed purchases passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});
