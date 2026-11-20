@@ -18,18 +18,26 @@ em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #arrivalLoading{position:fixed;inset:40% 0 auto;text-align:center;color:#fff8eb;text-shadow:0 1px 3px #362518}
 [hidden]{display:none!important}
+button,summary,label,input{-webkit-tap-highlight-color:transparent}
+.item:not(:disabled):active .pen-box,summary:active .fold-marker,.shopping-item-trash:active svg{opacity:.68}
 #guestGate{width:calc(100% - 24px);max-width:350px;margin:8vh auto;font:16px/1.3 system-ui,sans-serif}
 #joinForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
-#joinForm input,#joinForm button{min-height:44px;border-radius:9px;box-shadow:0 2px 5px #32241636}
+#joinForm input,#joinForm button[type=submit]{min-height:44px;border-radius:9px;box-shadow:0 2px 5px #32241636}
 #joinNick{width:100%;min-width:0;padding:8px 10px;border:1px solid #b1bac4;background:#fff;color:#192d42}
 #joinNick::placeholder{color:#4b5866;opacity:1}
-#joinForm button{padding:8px 14px;background:#244d77;color:white;font-weight:600}
-#joinForm button:active{background:#183a5d}
+#joinForm button[type=submit]{padding:8px 14px;background:#244d77;color:white;font-weight:600}
+#joinForm button[type=submit]:active{background:#183a5d}
 #joinForm :focus-visible{outline:2px solid white;outline-offset:2px}
+#animationSounds{grid-column:1/-1;justify-self:start;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px;border-radius:9px;background:#fff9ef;color:#253e55;font-size:15px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.switch-track{box-sizing:content-box;display:block;width:38px;height:22px;padding:2px;border-radius:20px;background:#67717b}
+.switch-track::after{content:"";display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 3px #0004;transform:translateX(var(--knob-x,0px));transition:transform .15s}
+#animationSounds[aria-checked=true] .switch-track{background:#244d77;--knob-x:16px}
+#animationSounds.is-dragging .switch-track::after{transition:none}
+@media(prefers-reduced-motion:reduce){.switch-track::after{transition:none}}
 #joinMessage:empty{display:none}
 #addProductForm label{display:block}#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
-#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
-#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f}
+#addProductForm button{min-height:44px;text-decoration:underline}
+#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f;font-size:17px;line-height:1.1}
 #addProductIcon{display:block;width:clamp(58px,16vw,68px);height:auto;transition:transform .14s ease}
 .shopping-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:8px}
 .shopping-foot #flightReplay{margin:0 auto 0 0;font-size:14px}
@@ -117,10 +125,11 @@ button.shopping-item-trash[hidden]{display:none}
 <form id="joinForm" hidden>
   <input id="joinNick" aria-label="Wpisz swoje imię (nick)" placeholder="Wpisz swoje imię (nick)" maxlength="60" autocomplete="nickname" enterkeyhint="done" required>
   <button type="submit">Zatwierdź</button>
+  <button type="button" id="animationSounds" role="switch" aria-checked="true"><span class="switch-track" aria-hidden="true"></span>Dźwięki animacji</button>
 </form><p id="joinMessage" role="status"></p></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div>
 <form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
-<footer class="shopping-foot"><button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button><button id="openAddProduct" type="button" aria-label="Dopisz produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"></button></footer></main>
+<footer class="shopping-foot"><button type="button" id="flightReplay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5v6H10M5 10a8 8 0 1 1 1 7"/></svg>Powtórz przelot</button><button id="openAddProduct" type="button" aria-label="Dodaj produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"><span>Dodaj</span></button></footer></main>
 <p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
 <!-- Landing foley adapted from “Page Turn (1)” by OwlStorm / Ashe Kirk (CC0): https://freesound.org/people/OwlStorm/sounds/151220/ -->
 <audio id="flightSound" preload="auto" src="shopping-paper-turn.m4a"></audio>
@@ -136,6 +145,48 @@ const demo={revision:1,title:'Zakupy na sobotę',shoppersLabel:'Razem kupują: R
     canDelete:i===2,authorName:i===2?'Zosia':'',authorMark:i===2?'Z':''}))};
 const reducedMotion=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const plane=$('incomingPlane'),sound=$('flightSound'),replay=$('flightReplay');
+const soundsSwitch=$('animationSounds'),track=soundsSwitch.querySelector('.switch-track');
+const soundsKey='okti.shopping.preview.animationSounds';
+function setSounds(enabled){
+  soundsSwitch.setAttribute('aria-checked',String(enabled));
+  sound.muted=!enabled;
+}
+try{setSounds(localStorage.getItem(soundsKey)!=='off')}catch{setSounds(true)}
+function saveSounds(enabled){
+  setSounds(enabled);
+  try{localStorage.setItem(soundsKey,enabled?'on':'off')}catch{}
+}
+// A tap toggles anywhere on the label. A horizontal drag explicitly selects a side.
+let drag=null,ignoreDragClick=false;
+soundsSwitch.onpointerdown=event=>{
+  if(!event.isPrimary||event.button!==0)return;
+  ignoreDragClick=false;
+  drag={id:event.pointerId,x:event.clientX,start:sound.muted?0:16};
+  soundsSwitch.setPointerCapture(event.pointerId);
+};
+soundsSwitch.onpointermove=event=>{
+  if(drag?.id!==event.pointerId)return;
+  const dx=event.clientX-drag.x;
+  if(Math.abs(dx)<5&&!soundsSwitch.classList.contains('is-dragging'))return;
+  soundsSwitch.classList.add('is-dragging');
+  track.style.setProperty('--knob-x',Math.max(0,Math.min(16,drag.start+dx))+'px');
+};
+function finishDrag(event){
+  if(drag?.id!==event.pointerId)return;
+  const dx=event.clientX-drag.x;
+  if(event.type==='pointerup'&&(Math.abs(dx)>=5||soundsSwitch.classList.contains('is-dragging'))){
+    if(Math.abs(dx)>=5)saveSounds(dx>0);
+    ignoreDragClick=true;
+  }
+  drag=null;
+  soundsSwitch.classList.remove('is-dragging');
+  track.style.removeProperty('--knob-x');
+}
+soundsSwitch.onpointerup=soundsSwitch.onpointercancel=soundsSwitch.onlostpointercapture=finishDrag;
+soundsSwitch.onclick=event=>{
+  if(!ignoreDragClick||event.detail===0)saveSounds(sound.muted);
+  ignoreDragClick=false;
+};
 // BEGIN GUEST TOSS
 const shoppingPaperEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
 const shoppingTossDuration=850;
@@ -380,9 +431,8 @@ async function arrive(userGesture=false){
   const root=document.documentElement,sheet=document.querySelector('main');
   if(document.hidden){root.classList.remove('arrival-wait');return}
   arriving=true;
-  const audible=userGesture||!reducedMotion();
   function playSound(){
-    if(!audible)return;
+    if(sound.muted||reducedMotion())return;
     try{sound.currentTime=0;sound.play()?.catch(()=>{})}catch{}
   }
   // Start audio inside the replay tap on iOS. A rejected autoplay never delays the sheet.
@@ -613,9 +663,11 @@ async function mark(group,button){
     else $('status').textContent=e.message;
   }finally{busy=false}
 }
-async function openSharedSheet(){
+async function openSharedSheet(fromSubmit=false){
   const root=document.documentElement,loading=$('arrivalLoading');
-  const notice=setTimeout(()=>{if(root.classList.contains('arrival-wait'))loading.hidden=false},400);
+  // Start from the submit gesture on iOS while the sample rows and fonts are prepared.
+  const arrival=fromSubmit?arrive(true):null;
+  const notice=setTimeout(()=>{if(!arriving&&root.classList.contains('arrival-wait'))loading.hidden=false},400);
   try{
     await refresh();
     if(revision<0)return;
@@ -625,7 +677,7 @@ async function openSharedSheet(){
     }
     fitPurchased();
     clearTimeout(notice);loading.hidden=true;
-    await arrive();
+    await (arrival||arrive());
   }finally{clearTimeout(notice);loading.hidden=true;root.classList.remove('arrival-wait')}
 }
 function displayInvite(){}
@@ -659,7 +711,7 @@ if(new URLSearchParams(location.search).has('imie')){
       if(row.authorName==='Zosia'){row.authorName=name;row.authorMark=name.slice(0,1)}
     }
     gated=false;$('guestGate').hidden=true;document.querySelector('main').hidden=false;
-    await openSharedSheet();
+    await openSharedSheet(true);
   };
 }else openSharedSheet();
 setInterval(()=>{if(!document.hidden)refresh()},4000);
