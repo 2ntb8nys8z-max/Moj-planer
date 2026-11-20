@@ -199,9 +199,27 @@ try{
  const staleRevision=(await host("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))")).revision;
  const latePublish=await host("shoppingRequest('publish',{id:shoppingStore('id'),revision:"+staleRevision+",rows:"+JSON.stringify(staleCopy)+"},shoppingStore('owner'))");
  assert.ok(!latePublish.rows.some(r=>r.key===carrot.key));
+ await zosia('refresh()');
+ await zosia("request('mark',{keys:[...document.querySelectorAll('#pending .item')].find(b=>b.shoppingGroup.text==='woda').shoppingGroup.keys,done:true,revision})");
+ await host('syncSharedShopping()');
+ await wait(()=>host('!shoppingSyncBusy'));
+ // A poll sent before revocation can arrive after the access panel confirms it.
+ const previousAccess=await host("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))");
+ host("window.normalShoppingRequest=shoppingRequest;window.delayedShoppingRead="+JSON.stringify(previousAccess));
+ host("shoppingRequest=(action,...args)=>action==='read'?Promise.resolve(window.delayedShoppingRead):normalShoppingRequest(action,...args)");
  host("$('shoppingInviteMembers').querySelector('li button').onclick()");
  await host("$('shoppingConfirmRevoke').onclick()");
  await zosia('refresh()');assert.ok(zosia("gated && document.querySelector('main').hidden"));
+ assert.equal(subtitle(host),'Razem kupują: Robert i Ania','a stale poll cannot reinstate a revoked name');
+ host("shoppingRequest=window.normalShoppingRequest");
+ await ania('refresh()');
+ assert.equal(subtitle(ania),subtitle(host));
+ assert.match(ania("$('bought').textContent"),/woda\(Zosia\)/);
+ host(`document.querySelector('[aria-label="Usuń dostęp: Ania"]').click()`);
+ await host("$('shoppingConfirmRevoke').onclick()");
+ assert.equal(subtitle(host),'Listę udostępnia Robert');
+ host(`document.querySelector('[aria-label="Przywróć dostęp: Ania"]').click()`);
+ await wait(()=>subtitle(host)==='Razem kupują: Robert i Ania');
  await assert.rejects(returning("request('read',{})"),e=>e.status===403);
  assert.match((await ania("request('read',{})")).shoppersLabel,/Robert i Ania/);
  // A preview does not claim a slot. Two simultaneous acceptances yield only one membership.

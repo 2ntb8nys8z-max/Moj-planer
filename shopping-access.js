@@ -36,6 +36,8 @@ function announceShoppingJoins(data){
 }
 function updateShoppingInvitations(data){
   if(!Array.isArray(data.invitations)||data.revision<shoppingInviteState.revision)return;
+  const label=$('shoppingSharedLabel');
+  if(data.shoppersLabel && label.textContent!==data.shoppersLabel)label.textContent=data.shoppersLabel;
   announceShoppingJoins(data);
   const removed=data.removedParticipants || [];
   const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations) ||
