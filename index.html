@@ -429,7 +429,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.65-test',EXPECTED_WORKER_BUILD_ID='8287ef55bcebba93';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.65-test',EXPECTED_WORKER_BUILD_ID='017734d7275e0db2';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -1700,7 +1700,7 @@ function collectShoppingSummary(records,filter={},now=today(),done=false){
     const pending=idea.list.items.map((item,index)=>({item,index})).filter(({item})=>item&&!!item.done===done&&typeof item.text==='string'&&item.text.trim());
     if(!pending.length)continue;
     const source={id:idea.id,title:idea.title||idea.text||'Lista zakupów',date,fingerprint:JSON.stringify(idea.list)};sources.push(source);
-    for(const {item,index} of pending){const key=done?JSON.stringify([item.text,item.shoppingBuyer||'']):item.text;let group=groups.get(key);if(!group){group={text:item.text,buyer:done?item.shoppingBuyer||'':'',refs:[],checked:false};groups.set(key,group)}group.refs.push({source,index,itemId:item.id??null,text:item.text});}
+    for(const {item,index} of pending){const guestKey=item.shoppingGuestKey;const key=JSON.stringify([item.text,done?item.shoppingBuyer||'':'',guestKey||'']);let group=groups.get(key);if(!group){group={text:item.text,guestKey,authorMark:item.shoppingAuthorMark,authorName:item.shoppingAuthorName,buyer:done?item.shoppingBuyer||'':'',refs:[],checked:false};groups.set(key,group)}group.refs.push({source,index,itemId:item.id??null,text:item.text});}
   }
   return {filter:{...filter},range,groups:[...groups.values()],sources};
 }
@@ -2077,6 +2077,38 @@ const shoppingInk=(()=>{
   }
   return {draw,capture,fly};
 })();
+
+// Put product options beside the purchase control so each gesture has one action.
+const shoppingRowOptions=(()=>{
+  let activeBin=null,timer=0;
+  function close(){
+    clearTimeout(timer);
+    if(activeBin)activeBin.hidden=true;
+    activeBin=null;
+  }
+  function attach(row,text,remove){
+    const options=document.createElement('button'),bin=document.createElement('button');
+    row.classList.add('shopping-has-options');
+    options.type=bin.type='button';
+    options.className='shopping-item-options';bin.className='shopping-item-trash';bin.hidden=true;
+    options.setAttribute('aria-label','Opcje produktu: '+text);
+    bin.setAttribute('aria-label','Usuń produkt: '+text);
+    bin.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 6.5 15.6-.5m-11.4.1.7-2.4 5.6-.2 1 2.5M6.2 7.2l1.1 13 10 .2 1.5-13.6M10 10l.4 7.5m3.9-7.8-.5 7.6"/></svg>';
+    options.onclick=()=>{
+      close();bin.hidden=false;activeBin=bin;
+      timer=setTimeout(close,2500);
+    };
+    bin.onclick=()=>{close();return remove()};
+    row.append(options,bin);
+  }
+  return {attach,close};
+})();
+function shoppingAuthorNote(mark,name){
+  const note=document.createElement('sup');
+  note.className='shopping-author';note.textContent=mark;
+  note.title='Produkt dopisuje '+name;note.setAttribute('aria-label',note.title);
+  return note;
+}
 // END SHOPPING INK
 function instantShopping(state=shoppingSummary){
   return !!(shoppingOwner&&state&&!state.keepStaged&&!state.range.from&&!state.range.to);
@@ -2104,7 +2136,7 @@ async function markShoppingRow(group,source,restoring){
     if(!restoring)shoppingPurchasedOpen=true;
     renderShoppingSummary();$('shoppingSummaryStatus').textContent='';
     const box=$(restoring?'shoppingSummaryRows':'shoppingSummaryPurchased');
-    const landing=[...box.children].find(row=>row.dataset.product===group.text&&(restoring||row.dataset.buyer===(shoppingOwner?'Robert':'')));
+    const landing=[...box.children].find(row=>row.dataset.product===group.text&&row.dataset.guestKey===(group.guestKey||'')&&(restoring||row.dataset.buyer===(shoppingOwner?'Robert':'')));
     if(!landing)return;
     if(focused)landing.querySelector('input')?.focus({preventScroll:true});
     await shoppingInk.fly(start,landing.querySelector('.shopping-product-name'),landing,restoring,box,restoring?undefined:shoppingPurchaseFlightMs);
@@ -2120,6 +2152,37 @@ function shoppingCheck(group,row,done){
   };
   control.append(check,$('shoppingInkPen').content.cloneNode(true));return control;
 }
+function deletePlannerShoppingProduct(group){
+  const edits=new Map();
+  for(const ref of group.refs){
+    const source=ideas.find(idea=>idea.id===ref.source.id);
+    if(!source || JSON.stringify(source.list)!==ref.source.fingerprint)throw Error('Lista się zmieniła. Otwórz ją ponownie.');
+    if(!edits.has(source))edits.set(source,new Set());
+    edits.get(source).add(ref.index);
+  }
+  PlannerData.assertWritable();
+  const before=ideas;
+  ideas=ideas.map(idea=>{
+    const indices=edits.get(idea);
+    if(!indices)return idea;
+    return {...idea,list:{...idea.list,items:idea.list.items.filter((_,i)=>!indices.has(i))}};
+  });
+  try{saveIdeas()}catch(error){ideas=before;throw error}
+  shoppingSummary=collectShoppingSummary(ideas,shoppingSummary.filter);
+  renderShoppingSummary();renderAll();
+}
+function decorateShoppingRow(row,name,group){
+  row.dataset.guestKey=group.guestKey||'';
+  if(group.authorMark)name.append(shoppingAuthorNote(group.authorMark,group.authorName));
+  if(!shoppingOwner || !shoppingCreated || !instantShopping())return;
+  shoppingRowOptions.attach(row,group.text,async()=>{
+    try{
+      if(group.guestKey)await shoppingRequest('remove',{id:shoppingStore('id'),key:group.guestKey},shoppingStore('owner'));
+      else deletePlannerShoppingProduct(group);
+      await syncSharedShopping();
+    }catch(error){$('shoppingSummaryStatus').textContent=error.message}
+  });
+}
 function renderShoppingSummary(){
   shoppingOwnerButtons();
   const state=shoppingSummary,box=$('shoppingSummaryRows'),purchasedBox=$('shoppingSummaryPurchased');box.replaceChildren();purchasedBox.replaceChildren();$('shoppingSummaryMeta').textContent=(state.range.from||state.range.to?state.range.label+' · ':'')+state.groups.length+' pozycji z '+state.sources.length+' list';
@@ -2128,7 +2191,9 @@ function renderShoppingSummary(){
     const row=document.createElement('div'),label=document.createElement('label');
     row.className='shopping-summary-row';row.dataset.product=group.text;
     row.style.setProperty('--shopping-row',box.children.length);
-    label.append(shoppingCheck(group,row,false),...shoppingProductLabel(group.text));row.append(label);box.append(row);
+    const [name,qty]=shoppingProductLabel(group.text);
+    label.append(shoppingCheck(group,row,false),name,qty);row.append(label);
+    decorateShoppingRow(row,name,group);box.append(row);
   }
   const purchased=collectShoppingSummary(ideas,state.filter,today(),true).groups;
   for(const group of purchased){
@@ -2137,13 +2202,13 @@ function renderShoppingSummary(){
     if(group.buyer){const sig=document.createElement('em');sig.className='shopping-buyer';sig.textContent=' ('+group.buyer+')';name.append(sig)}
     if(instantShopping()){label.append(shoppingCheck(group,row,true),name,qty);row.append(label)}
     else row.append(name,qty);
-    purchasedBox.append(row);
+    decorateShoppingRow(row,name,group);purchasedBox.append(row);
   }
   $('shoppingPurchasedLabel').replaceChildren(document.createTextNode('Kupione'),Object.assign(document.createElement('span'),{className:'shopping-variable',textContent:' · '+purchased.length}));$('shoppingPurchasedToggle').disabled=!purchased.length;setShoppingPurchasedOpen(shoppingPurchasedOpen&&purchased.length);updateShoppingSummaryButton();
 }
 function updateShoppingSummaryButton(){
   const direct=instantShopping();
-  $('shoppingSummaryHelp').textContent=direct?'Stuknij produkt, aby przenieść go do kupionych. Stuknij ponownie, aby go przywrócić.':'Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.';
+  $('shoppingSummaryHelp').textContent=direct&&shoppingCreated?'Stuknij kratkę, aby odhaczyć lub przywrócić zakup. Stuknij nazwę produktu, aby pokazać kosz.':direct?'Stuknij produkt, aby przenieść go do kupionych. Stuknij ponownie, aby go przywrócić.':'Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.';
   if(direct){$('shoppingSummaryUpdate').disabled=false;$('shoppingSummaryUpdate').textContent='Gotowe';return}
   const count=shoppingSummary.groups.filter(g=>g.checked).length;$('shoppingSummaryUpdate').disabled=!count;$('shoppingSummaryUpdate').replaceChildren(document.createTextNode('Zaktualizuj listy'),Object.assign(document.createElement('span'),{className:'shopping-variable',textContent:count?' ('+count+')':''}));}
 function setShoppingHelp(open){const help=$('shoppingSummaryHelp'),button=$('shoppingSummaryInfo');help.hidden=!open;button.setAttribute('aria-expanded',String(open))}
@@ -2305,7 +2370,7 @@ async function renderSyncedShopping(changes,previous){
     for(const change of changes){
       const old=previous.get(change.key);if(!old||old.done===change.done)continue;
       const box=$(old.done?'shoppingSummaryPurchased':'shoppingSummaryRows');
-      const row=[...box.children].find(el=>el.dataset.product===change.text&&(!old.done||el.dataset.buyer===old.by));
+      const row=[...box.children].find(el=>el.dataset.product===change.text&&(!el.dataset.guestKey||el.dataset.guestKey===change.key)&&(!old.done||el.dataset.buyer===old.by));
       if(!row||seen.has(row)||!row.getClientRects().length)continue;
       seen.add(row);moves.push({change,row});
     }
@@ -2318,28 +2383,40 @@ async function renderSyncedShopping(changes,previous){
     }));
     if(shoppingSummary!==state)return;
     for(const m of moves)m.start=shoppingInk.capture(m.row.querySelector('.shopping-product-name'),shoppingDisplayParts(m.change.text).name);
-    const checked=new Set(state.groups.filter(g=>g.checked).map(g=>g.text));
+    const checked=new Set(state.groups.filter(g=>g.checked).map(g=>g.guestKey||g.text));
     shoppingSummary=collectShoppingSummary(ideas,state.filter);
-    for(const group of shoppingSummary.groups)group.checked=checked.has(group.text);
+    for(const group of shoppingSummary.groups)group.checked=checked.has(group.guestKey||group.text);
     if(moves.some(m=>m.change.done))shoppingPurchasedOpen=true;
     renderShoppingSummary();
     await Promise.all(moves.map(({change,start})=>{
       const box=$(change.done?'shoppingSummaryPurchased':'shoppingSummaryRows');
-      const row=[...box.children].find(el=>el.dataset.product===change.text&&(!change.done||el.dataset.buyer===change.by));
+      const row=[...box.children].find(el=>el.dataset.product===change.text&&(!el.dataset.guestKey||el.dataset.guestKey===change.key)&&(!change.done||el.dataset.buyer===change.by));
       if(row)return shoppingInk.fly(start,row.querySelector('.shopping-product-name'),row,!change.done,box,change.done?shoppingPurchaseFlightMs:undefined);
     }));
   }finally{if(moves.length)shoppingInkBusy=false}
 }
 function importGuestShopping(id,rows,previous){
-  const refs=shoppingLocalRows();
-  const added=rows.filter(row=>row.addedId && !refs.has(row.key) && !previous.has(row.key));
-  if(!added.length)return false;
+  const sourceId='shared-shopping-'+id,source=ideas.find(idea=>idea.id===sourceId);
+  const remote=new Map(rows.filter(row=>row.addedId).map(row=>[row.addedId,row]));
+  if(!remote.size&&!source)return false;
+  const entry=source?structuredClone(source):normalizeIdea({id:sourceId,text:'Dopisane do wspólnych zakupów',createdAt:new Date().toISOString(),list:{type:'shopping',items:[]}});
+  // The server owns the lifetime of imported items. Locally created rows in this note stay local.
+  entry.list.items=entry.list.items.filter(item=>!item.shoppingGuestKey||remote.has(item.id));
+  const items=new Map(entry.list.items.map(item=>[item.id,item]));
+  for(const row of remote.values()){
+    let item=items.get(row.addedId);
+    if(!item){
+      if(previous.has(row.key))continue;
+      item={id:row.addedId,text:row.text,done:row.done,shoppingBuyer:row.by,createdAt:new Date().toISOString()};
+      entry.list.items.push(item);
+    }
+    Object.assign(item,{shoppingGuestKey:row.key,shoppingAuthorMark:row.authorMark,shoppingAuthorName:row.authorName});
+  }
+  if(source && JSON.stringify(entry.list)===JSON.stringify(source.list))return false;
+  if(!source && !entry.list.items.length)return false;
   PlannerData.assertWritable();
-  const before=ideas,sourceId='shared-shopping-'+id;
-  const source=ideas.find(idea=>idea.id===sourceId);
-  const entry=source ? structuredClone(source) : normalizeIdea({id:sourceId,text:'Dopisane do wspólnych zakupów',createdAt:new Date().toISOString(),list:{type:'shopping',items:[]}});
-  for(const row of added)entry.list.items.push({id:row.addedId,text:row.text,done:row.done,shoppingBuyer:row.by,createdAt:new Date().toISOString()});
-  ideas=source ? ideas.map(idea=>idea===source?entry:idea) : [entry,...ideas];
+  const before=ideas;
+  ideas=source?ideas.map(idea=>idea===source?entry:idea):[entry,...ideas];
   try{saveIdeas()}catch(error){ideas=before;throw error}
   return true;
 }
@@ -2354,7 +2431,7 @@ async function syncSharedShopping(){
     let remote={revision:0,rows:[]};
     try{remote=await shoppingRequest('read',{id},shoppingStore('owner'))}catch(e){if(e.status!==404||base)throw e}
     const previous=new Map((base||[]).map(r=>[r.key,r]));
-    const imported=importGuestShopping(id,remote.rows,previous);
+    const imported=remote.revision && importGuestShopping(id,remote.rows,previous);
     const local=shoppingSnapshot(shoppingLocalRows());
     if(imported){await renderSyncedShopping([],previous);renderAll()}
     const server=new Map(remote.rows.map(r=>[r.key,r]));
@@ -5964,6 +6041,17 @@ html:has(body.phone-layout),body.phone-layout{background:#e4f0fb}
 .shopping-purchased-row.is-unmarking label .shopping-product-name{text-decoration:none}
 @media(prefers-reduced-motion:reduce){.shopping-check-mark .ink{transition:none}}
 .shopping-check-control input:focus-visible+.shopping-check-mark{outline:3px solid #168db7;outline-offset:4px}
+
+.shopping-has-options{position:relative}
+button.shopping-item-options,button.shopping-item-trash{position:absolute;top:0;bottom:0;background:transparent;padding:0;border:none;cursor:pointer}
+button.shopping-item-options{left:42px;right:0}
+button.shopping-item-trash{right:0;width:44px;background:#f7f1e4;color:#a22932;display:grid;place-items:center;border-radius:5px;z-index:1}
+button.shopping-item-trash svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+button.shopping-item-trash[hidden]{display:none}
+
+#shoppingModal .shopping-has-options .shopping-item-options{left:48px}
+#shoppingModal .shopping-has-options .shopping-item-trash{background:#f3eddf}
+#shoppingModal .shopping-author{display:inline-block;margin-left:.35em;vertical-align:super;color:#9d343b;font:.67em/1 'Okti Kalam',cursive;text-decoration:none}
 .shopping-product-name{min-width:0;width:100%;max-width:180px;overflow-wrap:anywhere}
 .shopping-product-quantity{min-width:0;margin:0;text-align:right;color:#244f79;font-size:18px;line-height:22px;overflow-wrap:anywhere}
 #shoppingModal .shopping-purchased-section{position:relative;display:block;flex:none;min-width:0;padding-top:7px}

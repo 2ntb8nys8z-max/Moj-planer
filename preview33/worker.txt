@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="8287ef55bcebba93";
+const BUILD_ID="017734d7275e0db2";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1418,14 +1418,38 @@ async function shoppingOwnerKey(value) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2,'0')).join('');
 }
+// Shortest distinguishing prefix of each name, with stable numbers for exact namesakes.
+function shoppingAuthorMarks(participants) {
+  const names=new Map(),marks=new Map();
+  for(const [person,nick] of [['owner',SHOP_OWNER_NAME],...Object.entries(participants)]){
+    const name=nick.normalize('NFC'),fold=name.toLocaleLowerCase('pl');
+    if(!names.has(fold))names.set(fold,[]);
+    names.get(fold).push({person,name});
+  }
+  const sorted=[...names.keys()].sort();
+  for(let i=0;i<sorted.length;i++){
+    const fold=sorted[i],people=names.get(fold);
+    const letters=Array.from(fold);
+    let length=1;
+    for(const neighbour of [sorted[i-1],sorted[i+1]]){
+      if(neighbour===undefined)continue;
+      const other=Array.from(neighbour);let common=0;
+      while(common<letters.length && letters[common]===other[common])common++;
+      length=Math.max(length,common+1);
+    }
+    people.forEach(({person,name},index)=>marks.set(person,people.length>1
+      ? name+' '+(index+1) : Array.from(name).slice(0,length).join('')));
+  }
+  return marks;
+}
 async function sharedShoppingRequest(request, env, json) {
   const [, , action] = new URL(request.url).pathname.split('/');
   if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
-  const owner = ['owner','publish','invite','revoke'].includes(action) || (action==='read' && request.headers.has('Authorization'));
+  const owner = ['owner','publish','invite','revoke'].includes(action) || (['read','remove'].includes(action) && request.headers.has('Authorization'));
   if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
     return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
   if (action === 'owner') return json({owner:true});
-  if (!['publish','read','mark','invite','invite-info','join','revoke','add'].includes(action)) return json({error:'Nieznana operacja.'},404);
+  if (!['publish','read','mark','invite','invite-info','join','revoke','add','remove'].includes(action)) return json({error:'Nieznana operacja.'},404);
   const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,250000)));
   const uuid = v => typeof v === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(v);
   if (!uuid(body?.id)) return json({error:'Niepoprawny link.'},400);
@@ -1457,6 +1481,7 @@ async function sharedShoppingRequest(request, env, json) {
   if (action === 'add' && !membership()?.canAdd) return locked();
   function view(revision) {
     const members=Object.entries(state.invites || {});
+    const marks=shoppingAuthorMarks(state.participants);
     const guests=state.invites ? [...new Set(members.map(([,entry])=>entry.actor).filter(Boolean))].map(key=>state.participants[key]) : Object.values(state.participants);
     const shoppersLabel=guests.length
       ? 'Razem kupują: '+shoppingNamesFormat.format([SHOP_OWNER_NAME,...guests])
@@ -1468,11 +1493,25 @@ async function sharedShoppingRequest(request, env, json) {
         : state.invites ? {canAdd:!!membership()?.canAdd} : {}),
       rows: state.rows.map(({key,text,done,by,buyer}) => {
         const row = {key,text,done,by};
+        const author=state.authors?.[key] || (!state.added?.[key] && state.invites ? 'owner' : null);
+        if(author && (!owner || author!=='owner')){
+          row.authorName=author==='owner'?SHOP_OWNER_NAME:state.participants[author];
+          row.authorMark=marks.get(author);
+        }
+        if(state.added?.[key])row.canDelete=owner || (!!actor && actor===author);
         if (owner && state.added?.[key]) row.addedId=state.added[key];
         if (actor) row.canRestore = !!done && buyer === actor;
         return row;
       })
     };
+  }
+  function guestProductKey(id){return JSON.stringify([JSON.stringify(['shared-shopping-'+body.id,'id',id]),0])}
+  function forgetAddition(key){
+    // Preserve idempotency for delayed retries of recent additions.
+    state.removedIds ||= [];
+    state.removedIds.push(state.added[key]);
+    delete state.added[key];
+    if(state.authors)delete state.authors[key];
   }
   const revision = record?.revision || 0;
   if (action === 'read') return json(view(revision));
@@ -1499,12 +1538,20 @@ async function sharedShoppingRequest(request, env, json) {
   } else if (action === 'add') {
     const text=typeof body.text==='string' ? body.text.trim() : '';
     if (!text || text.length>160 || !uuid(body.itemId)) return json({error:'Wpisz produkt (do 160 znaków).'},400);
-    const key=JSON.stringify([JSON.stringify(['shared-shopping-'+body.id,'id',body.itemId]),0]);
-    if (state.added?.[key]) return json(view(revision));
+    const key=guestProductKey(body.itemId);
+    if (state.added?.[key] || state.removedIds?.includes(body.itemId)) return json(view(revision));
     if (state.rows.length>=1500) return json({error:'Lista jest już pełna.'},400);
     state.rows.push({key,text,done:false,by:'',buyer:null});
     state.added ||= {};
     state.added[key]=body.itemId;
+    state.authors ||= {};
+    state.authors[key]=actor;
+  } else if (action === 'remove') {
+    const key=body.key;
+    if(typeof key!=='string' || !Object.hasOwn(state.added || {},key) ||
+      !(owner || (actor && state.authors?.[key]===actor)))return json({error:'Możesz usunąć tylko dopisany przez siebie produkt.'},403);
+    state.rows=state.rows.filter(row=>row.key!==key);
+    forgetAddition(key);
   } else if (action === 'publish') {
     if (!Array.isArray(body.rows) || body.rows.length > 1500 || !body.rows.every(row =>
       row && typeof row.key==='string' && row.key.length<=1800 && typeof row.text==='string' && row.text.length>0 && row.text.length<=1400 &&
@@ -1516,7 +1563,9 @@ async function sharedShoppingRequest(request, env, json) {
       state.title=body.title.trim();
     }
     const previous = new Map(state.rows.map(row => [row.key,row]));
-    state.rows = body.rows.map(({key,text,done,by}) => {
+    // Discard removed additions even if an older planner still has a local copy.
+    const retired=new Set((state.removedIds || []).map(id=>guestProductKey(id)));
+    state.rows = body.rows.filter(row=>!retired.has(row.key)).map(({key,text,done,by}) => {
       const old = previous.get(key);
       const row = {key,text,done,by:done?by:''};
       if (done && old?.done && old.by === by && old.buyer) row.buyer = old.buyer;
@@ -1526,7 +1575,7 @@ async function sharedShoppingRequest(request, env, json) {
     const keys=new Set(state.rows.map(r=>r.key)),removed=new Set(body.removed || []);
     for(const key of Object.keys(state.added || {})){
       if(keys.has(key))continue;
-      if(removed.has(key))delete state.added[key];
+      if(removed.has(key))forgetAddition(key);
       else if(previous.has(key))state.rows.push(previous.get(key));
     }
     if(state.rows.length>1500)return json({error:'Lista jest już pełna.'},400);

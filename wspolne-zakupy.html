@@ -22,9 +22,17 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
 #guestGate h2{line-height:1.2;margin:0 0 12px}#guestGate label,#addProductForm label{display:block}
 #guestGate input,#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
 #guestGate button,#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
-#joinMessage{font-size:16px}#addProductForm{padding:8px 0}#openAddProduct{display:flex;align-items:center;gap:10px;padding:2px 5px 0 0;min-height:46px;color:#224d76;font:inherit;font-size:18px;text-decoration:none;text-align:left}
-#openAddProduct svg{width:26px;height:26px;flex:none;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;transition:transform .14s ease}
-#openAddProduct svg path+path{stroke-width:2}
+#joinMessage{font-size:16px}#addProductForm{padding:8px 0}#openAddProduct{display:flex;align-items:center;justify-content:flex-end;gap:5px;padding:0;color:#384553;font:inherit;font-size:16px;text-decoration:none}
+#openAddProduct svg{width:clamp(55px,15vw,65px);height:auto;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .14s ease}
+#openAddProduct svg .sketch-echo{opacity:.56;stroke-width:1.1}
+#openAddProduct svg .pencil-plus{stroke-width:2.8}
+.shopping-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:8px}
+.shopping-foot #flightReplay{margin:0 auto 0 0;font-size:14px}
+summary{list-style:none;display:flex;align-items:center;gap:6px}
+summary::-webkit-details-marker{display:none}
+.fold-marker{width:12px;height:12px;flex:none;fill:currentColor;stroke:none}
+details[open] .fold-closed,details:not([open]) .fold-open{display:none}
+.shopping-author{font-size:.67em;line-height:1;font-style:italic;color:#9d343b;align-self:center;max-width:32%;overflow-wrap:anywhere}
 #openAddProduct:active svg{transform:rotate(-5deg) scale(.94)}
 #openAddProduct:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
 @media(prefers-reduced-motion:reduce){#openAddProduct svg{transition:none}}
@@ -92,13 +100,27 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
   .item.is-marking .ink,.item.is-unmarking .ink{transition:none}
 }
 
+
+.shopping-has-options{position:relative}
+button.shopping-item-options,button.shopping-item-trash{position:absolute;top:0;bottom:0;background:transparent;padding:0;border:none;cursor:pointer}
+button.shopping-item-options{left:42px;right:0}
+button.shopping-item-trash{right:0;width:44px;background:#f7f1e4;color:#a22932;display:grid;place-items:center;border-radius:5px;z-index:1}
+button.shopping-item-trash svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+button.shopping-item-trash[hidden]{display:none}
+
 </style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><section id="guestGate" hidden><h2>Zaproszenie do zakupów</h2><p id="joinMessage" role="status"></p>
 <form id="joinForm" hidden><label>Twój podpis <input id="joinNick" maxlength="60" autocomplete="nickname" required></label><button type="submit">Dołącz do zakupów</button></form></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
-<div id="pending"></div><button id="openAddProduct" type="button" aria-controls="addProductForm" hidden><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M24.3 5.5C20.1 1.9 13.3 2.1 8.4 5.1C3.5 8.1 1.6 14.7 3.6 21C5.5 26.7 11.6 30.2 17.9 29.1C24.4 28.3 29.1 23.4 29.1 16.9C29.2 11.2 26.8 6.7 21.8 4.8"/><path d="M9.9 16.9Q15.8 16.4 22.3 15.6M16.4 10Q16.2 16.3 15.8 22.6"/></svg><span>Dopisz produkt</span></button>
-<form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
-<button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button></main>
+<div id="pending"></div>
+<form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
+<footer class="shopping-foot"><button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button><button id="openAddProduct" type="button" aria-controls="addProductForm" hidden><span>Dopisz produkt</span><svg viewBox="0 0 64 64" aria-hidden="true">
+<path d="M48 9C36 1 18 4 10 16 1 28 4 46 16 55 29 65 48 57 55 46 65 31 59 15 46 8 32 1 17 8 9 21 1 37 11 53 24 57 39 63 54 52 58 38 62 23 52 8 39 5"/>
+<path class="sketch-echo" d="M45 6C31 0 14 11 9 23 1 40 12 55 27 58 44 61 58 49 59 32 59 16 48 6 33 6 19 5 6 18 6 32 5 48 19 60 33 58"/>
+<path class="pencil-plus" d="m17.9 34.4 12.5-1.9 15.4-1.8m-12.7-13-1.7 13.7-1.2 15.1"/>
+<path class="sketch-echo" d="m18 35.5 26.3-3.8-23.6 1.7m11-14.7-2.4 27.9 4.6-25.9"/>
+</svg></button></footer></main>
 <p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
-<audio id="flightSound" preload="auto" src="shopping-paper-whisper.m4a"></audio>
+<!-- Landing foley adapted from “Page Turn (1)” by OwlStorm / Ashe Kirk (CC0): https://freesound.org/people/OwlStorm/sounds/151220/ -->
+<audio id="flightSound" preload="auto" src="shopping-paper-turn.m4a"></audio>
 <template id="pen"><svg class="pen-box" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
@@ -296,16 +318,16 @@ function guestPaperSnapshot(sheet,art){
     ctx.save();ctx.translate(r.left-bounds.left,r.top-bounds.top);ctx.scale(r.width/vb.width,r.height/vb.height);
     for(const path of svg.querySelectorAll('path')){
       if(path.classList.contains('ink')&&!svg.closest('[aria-pressed=true]'))continue;
-      const st=getComputedStyle(path);ctx.strokeStyle=st.stroke;ctx.lineWidth=parseFloat(st.strokeWidth);
+      const st=getComputedStyle(path);if(st.display==='none')continue;
+      ctx.lineWidth=parseFloat(st.strokeWidth);
       ctx.globalAlpha=Number(st.opacity);ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.stroke(new Path2D(path.getAttribute('d')));
+      const shape=new Path2D(path.getAttribute('d'));
+      if(st.fill!=='none'){ctx.fillStyle=st.fill;ctx.fill(shape)}
+      if(st.stroke!=='none'){ctx.strokeStyle=st.stroke;ctx.stroke(shape)}
     }
     ctx.restore();
   }
-  const summary=sheet.querySelector('summary').getBoundingClientRect();
-  ctx.fillStyle='#193e66';ctx.save();ctx.translate(summary.left-bounds.left+5,summary.top-bounds.top+summary.height/2);
-  if(sheet.querySelector('details').open)ctx.rotate(Math.PI/2);
-  ctx.beginPath();ctx.moveTo(-4,-5);ctx.lineTo(4,0);ctx.lineTo(-4,5);ctx.fill();ctx.restore();ctx.restore();
+  ctx.restore();
   return {texture,backTexture,pad,width:w+2*pad,height:h+2*pad,center:{x:bounds.left+w/2,y:bounds.top+h/2},angle:0};
 }
 async function tossGuestPaper(sheet,art){
@@ -429,6 +451,38 @@ const shoppingInk=(()=>{
   }
   return {draw,capture,fly};
 })();
+
+// Put product options beside the purchase control so each gesture has one action.
+const shoppingRowOptions=(()=>{
+  let activeBin=null,timer=0;
+  function close(){
+    clearTimeout(timer);
+    if(activeBin)activeBin.hidden=true;
+    activeBin=null;
+  }
+  function attach(row,text,remove){
+    const options=document.createElement('button'),bin=document.createElement('button');
+    row.classList.add('shopping-has-options');
+    options.type=bin.type='button';
+    options.className='shopping-item-options';bin.className='shopping-item-trash';bin.hidden=true;
+    options.setAttribute('aria-label','Opcje produktu: '+text);
+    bin.setAttribute('aria-label','Usuń produkt: '+text);
+    bin.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 6.5 15.6-.5m-11.4.1.7-2.4 5.6-.2 1 2.5M6.2 7.2l1.1 13 10 .2 1.5-13.6M10 10l.4 7.5m3.9-7.8-.5 7.6"/></svg>';
+    options.onclick=()=>{
+      close();bin.hidden=false;activeBin=bin;
+      timer=setTimeout(close,2500);
+    };
+    bin.onclick=()=>{close();return remove()};
+    row.append(options,bin);
+  }
+  return {attach,close};
+})();
+function shoppingAuthorNote(mark,name){
+  const note=document.createElement('sup');
+  note.className='shopping-author';note.textContent=mark;
+  note.title='Produkt dopisuje '+name;note.setAttribute('aria-label',note.title);
+  return note;
+}
 // END SHOPPING INK
 async function moveProductName(source,group,data){
   const start=shoppingInk.capture(source.querySelector('.item-name'));
@@ -458,7 +512,7 @@ function show(data,landingKey){
   document.title=$('listTitle').textContent+' · Okti';
   const groups=new Map();
   for(const row of data.rows){
-    const key=JSON.stringify([row.text,row.done,row.by,!!row.canRestore]);
+    const key=JSON.stringify([row.text,row.done,row.by,!!row.canRestore,typeof row.canDelete==='boolean'?row.key:null]);
     if(!groups.has(key))groups.set(key,{...row,keys:[]});
     groups.get(key).keys.push(row.key);
   }
@@ -470,7 +524,14 @@ function show(data,landingKey){
     button.disabled=group.done&&!group.canRestore;
     if(!button.disabled)button.onclick=()=>mark(group,button);
     if(group.canRestore)button.setAttribute('aria-label','Przywróć do kupienia: '+group.text);
-    $(group.done?'bought':'pending').append(button);
+    if(group.authorMark)button.append(shoppingAuthorNote(group.authorMark,group.authorName));
+    let row=button;
+    if(group.canDelete){
+      row=document.createElement('div');row.append(button);
+      shoppingRowOptions.attach(row,group.text,()=>removeGuestProduct(group.keys[0]));
+      button.setAttribute('aria-label',(group.done?'Przywróć do kupienia: ':'Oznacz jako kupione: ')+group.text);
+    }
+    $(group.done?'bought':'pending').append(row);
     if(group.keys.includes(landingKey))landing=button;
   }
   $('count').textContent='· '+$('bought').children.length;
@@ -499,6 +560,15 @@ async function showIncoming(data){
       if(row)return shoppingInk.fly(start,row.querySelector('.item-name'),row,!changed.done);
     }));
   }finally{busy=false}
+}
+async function removeGuestProduct(key){
+  if(busy||gated)return;
+  busy=true;
+  try{
+    const data=await request('remove',{key});
+    show(data);fitPurchased();$('status').textContent='Usunięto produkt.';
+  }catch(error){$('status').textContent=error.message}
+  finally{busy=false}
 }
 async function refresh(){
   if(gated||busy||reading)return;reading=true;

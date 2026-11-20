@@ -33,6 +33,20 @@ async function checkGuestHandoff(page){
  await page.locator('summary').click();
  await page.setViewportSize({width:320,height:395});
  assert.equal(await details.evaluate(el=>el.open),true);
+ await page.setViewportSize({width:390,height:688});
+ const pencil=await page.locator('#openAddProduct svg').boundingBox(),foot=await page.locator('.shopping-foot').boundingBox();
+ assert.ok(pencil.width>=52 && Math.abs(pencil.x+pencil.width-foot.x-foot.width)<3);
+ await page.getByRole('button',{name:'Dopisz produkt'}).click();
+ await page.locator('#newProduct').fill('Jarmuż');
+ await page.getByRole('button',{name:'Dodaj',exact:true}).click();
+ const ownRow=page.locator('.shopping-has-options').filter({has:page.getByText('Jarmuż',{exact:true})});
+ await ownRow.locator('.item-name').click({force:true});
+ await ownRow.locator('.shopping-item-trash').waitFor({state:'visible'});
+ assert.equal(await ownRow.locator('.item').getAttribute('aria-pressed'),'false');
+ await ownRow.locator('.shopping-item-trash').waitFor({state:'hidden',timeout:4200});
+ await ownRow.locator('.shopping-item-options').click();
+ await ownRow.getByRole('button',{name:'Usuń produkt: Jarmuż'}).click();
+ assert.equal(await ownRow.count(),0);
  console.log('Guest paper fits all four signed purchases or collapses the group, honours manual expansion and draws only visible ink and rules.');
 }
 (async()=>{

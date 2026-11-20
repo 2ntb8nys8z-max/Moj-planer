@@ -158,6 +158,27 @@ try{
  await assert.rejects(ania("request('add',{text:'Produkt',itemId:crypto.randomUUID()})"),e=>e.status===403);
  assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
  assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
+ // Authorship, purchases and deletion belong to independent identities.
+ const carrot=(await zosia("request('read',{})")).rows.find(row=>row.text==='Marchew 2 kg');
+ assert.equal(carrot.authorMark,'Z');assert.equal(carrot.canDelete,true);
+ assert.equal(host("document.querySelector('.shopping-author').textContent"),'Z');
+ const ownBin=zosia("document.querySelector('.shopping-item-trash')");
+ zosia("document.querySelector('.shopping-item-options').click()");
+ assert.equal(ownBin.hidden,false);
+ await wait(()=>ownBin.hidden);assert.ok(!carrot.done);
+ await assert.rejects(ania("request('remove',{key:"+JSON.stringify(carrot.key)+"})"),e=>e.status===403);
+ await ania("request('mark',{keys:["+JSON.stringify(carrot.key)+"],done:true,revision})");
+ await zosia('refresh()');await host('syncSharedShopping()');
+ const signed=(await zosia("request('read',{})")).rows.find(r=>r.key===carrot.key);
+ assert.equal(signed.by,'Ania');assert.equal(signed.authorName,'Zosia');
+ assert.equal(signed.canRestore,false);assert.equal(signed.canDelete,true);
+ const staleCopy=(await host("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))")).rows;
+ await zosia("document.querySelector('#bought .shopping-item-options').click();document.querySelector('#bought .shopping-item-trash').onclick()");
+ await host('syncSharedShopping()');await ania('refresh()');
+ assert.equal(host("shoppingLocalRows().size"),2);assert.doesNotMatch(ania("$('bought').textContent"),/Marchew/);
+ const staleRevision=(await host("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))")).revision;
+ const latePublish=await host("shoppingRequest('publish',{id:shoppingStore('id'),revision:"+staleRevision+",rows:"+JSON.stringify(staleCopy)+"},shoppingStore('owner'))");
+ assert.ok(!latePublish.rows.some(r=>r.key===carrot.key));
  await host("$('shoppingInviteMembers').querySelector('li button').onclick()");
  await zosia('refresh()');assert.ok(zosia("gated && document.querySelector('main').hidden"));
  await assert.rejects(returning("request('read',{})"),e=>e.status===403);
@@ -189,6 +210,28 @@ try{
  snapshot=(await shop('publish',{...publish,revision:snapshot.revision,removed:[fresh.key]},true)).data;
  assert.ok(!snapshot.rows.some(r=>r.key===fresh.key),'honour an intentional owner deletion');
  assert.equal((await shop('revoke',{key:snapshot.invitations[0].key})).status,403);
+ // Equal names, shared prefixes, separately added identical products, and owner moderation.
+ async function contributor(nick){
+   const invite=crypto.randomUUID(),actor=crypto.randomUUID();
+   await shop('invite',{invite,canAdd:true},true);
+   assert.equal((await shop('join',{invite,actor,nick})).status,200);
+   const itemId=crypto.randomUUID();
+   await shop('add',{actor,itemId,text:'Gruszki'});
+   return {actor,itemId};
+ }
+ const zofia=await contributor('Zofia'),zosia2=await contributor('Zosia'),zosia3=await contributor('Zosia');
+ snapshot=(await shop('read',{},true)).data;
+ const keys=id=>snapshot.rows.find(r=>r.addedId===id);
+ assert.equal(keys(zofia.itemId).authorMark,'Zof');
+ assert.equal(keys(zosia2.itemId).authorMark,'Zosia 2');assert.equal(keys(zosia3.itemId).authorMark,'Zosia 3');
+ assert.equal((await shop('remove',{actor:zosia3.actor,key:keys(zosia2.itemId).key})).status,403);
+ await host('syncSharedShopping()');assert.equal(host("document.querySelectorAll('#shoppingSummaryRows [data-guest-key^=\"[\"] .shopping-item-trash').length"),3);
+ host("document.querySelector('#shoppingSummaryRows [data-guest-key^=\"[\"] .shopping-item-options').click()");
+ await host("document.querySelector('#shoppingSummaryRows [data-guest-key^=\"[\"] .shopping-item-trash').onclick()");
+ const afterOwner=(await shop('read',{},true)).data;
+ assert.equal(afterOwner.rows.filter(r=>r.text==='Gruszki').length,2);
+ await host("document.querySelector('[data-product=woda] .shopping-item-options').click();document.querySelector('[data-product=woda] .shopping-item-trash').onclick()");
+ assert.ok(!(await shop('read',{},true)).data.rows.some(row=>row.text==='woda'));
  // Exercise the ink → confirmed move → landing sequence with a visible row.
  const motionId=require('node:crypto').randomUUID();
  await o("shoppingRequest('publish',"+JSON.stringify({id:motionId,revision:0,rows:[{key:'move',text:'Jabłka',done:false,by:''}]})+",shoppingStore('owner'))");
