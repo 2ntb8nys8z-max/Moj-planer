@@ -2,7 +2,9 @@ const {chromium}=require(process.env.PLANNER_PLAYWRIGHT||'playwright');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 async function checkGuestHandoff(page){
  await page.setViewportSize({width:390,height:688});
- await page.goto('https://planner.test/podglad-odbiorcy/index.html');
+ await page.goto('https://planner.test/podglad-odbiorcy/index.html?imie=1');
+ await page.getByLabel('Wpisz swoje imię').fill('Zosia');
+ await page.getByRole('button',{name:'Zatwierdź'}).click();
  await page.waitForFunction(()=>revision>0&&!arriving&&!document.documentElement.classList.contains('arrival-wait'));
  const details=page.locator('details');
  assert.equal(await details.evaluate(el=>el.open),true);
@@ -34,7 +36,8 @@ async function checkGuestHandoff(page){
  await page.setViewportSize({width:320,height:395});
  assert.equal(await details.evaluate(el=>el.open),true);
  await page.setViewportSize({width:390,height:688});
- const pencil=await page.locator('#openAddProduct svg').boundingBox(),foot=await page.locator('.shopping-foot').boundingBox();
+ const pencil=await page.locator('#addProductIcon').boundingBox(),foot=await page.locator('.shopping-foot').boundingBox();
+ assert.equal(await page.locator('#addProductIcon').evaluate(img=>img.complete && img.naturalWidth>0),true);
  assert.ok(pencil.width>=52 && Math.abs(pencil.x+pencil.width-foot.x-foot.width)<3);
  await page.getByRole('button',{name:'Dopisz produkt'}).click();
  await page.locator('#newProduct').fill('Jarmuż');

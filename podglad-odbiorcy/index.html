@@ -22,10 +22,9 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
 #guestGate h2{line-height:1.2;margin:0 0 12px}#guestGate label,#addProductForm label{display:block}
 #guestGate input,#addProductForm input{width:100%;border:0;border-bottom:1px solid #869cb1;background:transparent}
 #guestGate button,#addProductForm button,#openAddProduct{min-height:44px;text-decoration:underline}
-#joinMessage{font-size:16px}#addProductForm{padding:8px 0}#openAddProduct{display:flex;align-items:center;justify-content:flex-end;gap:5px;padding:0;color:#384553;font:inherit;font-size:16px;text-decoration:none}
-#openAddProduct svg{width:clamp(55px,15vw,65px);height:auto;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .14s ease}
-#openAddProduct svg .sketch-echo{opacity:.56;stroke-width:1.1}
-#openAddProduct svg .pencil-plus{stroke-width:2.8}
+#joinHint,#joinMessage{font-size:16px}#joinMessage:empty{display:none}#joinNick{min-height:44px}#joinForm button{margin-top:8px}
+#addProductForm{padding:8px 0}#openAddProduct{display:grid;place-items:center;margin-left:auto;padding:0;color:#28479f}
+#addProductIcon{display:block;width:clamp(58px,16vw,68px);height:auto;transition:transform .14s ease}
 .shopping-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;margin-top:8px}
 .shopping-foot #flightReplay{margin:0 auto 0 0;font-size:14px}
 summary{list-style:none;display:flex;align-items:center;gap:6px}
@@ -33,9 +32,9 @@ summary::-webkit-details-marker{display:none}
 .fold-marker{width:12px;height:12px;flex:none;fill:currentColor;stroke:none}
 details[open] .fold-closed,details:not([open]) .fold-open{display:none}
 .shopping-author{display:inline-block;vertical-align:baseline;margin-left:.32em;text-decoration:none;font-size:.67em;line-height:1;font-style:italic;color:#9d343b;align-self:center;max-width:32%;overflow-wrap:anywhere}
-#openAddProduct:active svg{transform:rotate(-5deg) scale(.94)}
+#openAddProduct:active img{transform:scale(.96)}
 #openAddProduct:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
-@media(prefers-reduced-motion:reduce){#openAddProduct svg{transition:none}}
+@media(prefers-reduced-motion:reduce){#addProductIcon{transition:none}}
 #status{font-size:16px}#status:empty{display:none}
 /* The sheet stays outside the viewport until the plane has cleared the opposite corner. */
 :root{--fly-time:1580ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
@@ -108,16 +107,16 @@ button.shopping-item-trash{right:0;width:44px;background:#f7f1e4;color:#a22932;d
 button.shopping-item-trash svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 button.shopping-item-trash[hidden]{display:none}
 
-</style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><section id="guestGate" hidden><h2>Zaproszenie do zakupów</h2><p id="joinMessage" role="status"></p>
-<form id="joinForm" hidden><label>Twój podpis <input id="joinNick" maxlength="60" autocomplete="nickname" required></label><button type="submit">Dołącz do zakupów</button></form></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
+</style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><section id="guestGate" hidden>
+<form id="joinForm" hidden>
+  <h2><label for="joinNick">Wpisz swoje imię</label></h2>
+  <p id="joinHint">Pod tym imieniem zobaczą Cię inne osoby na liście.</p>
+  <input id="joinNick" aria-describedby="joinHint" maxlength="60" autocomplete="given-name" enterkeyhint="done" required>
+  <button type="submit">Zatwierdź</button>
+</form><p id="joinMessage" role="status"></p></section><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div>
 <form id="addProductForm" hidden><label>Produkt i ilość <input id="newProduct" maxlength="160" placeholder="np. mleko 2 l" enterkeyhint="done" autocomplete="off" required></label><button type="submit">Dodaj</button><button id="cancelAddProduct" type="button">Anuluj</button></form><details><summary><svg class="fold-marker" viewBox="0 0 12 12" aria-hidden="true"><path class="fold-closed" d="M2 1 10 6 2 11Z"/><path class="fold-open" d="M1 2 11 2 6 10Z"/></svg>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
-<footer class="shopping-foot"><button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button><button id="openAddProduct" type="button" aria-controls="addProductForm" hidden><span>Dopisz produkt</span><svg viewBox="0 0 64 64" aria-hidden="true">
-<path d="M48 9C36 1 18 4 10 16 1 28 4 46 16 55 29 65 48 57 55 46 65 31 59 15 46 8 32 1 17 8 9 21 1 37 11 53 24 57 39 63 54 52 58 38 62 23 52 8 39 5"/>
-<path class="sketch-echo" d="M45 6C31 0 14 11 9 23 1 40 12 55 27 58 44 61 58 49 59 32 59 16 48 6 33 6 19 5 6 18 6 32 5 48 19 60 33 58"/>
-<path class="pencil-plus" d="m17.9 34.4 12.5-1.9 15.4-1.8m-12.7-13-1.7 13.7-1.2 15.1"/>
-<path class="sketch-echo" d="m18 35.5 26.3-3.8-23.6 1.7m11-14.7-2.4 27.9 4.6-25.9"/>
-</svg></button></footer></main>
+<footer class="shopping-foot"><button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button><button id="openAddProduct" type="button" aria-label="Dopisz produkt" aria-controls="addProductForm" hidden><img id="addProductIcon" src="shopping-add-blue-pen.webp" alt="" width="65" height="65"></button></footer></main>
 <p id="arrivalLoading" role="status" hidden>Wczytywanie kartki…</p>
 <!-- Landing foley adapted from “Page Turn (1)” by OwlStorm / Ashe Kirk (CC0): https://freesound.org/people/OwlStorm/sounds/151220/ -->
 <audio id="flightSound" preload="auto" src="shopping-paper-turn.m4a"></audio>
@@ -257,9 +256,9 @@ function drawShoppingPaper(motion,progress){
 }
 // The recipient uses the same tessellation, draw functions and timing as the planner.
 // Only the texture comes from the recipient's live layout.
-const guestPaperArt=Promise.all(['top','body','bottom'].map(async part=>{
+const guestPaperArt=Promise.all(['shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp',$('addProductIcon').src].map(async src=>{
   const image=new Image();
-  image.src='shopping-paper-'+part+'.webp';
+  image.src=src;
   await image.decode();
   return image;
 })).catch(()=>null);
@@ -273,7 +272,7 @@ function guestPaperSnapshot(sheet,art){
   const ctx=texture.getContext('2d');if(!ctx)return null;
   ctx.scale(ratio,ratio);ctx.translate(pad,pad);
   ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
-  const [top,body,bottom]=art;
+  const [top,body,bottom,addIcon]=art;
   ctx.drawImage(body,0,52,w,Math.max(1,bounds.height-104));
   ctx.drawImage(bottom,0,bounds.height-66,w,66);ctx.drawImage(top,0,0,w,68);
   const backTexture=document.createElement('canvas');
@@ -311,6 +310,8 @@ function guestPaperSnapshot(sheet,art){
       if(st.textDecorationLine.includes('line-through'))ctx.fillRect(x,y-ascent*.35,r.width,.9);
     }
   }
+  const iconRect=visibleRect($('addProductIcon'));
+  if(iconRect)ctx.drawImage(addIcon,iconRect.left-bounds.left,iconRect.top-bounds.top,iconRect.width,iconRect.height);
   for(const svg of sheet.querySelectorAll('svg')){
     const r=visibleRect(svg),vb=svg.viewBox.baseVal;
     if(!r||!vb.width)continue;
@@ -499,7 +500,7 @@ async function request(action,data){
     }
     demo.revision++;
   }else if(action==='add'){
-    demo.rows.push({key:data.itemId,text:data.text,done:false,by:'',canDelete:true,authorMark:'Z',authorName:'Zosia'});
+    demo.rows.push({key:data.itemId,text:data.text,done:false,by:'',canDelete:true,authorMark:person.nick.slice(0,1),authorName:person.nick});
     demo.revision++;
   }else if(action==='remove'){
     demo.rows=demo.rows.filter(row=>row.key!==data.key || !row.canDelete);
@@ -642,6 +643,21 @@ $('addProductForm').onsubmit=async event=>{
   }catch(e){if(e.status===403)await displayInvite();else $('status').textContent=e.message}
   finally{busy=false;submit.disabled=input.disabled=$('cancelAddProduct').disabled=false}
 };
-openSharedSheet();setInterval(()=>{if(!document.hidden)refresh()},4000);
+if(new URLSearchParams(location.search).has('imie')){
+  gated=true;document.querySelector('main').hidden=true;
+  $('guestGate').hidden=false;$('joinForm').hidden=false;
+  $('joinForm').onsubmit=async event=>{
+    event.preventDefault();
+    const name=$('joinNick').value.trim();if(!name)return;
+    person.nick=name;demo.shoppersLabel='Razem kupują: Robert i '+name;
+    for(const row of demo.rows){
+      if(row.by==='Zosia')row.by=name;
+      if(row.authorName==='Zosia'){row.authorName=name;row.authorMark=name.slice(0,1)}
+    }
+    gated=false;$('guestGate').hidden=true;document.querySelector('main').hidden=false;
+    await openSharedSheet();
+  };
+}else openSharedSheet();
+setInterval(()=>{if(!document.hidden)refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 </script></body></html>

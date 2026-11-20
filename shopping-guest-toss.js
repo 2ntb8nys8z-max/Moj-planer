@@ -1,8 +1,8 @@
 // The recipient uses the same tessellation, draw functions and timing as the planner.
 // Only the texture comes from the recipient's live layout.
-const guestPaperArt=Promise.all(['top','body','bottom'].map(async part=>{
+const guestPaperArt=Promise.all(['shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp',$('addProductIcon').src].map(async src=>{
   const image=new Image();
-  image.src='shopping-paper-'+part+'.webp';
+  image.src=src;
   await image.decode();
   return image;
 })).catch(()=>null);
@@ -16,7 +16,7 @@ function guestPaperSnapshot(sheet,art){
   const ctx=texture.getContext('2d');if(!ctx)return null;
   ctx.scale(ratio,ratio);ctx.translate(pad,pad);
   ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
-  const [top,body,bottom]=art;
+  const [top,body,bottom,addIcon]=art;
   ctx.drawImage(body,0,52,w,Math.max(1,bounds.height-104));
   ctx.drawImage(bottom,0,bounds.height-66,w,66);ctx.drawImage(top,0,0,w,68);
   const backTexture=document.createElement('canvas');
@@ -54,6 +54,8 @@ function guestPaperSnapshot(sheet,art){
       if(st.textDecorationLine.includes('line-through'))ctx.fillRect(x,y-ascent*.35,r.width,.9);
     }
   }
+  const iconRect=visibleRect($('addProductIcon'));
+  if(iconRect)ctx.drawImage(addIcon,iconRect.left-bounds.left,iconRect.top-bounds.top,iconRect.width,iconRect.height);
   for(const svg of sheet.querySelectorAll('svg')){
     const r=visibleRect(svg),vb=svg.viewBox.baseVal;
     if(!r||!vb.width)continue;

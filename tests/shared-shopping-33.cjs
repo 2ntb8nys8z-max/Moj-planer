@@ -135,12 +135,16 @@ try{
    await wait(()=>session('!busy'));
  }
  async function accept(session,nick){
-   await wait(()=>session("!$('joinForm').hidden"));
+   await wait(()=>session("!$('joinForm').hidden && !$('joinForm').querySelector('button').disabled"));
    await session("$('joinNick').value="+JSON.stringify(nick)+";$('joinForm').onsubmit({preventDefault(){}})");
    assert.ok(session("revision>0&&!gated"));
  }
- await wait(()=>zosia("!$('joinForm').hidden"));
+ await wait(()=>zosia("!$('joinForm').hidden && !$('joinForm').querySelector('button').disabled"));
  assert.equal(zosia("document.querySelector('main').hidden && !$('pending').children.length"),true);
+ assert.equal(zosia("$('joinNick').labels[0].textContent"),'Wpisz swoje imię');
+ assert.equal(zosia("$('joinHint').textContent"),'Pod tym imieniem zobaczą Cię inne osoby na liście.');
+ assert.equal(zosia("$('joinForm').querySelector('button').textContent"),'Zatwierdź');
+ assert.equal(zosia("$('joinMessage').textContent"),'');
  await accept(zosia,'Zosia');await host('syncSharedShopping()');
  assert.equal(subtitle(zosia),'Razem kupują: Robert i Zosia');assert.equal(subtitle(host),subtitle(zosia));
  assert.equal(zosia("$('listTitle').textContent"),'Na wyjazd');
@@ -246,7 +250,7 @@ try{
  const groupHash=new URL(await oldInvitation(2)).hash;
  const groupInvite=new URLSearchParams(groupHash.slice(1)).get('zaproszenie');
  const twoGuests=['Dorota','Ewa'].map(nick=>({nick,page:page('wspolne-zakupy.html',groupHash)}));
- for(const guest of twoGuests)await wait(()=>guest.page("!$('joinForm').hidden"));
+ for(const guest of twoGuests)await wait(()=>guest.page("!$('joinForm').hidden && !$('joinForm').querySelector('button').disabled"));
  assert.equal((await shop('invite-info',{invite:groupInvite})).data.available,true);
  await Promise.all(twoGuests.map(guest=>accept(guest.page,guest.nick)));
  await host('syncSharedShopping()');
