@@ -1,10 +1,15 @@
 <!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Wspólna lista zakupów · Okti</title>
 <link rel="preload" as="image" href="shopping-plane-arrival.webp">
+<link rel="preload" as="image" href="shopping-wood-table.webp">
 <script>if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('arrival-wait')</script>
 <style>
-@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}body{margin:0;background:#ebeff0;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
-main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(2px 7px 7px #24364238);transform-origin:70% 80%}
+@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}
+html{min-height:100%;background:#906b4c;overflow-x:clip}
+body{margin:0;min-height:100vh;isolation:isolate;overflow-x:clip;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
+/* Wood Table, Poly Haven (CC0), toned for the paper: https://polyhaven.com/a/wood_table */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(118deg,#ffe8c929,transparent 48%,#29180e28),url(shopping-wood-table.webp) center / max(960px,100vw) auto repeat}
+main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a);transform-origin:67% min(180px,28vh)}
 h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}#shoppingSharedLabel{overflow-wrap:anywhere}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
 .item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
 .item[aria-pressed=true] span{text-decoration:line-through}
@@ -12,19 +17,27 @@ h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margi
 em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #status{font-size:16px}#status:empty{display:none}
-/* The folded sheet reaches the page before the written list appears. */
-.arrival-wait main{opacity:0;pointer-events:none}
-#incomingPlane{position:fixed;z-index:5;left:50%;top:clamp(125px,32vh,300px);width:clamp(138px,45vw,215px);height:auto;opacity:0;pointer-events:none;filter:drop-shadow(1px 7px 5px #413a3038);will-change:transform,opacity}
-.arriving #incomingPlane{animation:incoming .74s linear both}
-.arriving main{animation:uncover .31s .49s cubic-bezier(.19,.75,.21,1) both}
+/* The sheet stays outside the viewport until the plane has cleared the opposite corner. */
+:root{--fly-time:840ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
+@supports(height:100dvh){:root{--flight-height:100dvh}}
+@media(max-aspect-ratio:4/5){:root{--heading:163deg}}
+@media(min-aspect-ratio:3/2){:root{--heading:194deg}}
+.arrival-wait main{visibility:hidden;pointer-events:none}
+#incomingPlane{position:fixed;z-index:5;left:0;top:0;width:clamp(118px,34vw,200px);height:auto;visibility:hidden;pointer-events:none;filter:drop-shadow(8px 16px 7px #301c1259)}
+.arriving #incomingPlane{animation:incoming var(--fly-time) linear}
+.arriving main{animation:deskDrop var(--drop-time) var(--fly-time) both;pointer-events:none}
 @keyframes incoming{
-  0%{opacity:1;transform:translate(-105vw,28vh) rotate(16deg) scale(.56)}
-  54%{opacity:1;transform:translate(-77%,-22%) rotate(7deg) scale(.99)}
-  72%{opacity:1;transform:translate(-51%,-44%) rotate(-3deg) scale(1.05)}
-  86%{opacity:.86;transform:translate(-46%,-48%) rotate(-7deg) scale(1.10)}
-  100%{opacity:0;transform:translate(-43%,-50%) rotate(-8deg) scale(1.21)}
+  from{visibility:visible;transform:translate3d(calc(100vw + 14%),-118%,0) rotate(var(--heading)) scale(.86)}
+  48%{visibility:visible;transform:translate3d(calc(51vw - 46%),calc(var(--flight-height) * .47 - 54%),0) rotate(calc(var(--heading) - 4deg)) scale(1.05)}
+  to{visibility:visible;transform:translate3d(-130%,calc(var(--flight-height) + 22%),0) rotate(calc(var(--heading) + 2deg)) scale(.90)}
 }
-@keyframes uncover{from{opacity:0;transform:translateY(9px) scale(.96) rotate(-1.6deg)}to{opacity:1;transform:none}}
+@keyframes deskDrop{
+  0%{visibility:hidden;transform:translate3d(calc(-50vw - 65% - 48px),-24vh,0) rotate(9deg) scale(1.04);filter:drop-shadow(14px 29px 13px #301a1047);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
+  1%{visibility:visible}
+  69%{transform:translate3d(-4%,-16px,0) rotate(-2.6deg) scale(1.014);filter:drop-shadow(6px 14px 7px #301a1052);animation-timing-function:ease-out}
+  87%{transform:translate3d(.6%,1px,0) rotate(.65deg) scale(.998);animation-timing-function:ease-in-out}
+  100%{visibility:visible;transform:none}
+}
 .item{align-items:center;position:relative;min-height:44px}
 .item-name{flex:1;min-width:0}.item em{min-width:0;overflow-wrap:anywhere}
 .pen-box{width:25px;height:27px;flex:none;overflow:visible;color:#264d73}
@@ -39,14 +52,14 @@ dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inhe
 #flightReplay{display:flex;align-items:center;gap:7px;margin:14px 0 0 auto;padding:8px 2px;min-height:44px;font-size:15px;color:#365773}
 #flightReplay svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 @media(prefers-reduced-motion:reduce){
-  .arrival-wait main,.arriving main{opacity:1;animation:none}.arriving #incomingPlane{animation:none}
+  .arrival-wait main,.arriving main{visibility:visible;animation:none;pointer-events:auto}.arriving #incomingPlane{animation:none}
   .item.is-marking .ink{transition:none}
 }
 
 </style></head><body><img id="incomingPlane" src="shopping-plane-arrival.webp" alt="" aria-hidden="true"><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
 <div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
 <button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button></main>
-<audio id="flightSound" preload="auto" src="shopping-flight.m4a"></audio>
+<audio id="flightSound" preload="auto" src="shopping-flyby.m4a"></audio>
 <template id="pen"><svg class="pen-box" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
@@ -59,7 +72,7 @@ const plane=$('incomingPlane'),sound=$('flightSound'),replay=$('flightReplay');
 let arriving=false;
 async function arrive(userGesture=false){
   if(arriving||busy)return;
-  const root=document.documentElement;
+  const root=document.documentElement,sheet=document.querySelector('main');
   if(document.hidden){root.classList.remove('arrival-wait');return}
   arriving=true;
   const audible=userGesture||!reducedMotion();
@@ -75,9 +88,12 @@ async function arrive(userGesture=false){
       await Promise.race([plane.decode().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,550))]);
     }
     if(!plane.naturalWidth||document.hidden)return;
+    if(userGesture && window.scrollY)window.scrollTo(0,0);
     if(!userGesture)playSound();
     root.classList.remove('arrival-wait');root.classList.add('arriving');
-    await new Promise(resolve=>setTimeout(resolve,810));
+    const drop=sheet.getAnimations?.().find(animation=>animation.animationName==='deskDrop');
+    if(drop)await drop.finished.catch(()=>{});
+    else if(!sheet.getAnimations)await new Promise(resolve=>setTimeout(resolve,1670));
   }finally{root.classList.remove('arrival-wait','arriving');arriving=false}
 }
 replay.onclick=()=>arrive(true);
