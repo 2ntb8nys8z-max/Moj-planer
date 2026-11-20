@@ -31,9 +31,13 @@ try{
  assert.equal(installed("$('shoppingActivateDevice').hidden"),true);
  const id=o("shoppingStore('id')"), g=page('wspolne-zakupy.html','#'+id);
  await wait(()=>g('revision')===1);
+ await o('syncSharedShopping()');assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna');
  g("identity.showModal=()=>{};document.querySelector('#pending button').click();nick.value='Jaga';identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
  await wait(()=>g("document.querySelector('#bought').textContent.includes('(Jaga)')"));
  await o('syncSharedShopping()');assert.match(o("$('shoppingSummaryPurchased').textContent"),/mleko \(Jaga\)/);
+ assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna z Jagą');
+ assert.equal((await g("request('read',{})")).participantNames,undefined);
+ await assert.rejects(o("shoppingRequest('read',{id:shoppingStore('id')},'incorrect')"),e=>e.status===403);
  o("shoppingSummary.groups.find(g=>g.text==='chleb').checked=true;updateShoppingSources()");
  await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).rows.some(r=>r.by==='Robert'));await g('refresh()');assert.match(g("$('bought').textContent"),/chleb\(Robert\)/);
  assert.equal(g("document.querySelector('#shoppingOwnerActions')"),null);
@@ -62,6 +66,13 @@ try{
  g("$('bought').querySelector('button:not(:disabled)').click()");
  await wait(()=>g("$('pending').textContent.includes('mleko')"));await o('syncSharedShopping()');
  assert.ok(o("$('shoppingSummaryRows').textContent.includes('mleko')"));
+ await g2('refresh()');g2("$('bought').querySelector('button:not(:disabled)').click()");
+ await wait(()=>g2("$('pending').textContent.includes('ser')"));
+ await o('syncSharedShopping()');
+ assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna z Jagą','membership survives undoing every guest purchase');
+ assert.equal(o("sharedShoppingLabel(['Zosia'])"),'Lista wspólna z Zosią');
+ assert.equal(o("sharedShoppingLabel(['Zosia','Jaga'])"),'Lista wspólna z Zosią i Jagą');
+ assert.equal(o("sharedShoppingLabel(['gość_42'])"),'Lista wspólna · gość_42');
  // Previously stored signatures are recovered only when the existing identity is unambiguous.
  const legacy=JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content);
  delete legacy.buyerVersion;

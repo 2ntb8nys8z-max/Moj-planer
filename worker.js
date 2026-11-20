@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.62-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.63-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="7992cacc15c2b597";
+const BUILD_ID="fa8232023da49a0b";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1418,7 +1418,7 @@ async function shoppingOwnerKey(value) {
 async function sharedShoppingRequest(request, env, json) {
   const [, , action] = new URL(request.url).pathname.split('/');
   if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
-  const owner = ['owner','publish'].includes(action);
+  const owner = ['owner','publish'].includes(action) || (action==='read' && request.headers.has('Authorization'));
   if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
     return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
   if (action === 'owner') return json({owner:true});
@@ -1446,6 +1446,7 @@ async function sharedShoppingRequest(request, env, json) {
   const actor = uuid(body.actor) ? await shoppingOwnerKey(body.actor) : null;
   const view = revision => ({
     revision, title: state.title || 'Do kupienia',
+    ...(owner ? {participantNames:[...new Set(Object.values(state.participants))]} : {}),
     rows: state.rows.map(({key,text,done,by,buyer}) => {
       const row = {key,text,done,by};
       if (actor) row.canRestore = !!done && buyer === actor;
@@ -1521,7 +1522,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.20.33.62-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.20.33.63-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
