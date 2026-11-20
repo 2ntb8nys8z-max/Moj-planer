@@ -130,6 +130,34 @@ try{
  for(const session of [host,zosia,ania])assert.equal(subtitle(session),'Razem kupują: Robert, Zosia i Ania');
  assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
  assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
+ // Exercise the ink → confirmed move → landing sequence with a visible row.
+ const moving=page('wspolne-zakupy.html','#'+id);
+ await wait(()=>moving('revision')>0);
+ moving(`person={actor:crypto.randomUUID(),nick:'Gość'};
+   const realRequest=request;
+   const pendingRow=$('pending').querySelector('button');
+   pendingRow.getClientRects=()=>[{}];
+   Object.defineProperty(HTMLElement.prototype,'getBoundingClientRect',{value:function(){
+     const y=this.closest('#bought')?300:100;
+     return {left:18,top:y,bottom:y+46,width:300,height:46};
+   }});
+   request=(action,body)=>action==='mark'
+     ? new Promise((resolve,reject)=>{window.confirmPurchase=()=>realRequest(action,body).then(resolve,reject)})
+     : realRequest(action,body);
+   pendingRow.click();`);
+ assert.equal(moving("pendingRow.classList.contains('is-marking')"),true);
+ assert.equal(moving("document.querySelector('.item-flight')"),null);
+ await new Promise(r=>setTimeout(r,360));
+ assert.equal(moving("pendingRow.isConnected && !document.querySelector('details').open"),true,'await a successful save even after the tick finishes');
+ await moving('confirmPurchase()');
+ await wait(()=>moving("!!document.querySelector('.item-flight')"));
+ assert.equal(moving("document.querySelector('details').open && !!$('bought').querySelector('.landing')"),true);
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("document.querySelector('.item-flight,.landing')"),null);
+ moving(`request=async()=>{throw new Error('Brak połączenia')};$('pending').querySelector('button').click()`);
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("$('pending').querySelector('.is-marking')"),null);
+ assert.equal(moving("$('status').textContent"),'Brak połączenia');
  console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});
