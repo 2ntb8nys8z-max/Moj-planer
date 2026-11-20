@@ -1,8 +1,8 @@
 {
-  "version": "2026.11.20.33.361-test",
+  "version": "2026.11.20.33.362-test",
   "source": "integration/conversation33/index.html",
-  "frontendBuildId": "3a7cb02222701a84",
-  "workerVersion": "2026.11.20.33.64-test",
-  "workerBuildId": "e0eec74908a53cc0",
+  "frontendBuildId": "95a5ae1e6f3b9edf",
+  "workerVersion": "2026.11.20.33.65-test",
+  "workerBuildId": "017734d7275e0db2",
   "protocolVersion": 2
 }

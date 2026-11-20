@@ -40,3 +40,35 @@ const shoppingInk=(()=>{
   }
   return {draw,capture,fly};
 })();
+
+// Put product options beside the purchase control so each gesture has one action.
+const shoppingRowOptions=(()=>{
+  let activeBin=null,timer=0;
+  function close(){
+    clearTimeout(timer);
+    if(activeBin)activeBin.hidden=true;
+    activeBin=null;
+  }
+  function attach(row,text,remove){
+    const options=document.createElement('button'),bin=document.createElement('button');
+    row.classList.add('shopping-has-options');
+    options.type=bin.type='button';
+    options.className='shopping-item-options';bin.className='shopping-item-trash';bin.hidden=true;
+    options.setAttribute('aria-label','Opcje produktu: '+text);
+    bin.setAttribute('aria-label','Usuń produkt: '+text);
+    bin.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 6.5 15.6-.5m-11.4.1.7-2.4 5.6-.2 1 2.5M6.2 7.2l1.1 13 10 .2 1.5-13.6M10 10l.4 7.5m3.9-7.8-.5 7.6"/></svg>';
+    options.onclick=()=>{
+      close();bin.hidden=false;activeBin=bin;
+      timer=setTimeout(close,2500);
+    };
+    bin.onclick=()=>{close();return remove()};
+    row.append(options,bin);
+  }
+  return {attach,close};
+})();
+function shoppingAuthorNote(mark,name){
+  const note=document.createElement('sup');
+  note.className='shopping-author';note.textContent=mark;
+  note.title='Produkt dopisuje '+name;note.setAttribute('aria-label',note.title);
+  return note;
+}
