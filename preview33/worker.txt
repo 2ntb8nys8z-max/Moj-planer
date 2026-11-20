@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.63-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.64-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="fa8232023da49a0b";
+const BUILD_ID="e0eec74908a53cc0";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1411,6 +1411,9 @@ Używaj zwykłych form „masz”, „możesz”. Bez pouczania, sztucznego entu
 }
 
 const SHOP_OWNER_DIGEST = '250a01ed5c7d244e1c8a196d6c59f2242be6cde7ed8ef775059f847bb71096b1';
+// This shared-list service currently has one activated owner.
+const SHOP_OWNER_NAME = 'Robert';
+const shoppingNamesFormat = new Intl.ListFormat('pl', {type:'conjunction'});
 async function shoppingOwnerKey(value) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2,'0')).join('');
@@ -1439,20 +1442,26 @@ async function sharedShoppingRequest(request, env, json) {
       uniqueBuyers.set(name, uniqueBuyers.has(name) ? null : buyer);
     }
     for (const row of state.rows) {
-      if (row.done && row.by && row.by !== 'Robert') row.buyer = uniqueBuyers.get(row.by) || null;
+      if (row.done && row.by && row.by !== SHOP_OWNER_NAME) row.buyer = uniqueBuyers.get(row.by) || null;
     }
     state.buyerVersion = 1;
   }
   const actor = uuid(body.actor) ? await shoppingOwnerKey(body.actor) : null;
-  const view = revision => ({
-    revision, title: state.title || 'Do kupienia',
-    ...(owner ? {participantNames:[...new Set(Object.values(state.participants))]} : {}),
-    rows: state.rows.map(({key,text,done,by,buyer}) => {
-      const row = {key,text,done,by};
-      if (actor) row.canRestore = !!done && buyer === actor;
-      return row;
-    })
-  });
+  function view(revision) {
+    const guests=Object.values(state.participants);
+    const shoppersLabel=guests.length
+      ? 'Razem kupują: '+shoppingNamesFormat.format([SHOP_OWNER_NAME,...guests])
+      : 'Listę udostępnia '+SHOP_OWNER_NAME;
+    return {
+      revision, title: state.title || 'Do kupienia', shoppersLabel,
+      ...(owner ? {participantNames:[...new Set(guests)]} : {}),
+      rows: state.rows.map(({key,text,done,by,buyer}) => {
+        const row = {key,text,done,by};
+        if (actor) row.canRestore = !!done && buyer === actor;
+        return row;
+      })
+    };
+  }
   const revision = record?.revision || 0;
   if (action === 'read') return json(view(revision));
   if (revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
@@ -1522,7 +1531,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.20.33.63-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.20.33.64-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

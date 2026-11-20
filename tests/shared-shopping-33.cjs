@@ -31,11 +31,13 @@ try{
  assert.equal(installed("$('shoppingActivateDevice').hidden"),true);
  const id=o("shoppingStore('id')"), g=page('wspolne-zakupy.html','#'+id);
  await wait(()=>g('revision')===1);
- await o('syncSharedShopping()');assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna');
+ const subtitle=session=>session("$('shoppingSharedLabel').textContent");
+ await o('syncSharedShopping()');
+ assert.equal(subtitle(o),'Listę udostępnia Robert');assert.equal(subtitle(g),subtitle(o));
  g("identity.showModal=()=>{};document.querySelector('#pending button').click();nick.value='Jaga';identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
  await wait(()=>g("document.querySelector('#bought').textContent.includes('(Jaga)')"));
  await o('syncSharedShopping()');assert.match(o("$('shoppingSummaryPurchased').textContent"),/mleko \(Jaga\)/);
- assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna z Jagą');
+ assert.equal(subtitle(o),'Razem kupują: Robert i Jaga');assert.equal(subtitle(g),subtitle(o));
  assert.equal((await g("request('read',{})")).participantNames,undefined);
  await assert.rejects(o("shoppingRequest('read',{id:shoppingStore('id')},'incorrect')"),e=>e.status===403);
  o("shoppingSummary.groups.find(g=>g.text==='chleb').checked=true;updateShoppingSources()");
@@ -69,10 +71,7 @@ try{
  await g2('refresh()');g2("$('bought').querySelector('button:not(:disabled)').click()");
  await wait(()=>g2("$('pending').textContent.includes('ser')"));
  await o('syncSharedShopping()');
- assert.equal(o("$('shoppingSharedLabel').textContent"),'Lista wspólna z Jagą','membership survives undoing every guest purchase');
- assert.equal(o("sharedShoppingLabel(['Zosia'])"),'Lista wspólna z Zosią');
- assert.equal(o("sharedShoppingLabel(['Zosia','Jaga'])"),'Lista wspólna z Zosią i Jagą');
- assert.equal(o("sharedShoppingLabel(['gość_42'])"),'Lista wspólna · gość_42');
+ assert.equal(subtitle(o),'Razem kupują: Robert, Jaga i Jaga','two guest identities remain after both undo their purchases');
  // Previously stored signatures are recovered only when the existing identity is unambiguous.
  const legacy=JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content);
  delete legacy.buyerVersion;
@@ -106,6 +105,31 @@ try{
  o("navigator.share=()=>new Promise(resolve=>window.completeShare=resolve);window.launchCount=0;startShoppingPaper=(closing,plane)=>{if(closing&&plane)launchCount++;finishShoppingSummaryClose()}");
  const sharing=o('sendShoppingLink()');await o('sendShoppingLink()');assert.equal(o('launchCount'),0);o('completeShare()');await sharing;
  assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
+ // A second send of the existing sheet gives the third person the same list and title.
+ const host=installed;
+ host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingCreateShared').click()");
+ await wait(()=>host('shoppingCreated'));
+ host("$('shoppingNameEdit').click();$('shoppingNameInput').value='Na wyjazd';$('shoppingNameSave').click()");
+ await wait(()=>!host('shoppingSyncBusy'));
+ host("navigator.share=undefined;navigator.clipboard={writeText:async url=>window.sharedLink=url}");
+ await host('sendShoppingLink()');
+ const invite=host('sharedLink');
+ const zosia=page('wspolne-zakupy.html',new URL(invite).hash);
+ async function join(session,nick){
+   session("identity.showModal=()=>{};document.querySelector('#pending button').click();$('nick').value="+JSON.stringify(nick)+";identity.returnValue='ok';identity.dispatchEvent(new Event('close'))");
+   await wait(()=>session('!busy'));
+ }
+ await wait(()=>zosia('revision')>0);
+ assert.equal(subtitle(zosia),'Listę udostępnia Robert');assert.equal(zosia("$('listTitle').textContent"),'Na wyjazd');
+ await join(zosia,'Zosia');await host('syncSharedShopping()');
+ assert.equal(subtitle(zosia),'Razem kupują: Robert i Zosia');assert.equal(subtitle(host),subtitle(zosia));
+ await host('sendShoppingLink()');assert.equal(host('sharedLink'),invite);
+ const ania=page('wspolne-zakupy.html',new URL(host('sharedLink')).hash);
+ await wait(()=>ania('revision')>0);assert.equal(subtitle(ania),subtitle(zosia));
+ await join(ania,'Ania');await zosia('refresh()');await host('syncSharedShopping()');
+ for(const session of [host,zosia,ania])assert.equal(subtitle(session),'Razem kupują: Robert, Zosia i Ania');
+ assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
+ assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
  console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});
