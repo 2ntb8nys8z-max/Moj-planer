@@ -1,31 +1,405 @@
 <!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Wspólna lista zakupów · Okti</title>
+<link rel="preload" as="image" href="shopping-plane-arrival.webp">
+<link rel="preload" as="image" href="shopping-wood-table.webp">
+<script>if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('arrival-wait')</script>
 <style>
-@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}body{margin:0;background:#ebeff0;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
-main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(2px 7px 7px #24364238);transform-origin:70% 80%;animation:arrive .85s ease-out both}
-@keyframes arrive{0%{transform:translate(-75%,12%) rotate(-8deg)}75%{transform:translate(1%,0) rotate(1deg)}100%{transform:none}}@media(prefers-reduced-motion:reduce){main{animation:none}}
+@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf)}*{box-sizing:border-box}
+html{min-height:100%;background:#906b4c;overflow-x:clip}
+body{margin:0;min-height:100vh;isolation:isolate;overflow-x:clip;color:#193e66;font:20px/1.45 Kalam,cursive;padding:clamp(12px,4vw,32px)}
+/* Wood Table, Poly Haven (CC0), toned for the paper: https://polyhaven.com/a/wood_table */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(118deg,#ffe8c929,transparent 48%,#29180e28),url(shopping-wood-table.webp) center / max(960px,100vw) auto repeat}
+main{margin:4vh auto;max-width:430px;padding:42px 26px;background:url(shopping-paper-top.webp) top/100% 68px no-repeat,url(shopping-paper-bottom.webp) bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 104px) no-repeat;filter:drop-shadow(1px 2px 1px #341c1040) drop-shadow(3px 8px 6px #341c104a);transform-origin:67% min(180px,28vh)}
 h1{font-style:italic;overflow-wrap:anywhere;font-size:34px;line-height:1.2;margin:0}p{margin:.4em 0}header p,summary{font-size:17px}#shoppingSharedLabel{overflow-wrap:anywhere}button,input{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
 .item{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;padding:10px 0;border-bottom:1px solid #8aacc655;overflow-wrap:anywhere}
-.item:before{content:'□';flex:none}.item[aria-pressed=true]:before{content:'✓'}.item[aria-pressed=true] span{text-decoration:line-through}
+.item[aria-pressed=true] span{text-decoration:line-through}
 .item:disabled{cursor:default;opacity:1;color:inherit;-webkit-text-fill-color:currentColor}
 em{color:#a2252c;font-size:.9em}details{margin-top:15px}summary{cursor:pointer}
 dialog{border:1px solid #496781;border-radius:12px;background:#fff9e9;color:inherit;max-width:92vw}dialog::backdrop{background:#24364266}dialog input{display:block;max-width:100%;margin:12px 0;padding:4px 8px}dialog button{padding:6px 10px}
 #status{font-size:16px}#status:empty{display:none}
-</style></head><body><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
-<div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p></main>
+/* The sheet stays outside the viewport until the plane has cleared the opposite corner. */
+:root{--fly-time:1580ms;--drop-time:830ms;--flight-height:100vh;--heading:180deg}
+@supports(height:100dvh){:root{--flight-height:100dvh}}
+@media(max-aspect-ratio:4/5){:root{--heading:163deg}}
+@media(min-aspect-ratio:3/2){:root{--heading:194deg}}
+.arrival-wait main{visibility:hidden;pointer-events:none}
+/* The shadow stays on the tabletop while the folded paper banks above it. */
+.flyby{position:fixed;z-index:5;inset:0 auto auto 0;width:clamp(136px,37vw,215px);aspect-ratio:346/336;visibility:hidden;pointer-events:none}
+.plane-shadow,.folded-plane{position:absolute;inset:0}
+.plane-shadow{background:url(shopping-plane-arrival.webp) center/contain no-repeat;filter:brightness(0) blur(4px);opacity:.4}
+#incomingPlane{display:block;width:100%;height:100%}
+.folded-plane::after{content:"";position:absolute;inset:0;background:linear-gradient(132deg,#fff7e033,#73563c66 90%);clip-path:polygon(99.4% .8%,35.3% 61.5%,52.4% 98.8%);opacity:.42}
+.arriving .flyby{animation:incoming var(--fly-time) cubic-bezier(.30,.27,.71,.73)}
+.arriving .folded-plane{animation:planeBank var(--fly-time) ease-in-out}
+.arriving .folded-plane::after{animation:wingLight var(--fly-time) ease-in-out}
+.arriving .plane-shadow{animation:castShadow var(--fly-time) ease-in-out}
+.arriving main{visibility:hidden;pointer-events:none}
+.fallback-drop main{animation:deskDrop .85s both}
+.guest-toss{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+@keyframes incoming{
+  from{visibility:visible;transform:translate3d(calc(100vw + 22%),-142%,0)}
+  to{visibility:visible;transform:translate3d(-158%,calc(var(--flight-height) + 28%),0)}
+}
+@keyframes planeBank{
+  0%{transform:translate3d(0,0,0) rotate(var(--heading)) perspective(650px) rotate3d(-.73,.68,0,-12deg) scale(.9)}
+  34%{transform:translate3d(5%,-4%,0) rotate(calc(var(--heading) - 6deg)) perspective(650px) rotate3d(-.73,.68,0,19deg) scale(1.05)}
+  64%{transform:translate3d(2%,-6%,0) rotate(calc(var(--heading) + 2deg)) perspective(650px) rotate3d(-.73,.68,0,-9deg) scale(1.08)}
+  100%{transform:translate3d(0,0,0) rotate(calc(var(--heading) + 4deg)) perspective(650px) rotate3d(-.73,.68,0,-3deg) scale(.92)}
+}
+@keyframes wingLight{0%,100%{opacity:.38}34%{opacity:.74}64%{opacity:.18}}
+@keyframes castShadow{
+  0%{transform:translate(10%,16%) rotate(var(--heading)) scale(.85);filter:brightness(0) blur(3px);opacity:.39}
+  43%{transform:translate(28%,40%) rotate(calc(var(--heading) - 4deg)) scale(.89);filter:brightness(0) blur(6px);opacity:.31}
+  72%{transform:translate(20%,28%) rotate(calc(var(--heading) + 3deg)) scale(.96);filter:brightness(0) blur(4.5px);opacity:.38}
+  100%{transform:translate(10%,16%) rotate(calc(var(--heading) + 4deg)) scale(.88);filter:brightness(0) blur(2.8px);opacity:.43}
+}
+@keyframes deskDrop{
+  0%{visibility:hidden;transform:translate3d(calc(-50vw - 65% - 48px),-24vh,0) rotate(9deg) scale(1.04);filter:drop-shadow(14px 29px 13px #301a1047);animation-timing-function:cubic-bezier(.2,.66,.31,.9)}
+  1%{visibility:visible}
+  69%{transform:translate3d(-4%,-16px,0) rotate(-2.6deg) scale(1.014);filter:drop-shadow(6px 14px 7px #301a1052);animation-timing-function:ease-out}
+  87%{transform:translate3d(.6%,1px,0) rotate(.65deg) scale(.998);animation-timing-function:ease-in-out}
+  100%{visibility:visible;transform:none}
+}
+.item{align-items:center;position:relative;min-height:44px}
+.item-name{flex:1;min-width:0}.item em{min-width:0;overflow-wrap:anywhere}
+.pen-box{width:25px;height:27px;flex:none;overflow:visible;color:#264d73}
+.pen-box path{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.pen-box .outline{stroke-width:1.35;opacity:.63}
+.pen-box .ink{stroke-width:2.8;stroke-dasharray:1;stroke-dashoffset:1}
+.item[aria-pressed=true] .ink,.item.is-marking .ink{stroke-dashoffset:0}
+.item.is-marking .ink{transition:stroke-dashoffset .33s cubic-bezier(.42,.02,.28,1)}
+.item.is-unmarking .ink{stroke-dashoffset:1;transition:stroke-dashoffset .22s ease-in-out}
+.item.is-unmarking .item-name{text-decoration:none}
+.item:focus-visible,#flightReplay:focus-visible{outline:2px solid #315d7c;outline-offset:2px}
+.landing .item-name,.landing em{visibility:hidden}
+.item-flight{position:fixed;z-index:6;pointer-events:none;transform-origin:left center;will-change:transform;overflow-wrap:anywhere}
+#flightReplay{display:flex;align-items:center;gap:7px;margin:14px 0 0 auto;padding:8px 2px;min-height:44px;font-size:15px;color:#365773}
+#flightReplay svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media(prefers-reduced-motion:reduce){
+  .arrival-wait main,.arriving main{visibility:visible;animation:none;pointer-events:auto}.arriving .flyby,.arriving .plane-shadow,.arriving .folded-plane,.arriving .folded-plane::after{animation:none}
+  .item.is-marking .ink,.item.is-unmarking .ink{transition:none}
+}
+
+</style></head><body><div class="flyby" aria-hidden="true"><div class="plane-shadow"></div><div class="folded-plane"><img id="incomingPlane" src="shopping-plane-arrival.webp" alt=""></div></div><main><header><h1 id="listTitle">Do kupienia</h1><p id="shoppingSharedLabel" aria-live="polite">Wspólna lista zakupów</p></header>
+<div id="pending"></div><details><summary>Kupione <span id="count"></span></summary><div id="bought"></div></details><p id="status" role="status">Wczytywanie…</p>
+<button type="button" id="flightReplay" aria-label="Powtórz przelot z dźwiękiem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8m3-11q7 7 0 14"/></svg>Przelot z dźwiękiem</button></main>
+<audio id="flightSound" preload="auto" src="shopping-flyby-glide.m4a"></audio>
+<template id="pen"><svg class="pen-box" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
 <dialog id="identity"><form method="dialog"><label>Jak podpisać Twoje zakupy?<input id="nick" maxlength="60" autocomplete="nickname" required></label><button value="cancel" formnovalidate>Anuluj</button><button value="ok">Gotowe</button></form></dialog>
 <script>
 const api='https://moj-planer-api.yd7ynvj864.workers.dev/shopping/';
 const id=location.hash.slice(1),$=s=>document.getElementById(s),store='okti:uczestnik:'+id;
 let person={},revision=-1,busy=false,reading=false;
 try{person=JSON.parse(localStorage.getItem(store)||'{}')}catch{}
+const reducedMotion=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const plane=$('incomingPlane'),sound=$('flightSound'),replay=$('flightReplay');
+// BEGIN GUEST TOSS
+const shoppingPaperEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+const shoppingTossDuration=850;
+const shoppingPaperGrid={cols:48,rows:28};
+function shoppingPaperMesh(snapshot,progress,closing,anchor){
+  const {width:w,height:h,left,top,pad=24}=snapshot;
+  const W=w-2*pad,H=h-2*pad,points=[];
+  const {cols,rows}=snapshot.fallback?{cols:24,rows:12}:shoppingPaperGrid;
+  const center=snapshot.center||{x:left+w/2,y:top+h/2};
+  const t=progress*shoppingTossDuration/1000;
+  const flight=Math.max(0,1-t/.46)**2;
+  // The wrist lifts the close corner around a pivot beside the lower left edge.
+  const travel=Math.max(0,(progress-.23)/.77);
+  const lift=shoppingPaperEase(progress/.29);
+  const turn=(5.8*shoppingPaperEase(progress/.46)+2*shoppingPaperEase((progress-.375)/.58))*Math.PI/180;
+  const pivotX=-.475*W,pivotY=.469*H;
+  const pivotShiftX=pivotX*(1-Math.cos(turn))+pivotY*Math.sin(turn);
+  const pivotShiftY=pivotY*(1-Math.cos(turn))-pivotX*Math.sin(turn);
+  const cx=closing?center.x+pivotShiftX+(innerWidth-center.x+w*.58)*travel**1.65:center.x-(center.x+w*.52)*flight;
+  const cy=closing?center.y+pivotShiftY-.06*W*travel:center.y+W*.2575*flight;
+  const angle=(snapshot.angle??(-.35*Math.PI/180))+(closing?turn:-7.2*flight*Math.PI/180);
+  const scale=1,cos=Math.cos(angle),sin=Math.sin(angle);
+  const ripple=shoppingPaperEase((progress-.27)/.19)*(1-shoppingPaperEase((progress-.71)/.29));
+  for(let col=0;col<=cols;col++){
+    const u=col/cols;
+    for(let row=0;row<=rows;row++){
+      const v=row/rows;
+      let x=(u-.5)*w,y=(v-.5)*h,z=0,light=1;
+      if(closing){
+        const across=.5+x/W,down=.5+y/H;
+        const corner=Math.max(0,Math.min(1,(across-.56*down-.46)/.54));
+        const bend=1.62*lift*corner;
+        if(lift>.00001){
+          const radius=.54*W/(1.62*lift);
+          x-=radius*(bend-Math.sin(bend));
+          z=radius*(1-Math.cos(bend));
+        }
+        const wavePosition=(across+.27*down-1.08+1.176*progress)/.26;
+        z+=.07*W*ripple*Math.exp(-(wavePosition**2));
+        light+=.07*Math.sin(2*bend)-.075*(1-Math.cos(bend));
+      }else{
+        const vertical=Math.max(0,Math.min(1,(v*h-pad)/H));
+        const right=x>=0;
+        const width=W*(right ? .25+.06*(1-vertical) : .29+.05*vertical);
+        const distance=Math.max(0,Math.abs(x)-(W/2-width));
+        const settle=Math.max(0,Math.min(1,(t-.19-.32*(1-vertical)**1.2)/.32));
+        const trailing=Math.max(0,Math.min(1,(t-.12-.13*(1-vertical))/.46));
+        const curvature=right?(1.88+.60*(1-vertical))*(1-settle*settle*(3-2*settle)):(1.05+.28*vertical)*Math.sin(Math.PI*trailing)**2;
+        if(distance>0&&curvature>.00001){
+          const radius=width/curvature,bend=Math.min(distance,width)/radius;
+          const margin=Math.max(0,distance-width);
+          x+=(right?1:-1)*(radius*Math.sin(bend)+margin*Math.cos(bend)-distance);
+          z=radius*(1-Math.cos(bend))+margin*Math.sin(bend);
+          light+=.07*Math.sin((right?1:-1)*2*bend)-.075*(1-Math.cos(bend));
+        }
+      }
+      points.push({x:cx+(x*cos-y*sin)*scale,y:cy+(x*sin+y*cos)*scale-(closing ? .62 : .56)*z,z,light,u,v});
+    }
+  }
+  return {points,cols,rows,scale,cx,cy};
+}
+function drawShoppingPaperTriangle(ctx,texture,source,target){
+  const [a,b,c]=source,[p,q,r]=target,det=(b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y);if(Math.abs(det)<.001)return;
+  const m11=((q.x-p.x)*(c.y-a.y)-(r.x-p.x)*(b.y-a.y))/det,m12=((q.y-p.y)*(c.y-a.y)-(r.y-p.y)*(b.y-a.y))/det,m21=((r.x-p.x)*(b.x-a.x)-(q.x-p.x)*(c.x-a.x))/det,m22=((r.y-p.y)*(b.x-a.x)-(q.y-p.y)*(c.x-a.x))/det;
+  ctx.save();ctx.beginPath();
+  // Paint through the expanded clip, including neighboring source pixels; a cropped
+  // source rectangle would leave translucent grid seams and darken the paper.
+  const orientation=Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x))||1,normals=target.map((v,i)=>{const next=target[(i+1)%3],dx=next.x-v.x,dy=next.y-v.y,len=Math.hypot(dx,dy)||1;return {x:orientation*dy/len,y:-orientation*dx/len}});
+  for(let i=0;i<3;i++){const t=target[i],a=normals[(i+2)%3],b=normals[i],factor=Math.min(5,.65/Math.max(.01,1+a.x*b.x+a.y*b.y));ctx[i?'lineTo':'moveTo'](t.x+(a.x+b.x)*factor,t.y+(a.y+b.y)*factor)}ctx.closePath();ctx.clip();
+  ctx.transform(m11,m12,m21,m22,p.x-m11*a.x-m21*a.y,p.y-m12*a.x-m22*a.y);const sx=Math.max(0,Math.min(a.x,b.x,c.x)-4),sy=Math.max(0,Math.min(a.y,b.y,c.y)-4),sw=Math.min(texture.width,Math.max(a.x,b.x,c.x)+4)-sx,sh=Math.min(texture.height,Math.max(a.y,b.y,c.y)+4)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();
+}
+function prepareShoppingPaperGL(canvas,snapshot,grid=shoppingPaperGrid){
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true,depth:true});if(!gl)return null;
+  const shaders=[],buffers=[],textures=[];let program;
+  const dispose=()=>{textures.forEach(t=>gl.deleteTexture(t));buffers.forEach(b=>gl.deleteBuffer(b));if(program)gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));gl.getExtension('WEBGL_lose_context')?.loseContext()};
+  try{
+    const compile=(type,source)=>{const shader=gl.createShader(type);shaders.push(shader);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Paper shader');return shader};
+    program=gl.createProgram();
+    const vertex=compile(gl.VERTEX_SHADER,'attribute vec3 point;attribute vec2 uv;attribute float lighting;uniform vec2 size;varying vec2 tex;varying float light;void main(){gl_Position=vec4(point.x/size.x*2.0-1.0,1.0-point.y/size.y*2.0,-point.z/1024.0,1.0);tex=uv;light=lighting;}');
+    const fragment=compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;varying float light;uniform sampler2D front;uniform sampler2D back;uniform float opacity;void main(){vec4 color=gl_FrontFacing?texture2D(front,tex):texture2D(back,tex);if(color.a<0.02)discard;float alpha=color.a*opacity;gl_FragColor=vec4(color.rgb*light*alpha,alpha);}');
+    gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Paper program');gl.useProgram(program);
+    const vertices=gl.createBuffer(),indices=gl.createBuffer();buffers.push(vertices,indices);
+    for(const [i,image] of [snapshot.texture,snapshot.backTexture].entries()){
+      const texture=gl.createTexture();textures.push(texture);gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.uniform1i(gl.getUniformLocation(program,i?'back':'front'),i);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,vertices);for(const [name,count,offset] of [['point',3,0],['uv',2,12],['lighting',1,20]]){const location=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,24,offset)}
+    const {cols,rows}=grid,order=[];for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const a=col*(rows+1)+row,b=(col+1)*(rows+1)+row;order.push(a,b,b+1,a,b+1,a+1)}gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(order),gl.STATIC_DRAW);gl.uniform2f(gl.getUniformLocation(program,'size'),innerWidth,innerHeight);
+    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.frontFace(gl.CW);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    const data=new Float32Array((cols+1)*(rows+1)*6);
+    return {draw(mesh,opacity){
+      mesh.points.forEach((p,i)=>data.set([p.x,p.y,p.z,p.u,p.v,p.light],i*6));gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);gl.uniform1f(gl.getUniformLocation(program,'opacity'),opacity);gl.drawElements(gl.TRIANGLES,order.length,gl.UNSIGNED_SHORT,0);
+    },dispose};
+  }catch(error){dispose();throw error}
+}
+function drawShoppingPaper(motion,progress){
+  const {canvas,snapshot,closing,anchor}=motion,dpr=motion.dpr;
+  const mesh=motion.plane?shoppingPlaneMesh(snapshot,progress):shoppingPaperMesh(snapshot,progress,closing,anchor),opacity=1;motion.progress=progress;motion.mesh=mesh;
+  if(!closing){
+    const lift=(1-progress)**2;
+    canvas.style.filter=progress===1?'none':`drop-shadow(2px ${2+18*lift}px ${2+9*lift}px rgba(45,35,29,${.25*(1-progress)}))`;
+  }
+  if(motion.gpu){motion.gpu.draw(mesh,opacity);return}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);ctx.globalAlpha=opacity;
+  if(!closing&&progress===1){
+    ctx.save();
+    ctx.translate(mesh.cx,mesh.cy);
+    ctx.rotate(snapshot.angle??(-.35*Math.PI/180));
+    ctx.drawImage(snapshot.texture,-snapshot.width/2,-snapshot.height/2,snapshot.width,snapshot.height);
+    ctx.restore();
+    return;
+  }
+  const {points,cols,rows}=mesh,source=p=>({x:p.u*snapshot.texture.width,y:p.v*snapshot.texture.height}),triangles=[];
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+    const a=points[col*(rows+1)+row],b=points[(col+1)*(rows+1)+row],c=points[(col+1)*(rows+1)+row+1],d=points[col*(rows+1)+row+1];triangles.push([a,b,c],[a,c,d]);
+  }
+  triangles.sort((a,b)=>a.reduce((z,p)=>z+p.z,0)-b.reduce((z,p)=>z+p.z,0));
+  for(const triangle of triangles){
+    const [a,b,c]=triangle,front=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)>=0;
+    drawShoppingPaperTriangle(ctx,front?snapshot.texture:snapshot.backTexture,triangle.map(source),triangle);
+    const shade=1-triangle.reduce((sum,p)=>sum+p.light,0)/3;if(shade>.003){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.fillStyle=`rgba(35,32,28,${shade})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.closePath();ctx.fill();ctx.restore()}
+  }
+  ctx.globalAlpha=1;
+}
+// The recipient uses the same tessellation, draw functions and timing as the planner.
+// Only the texture comes from the recipient's live layout.
+const guestPaperArt=Promise.all(['top','body','bottom'].map(async part=>{
+  const image=new Image();
+  image.src='shopping-paper-'+part+'.webp';
+  await image.decode();
+  return image;
+})).catch(()=>null);
+function guestPaperSnapshot(sheet,art){
+  const bounds=sheet.getBoundingClientRect(),pad=24,w=bounds.width;
+  // Keep the moving texture within mobile GPU limits even for a very long shopping list.
+  const h=Math.min(bounds.height,innerHeight+w);
+  if(!w||!h)return null;
+  const texture=document.createElement('canvas'),ratio=Math.min(devicePixelRatio||1,2);
+  texture.width=Math.ceil((w+2*pad)*ratio);texture.height=Math.ceil((h+2*pad)*ratio);
+  const ctx=texture.getContext('2d');if(!ctx)return null;
+  ctx.scale(ratio,ratio);ctx.translate(pad,pad);
+  ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
+  const [top,body,bottom]=art;
+  ctx.drawImage(body,0,52,w,Math.max(1,bounds.height-104));
+  ctx.drawImage(bottom,0,bounds.height-66,w,66);ctx.drawImage(top,0,0,w,68);
+  const backTexture=document.createElement('canvas');
+  backTexture.width=texture.width;backTexture.height=texture.height;
+  backTexture.getContext('2d').drawImage(texture,0,0);
+  const walker=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT),range=document.createRange();
+  let node;
+  while((node=walker.nextNode())){
+    const el=node.parentElement;
+    if(!node.textContent.trim()||el.closest('svg')||el.closest('details:not([open]) #bought'))continue;
+    const box=el.getBoundingClientRect();
+    if(!box.height||box.top>bounds.top+h)continue;
+    const st=getComputedStyle(el);
+    ctx.font=[st.fontStyle,st.fontWeight,st.fontSize,st.fontFamily].join(' ');ctx.fillStyle=st.color;
+    const metrics=ctx.measureText('Mg'),ascent=metrics.fontBoundingBoxAscent||parseFloat(st.fontSize)*.8,descent=metrics.fontBoundingBoxDescent||0;
+    for(let i=0;i<node.length;i++){
+      range.setStart(node,i);range.setEnd(node,i+1);
+      const r=range.getBoundingClientRect();if(!r.width)continue;
+      const x=r.left-bounds.left,y=r.top-bounds.top+(r.height-ascent-descent)/2+ascent;
+      ctx.fillText(node.data[i],x,y);
+      if(st.textDecorationLine.includes('line-through'))ctx.fillRect(x,y-ascent*.35,r.width,.9);
+    }
+  }
+  for(const svg of sheet.querySelectorAll('svg')){
+    const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
+    if(!r.height||r.top>bounds.top+h||!vb.width)continue;
+    ctx.save();ctx.translate(r.left-bounds.left,r.top-bounds.top);ctx.scale(r.width/vb.width,r.height/vb.height);
+    for(const path of svg.querySelectorAll('path')){
+      if(path.classList.contains('ink')&&!svg.closest('[aria-pressed=true]'))continue;
+      const st=getComputedStyle(path);ctx.strokeStyle=st.stroke;ctx.lineWidth=parseFloat(st.strokeWidth);
+      ctx.globalAlpha=Number(st.opacity);ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.stroke(new Path2D(path.getAttribute('d')));
+    }
+    ctx.restore();
+  }
+  const summary=sheet.querySelector('summary').getBoundingClientRect();
+  ctx.fillStyle='#193e66';ctx.save();ctx.translate(summary.left-bounds.left+5,summary.top-bounds.top+summary.height/2);
+  if(sheet.querySelector('details').open)ctx.rotate(Math.PI/2);
+  ctx.beginPath();ctx.moveTo(-4,-5);ctx.lineTo(4,0);ctx.lineTo(-4,5);ctx.fill();ctx.restore();ctx.restore();
+  return {texture,backTexture,pad,width:w+2*pad,height:h+2*pad,center:{x:bounds.left+w/2,y:bounds.top+h/2},angle:0};
+}
+async function tossGuestPaper(sheet,art){
+  const snapshot=guestPaperSnapshot(sheet,art);
+  if(!snapshot)return;
+  const canvas=document.createElement('canvas'),dpr=Math.min(devicePixelRatio||1,2);
+  canvas.className='guest-toss';canvas.setAttribute('aria-hidden','true');
+  canvas.width=Math.ceil(innerWidth*dpr);canvas.height=Math.ceil(innerHeight*dpr);
+  const motion={canvas,snapshot,dpr,closing:false,plane:false};
+  try{
+    try{motion.gpu=prepareShoppingPaperGL(canvas,snapshot)}catch{motion.canvas=canvas.cloneNode()}
+    snapshot.fallback=!motion.gpu;
+    if(!motion.gpu&&!motion.canvas.getContext('2d'))return;
+    document.body.append(motion.canvas);
+    const width=innerWidth,height=innerHeight,begin=performance.now();
+    await new Promise((resolve,reject)=>{
+      function frame(now){
+        if(document.hidden||reducedMotion()||innerWidth!==width||innerHeight!==height){resolve();return}
+        try{
+          const t=Math.min(1,(now-begin)/shoppingTossDuration);drawShoppingPaper(motion,t);
+          if(t<1)requestAnimationFrame(frame);else resolve();
+        }catch(error){reject(error)}
+      }
+      frame(begin);
+    });
+  }finally{motion.gpu?.dispose();motion.canvas.remove()}
+}
+// END GUEST TOSS
+let arriving=false;
+async function arrive(userGesture=false){
+  if(arriving||busy)return;
+  const root=document.documentElement,sheet=document.querySelector('main');
+  if(document.hidden){root.classList.remove('arrival-wait');return}
+  arriving=true;
+  const audible=userGesture||!reducedMotion();
+  function playSound(){
+    if(!audible)return;
+    try{sound.currentTime=0;sound.play()?.catch(()=>{})}catch{}
+  }
+  // Start audio inside the replay tap on iOS. A rejected autoplay never delays the sheet.
+  if(userGesture)playSound();
+  try{
+    if(reducedMotion())return;
+    if(!plane.complete && plane.decode){
+      await Promise.race([plane.decode().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,550))]);
+    }
+    if(!plane.naturalWidth||document.hidden)return;
+    if(userGesture && window.scrollY)window.scrollTo(0,0);
+    if(!userGesture)playSound();
+    root.classList.remove('arrival-wait');root.classList.add('arriving');
+    const pass=plane.closest('.flyby').getAnimations?.().find(a=>a.animationName==='incoming');
+    if(pass)await pass.finished.catch(()=>{});
+    else await new Promise(resolve=>setTimeout(resolve,1580));
+    if(reducedMotion()||document.hidden)return;
+    const art=await Promise.race([guestPaperArt,new Promise(resolve=>setTimeout(()=>resolve(null),100))]);
+    if(art){
+      try{await tossGuestPaper(sheet,art);return}catch{}
+    }
+    root.classList.add('fallback-drop');
+    const drop=sheet.getAnimations?.().find(a=>a.animationName==='deskDrop');
+    if(drop)await drop.finished.catch(()=>{});
+    else await new Promise(resolve=>setTimeout(resolve,850));
+  }finally{root.classList.remove('arrival-wait','arriving','fallback-drop');arriving=false}
+}
+replay.onclick=()=>arrive(true);
+
+// BEGIN SHOPPING INK
+// Shared by the installed planner and the recipient page. Inlined at build time.
+const shoppingInk=(()=>{
+  const reduced=()=>!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  function draw(button,restoring){
+    button.classList.add(restoring?'is-unmarking':'is-marking');
+    if(reduced()||!button.getClientRects().length)return Promise.resolve();
+    return new Promise(resolve=>setTimeout(resolve,restoring?240:350));
+  }
+  function capture(label,text=label.textContent){
+    const style=getComputedStyle(label);
+    return {rect:label.getBoundingClientRect(),text,font:style.font,color:style.color,shadow:style.textShadow};
+  }
+  async function fly(start,target,landing,restoring,scrollBox){
+    const end=target.getBoundingClientRect(),skip=reduced()||document.hidden||!start.rect.height;
+    if(!end.height)return;
+    const bounds=scrollBox?.getBoundingClientRect();
+    const below=end.bottom>(bounds?Math.min(innerHeight,bounds.bottom):innerHeight-8);
+    const above=end.top<(bounds?Math.max(0,bounds.top):0);
+    if(above||below)landing.scrollIntoView({block:'nearest',behavior:skip?'instant':'smooth'});
+    if(skip)return;
+    const ghost=document.createElement('span'),r=start.rect;
+    ghost.textContent=start.text;ghost.className='item-flight';ghost.setAttribute('aria-hidden','true');
+    Object.assign(ghost.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',font:start.font,color:start.color,textShadow:start.shadow});
+    document.body.append(ghost);landing.classList.add('landing');
+    try{
+      await new Promise(resolve=>{
+        const begin=performance.now(),direction=restoring?-1:1;
+        function frame(now){
+          const t=Math.min(1,(now-begin)/470),end=target.getBoundingClientRect();
+          if(t>=1||!end.height||document.hidden||reduced()){resolve();return}
+          const ease=t*t*(3-2*t),arc=Math.sin(Math.PI*t);
+          const x=(end.left-r.left)*ease+9*arc*direction,y=(end.top-r.top)*ease-5*arc;
+          ghost.style.transform='translate3d('+x+'px,'+y+'px,0) rotate('+(-2.7*arc*direction)+'deg)';
+          ghost.style.width=(r.width+(end.width-r.width)*ease)+'px';
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      });
+    }finally{landing.classList.remove('landing');ghost.remove()}
+  }
+  return {draw,capture,fly};
+})();
+// END SHOPPING INK
+async function moveProductName(source,group,data){
+  const start=shoppingInk.capture(source.querySelector('.item-name'));
+  const focused=document.activeElement===source;
+  if(!group.done)document.querySelector('details').open=true;
+  const landing=show(data,group.keys[0]);
+  if(!landing)return;
+  if(focused)landing.focus({preventScroll:true});
+  await shoppingInk.fly(start,landing.querySelector('.item-name'),landing,group.done);
+}
 async function request(action,data){
   const r=await fetch(api+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,actor:person.actor,...data})});
   const result=await r.json();
   if(!r.ok)throw Object.assign(Error(result.error||'Nie udało się wczytać listy.'),{status:r.status});
   return result;
 }
-function show(data){
+function show(data,landingKey){
+  let landing;
   if(data.revision<revision)return;
   const label=$('shoppingSharedLabel');
   if(data.shoppersLabel && label.textContent!==data.shoppersLabel)label.textContent=data.shoppersLabel;
@@ -42,22 +416,46 @@ function show(data){
   $('pending').replaceChildren();$('bought').replaceChildren();
   for(const group of groups.values()){
     const button=document.createElement('button'),label=document.createElement('span');
-    button.className='item';button.setAttribute('aria-pressed',String(group.done));label.textContent=group.text;button.append(label);
+    button.shoppingGroup=group;button.className='item';button.setAttribute('aria-pressed',String(group.done));label.className='item-name';label.textContent=group.text;button.append($('pen').content.cloneNode(true),label);
     if(group.done&&group.by){const sig=document.createElement('em');sig.textContent='('+group.by+')';button.append(sig)}
     button.disabled=group.done&&!group.canRestore;
-    if(!button.disabled)button.onclick=()=>mark(group);
+    if(!button.disabled)button.onclick=()=>mark(group,button);
     if(group.canRestore)button.setAttribute('aria-label','Przywróć do kupienia: '+group.text);
     $(group.done?'bought':'pending').append(button);
+    if(group.keys.includes(landingKey))landing=button;
   }
   $('count').textContent='· '+$('bought').children.length;
   if(!$('pending').children.length)$('pending').textContent='Brak produktów do kupienia.';
+  return landing;
+}
+async function showIncoming(data){
+  if(revision<0||data.revision<=revision||arriving||document.hidden||reducedMotion()){show(data);return}
+  const byKey=new Map(data.rows.map(row=>[row.key,row])),moves=[];
+  for(const button of document.querySelectorAll('.item')){
+    const group=button.shoppingGroup;
+    const changed=group.keys.map(key=>byKey.get(key)).find(row=>row&&row.done!==group.done);
+    if(changed&&button.getClientRects().length)moves.push({button,changed});
+  }
+  if(!moves.length){show(data);return}
+  busy=true;
+  try{
+    await Promise.all(moves.map(({button,changed})=>shoppingInk.draw(button,!changed.done)));
+    for(const move of moves)move.start=shoppingInk.capture(move.button.querySelector('.item-name'));
+    if(moves.some(move=>move.changed.done))document.querySelector('details').open=true;
+    show(data);
+    const buttons=[...document.querySelectorAll('.item')];
+    await Promise.all(moves.map(({changed,start})=>{
+      const row=buttons.find(el=>el.shoppingGroup.keys.includes(changed.key));
+      if(row)return shoppingInk.fly(start,row.querySelector('.item-name'),row,!changed.done);
+    }));
+  }finally{busy=false}
 }
 async function refresh(){
   if(busy||reading)return;reading=true;
-  try{const data=await request('read',{});if(!busy){show(data);$('status').textContent=''}}
+  try{const data=await request('read',{});if(!busy){await showIncoming(data);$('status').textContent=''}}
   catch(e){$('status').textContent=e.message}finally{reading=false}
 }
-async function mark(group){
+async function mark(group,button){
   if(busy||(group.done&&!group.canRestore))return;busy=true;
   const expected=revision;
   try{
@@ -68,13 +466,20 @@ async function mark(group){
       person={actor:crypto.randomUUID(),nick:$('nick').value.trim()};
       try{localStorage.setItem(store,JSON.stringify(person))}catch{}
     }
+    const ink=shoppingInk.draw(button,group.done);
     const data=await request('mark',{...person,keys:group.keys,done:!group.done,revision:expected});
-    show(data);$('status').textContent='';
+    await ink;
+    await moveProductName(button,group,data);
+    $('status').textContent='';
   }catch(e){
-    if(e.status===409){show(await request('read',{}));$('status').textContent='Lista zmieniła się w międzyczasie. Sprawdź produkt.'}
+    button.classList.remove('is-marking','is-unmarking');
+    if(e.status===409){
+      try{show(await request('read',{}));$('status').textContent='Lista zmieniła się w międzyczasie. Sprawdź produkt.'}
+      catch(readError){$('status').textContent=readError.message}
+    }
     else $('status').textContent=e.message;
   }finally{busy=false}
 }
-refresh();setInterval(()=>{if(!document.hidden)refresh()},4000);
+arrive();refresh();setInterval(()=>{if(!document.hidden)refresh()},4000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 </script></body></html>

@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.20.33.358-integration';
-const PREVIEW_VERSION='2026.11.20.33.358-test';
+const APP_VERSION='2026.11.20.33.359-integration';
+const PREVIEW_VERSION='2026.11.20.33.359-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.20.33.64-test';
 const WORKER_LABEL='Worker 33.64-test';
@@ -37,7 +37,20 @@ worker=worker.replace(/const BUILD_ID="[^"]*";/,'const BUILD_ID="development";')
 const workerBuildId=createHash('sha256').update(worker).digest('hex').slice(0,16);
 worker=worker.replace('const BUILD_ID="development";',`const BUILD_ID="${workerBuildId}";`);
 
-let canonical=fs.readFileSync('index.html','utf8');
+function inlineShoppingInk(html){
+  const block=/(\/\/ BEGIN SHOPPING INK\n)[\s\S]*?(\/\/ END SHOPPING INK)/;
+  if(!block.test(html))throw Error('Missing shopping ink block');
+  return html.replace(block,(_,start,end)=>start+fs.readFileSync('shopping-ink.js','utf8')+end);
+}
+let canonical=inlineShoppingInk(fs.readFileSync('index.html','utf8'));
+// Reuse the exact opening mesh and renderers used by the installed planner.
+const slicePaper=(from,to)=>{const a=canonical.indexOf(from),b=canonical.indexOf(to,a);if(a<0||b<=a)throw Error('Missing paper renderer '+from);return canonical.slice(a,b)};
+const toss=slicePaper('const shoppingPaperEase=','function shoppingPaperAnchor')+
+  slicePaper('const shoppingTossDuration=','const shoppingPlaneDuration=')+
+  slicePaper('function shoppingPaperMesh(','function startShoppingPaper(')+
+  fs.readFileSync('shopping-guest-toss.js','utf8');
+const guest=inlineShoppingInk(fs.readFileSync('wspolne-zakupy.html','utf8')).replace(/(\/\/ BEGIN GUEST TOSS\n)[\s\S]*?(\/\/ END GUEST TOSS)/,(_,a,b)=>a+toss+b);
+output('wspolne-zakupy.html',guest);
 canonical=canonical.replace(/Aplikacja: 2026\.\d{2}\.\d{2}\.\d+(?:\.[^ ·<]+)?/,'Aplikacja: '+APP_VERSION);
 canonical=canonical.replace(/appVersion:'2026\.\d{2}\.\d{2}\.\d+(?:\.[^']+)?'/,`appVersion:'${APP_VERSION}'`);
 canonical=canonical.replace(/EXPECTED_WORKER_VERSION='[^']*'/,`EXPECTED_WORKER_VERSION='${WORKER_VERSION}'`).replace(/EXPECTED_WORKER_BUILD_ID='[^']*'/,`EXPECTED_WORKER_BUILD_ID='${workerBuildId}'`);
@@ -163,6 +176,7 @@ output('preview33/wspolne-zakupy.html',fs.readFileSync('wspolne-zakupy.html','ut
 output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['octi-glass-key-33-309.webp','fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['shopping-plane-arrival.webp','shopping-flyby-glide.m4a','shopping-wood-table.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

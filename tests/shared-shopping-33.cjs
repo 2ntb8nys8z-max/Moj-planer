@@ -130,6 +130,101 @@ try{
  for(const session of [host,zosia,ania])assert.equal(subtitle(session),'Razem kupują: Robert, Zosia i Ania');
  assert.equal(ania("$('listTitle').textContent"),'Na wyjazd');
  assert.equal(host("$('shoppingSharedLabel').closest('header')!==null && !$('shoppingSharedLabel').hidden"),true);
+ // Exercise the ink → confirmed move → landing sequence with a visible row.
+ const moving=page('wspolne-zakupy.html','#'+id);
+ await wait(()=>moving('revision')>0);
+ moving(`person={actor:crypto.randomUUID(),nick:'Gość'};
+   const realRequest=request;
+   const pendingRow=$('pending').querySelector('button');
+   pendingRow.getClientRects=()=>[{}];
+   Object.defineProperty(HTMLElement.prototype,'getBoundingClientRect',{value:function(){
+     const y=this.closest('#bought')?300:100;
+     return {left:18,top:y,bottom:y+46,width:300,height:46};
+   }});
+   request=(action,body)=>action==='mark'
+     ? new Promise((resolve,reject)=>{window.confirmPurchase=()=>realRequest(action,body).then(resolve,reject)})
+     : realRequest(action,body);
+   pendingRow.click();`);
+ assert.equal(moving("pendingRow.classList.contains('is-marking')"),true);
+ assert.equal(moving("document.querySelector('.item-flight')"),null);
+ await new Promise(r=>setTimeout(r,360));
+ assert.equal(moving("pendingRow.isConnected && !document.querySelector('details').open"),true,'await a successful save even after the tick finishes');
+ await moving('confirmPurchase()');
+ await wait(()=>moving("!!document.querySelector('.item-flight')"));
+ assert.equal(moving("document.querySelector('details').open && !!$('bought').querySelector('.landing')"),true);
+ assert.equal(moving("document.querySelector('.item-flight').matches('span') && !document.querySelector('.item-flight').childElementCount"),true);
+ assert.equal(moving("document.querySelector('.item-flight').textContent"),moving("pendingRow.querySelector('.item-name').textContent"));
+ assert.equal(moving("document.querySelector('.item-flight').style.top"),'100px');
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("document.querySelector('.item-flight,.landing')"),null);
+ // Reverse the same purchase. The signed row stays put until the save succeeds.
+ moving(`const restored=$('bought').querySelector('button:not(:disabled)');restored.getClientRects=()=>[{}];restored.click()`);
+ assert.equal(moving("restored.classList.contains('is-unmarking')"),true);
+ assert.equal(moving("restored.isConnected && !document.querySelector('.item-flight')"),true);
+ await moving('confirmPurchase()');
+ await wait(()=>moving("!!$('pending').querySelector('.landing')"));
+ assert.equal(moving("document.querySelector('.item-flight').style.top"),'300px');
+ assert.equal(moving("document.querySelector('.item-flight').textContent"),moving("restored.querySelector('.item-name').textContent"));
+ assert.equal(moving("document.querySelector('.item-flight').childElementCount"),0);
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("document.querySelector('.item-flight,.landing')"),null);
+ assert.equal(moving("$('pending').textContent.includes(restored.querySelector('.item-name').textContent)"),true);
+ moving(`request=async()=>{throw new Error('Brak połączenia')};$('pending').querySelector('button').click()`);
+ await wait(()=>moving('!busy'));
+ assert.equal(moving("$('pending').querySelector('.is-marking')"),null);
+ assert.equal(moving("$('status').textContent"),'Brak połączenia');
+ // Exercise actual taps on the installed owner sheet, including sync and reverse moves.
+ const phone=page('index.html','#lista-roberta='+token);
+ await wait(()=>phone('shoppingOwner'));
+ phone(`ideas=[normalizeIdea({text:'Zakupy',list:{type:'shopping',items:['Gruszki 2 kg','Kawa']}})];
+   saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingCreateShared').click();`);
+ await wait(()=>phone('shoppingCreated && !shoppingSyncBusy'));
+ const recipient=page('wspolne-zakupy.html','#'+phone("shoppingStore('id')"));
+ await wait(()=>recipient('revision')>0);
+ phone(`HTMLElement.prototype.getBoundingClientRect=function(){
+   const y=this.closest('#shoppingSummaryPurchased')?400:120;
+   return {left:65,top:y,bottom:y+28,width:160,height:28};
+ };
+ HTMLElement.prototype.getClientRects=function(){return [this.getBoundingClientRect()]};
+ document.querySelector('#shoppingSummaryRows input').click()`);
+ assert.equal(phone("!!document.querySelector('#shoppingSummaryRows .is-marking')"),true);
+ await wait(()=>phone("!!document.querySelector('#shoppingSummaryPurchased .landing')"));
+ assert.equal(phone("document.querySelector('.item-flight').textContent"),'Gruszki');
+ await wait(()=>phone('!shoppingInkBusy && !shoppingSyncBusy'));
+ await recipient('refresh()');
+ assert.equal(recipient("document.querySelector('#bought button').disabled"),true);
+ assert.match(recipient("$('bought').textContent"),/Gruszki 2 kg\(Robert\)/);
+ phone("document.querySelector('#shoppingSummaryPurchased input').click()");
+ await wait(()=>phone("!!document.querySelector('#shoppingSummaryRows .landing')"));
+ assert.equal(phone("document.querySelector('.item-flight').style.top"),'400px');
+ await wait(()=>phone('!shoppingInkBusy && !shoppingSyncBusy'));
+ await recipient('refresh()');
+ assert.ok(recipient("$('pending').textContent.includes('Gruszki 2 kg')"));
+ await join(recipient,'Zosia');
+ const incoming=phone('syncSharedShopping()');
+ await wait(()=>phone("!!document.querySelector('#shoppingSummaryPurchased .landing')"));
+ await incoming;
+ assert.match(phone("$('shoppingSummaryPurchased').textContent"),/Zosia/);
+ recipient("document.querySelector('#bought button:not(:disabled)').click()");
+ await wait(()=>recipient('!busy'));
+ const undo=phone('syncSharedShopping()');
+ await wait(()=>phone("!!document.querySelector('#shoppingSummaryRows .landing')"));
+ await undo;
+ assert.equal(phone("document.querySelector('.item-flight,.landing')"),null);
+ // An undo can arrive while the first publish response is still on its way back.
+ phone(`const transport=shoppingRequest;let delayOne=true;
+   shoppingRequest=async(...args)=>{
+     const response=await transport(...args);
+     if(args[0]==='publish'&&delayOne){delayOne=false;await new Promise(r=>window.releasePublish=r)}
+     return response;
+   };
+   document.querySelector('#shoppingSummaryRows input').click()`);
+ await wait(()=>phone('!!window.releasePublish && !shoppingInkBusy'));
+ phone("document.querySelector('#shoppingSummaryPurchased input').click();releasePublish()");
+ await wait(()=>phone('!shoppingInkBusy && !shoppingSyncBusy'));
+ await recipient('refresh()');
+ assert.ok(recipient("$('pending').textContent.includes('Gruszki 2 kg')"));
+ assert.ok(phone("!ideas[0].list.items[0].done"));
  console.log('Both sessions, membership, shared link, owner-only controls and durable signatures passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});
