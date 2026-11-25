@@ -3,8 +3,8 @@ import {buildSync} from 'esbuild';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.20.33.370-integration';
-const PREVIEW_VERSION='2026.11.20.33.370-test';
+const APP_VERSION='2026.11.25.33.375-integration';
+const PREVIEW_VERSION='2026.11.25.33.375-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.20.33.68-test';
 const WORKER_LABEL='Worker 33.68-test';
@@ -47,6 +47,7 @@ function inlineShoppingInk(html){
   return html.replace(block,(_,start,end)=>start+fs.readFileSync('shopping-ink.js','utf8')+end);
 }
 let canonical=inlineShoppingInk(fs.readFileSync('index.html','utf8')).replace(/(\/\/ BEGIN SHOPPING ACCESS PANEL\n)[\s\S]*?(\/\/ END SHOPPING ACCESS PANEL)/,(_,a,b)=>a+fs.readFileSync('shopping-access.js','utf8')+b);
+canonical=canonical.replace(/(\/\/ BEGIN OWNER SHOPPING CARDS\n)[\s\S]*?(\/\/ END OWNER SHOPPING CARDS)/,(_,a,b)=>a+fs.readFileSync('shopping-cards.js','utf8')+b);
 // Reuse the exact opening mesh and renderers used by the installed planner.
 const slicePaper=(from,to)=>{const a=canonical.indexOf(from),b=canonical.indexOf(to,a);if(a<0||b<=a)throw Error('Missing paper renderer '+from);return canonical.slice(a,b)};
 const toss=slicePaper('const shoppingPaperEase=','function shoppingPaperAnchor')+
