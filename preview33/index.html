@@ -2787,7 +2787,7 @@ function setShoppingInviteCount(value){
   $('shoppingInvitePlus').disabled=locked||shoppingInviteCount>=200;
   $('shoppingInvitePlaces').textContent=(free?'Wolne miejsca: '+free+'. ':'')+
     (shoppingInviteAdditional?'Wcześniejsze wolne miejsca przejdą na nowy link.':'Liczba miejsc nie obejmuje właściciela.')+
-    (shoppingInviteState.joiningOpen?' Nowy link zastąpi poprzednie. Wyślij go także osobom, które jeszcze nie dołączyły.':'');
+    ' Jeśli wysłano już zaproszenia, nowy link zastąpi poprzednie. Przekaż go także osobom, które jeszcze nie dołączyły.';
 }
 function resetPreparedInvite(){
   shoppingPreparedInvite=null;shoppingInviteDraft=null;

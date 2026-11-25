@@ -108,16 +108,23 @@ async function checkGuestHandoff(page){
   if(width===390){
    await page.evaluate(()=>{
      document.querySelector('.app').style.visibility='';
-     shoppingOwner=true;shoppingCreated=true;saveShopping('id',crypto.randomUUID());shoppingOwnerButtons();
+     shoppingOwner=true;saveShopping('id',crypto.randomUUID());
      window.inviteCalls=[];
      shoppingRequest=async(action,body)=>{
        if(action==='counted-invite')window.inviteCalls.push(body.seats);
-       return {inviteOnly:true,invitations:[],revision:1,rows:[]};
+       return {inviteOnly:true,invitations:[],revision:1,rows:[{key:'legacy',text:'Mleko 2 l',done:false,by:''}]};
      };
+     openLegacyShopping();
      Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{throw new DOMException('Anulowano','AbortError')}});
    });
+   // Both visible entry points ask before issuing an invitation.
    await page.locator('#shoppingSendShared').click();
+   await page.locator('#shoppingManageAccess').click();
+   await page.locator('#shoppingInviteMore').click();
    const dialog=page.locator('#shoppingInviteDialog');
+   await dialog.getByRole('heading',{name:'Ile kolejnych osób chcesz zaprosić?'}).waitFor();
+   await dialog.getByRole('button',{name:'Zamknij',exact:true}).click();
+   await page.locator('#shoppingSendShared').click();
    await dialog.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
    assert.equal(await dialog.locator('output').textContent(),'3');
    await dialog.getByRole('button',{name:'Mniej osób'}).click();
