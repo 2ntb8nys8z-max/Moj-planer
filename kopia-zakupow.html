@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Kopia zakupów · Okti</title>
+<style>
+*{box-sizing:border-box}body{max-width:40rem;margin:0 auto;padding:2.5rem 1.1rem;background:#f5f7f9;color:#203650;font:1rem/1.55 system-ui,sans-serif}
+main{background:#fff;border:1px solid #d8e0e8;border-radius:1rem;padding:clamp(1.1rem,5vw,2.5rem)}
+h1{font-size:1.75rem;margin:0}h2{font-size:1.2rem}p{margin:.6rem 0 1rem}button,input{font:inherit}button{padding:.55rem .85rem;margin:.25rem .25rem .25rem 0;border:1px solid #94a6bc;border-radius:.55rem;background:#fff;color:#193e64;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #1b6d9a;outline-offset:3px}button.primary{color:white;background:#245880;border-color:#245880}
+input{display:block;max-width:100%;margin:.35rem 0 1rem}dl{display:grid;grid-template-columns:1fr auto;gap:.35rem}dd{font-weight:700}section{margin-top:1.3rem;border-top:1px solid #d8e0e8}
+</style>
+</head>
+<body><main>
+<h1>Kopia zakupów</h1>
+<p>Sprawdź, jakie produkty i odhaczenia uda się zachować przed rozdzieleniem kartek. Pliki są odczytywane na Twoim urządzeniu.</p>
+<label for="file">Wybierz zwykłą kopię Okti lub wcześniej zapisaną kopię zakupów</label>
+<input type="file" id="file" accept="application/json,.json">
+<button type="button" id="device" hidden>Odczytaj zakupy z tego urządzenia</button>
+<button type="button" id="demo">Sprawdź na przykładzie</button>
+<p role="status" id="status"></p>
+<section id="result" hidden><h2 id="heading"></h2>
+<dl><dt>Wpisy z listą zakupów</dt><dd id="sources"></dd><dt>Produkty do kupienia</dt><dd id="pending"></dd>
+<dt>Kupione produkty</dt><dd id="bought"></dd><dt>Produkty z podpisem kupującego</dt><dd id="signed"></dd></dl>
+<p id="scope"></p>
+<p>Plik zawiera historię wpisów zakupowych. Przechowuj go prywatnie, szczególnie gdy zawiera powiązanie ze starą listą wspólną.</p>
+<button type="button" class="primary" id="save">Pobierz kopię zakupów</button>
+</section></main>
+<script>
+'use strict';
+const el = id => document.getElementById(id);
+const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const isId = value => (typeof value === 'string' && value.length > 0) || Number.isFinite(value);
+const format = 'okti-shopping-checkpoint';
+let current = null;
+let generation = 0;
+
+function shoppingSources(ideas) {
+  if (!Array.isArray(ideas)) throw Error('Brak kolekcji wpisów w kopii.');
+  const seen = new Set();
+  const sources = [];
+  for (const idea of ideas) {
+    if (!isObject(idea)) throw Error('Uszkodzony wpis w kopii.');
+    if (idea.list == null) continue;
+    if (idea.list.type !== 'shopping' || !Array.isArray(idea.list.items) || !isId(idea.id) || seen.has(String(idea.id)))
+      throw Error('Nie można rozpoznać źródła produktów. Zachowaj oryginalną kopię.');
+    for (const item of idea.list.items) {
+      if (!isObject(item) || !isId(item.id) || typeof item.text !== 'string' || typeof item.done !== 'boolean')
+        throw Error('Nie można rozpoznać jednego z produktów. Zachowaj oryginalną kopię.');
+    }
+    seen.add(String(idea.id));
+    const source = {id:idea.id, list:idea.list};
+    for (const key of ['title','createdAt','history']) if (Object.hasOwn(idea,key)) source[key]=idea[key];
+    sources.push(source);
+  }
+  return sources;
+}
+
+function makeCheckpoint(ideas, legacy, createdAt = new Date().toISOString()) {
+  if (legacy !== null && (!isObject(legacy) ||
+      !['id','title','base'].every(key => legacy[key] === null || typeof legacy[key] === 'string')))
+    throw Error('Nieznany format lokalnego powiązania z listą.');
+  return {format, version:1, createdAt, sources:shoppingSources(ideas),
+    legacy: legacy === null ? null : {id:legacy.id, title:legacy.title, base:legacy.base}};
+}
+
+function readFileData(value) {
+  if (value?.version === 1 && value.format === 'moj-planer-backup')
+    return makeCheckpoint(value.data?.ideas,null);
+  if (value?.version === 1 && value.format === format && typeof value.createdAt === 'string')
+    return makeCheckpoint(value.sources,value.legacy,value.createdAt);
+  throw Error('Wybierz zwykłą kopię Planera lub kopię zakupów w obsługiwanej wersji.');
+}
+
+const directory = location.pathname.replace(/[^/]*$/, '');
+const plannerOrigin = location.origin === 'https://2ntb8nys8z-max.github.io'
+  && ['/Moj-planer/', '/Moj-planer/preview33/'].includes(directory);
+function deviceCheckpoint() {
+  if (!plannerOrigin) throw Error('Odczyt jest dostępny na stronie Twojej instalacji Okti.');
+  const prefix = directory.endsWith('/preview33/') ? 'planner-preview-33:' : '';
+  const shopping = 'okti-shopping:' + directory + ':';
+  const read = () => {
+    const record = localStorage.getItem(prefix+'moj-planer-data-v1');
+    return {record, ideas:record === null ? localStorage.getItem(prefix+'moj-planer-ideas') : null,
+      id:localStorage.getItem(shopping+'id'), title:localStorage.getItem(shopping+'title'), base:localStorage.getItem(shopping+'base')};
+  };
+  const first = read();
+  if (Object.values(first).every(value => value === null)) throw Error('W tym profilu nie znaleziono zapisu Okti. Możesz otworzyć zwykłą kopię z pliku.');
+  let ideas;
+  if (first.record !== null) {
+    const record = JSON.parse(first.record);
+    if (record?.version !== 1) throw Error('Nieobsługiwana wersja zapisu urządzenia.');
+    ideas = record.data?.ideas;
+  } else ideas = first.ideas === null ? [] : JSON.parse(first.ideas);
+  const legacy = [first.id, first.base, first.title].every(value => value === null) ? null :
+    {id:first.id, base:first.base, title:first.title};
+  const snapshot = makeCheckpoint(ideas,legacy);
+  if (JSON.stringify(first) !== JSON.stringify(read())) throw Error('Dane zmieniły się podczas odczytu. Ponów próbę.');
+  return snapshot;
+}
+
+function display(snapshot, heading) {
+  let total=0, bought=0, signed=0;
+  for (const source of snapshot.sources) for (const item of source.list.items) {
+    total++;
+    if (item.done) { bought++; if (item.shoppingBuyer) signed++; }
+  }
+  el('heading').textContent=heading;
+  for (const [key,value] of Object.entries({sources:snapshot.sources.length,pending:total-bought,bought,signed}))
+    el(key).textContent=String(value);
+  el('scope').textContent=snapshot.legacy
+    ? 'Kopia zawiera również lokalne powiązanie ze starą listą. Dane uczestników i zaproszeń wymagają osobnej kopii serwera.'
+    : 'Kopia obejmuje produkty z wpisów. Uczestnicy, zaproszenia i aktualny stan wspólnej kartki są przechowywane osobno na serwerze.';
+  current=snapshot;
+  el('result').hidden=false;
+}
+
+async function inspect(load, heading) {
+  const run=++generation;
+  current=null; el('result').hidden=true; el('status').textContent='';
+  try { const snapshot=await load(); if (run===generation) display(snapshot,heading); }
+  catch (error) {
+    if (run===generation) el('status').textContent=error instanceof SyntaxError ? 'Plik lub zapis zawiera uszkodzone dane JSON.' : error.message;
+  }
+}
+el('device').hidden=!plannerOrigin;
+el('device').onclick=()=>inspect(deviceCheckpoint,'Zakupy z tego urządzenia');
+el('file').onchange=()=>{
+  const file=el('file').files[0];
+  el('file').value='';
+  if (file) inspect(async()=>{
+    if (file.size>20*1024*1024) throw Error('Plik przekracza limit odczytu 20 MB.');
+    return readFileData(JSON.parse(await file.text()));
+  },'Zakupy z pliku');
+};
+el('demo').onclick=()=>inspect(()=>makeCheckpoint([
+  {id:'przyklad-a',title:'Sobota',list:{type:'shopping',items:[
+    {id:'1',text:'Chleb',done:false},{id:'2',text:'Jabłka',done:true,shoppingBuyer:'Zosia'}]}},
+  {id:'przyklad-b',title:'Kolacja',list:{type:'shopping',items:[{id:'3',text:'Chleb',done:false}]}}
+],null),'Przykładowe zakupy');
+el('save').onclick=()=>{
+  if (!current) return;
+  const url=URL.createObjectURL(new Blob([JSON.stringify(current)],{type:'application/json'}));
+  const link=document.createElement('a'); link.href=url;
+  link.download='okti-kopia-zakupow-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
+  document.body.append(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+};
+</script></body></html>
