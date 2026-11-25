@@ -1,0 +1,24 @@
+name: Shopping name regression 33.374
+on:
+  push:
+    branches: [work/qa-shopping-names-33-374]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Europe/Warsaw
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run check:generated
+      - run: npx playwright install --with-deps chromium
+      - name: Verify shopping signatures with two browser sessions
+        run: node tests/shopping-card-share-browser-33.mjs
+      - run: npm test
+      - run: npm run test:journal-browser
