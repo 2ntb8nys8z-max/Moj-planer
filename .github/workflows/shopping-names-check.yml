@@ -16,7 +16,10 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
-      - run: npm run check:generated
+      - name: Verify the build and shopping service
+        run: |
+          npm run check:generated
+          node tests/shopping-card-share-33.mjs
       - run: npx playwright install --with-deps chromium
       - name: Verify shopping signatures with two browser sessions
         run: node tests/shopping-card-share-browser-33.mjs
