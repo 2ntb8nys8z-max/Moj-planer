@@ -1,5 +1,7 @@
 name: Shopping name regression 33.374
 on:
+  pull_request:
+    branches: [work/shopping-share-invitations]
   push:
     branches: [work/qa-shopping-names-33-374]
 permissions:
