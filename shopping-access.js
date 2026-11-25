@@ -96,6 +96,10 @@ async function changeShoppingAccess(action,closeJoining=false,key=shoppingRevoke
 }
 function openShoppingAccess(key){
   if(!shoppingOwner||!shoppingStore('id'))return;
+  if(!legacyShoppingActive){
+    openLegacyShopping();
+    if(!legacyShoppingActive)return;
+  }
   if($('shoppingInviteDialog').open)$('shoppingInviteDialog').close();
   shoppingHighlightKey=key||null;shoppingRevokeKey=null;
   $('shoppingRevokeBox').hidden=true;$('shoppingAccessStatus').textContent='';
