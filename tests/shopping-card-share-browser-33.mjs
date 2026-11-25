@@ -87,7 +87,8 @@ try {
   assert.equal(await ownerRow('Herbata').locator('.shopping-author').textContent(),'(Robert)');
   assert.equal(await ownerRow('Herbata').locator('.shopping-buyer').textContent(),'(Robert 1)');
   assert.equal(await ownerRow('Cytryny').locator('.shopping-author').textContent(),'(Robert 1)');
-  await lemons.click();
+  // On guest additions the label opens product options; the left checkbox marks a purchase.
+  await lemons.click({position:{x:16,y:20}});
   await lemons.locator('em').waitFor({state:'attached'});
   assert.equal(await lemons.locator('em').textContent(),'(Robert 1)');
   assert.equal(await lemons.locator('.shopping-author').textContent(),'(Robert 1)');
