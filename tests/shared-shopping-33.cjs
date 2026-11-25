@@ -252,6 +252,24 @@ try{
    const response=await worker.fetch(new Request('https://planner.test/shopping/'+action,{method:'POST',headers,body:JSON.stringify({id:listId,...body})}),env);
    return {status:response.status,data:await response.json()};
  }
+ // Upgrade an old open link with a signed-in guest and outstanding bounded invitations.
+ const oldSheet=crypto.randomUUID(),oldOpen=crypto.randomUUID(),oldLimited=crypto.randomUUID(),keep=crypto.randomUUID();
+ const legacyCall=(action,data,owner=false)=>shop(action,{id:oldSheet,...data},owner);
+ await legacyCall('publish',{revision:0,rows:[{key:'milk',text:'Mleko',done:false,by:''}]},true);
+ await legacyCall('open-invite',{invite:oldOpen,canAdd:true},true);
+ await legacyCall('join',{invite:oldOpen,actor:keep,nick:'Maja'});
+ await legacyCall('invite',{invite:oldLimited,seats:2,canAdd:true},true);
+ const replacement={invite:crypto.randomUUID(),seats:1,canAdd:true,additional:true,generation:0};
+ assert.equal((await legacyCall('counted-invite',replacement)).status,403);
+ const issued=await legacyCall('counted-invite',replacement,true);
+ assert.equal(issued.data.inviteSeats,3);
+ assert.equal((await legacyCall('counted-invite',replacement,true)).data.revision,issued.data.revision);
+ assert.equal((await legacyCall('counted-invite',{...replacement,invite:crypto.randomUUID()},true)).status,409);
+ for(const invite of [oldOpen,oldLimited])assert.equal((await legacyCall('invite-info',{invite})).data.available,false);
+ assert.equal((await legacyCall('read',{actor:keep})).data.rows[0].text,'Mleko');
+ assert.equal((await legacyCall('invite-info',{invite:replacement.invite})).data.available,true);
+ const limitedClaims=await Promise.all(['A','B','C','D'].map(nick=>legacyCall('join',{invite:replacement.invite,nick,actor:crypto.randomUUID()})));
+ assert.deepEqual(limitedClaims.map(r=>r.status).sort(),[200,200,200,403]);
  await shop('invite',{invite:raceLink,canAdd:true},true);
  assert.deepEqual((await shop('invite-info',{invite:raceLink})).data,{available:true,used:false});
  const claims=['Ola','Iga'].map(nick=>({actor:require('node:crypto').randomUUID(),nick,invite:raceLink}));
@@ -408,7 +426,8 @@ try{
    globalThis.fetch=async(url,options)=>{
      assert.equal(url,subscription.endpoint);messages.push(options);return new Response(null,{status:201});
    };
-   await shop('open-invite',{invite:linkForPush,canAdd:true},true);
+   assert.equal((await shop('open-invite',{invite:linkForPush,canAdd:true},true)).status,409);
+   assert.equal((await shop('invite',{invite:linkForPush,seats:2,canAdd:true},true)).status,200);
    const guest={invite:linkForPush,nick:'Lena',actor:crypto.randomUUID()};
    assert.equal((await shop('join',guest)).status,200);await shop('join',guest);
    assert.equal(messages.length,1);

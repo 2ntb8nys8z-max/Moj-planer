@@ -42,7 +42,8 @@ function updateShoppingInvitations(data){
   const removed=data.removedParticipants || [];
   const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations) ||
     JSON.stringify(shoppingInviteState.removedParticipants)!==JSON.stringify(removed);
-  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
+  shoppingInviteState={revision:data.revision,generation:data.inviteGeneration||0,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
+  if($('shoppingInviteDialog').open)setShoppingInviteCount(shoppingInviteCount);
   $('shoppingInviteMigration').hidden=data.inviteOnly;
   $('shoppingLegacyAccess').hidden=data.inviteOnly;
   $('shoppingCloseJoining').hidden=!data.joiningOpen;
@@ -172,6 +173,7 @@ function initializeShoppingAccess(){
   $('shoppingConfirmRevoke').onclick=()=>changeShoppingAccess('revoke');
   $('shoppingRevokeClose').onclick=()=>changeShoppingAccess('revoke',true);
   $('shoppingCancelRevoke').onclick=()=>$('shoppingRevokeBox').hidden=true;
+  $('shoppingInviteMore').onclick=()=>openShoppingInvitations(true);
   $('shoppingCloseJoining').onclick=()=>changeShoppingAccess('close-joining');
   $('shoppingPushToggle').onclick=toggleShoppingPush;
   document.addEventListener('pointerdown',armShoppingTone,{passive:true});

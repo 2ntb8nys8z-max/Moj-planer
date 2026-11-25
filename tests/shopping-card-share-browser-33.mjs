@@ -11,9 +11,11 @@ const guestOrigin='https://okti-wspolne-zakupy.oakgait2.chatgpt.site';
 const service=await shoppingFixture();
 const browser=await chromium.launch(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{});
 const mobile={viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce',serviceWorkers:'block'};
+let pausedSeatRead;
 async function serve(route) {
   const req=route.request(),url=new URL(req.url());
   if(url.origin===guestOrigin){
+    if(pausedSeatRead&&url.pathname==='/shopping/owner-read')await pausedSeatRead;
     const response=await service.fetch(new Request(url,{method:req.method(),headers:await req.allHeaders(),body:req.postDataBuffer()}));
     await route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body:Buffer.from(await response.arrayBuffer())});
   } else if(url.origin===ownerOrigin && url.pathname.startsWith(plannerPath)){
@@ -96,12 +98,17 @@ try {
   await gp.reload();
   await gp.getByRole('heading',{name:'Wyjazd'}).waitFor();
   assert.equal(await gp.locator('#joinNick').isVisible(),false);
-  // The ordinary Share button must ask even when the invitation already exists.
+  // Keep the network read pending while the user adjusts an already shared card.
+  let resumeSeatRead;
+  pausedSeatRead=new Promise(resolve=>{resumeSeatRead=resolve;});
   await button('Udostępnij').click();
   await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
   assert.equal(await panel.locator('output').textContent(),'2');
   await button('Więcej osób').click();
   await panel.getByText(/Dodatkowe miejsca: 1.*Poprzedni link przestanie działać/).waitFor();
+  assert.equal(await button('Dodaj miejsca i wyślij').isDisabled(),true);
+  resumeSeatRead();
+  pausedSeatRead=null;
   await button('Mniej osób').click();
   await button('Mniej osób').click();
   assert.equal(await button('Mniej osób').isDisabled(),true);
