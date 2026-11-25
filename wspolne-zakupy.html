@@ -146,6 +146,12 @@ button.shopping-item-trash[hidden]{display:none}
 <script>
 const api='https://moj-planer-api.yd7ynvj864.workers.dev/shopping/';
 const fragment=location.hash.slice(1),params=new URLSearchParams(fragment);
+// A second invitation can open in the same tab and change only its fragment.
+window.addEventListener('hashchange',()=>{
+  document.querySelector('main').hidden=true;
+  document.getElementById('guestGate').hidden=true;
+  location.reload();
+});
 const invite=params.get('zaproszenie'),id=params.get('lista')||fragment;
 const $=s=>document.getElementById(s),store='okti:uczestnik:'+id;
 let gated=!!invite;
