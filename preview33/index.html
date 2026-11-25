@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.375</title>
+<title>Mój Planer — test integracji 33.376</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.375</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.375</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.375-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.376</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.376</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.376-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -277,11 +277,12 @@ body.okti-weather-open{overflow:hidden}
   <button id="shoppingCardPrivate" type="button">Wróć do zakupów</button>
 </section></div></section></div></div>
 <dialog id="shoppingInviteDialog" aria-labelledby="shoppingInviteTitle">
-  <h2 id="shoppingInviteTitle">Zaproś do zakupów</h2>
-  <p>Wybierz odbiorców podczas wysyłania. Każda osoba z linkiem może się podpisać i dołączyć, dopóki nie zamkniesz dołączania.</p>
+  <h2 id="shoppingInviteTitle">Ile osób chcesz zaprosić?</h2>
+  <div class="shopping-invite-counter"><button type="button" id="shoppingInviteMinus" aria-label="Mniej osób">−</button><output id="shoppingInviteCount" aria-live="polite">3</output><button type="button" id="shoppingInvitePlus" aria-label="Więcej osób">+</button></div>
+  <p id="shoppingInvitePlaces">Liczba zapraszanych osób nie obejmuje właściciela.</p>
   <p id="shoppingInviteMigration" hidden>Nowe zaproszenie wyłączy anonimowy dostęp przez stary link.</p>
   <label><input type="checkbox" id="shoppingInviteAdd" checked> Pozwól dopisywać produkty</label>
-  <div><button type="button" id="shoppingPrepareInvite">Utwórz zaproszenie</button><button type="button" id="shoppingShareInvite" hidden>Wyślij zaproszenie</button></div>
+  <div><button type="button" id="shoppingPrepareInvite">Wyślij zaproszenie</button><button type="button" id="shoppingShareInvite" hidden>Wyślij zaproszenie</button></div>
   <p id="shoppingInviteStatus" role="status"></p>
   <button id="shoppingManageAccess" type="button">Uczestnicy i dostęp</button>
   <button type="button" id="shoppingInviteClose">Zamknij</button>
@@ -295,6 +296,7 @@ body.okti-weather-open{overflow:hidden}
     <button id="shoppingRevokeClose" type="button">Cofnij dostęp i zamknij dołączanie</button>
     <button id="shoppingCancelRevoke" type="button">Anuluj</button>
   </div>
+  <button id="shoppingInviteMore" type="button">Zaproś kolejne osoby</button>
   <button id="shoppingCloseJoining" type="button" hidden>Zamknij dołączanie</button>
   <button id="shoppingPushToggle" type="button" hidden>Włącz powiadomienia na tym urządzeniu</button>
   <p id="shoppingAccessStatus" role="status"></p>
@@ -346,7 +348,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.375-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.376-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -453,7 +455,7 @@ const PlannerData=(()=>{
 })();
 window.PlannerData=PlannerData;
 
-const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.20.33.68-test',EXPECTED_WORKER_BUILD_ID='0864843d0f0560df';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
+const $=id=>document.getElementById(id);const TASK_KEY="moj-planer-tasks",IDEA_KEY="moj-planer-ideas",NOTE_KEY="moj-planer-note",VOICE_USAGE_KEY="moj-planer-voice-usage",VOICE_MONTHLY_LIMIT=300,API_URL="https://moj-planer-api.yd7ynvj864.workers.dev",EXPECTED_WORKER_VERSION='2026.11.25.33.69-test',EXPECTED_WORKER_BUILD_ID='4e08ea01abdbd09c';let tasks=JSON.parse(PlannerData.storage.getItem(TASK_KEY)||"[]"),ideas=JSON.parse(PlannerData.storage.getItem(IDEA_KEY)||"[]"),pendingVoiceItem=null,pendingVoiceConversation=[],pendingVoiceDialogueState=null,activeTask=null,activeIdea=null,pendingIdeaConversion=null,pendingEventRecurrence=null,ideasMode="todo",ideasTypeMode="all";
 function isValidPlannerDate(v){if(typeof v!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const [y,m,d]=v.split("-").map(Number),x=new Date(y,m-1,d);return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d}
 function isValidPlannerTime(v,allowEmpty=true){if((v===null||v===undefined||v==="")&&allowEmpty)return true;if(typeof v!=="string"||!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return false;return true}
 function plannerItemQuestion(x){
@@ -2584,6 +2586,7 @@ function shoppingDeviceActivation(closeSettings){
   };
   return button;
 }
+let shoppingInviteCount=3,shoppingInviteAdditional=false,shoppingInviteDraft=null;
 let shoppingPreparedInvite=null,shoppingInviteState={revision:-1,inviteOnly:false,invitations:[]};
 // BEGIN SHOPPING ACCESS PANEL
 let pendingShoppingAccess=null;
@@ -2630,7 +2633,8 @@ function updateShoppingInvitations(data){
   const removed=data.removedParticipants || [];
   const changed=JSON.stringify(shoppingInviteState.invitations)!==JSON.stringify(data.invitations) ||
     JSON.stringify(shoppingInviteState.removedParticipants)!==JSON.stringify(removed);
-  shoppingInviteState={revision:data.revision,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
+  shoppingInviteState={revision:data.revision,generation:data.inviteGeneration||0,inviteOnly:data.inviteOnly,invitations:data.invitations,joiningOpen:data.joiningOpen,removedParticipants:removed};
+  if($('shoppingInviteDialog').open)setShoppingInviteCount(shoppingInviteCount);
   $('shoppingInviteMigration').hidden=data.inviteOnly;
   $('shoppingLegacyAccess').hidden=data.inviteOnly;
   $('shoppingCloseJoining').hidden=!data.joiningOpen;
@@ -2760,6 +2764,7 @@ function initializeShoppingAccess(){
   $('shoppingConfirmRevoke').onclick=()=>changeShoppingAccess('revoke');
   $('shoppingRevokeClose').onclick=()=>changeShoppingAccess('revoke',true);
   $('shoppingCancelRevoke').onclick=()=>$('shoppingRevokeBox').hidden=true;
+  $('shoppingInviteMore').onclick=()=>openShoppingInvitations(true);
   $('shoppingCloseJoining').onclick=()=>changeShoppingAccess('close-joining');
   $('shoppingPushToggle').onclick=toggleShoppingPush;
   document.addEventListener('pointerdown',armShoppingTone,{passive:true});
@@ -2770,30 +2775,60 @@ function initializeShoppingAccess(){
   });
 }
 // END SHOPPING ACCESS PANEL
-function resetPreparedInvite(){
-  shoppingPreparedInvite=null;
-  $('shoppingInviteAdd').disabled=false;$('shoppingPrepareInvite').hidden=false;$('shoppingShareInvite').hidden=true;
+function freeShoppingPlaces(){
+  return shoppingInviteState.invitations.filter(seat=>!seat.nick).length;
 }
-function openShoppingInvitations(){
-  resetPreparedInvite();$('shoppingInviteAdd').checked=true;$('shoppingInviteStatus').textContent='';
+function setShoppingInviteCount(value){
+  const free=freeShoppingPlaces(),minimum=shoppingInviteAdditional?1:Math.max(1,free);
+  shoppingInviteCount=Math.max(minimum,Math.min(200,value));
+  $('shoppingInviteCount').textContent=String(shoppingInviteCount);
+  const locked=!!shoppingPreparedInvite||$('shoppingPrepareInvite').disabled;
+  $('shoppingInviteMinus').disabled=locked||shoppingInviteCount<=minimum;
+  $('shoppingInvitePlus').disabled=locked||shoppingInviteCount>=200;
+  $('shoppingInvitePlaces').textContent=(free?'Wolne miejsca: '+free+'. ':'')+
+    (shoppingInviteAdditional?'Wcześniejsze wolne miejsca przejdą na nowy link.':'Liczba miejsc nie obejmuje właściciela.')+
+    (shoppingInviteState.joiningOpen?' Nowy link zastąpi poprzednie. Wyślij go także osobom, które jeszcze nie dołączyły.':'');
+}
+function resetPreparedInvite(){
+  shoppingPreparedInvite=null;shoppingInviteDraft=null;
+  $('shoppingInviteAdd').disabled=false;$('shoppingPrepareInvite').hidden=false;$('shoppingShareInvite').hidden=true;
+  setShoppingInviteCount(shoppingInviteCount);
+}
+function openShoppingInvitations(additional=false){
+  shoppingInviteAdditional=additional===true;
+  if($('shoppingAccessDialog').open)$('shoppingAccessDialog').close();
+  $('shoppingInviteTitle').textContent=shoppingInviteAdditional?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?';
+  resetPreparedInvite();setShoppingInviteCount(shoppingInviteAdditional?1:3);
+  $('shoppingInviteAdd').checked=true;$('shoppingInviteStatus').textContent='';
   $('shoppingInviteMigration').hidden=shoppingInviteState.inviteOnly;
   $('shoppingInviteDialog').showModal();syncSharedShopping();
 }
 async function prepareShoppingInvite(){
   const button=$('shoppingPrepareInvite');
-  if(button.disabled)return;
-  button.disabled=true;$('shoppingInviteAdd').disabled=true;
+  if(button.disabled)return false;
+  const id=shoppingStore('id'),canAdd=$('shoppingInviteAdd').checked;
+  const seats=shoppingInviteCount,additional=shoppingInviteAdditional,generation=shoppingInviteState.generation||0;
+  const selection=JSON.stringify([id,canAdd,seats,additional]);
+  if(shoppingInviteDraft?.selection!==selection)shoppingInviteDraft={selection,body:{id,invite:crypto.randomUUID(),canAdd,seats,additional,generation}};
+  const draft=shoppingInviteDraft;
+  button.disabled=true;$('shoppingInviteAdd').disabled=true;setShoppingInviteCount(seats);
   try{
-    const id=shoppingStore('id'),invite=crypto.randomUUID(),canAdd=$('shoppingInviteAdd').checked;
-    const data=await shoppingRequest('open-invite',{id,invite,canAdd},shoppingStore('owner'));
+    const data=await shoppingRequest('counted-invite',draft.body,shoppingStore('owner'));
     updateShoppingInvitations(data);
+    if(shoppingInviteDraft!==draft)return false;
     const url=new URL('wspolne-zakupy.html',location.href);
-    url.hash=new URLSearchParams({lista:id,zaproszenie:invite}).toString();
+    url.hash=new URLSearchParams({lista:id,zaproszenie:draft.body.invite}).toString();
     shoppingPreparedInvite=url.href;
-    button.hidden=true;$('shoppingShareInvite').hidden=false;$('shoppingShareInvite').focus();
-    $('shoppingInviteStatus').textContent='Link gotowy do wysłania.';
-  }catch(e){$('shoppingInviteStatus').textContent=e.message;$('shoppingInviteAdd').disabled=false}
-  finally{button.disabled=false}
+    button.hidden=true;$('shoppingShareInvite').hidden=false;
+    $('shoppingInviteStatus').textContent='';
+    return true;
+  }catch(e){
+    if(shoppingInviteDraft===draft){
+      if(e.status===409){shoppingInviteDraft=null;await syncSharedShopping();}
+      $('shoppingInviteStatus').textContent=e.message;$('shoppingInviteAdd').disabled=false;
+    }
+    return false;
+  }finally{button.disabled=false;setShoppingInviteCount(shoppingInviteCount);}
 }
 async function sendShoppingLink(){
   if(shoppingShareAttempt||shoppingPaperMotion?.closing||!shoppingSummary)return;
@@ -2813,7 +2848,12 @@ async function sendShoppingLink(){
     closeShoppingName();
     $('shoppingModal').classList.add('shopping-modal-closing');
     startShoppingPaper(true,true);
-  }catch(e){if(e.name!=='AbortError'){window.prompt('Skopiuj link do zakupów',url.href);resetPreparedInvite()}}
+  }catch(e){
+    if(e.name==='NotAllowedError'&&navigator.share){
+      $('shoppingInviteStatus').textContent='Stuknij „Wyślij zaproszenie”, aby wybrać odbiorców.';
+      $('shoppingShareInvite').focus();
+    }else if(e.name!=='AbortError'){window.prompt('Skopiuj link do zakupów',url.href);resetPreparedInvite()}
+  }
   finally{if(shoppingShareAttempt===attempt)shoppingShareAttempt=null}
 }
 
@@ -3148,17 +3188,17 @@ function setupShoppingCards() {
       if(share.next?.invite===next.invite){share.invite=next.invite;delete share.next;}
     });
   }
-  function countPeople(card,additional=false) {
+  function countPeople(card,additional=false,verify=false,selectedCount) {
     const share=card.share;
     const ready=!!share?.ready;
     const remaining=ready&&share.open ? share.remaining : 0;
     const adding=ready&&(additional||remaining===0);
     const pending=share?.next || (share&&!ready ? share : null);
-    view(adding?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
+    const here=view(adding?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
     if(ready){
       content.append(element('p','Zajęte miejsca: '+share.used+' · Wolne miejsca: '+share.remaining));
     }
-    let count=pending?.seats ?? (adding?1:ready?Math.min(3,remaining):3);
+    let count=pending?.seats ?? selectedCount ?? (adding?1:ready?Math.min(3,remaining):3);
     const counter=element('div',undefined,'shopping-card-counter');
     const minus=button(counter,'−',()=>change(-1)),value=element('output');
     counter.append(value);
@@ -3189,6 +3229,24 @@ function setupShoppingCards() {
     }
     change(0);
     button(actions,'Anuluj',()=>showCard(card));
+    if(verify){
+      // Show the counter immediately, even while the owner is waiting for the current seats.
+      send.disabled=true;
+      message.textContent='Sprawdzam dostępne miejsca…';
+      api('owner-read',card).then(result=>remember(card.id,result)).then(fresh=>{
+        if(page!==here)return;
+        const current=fresh.share;
+        if(current.generation!==share.generation||current.remaining!==share.remaining||current.open!==share.open||
+          current.next?.invite!==share.next?.invite){
+          countPeople(fresh,additional||!!current.next,false,count);
+          message.textContent='Liczba dostępnych miejsc się zmieniła. Sprawdź wybór przed wysłaniem.';
+        }else{send.disabled=false;message.textContent='';}
+      }).catch(()=>{
+        if(page!==here)return;
+        message.textContent='Nie udało się sprawdzić dostępnych miejsc.';
+        button(actions,'Spróbuj ponownie',()=>countPeople(card,additional,true,count));
+      });
+    }
   }
 
   function inviteUrl(card) {
@@ -3256,9 +3314,7 @@ function setupShoppingCards() {
     button(actions,'Wróć do kartki',()=>showCard(card));
   }
   function startSharing(card) {
-    if(!card.share?.ready){countPeople(card);return;}
-    runShare(async()=>remember(card.id,await api('owner-read',card)),
-      fresh=>countPeople(fresh,!!fresh.share.next));
+    countPeople(card,!!card.share?.next,!!card.share?.ready);
   }
 
   function shoppers(card) {
@@ -3338,7 +3394,9 @@ function initializeShoppingSummary(){
     shoppingSummary=collectShoppingSummary(shoppingRecords());renderShoppingSummary();
   };
   $('shoppingSendShared').onclick=openShoppingInvitations;
-  $('shoppingPrepareInvite').onclick=prepareShoppingInvite;
+  $('shoppingInviteMinus').onclick=()=>setShoppingInviteCount(shoppingInviteCount-1);
+  $('shoppingInvitePlus').onclick=()=>setShoppingInviteCount(shoppingInviteCount+1);
+  $('shoppingPrepareInvite').onclick=async()=>{if(await prepareShoppingInvite()&&$('shoppingInviteDialog').open)await sendShoppingLink()};
   $('shoppingShareInvite').onclick=sendShoppingLink;
   $('shoppingInviteClose').onclick=()=>$('shoppingInviteDialog').close();
   setupShoppingOwner();
@@ -6844,6 +6902,8 @@ button.shopping-item-trash[hidden]{display:none}
 #shoppingAccessDialog::backdrop{background:#17263566}
 #shoppingJoinAlert{position:fixed;z-index:99999;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:max-content;max-width:92vw;padding:12px 18px;border:1px solid #b5a383;border-radius:12px;background:#fff9ed;color:#21486b;font:16px system-ui;box-shadow:0 3px 12px #28231c38}
 #shoppingInviteDialog::backdrop{background:#17263566}
+#shoppingInviteDialog .shopping-invite-counter{display:flex;align-items:center;gap:16px}
+#shoppingInviteDialog .shopping-invite-counter button{min-width:44px;font-size:24px}
 #shoppingInviteDialog h2,#shoppingInviteDialog h3{margin:.3em 0}#shoppingInviteDialog button{min-height:44px;margin:4px 4px 0 0}
 #shoppingInviteDialog label{display:flex;align-items:center;gap:8px;min-height:44px}#shoppingInviteDialog input{width:auto}
 #shoppingInviteMembers s{color:#655e55;text-decoration-thickness:1.5px}

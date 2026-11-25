@@ -328,17 +328,17 @@ function setupShoppingCards() {
       if(share.next?.invite===next.invite){share.invite=next.invite;delete share.next;}
     });
   }
-  function countPeople(card,additional=false) {
+  function countPeople(card,additional=false,verify=false,selectedCount) {
     const share=card.share;
     const ready=!!share?.ready;
     const remaining=ready&&share.open ? share.remaining : 0;
     const adding=ready&&(additional||remaining===0);
     const pending=share?.next || (share&&!ready ? share : null);
-    view(adding?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
+    const here=view(adding?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
     if(ready){
       content.append(element('p','Zajęte miejsca: '+share.used+' · Wolne miejsca: '+share.remaining));
     }
-    let count=pending?.seats ?? (adding?1:ready?Math.min(3,remaining):3);
+    let count=pending?.seats ?? selectedCount ?? (adding?1:ready?Math.min(3,remaining):3);
     const counter=element('div',undefined,'shopping-card-counter');
     const minus=button(counter,'−',()=>change(-1)),value=element('output');
     counter.append(value);
@@ -369,6 +369,24 @@ function setupShoppingCards() {
     }
     change(0);
     button(actions,'Anuluj',()=>showCard(card));
+    if(verify){
+      // Show the counter immediately, even while the owner is waiting for the current seats.
+      send.disabled=true;
+      message.textContent='Sprawdzam dostępne miejsca…';
+      api('owner-read',card).then(result=>remember(card.id,result)).then(fresh=>{
+        if(page!==here)return;
+        const current=fresh.share;
+        if(current.generation!==share.generation||current.remaining!==share.remaining||current.open!==share.open||
+          current.next?.invite!==share.next?.invite){
+          countPeople(fresh,additional||!!current.next,false,count);
+          message.textContent='Liczba dostępnych miejsc się zmieniła. Sprawdź wybór przed wysłaniem.';
+        }else{send.disabled=false;message.textContent='';}
+      }).catch(()=>{
+        if(page!==here)return;
+        message.textContent='Nie udało się sprawdzić dostępnych miejsc.';
+        button(actions,'Spróbuj ponownie',()=>countPeople(card,additional,true,count));
+      });
+    }
   }
 
   function inviteUrl(card) {
@@ -436,9 +454,7 @@ function setupShoppingCards() {
     button(actions,'Wróć do kartki',()=>showCard(card));
   }
   function startSharing(card) {
-    if(!card.share?.ready){countPeople(card);return;}
-    runShare(async()=>remember(card.id,await api('owner-read',card)),
-      fresh=>countPeople(fresh,!!fresh.share.next));
+    countPeople(card,!!card.share?.next,!!card.share?.ready);
   }
 
   function shoppers(card) {

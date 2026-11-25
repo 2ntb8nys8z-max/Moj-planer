@@ -109,11 +109,24 @@ async function checkGuestHandoff(page){
    await page.evaluate(()=>{
      document.querySelector('.app').style.visibility='';
      shoppingOwner=true;shoppingCreated=true;saveShopping('id',crypto.randomUUID());shoppingOwnerButtons();
-     shoppingRequest=async()=>({inviteOnly:true,invitations:[],revision:1,rows:[]});
+     window.inviteCalls=[];
+     shoppingRequest=async(action,body)=>{
+       if(action==='counted-invite')window.inviteCalls.push(body.seats);
+       return {inviteOnly:true,invitations:[],revision:1,rows:[]};
+     };
      Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{throw new DOMException('Anulowano','AbortError')}});
    });
    await page.locator('#shoppingSendShared').click();
-   await page.locator('#shoppingPrepareInvite').click();await page.locator('#shoppingShareInvite').click();
+   const dialog=page.locator('#shoppingInviteDialog');
+   await dialog.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
+   assert.equal(await dialog.locator('output').textContent(),'3');
+   await dialog.getByRole('button',{name:'Mniej osób'}).click();
+   await dialog.getByRole('button',{name:'Więcej osób'}).click();
+   await dialog.getByRole('button',{name:'Więcej osób'}).click();
+   assert.equal(await dialog.locator('output').textContent(),'4');
+   assert.deepEqual(await page.evaluate(()=>window.inviteCalls),[]);
+   await page.locator('#shoppingPrepareInvite').click();
+   assert.deepEqual(await page.evaluate(()=>window.inviteCalls),[4]);
    assert.ok(await page.locator('#shoppingModal').isVisible());
    await page.evaluate(()=>Object.defineProperty(navigator,'share',{value:async()=>{}}));
    await page.locator('#shoppingShareInvite').click();

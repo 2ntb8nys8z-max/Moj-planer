@@ -1,4 +1,4 @@
-// MÓJ PLANER — WORKER 33.68-TEST — CONVERSATION 33
+// MÓJ PLANER — WORKER 33.69-TEST — CONVERSATION 33
 // BEGIN CONVERSATION ENGINE
 // Conversation protocol 3. All utterances go to the model; no language-specific routing.
 // The model speaks and proposes operations. Only this reducer can change the draft.
@@ -680,7 +680,7 @@ ZASADY PLANERA: Wydarzenie godzinowe wymaga początku i końca; koniec można po
 Przykład: pendingQuestion duration, startTime 17:00, użytkownik „A musi być określony czas?” => conversation wyjaśnia potrzebę końca i możliwość podania długości, nie zmienia godziny. „Dlaczego pytasz rano czy wieczorem?” => conversation wyjaśnia dwuznaczność, nie wybiera pory. Późniejsza odpowiedź użytkownika jest nadal odpowiedzią na aktywne pendingQuestion.`;
 
 // END PROMPTS
-const BUILD_ID="0864843d0f0560df";
+const BUILD_ID="4e08ea01abdbd09c";
 function safeHeaderDecode(value){try{return decodeURIComponent(value)}catch(_){throw new PlannerApiError("Nieprawidłowy kontekst żądania.");}}
 // BEGIN DIALOGUE CORE
 // Pure dialogue state helpers, embedded into the deployable Worker by build.mjs.
@@ -1875,11 +1875,11 @@ async function sendShoppingJoinPush(db,id,event){
 async function sharedShoppingRequest(request, env, json, execution) {
   const [, , action] = new URL(request.url).pathname.split('/');
   if (request.method !== 'POST') return json({error:'Wymagane jest POST.'},405);
-  const owner = ['owner','publish','invite','open-invite','close-joining','revoke','restore-access','push-key','push-on','push-off'].includes(action) || (['read','remove'].includes(action) && request.headers.has('Authorization'));
+  const owner = ['owner','publish','invite','counted-invite','open-invite','close-joining','revoke','restore-access','push-key','push-on','push-off'].includes(action) || (['read','remove'].includes(action) && request.headers.has('Authorization'));
   if (owner && await shoppingOwnerKey(request.headers.get('Authorization') || '') !== SHOP_OWNER_DIGEST)
     return json({error:'Ta funkcja jest dostępna dla właściciela.'},403);
   if (action === 'owner') return json({owner:true});
-  if (!['publish','read','mark','invite','invite-info','join','revoke','restore-access','add','remove','open-invite','close-joining','push-key','push-on','push-off'].includes(action)) return json({error:'Nieznana operacja.'},404);
+  if (!['publish','read','mark','invite','counted-invite','invite-info','join','revoke','restore-access','add','remove','open-invite','close-joining','push-key','push-on','push-off'].includes(action)) return json({error:'Nieznana operacja.'},404);
   const body = parseApiJson(new TextDecoder().decode(await boundedRequestBody(request,250000)));
   if (!shoppingUuid(body?.id)) return json({error:'Niepoprawny link.'},400);
   const db = env.API_LIMITS_DB;
@@ -1918,6 +1918,7 @@ async function applySharedShoppingAction(context,attempt=0){
     state.invites=Object.fromEntries(Object.keys(state.participants).map(key=>[key,{actor:key,canAdd:false}]));
   }
   function closeJoining(){
+    if(state.countedLink){delete state.countedLink;state.inviteGeneration++;}
     protectExistingGuests();
     state.openLinks={};
     for(const [key,seat] of Object.entries(state.invites))if(!seat.actor)delete state.invites[key];
@@ -1938,8 +1939,8 @@ async function applySharedShoppingAction(context,attempt=0){
       : 'Listę udostępnia '+SHOP_OWNER_NAME;
     return {
       revision, title: state.title || 'Do kupienia', shoppersLabel,
-      ...(action==='invite'?{inviteSeats:members.filter(([key,seat])=>(seat.group || key)===inviteKey).length}:{}),
-      ...(owner ? {participantNames:[...new Set(guests)],inviteOnly:!!state.invites,
+      ...(['invite','counted-invite'].includes(action)?{inviteSeats:members.filter(([key,seat])=>(seat.group || key)===inviteKey).length}:{}),
+      ...(owner ? {inviteGeneration:state.inviteGeneration||0,participantNames:[...new Set(guests)],inviteOnly:!!state.invites,
         joiningOpen:!state.invites || !!Object.keys(state.openLinks || {}).length || members.some(([,s])=>!s.actor),
         joinEvents:state.joinEvents || [],
         removedParticipants:state.invites ? Object.entries(state.participants).filter(([key])=>!activeActors.has(key)).map(([key,nick])=>({key,nick})) : [],
@@ -1971,6 +1972,7 @@ async function applySharedShoppingAction(context,attempt=0){
   if (action === 'read') return json(view(revision));
   if (['publish','mark'].includes(action) && revision !== body.revision) return json({error:'Lista została zmieniona.'},409);
   if(action==='open-invite'){
+    if(state.inviteGeneration)return json({error:'Odśwież Okti, aby wybrać liczbę zapraszanych osób.'},409);
     if(!inviteKey || typeof body.canAdd!=='boolean')return json({error:'Niepoprawne zaproszenie.'},400);
     protectExistingGuests();
     state.openLinks ||= {};
@@ -1978,16 +1980,30 @@ async function applySharedShoppingAction(context,attempt=0){
     state.openLinks[inviteKey]={canAdd:body.canAdd};
   }else if(action==='close-joining'){
     closeJoining();
-  }else if (action === 'invite') {
-    const count=body.seats===undefined?1:body.seats;
+  }else if (action === 'invite' || action === 'counted-invite') {
+    const counted=action==='counted-invite';
+    let count=body.seats===undefined&&!counted?1:body.seats;
     if (!inviteKey || typeof body.canAdd!=='boolean' || !Number.isInteger(count) || count<1 || count>200)
       return json({error:'Podaj liczbę zapraszanych osób od 1 do 200.'},400);
-    state.invites ||= {};
-    if (seats.length) return json(view(revision));
+    if(counted){
+      if(state.countedLink===inviteKey)return json(view(revision));
+      if(body.generation!==(state.inviteGeneration||0)||seats.length||typeof body.additional!=='boolean')
+        return json({error:'Zaproszenie zmieniło się. Otwórz ponownie licznik osób.'},409);
+      const free=Object.values(state.invites||{}).filter(seat=>!seat.actor&&!seat.revoked).length;
+      if(body.additional)count+=free;
+      if(count<free)return json({error:'Zachowaj wszystkie wolne miejsca. Otwórz ponownie licznik osób.'},409);
+      if(count+Object.keys(state.participants).length>200)return json({error:'Ta lista mieści maksymalnie 200 zaproszonych osób.'},400);
+      // Retire old links and carry forward unclaimed places in the same revision as the new batch.
+      closeJoining();
+      state.countedLink=inviteKey;state.inviteGeneration=body.generation+1;
+    }else{
+      protectExistingGuests();
+      if(seats.length)return json(view(revision));
+    }
     if (Object.keys(state.invites).length+count>200)return json({error:'Brakuje miejsc. Zmniejsz liczbę osób lub usuń niepotrzebne zaproszenia.'},400);
     for(let i=0;i<count;i++){
       const key=i===0?inviteKey:await shoppingOwnerKey(inviteKey+':'+i);
-      state.invites[key]={actor:null,canAdd:body.canAdd,...(count>1?{group:inviteKey}:{})};
+      state.invites[key]={actor:null,canAdd:body.canAdd,...(counted||count>1?{group:inviteKey}:{})};
     }
   } else if (action === 'join') {
     if ((!seats.length && !openLink) || ownSeat?.revoked || accessRemoved) return locked();
@@ -2104,7 +2120,7 @@ async function applySharedShoppingAction(context,attempt=0){
     : db.prepare('INSERT OR IGNORE INTO shared_shopping(id,revision,content) VALUES (?,1,?)').bind(body.id,content);
   const result=await write.run();
   // Two people can accept the same message simultaneously. Re-read the list after a lost write.
-  if (!result.meta.changes && ['join','close-joining','revoke','restore-access'].includes(action) && attempt<4) return applySharedShoppingAction(context,attempt+1);
+  if (!result.meta.changes && ['join','counted-invite','close-joining','revoke','restore-access'].includes(action) && attempt<4) return applySharedShoppingAction(context,attempt+1);
   if (!result.meta.changes) return json({error:'Lista została zmieniona.'},409);
   if(joined){
     const delivery=sendShoppingJoinPush(db,body.id,joined).catch(()=>console.warn('Shopping join push delivery unavailable'));
@@ -2139,7 +2155,7 @@ export default {
 
     if(origin && !allowedOrigins.has(origin))return json({success:false,error:"Ta strona nie ma dostępu do API.",code:"origin_denied"},403);
     if (request.method === "GET" && new URL(request.url).pathname === "/api-info") {
-      return json({success:true,apiVersion:"2026.11.20.33.68-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
+      return json({success:true,apiVersion:"2026.11.25.33.69-test",protocolVersion:2,conversationEngines:[2,3],conversationFeatures:["semantic-entry-search-v3","entry-listing-v2","unified-entry-create","guided-event-create","google-geocoding-v1","google-routes-v1","day-brief-narrative-v1","day-inspiration-v1"],locationLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim()},routeLookup:{provider:'google',configured:typeof env.GOOGLE_MAPS_API_KEY==='string'&&!!env.GOOGLE_MAPS_API_KEY.trim(),modes:['DRIVE','WALK','BICYCLE','TRANSIT']},buildId:BUILD_ID,requiresAccess:true,limits:API_LIMITS});
     }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });

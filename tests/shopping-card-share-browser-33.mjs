@@ -96,12 +96,19 @@ try {
   await gp.reload();
   await gp.getByRole('heading',{name:'Wyjazd'}).waitFor();
   assert.equal(await gp.locator('#joinNick').isVisible(),false);
-  // The ordinary Share button must ask even when the invitation already exists.
+  // Keep the network read pending while the user adjusts an already shared card.
+  let resumeSeatRead;
+  const seatRead=new Promise(resolve=>{resumeSeatRead=resolve;});
+  const delaySeatRead=async route=>{await seatRead;await route.fallback();};
+  await page.route('**/shopping/owner-read',delaySeatRead);
   await button('Udostępnij').click();
   await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
   assert.equal(await panel.locator('output').textContent(),'2');
   await button('Więcej osób').click();
   await panel.getByText(/Dodatkowe miejsca: 1.*Poprzedni link przestanie działać/).waitFor();
+  assert.equal(await button('Dodaj miejsca i wyślij').isDisabled(),true);
+  resumeSeatRead();
+  await page.unroute('**/shopping/owner-read',delaySeatRead);
   await button('Mniej osób').click();
   await button('Mniej osób').click();
   assert.equal(await button('Mniej osób').isDisabled(),true);
