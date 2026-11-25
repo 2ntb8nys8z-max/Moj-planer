@@ -189,8 +189,8 @@ try{
  // Authorship, purchases and deletion belong to independent identities.
  const carrot=(await zosia("request('read',{})")).rows.find(row=>row.text==='Marchew 2 kg');
  assert.equal(carrot.authorMark,'Z');assert.equal(carrot.canDelete,true);
- assert.equal(host("document.querySelector('.shopping-author').textContent"),'(Z)');
- assert.ok(zosia("document.querySelector('.item-name .shopping-author').textContent==='(Z)'"));
+ assert.equal(host("document.querySelector('.shopping-author').textContent"),'(Zosia)');
+ assert.ok(zosia("document.querySelector('.item-name .shopping-author').textContent==='(Zosia)'"));
  assert.equal((await zosia("request('read',{})")).rows.find(r=>r.text==='woda').authorMark,undefined);
  const ownBin=zosia("document.querySelector('.shopping-item-trash')");
  zosia("document.querySelector('.shopping-item-options').click()");

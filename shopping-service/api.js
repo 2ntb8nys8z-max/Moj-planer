@@ -19,7 +19,10 @@ function countSeats(state) {
 function ownerView(state,revision) {
   return {revision,generation:state.generation||0,title:state.title, ...countSeats(state),
     members:Object.entries(state.invites).map(([id,s])=>({id,nick:state.participants[s.actor],revoked:!!s.revoked})),
-    rows:state.rows.map(({key,text,done,by,buyer})=>({id:key,text,done,by,canUndo:!done||buyer==='owner'}))};
+    rows:state.rows.map(({key,text,done,by,buyer})=>({
+      id:key,text,done,by,authorName:state.participants[state.authors?.[key]] ?? SHOP_OWNER_NAME,
+      canUndo:!done||buyer==='owner'
+    }))};
 }
 async function limitRequest(db, request, action) {
   const minute=Math.floor(Date.now()/60000);
@@ -72,12 +75,20 @@ async function handle(request,env,action,json) {
       rows:body.items.map(i=>({key:i.id,text:i.text,done:i.done,by:i.done?SHOP_OWNER_NAME:'',buyer:i.done?'owner':null}))};
     await db.prepare('INSERT INTO shared_shopping(id,owner_hash,revision,content) VALUES(?,?,1,?) ON CONFLICT(id) DO NOTHING').bind(body.id,ownerHash,JSON.stringify(state)).run();
   }
+  // In this database guest additions always have an author. Other rows came from the owner.
+  function guestJson(data,status){
+    for(const row of data.rows || []){
+      row.authorName ??= SHOP_OWNER_NAME;
+      row.authorMark = row.authorName;
+    }
+    return json(data,status);
+  }
   for(let attempt=0;attempt<6;attempt++){
     const record=await db.prepare('SELECT revision,content,owner_hash FROM shared_shopping WHERE id=?').bind(body.id).first();
     if(!record||owner&&record.owner_hash!==ownerHash)deny();
     const state=JSON.parse(record.content);
     const revision=record.revision;
-    const readGuest=()=>applySharedShoppingAction({action:'read',body,owner:false,db,json});
+    const readGuest=()=>applySharedShoppingAction({action:'read',body,owner:false,db,json:guestJson});
     if(action==='owner-read'||action==='create')return json(ownerView(state,revision));
     if(action==='invite-info')return json({available:!!invitation&&invitation===state.invite&&countSeats(state).remaining>0&&!(actor&&Object.values(state.invites).some(s=>s.actor===actor&&s.revoked)),used:!!invitation&&invitation===state.invite&&countSeats(state).remaining===0});
     if(action==='join'){
@@ -107,7 +118,7 @@ async function handle(request,env,action,json) {
       if(!shoppingUuid(body.member)||!Object.hasOwn(state.invites,body.member))fail('Nie znaleziono uczestnika.',404);
       state.invites[body.member].revoked=action==='revoke';
     } else if(action==='edit')edit(state,body);
-    else return applySharedShoppingAction({action,body,db,json,owner:false});
+    else return applySharedShoppingAction({action,body,db,json:guestJson,owner:false});
     const saved=await db.prepare('UPDATE shared_shopping SET revision=revision+1, content=? WHERE id=? AND revision=?').bind(JSON.stringify(state),body.id,revision).run();
     if(saved.meta.changes)return action==='join'?readGuest():json(ownerView(state,revision+1));
   }

@@ -24,11 +24,13 @@ try {
   await call('read',{actor:uid()},undefined,403);
   const first=await call('join',{invite,actor:guest,nick:'  Zośka  '});
   assert.equal(first.rows[0].text,'Herbata');
+  assert.equal(first.rows[0].authorName,'Robert');
   const duplicate=await call('join',{invite,actor:uid(),nick:'ＺＯＳ\u0301ＫＡ'},undefined,409);
   assert.match(duplicate.error,/Zośka/);
   const {members}=await call('owner-read',{},owner);
   const mark=await call('mark',{actor:guest,keys:[row],done:true,revision:first.revision});
   assert.equal(mark.rows[0].by,'Zośka');
+  assert.equal(mark.rows[0].authorName,'Robert');
   await call('edit',{change:{type:'mark',id:row,done:false}},owner,403);
   const revoked=await call('revoke',{member:members[0].id},owner);
   assert.equal(revoked.remaining,2);

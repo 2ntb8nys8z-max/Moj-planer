@@ -262,7 +262,9 @@ function setupShoppingCards() {
     try{
       const result=await api('owner-read',card);
       if(page!==expectedPage||saving||content.querySelector('form'))return;
-      if(result.revision<=card.share.revision){
+      // Cards cached before full author names need the read even at the same revision.
+      if(result.revision<card.share.revision ||
+         (result.revision===card.share.revision && card.items.every(item=>item.authorName))){
         if(message.textContent==='Brak połączenia. Spróbuję ponownie.')message.textContent=shoppers(card);
         return;
       }
@@ -446,6 +448,7 @@ function setupShoppingCards() {
       message.textContent=shoppers(card);
       const here=page;
       refreshTimer=setInterval(()=>refreshCard(card,here),4000);
+      if(card.items.some(item=>!item.authorName))refreshCard(card,here);
     }else message.textContent=card.share?'Zaproszenie wymaga dokończenia.':'Kartka zapisana na tym urządzeniu.';
     const update = change => commit(() => changeProduct(card.id,change));
     for (const bought of [false,true]) {
@@ -460,7 +463,15 @@ function setupShoppingCards() {
           update({type:'mark',id:item.id,done});
         };
         label.append(check,element(bought ? 's' : 'span',item.text));
-        if(bought&&item.by)label.append(element('em','('+item.by+')','shopping-buyer'));
+        // Before sharing, every product on this device's card was added by its owner.
+        const authorName=item.authorName || (!card.share?.ready ? 'Robert' : '');
+        if(authorName)label.append(shoppingAuthorNote(authorName));
+        const buyerName=bought && (item.by || (!card.share?.ready ? 'Robert' : ''));
+        if(buyerName){
+          const signature=element('em','('+buyerName+')','shopping-buyer');
+          signature.title='Kupuje '+buyerName;
+          label.append(signature);
+        }
         content.append(label);
       }
     }
