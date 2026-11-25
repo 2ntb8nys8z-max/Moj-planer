@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.374-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.375-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -268,7 +268,7 @@ body.okti-weather-open{overflow:hidden}
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
 <template id="shoppingInkPen"><svg class="shopping-check-mark" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
-<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingNameText"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle"><button type="button" id="shoppingNameEdit" disabled aria-label="Zmień nazwę kartki" aria-controls="shoppingNameForm" aria-expanded="false"><span id="shoppingNameText">Do kupienia</span><small id="shoppingNamePencil" hidden aria-hidden="true"> ✎</small></button><img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSharedLabel" class="shopping-summary-meta shopping-variable" aria-live="polite" hidden></div><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button type="button" id="shoppingAccess" aria-haspopup="dialog" aria-controls="shoppingAccessDialog" hidden>Uczestnicy</button><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><form id="shoppingNameForm" hidden><label for="shoppingNameInput">Zmień nazwę kartki</label><input id="shoppingNameInput" maxlength="80" required><div><button type="button" id="shoppingNameVoice"><img src="octi-actor-poster.webp?v=9b20c4f5b0d17977" alt=""> <span id="shoppingNameVoiceLabel">Dyktuj</span></button><button type="submit" id="shoppingNameSave">Zapisz</button><button type="button" id="shoppingNameCancel">Anuluj</button></div><small id="shoppingNameStatus" role="status"></small></form><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingCardActions"><button type="button" id="shoppingCreateShared">Utwórz listę wspólną</button><button type="button" id="shoppingCardCatalog">Moje listy wspólne</button></div><div id="shoppingOwnerActions" hidden><button type="button" id="shoppingResumeLegacy">Wczytaj dotychczasową listę</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer>
+<div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingNameText"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle"><button type="button" id="shoppingNameEdit" disabled aria-label="Zmień nazwę kartki" aria-controls="shoppingNameForm" aria-expanded="false"><span id="shoppingNameText">Do kupienia</span><small id="shoppingNamePencil" hidden aria-hidden="true"> ✎</small></button><img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSharedLabel" class="shopping-summary-meta shopping-variable" aria-live="polite" hidden></div><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button type="button" id="shoppingAccess" aria-haspopup="dialog" aria-controls="shoppingAccessDialog" hidden>Uczestnicy</button><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><form id="shoppingNameForm" hidden><label for="shoppingNameInput">Zmień nazwę kartki</label><input id="shoppingNameInput" maxlength="80" required><div><button type="button" id="shoppingNameVoice"><img src="octi-actor-poster.webp?v=9b20c4f5b0d17977" alt=""> <span id="shoppingNameVoiceLabel">Dyktuj</span></button><button type="submit" id="shoppingNameSave">Zapisz</button><button type="button" id="shoppingNameCancel">Anuluj</button></div><small id="shoppingNameStatus" role="status"></small></form><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingCardActions"><button type="button" id="shoppingCreateShared">Utwórz listę wspólną</button><button type="button" id="shoppingCardCatalog">Moje listy wspólne</button></div><div id="shoppingOwnerActions" hidden><button type="button" id="shoppingResumeLegacy">Dotychczasowa lista wspólna</button><button type="button" id="shoppingLegacyAdd" hidden>Dodaj produkt</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer>
 <section id="shoppingCardPanel" hidden aria-labelledby="shoppingCardTitle">
   <header><div><h2 id="shoppingCardTitle" tabindex="-1"></h2></div></header>
   <div id="shoppingCardContent"></div>
@@ -344,7 +344,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.374-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.375-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -510,7 +510,7 @@ function plannerClarificationQuestion(question,text,current,dialogue=[]){
 }
 
 function validateAiItem(x){return !plannerItemQuestion(x)}
-function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}window.addEventListener("planner-storage-saved-without-previous",()=>toast("Zapisano. Usunięto starszą kopię, aby zwolnić miejsce."));function saveTasks(){window.preparePlannerSave?.();PlannerData.storage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){PlannerData.storage.setItem(IDEA_KEY,JSON.stringify(ideas));queueMicrotask(()=>{if(shoppingCreated)syncSharedShopping()})}
+function today(){const d=new Date();d.setHours(12,0,0,0);return d}let selected=today(),monthCursor=new Date(selected.getFullYear(),selected.getMonth(),1);function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function formatDate(d){return d.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})}function escapeHtml(text){const d=document.createElement("div");d.textContent=text||"";return d.innerHTML}function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}window.addEventListener("planner-storage-saved-without-previous",()=>toast("Zapisano. Usunięto starszą kopię, aby zwolnić miejsce."));function saveTasks(){window.preparePlannerSave?.();PlannerData.storage.setItem(TASK_KEY,JSON.stringify(tasks))}function saveIdeas(){PlannerData.storage.setItem(IDEA_KEY,JSON.stringify(ideas))}
 function voiceUsageMonth(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
 function getVoiceUsage(){let u;try{u=JSON.parse(PlannerData.storage.getItem(VOICE_USAGE_KEY)||"null")}catch(e){}const month=voiceUsageMonth();if(!u||u.month!==month)u={month,count:0};return u}
 function incrementVoiceUsage(){const u=getVoiceUsage();u.count++;PlannerData.storage.setItem(VOICE_USAGE_KEY,JSON.stringify(u));return u}
@@ -1726,6 +1726,36 @@ function collectShoppingSummary(records,filter={},now=today(),done=false){
   }
   return {filter:{...filter},range,groups:[...groups.values()],sources};
 }
+// The old shared sheet has its own working copy; only an authenticated list read seeds it.
+let legacyShoppingActive=false,legacyShoppingRecords=[],legacyShoppingId='',legacyShoppingBase=[];
+function shoppingRecords(){return legacyShoppingActive?legacyShoppingRecords:ideas}
+function saveShoppingRecords(next){
+  if(legacyShoppingActive){
+    saveLegacyShoppingCache(next,legacyShoppingBase);
+    legacyShoppingRecords=next;
+    queueMicrotask(syncSharedShopping);
+    return;
+  }
+  const before=ideas;ideas=next;
+  try{saveIdeas()}catch(error){ideas=before;throw error}
+}
+function saveLegacyShoppingCache(records,base){
+  saveShopping('legacy-cache:'+legacyShoppingId,JSON.stringify({records,base}));
+}
+function openLegacyShopping(){
+  const id=shoppingStore('id');
+  if(!id||!shoppingOwner)return;
+  if(legacyShoppingId!==id){
+    try{
+      const cache=JSON.parse(shoppingStore('legacy-cache:'+id)||'null');
+      legacyShoppingRecords=cache?.records||[];
+      legacyShoppingBase=cache?.base||[];
+    }catch{toast('Nie udało się odczytać zapisanej kartki.');return}
+    legacyShoppingId=id;
+  }
+  openShoppingSummary({},true);
+  syncSharedShopping();
+}
 function shoppingPending(){return shoppingSummary?.groups.some(g=>g.checked)}
 function shoppingDisplayParts(text){
  const value=String(text).trim(),quantity='(?:\\d+(?:[.,]\\d+)?(?:\\s*[–-]\\s*\\d+)?|pół|ćwierć)\\s*(?:kilogram(?:y|ów|a)?|kg|gram(?:y|ów|a)?|g|litr(?:y|ów|a)?|litry|l|mililitr(?:y|ów|a)?|ml|szt(?:uk(?:i|a)?)?\\.?|opak(?:owani[aeu]|owań)?\\.?|pacz(?:ka|ki|ek)|kost(?:ka|ki|ek))';
@@ -2047,7 +2077,7 @@ function startShoppingPaper(closing=false,plane=false){
 function finishShoppingSummaryClose(){
   shoppingShareAttempt=null;
   ownerShoppingCards?.close();
-  cancelShoppingPaper();const modal=$('shoppingModal');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');shoppingSummary=null;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
+  cancelShoppingPaper();const modal=$('shoppingModal');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');shoppingSummary=null;legacyShoppingActive=false;shoppingCreated=false;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
 }
 function closeShoppingSummary(force=false){
   const modal=$('shoppingModal');if(modal.classList.contains('hidden'))return true;
@@ -2156,7 +2186,7 @@ async function markShoppingRow(group,source,restoring){
     if(shoppingSummary!==state||!source.isConnected||source.closest('.shopping-modal-closing'))return;
     const name=source.querySelector('.shopping-product-name');
     const start=shoppingInk.capture(name,shoppingDisplayParts(group.text).name);
-    shoppingSummary=collectShoppingSummary(ideas,state.filter);
+    shoppingSummary=collectShoppingSummary(shoppingRecords(),state.filter);
     if(!restoring)shoppingPurchasedOpen=true;
     renderShoppingSummary();$('shoppingSummaryStatus').textContent='';
     const box=$(restoring?'shoppingSummaryRows':'shoppingSummaryPurchased');
@@ -2179,20 +2209,19 @@ function shoppingCheck(group,row,done){
 function deletePlannerShoppingProduct(group){
   const edits=new Map();
   for(const ref of group.refs){
-    const source=ideas.find(idea=>idea.id===ref.source.id);
+    const source=shoppingRecords().find(idea=>idea.id===ref.source.id);
     if(!source || JSON.stringify(source.list)!==ref.source.fingerprint)throw Error('Lista się zmieniła. Otwórz ją ponownie.');
     if(!edits.has(source))edits.set(source,new Set());
     edits.get(source).add(ref.index);
   }
   PlannerData.assertWritable();
-  const before=ideas;
-  ideas=ideas.map(idea=>{
+  const next=shoppingRecords().map(idea=>{
     const indices=edits.get(idea);
     if(!indices)return idea;
     return {...idea,list:{...idea.list,items:idea.list.items.filter((_,i)=>!indices.has(i))}};
   });
-  try{saveIdeas()}catch(error){ideas=before;throw error}
-  shoppingSummary=collectShoppingSummary(ideas,shoppingSummary.filter);
+  saveShoppingRecords(next);
+  shoppingSummary=collectShoppingSummary(shoppingRecords(),shoppingSummary.filter);
   renderShoppingSummary();renderAll();
 }
 function decorateShoppingRow(row,name,group){
@@ -2219,7 +2248,7 @@ function renderShoppingSummary(){
     label.append(shoppingCheck(group,row,false),name,qty);row.append(label);
     decorateShoppingRow(row,name,group);box.append(row);
   }
-  const purchased=collectShoppingSummary(ideas,state.filter,today(),true).groups;
+  const purchased=collectShoppingSummary(shoppingRecords(),state.filter,today(),true).groups;
   for(const group of purchased){
     const row=document.createElement('div'),label=document.createElement('label'),[name,qty]=shoppingProductLabel(group.text);
     row.className='shopping-purchased-row';row.dataset.product=group.text;row.dataset.buyer=group.buyer;
@@ -2241,29 +2270,32 @@ function animateShoppingPaper(){
   shoppingShareAttempt=null;
   const modal=$('shoppingModal');modal.classList.remove('shopping-modal-closing');$('shoppingSummaryRows').scrollTop=0;startShoppingPaper();
 }
-function openShoppingSummary(filter={}){
+function openShoppingSummary(filter={},legacy=false){
   ownerShoppingCards?.close();
   if(entryRecording){toast('Najpierw zapisz lub anuluj nagranie.');return}
   if(shoppingPending()&&!confirm('Odrzucić zaznaczenia i otworzyć nowe zestawienie?'))return;
   closeShoppingName();
-  const state=collectShoppingSummary(ideas,filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
+  const alreadyOpen=!$('shoppingModal').classList.contains('hidden');
+  legacyShoppingActive=legacy;shoppingCreated=legacy && !!legacyShoppingBase.length;
+  const state=collectShoppingSummary(shoppingRecords(),filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');if(!alreadyOpen)animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
 }
 function updateShoppingSources(){
   const state=shoppingSummary;if(!state||!shoppingPending())return;
   if(!persistShoppingGroups(state.groups.filter(g=>g.checked),true))return;
-  shoppingSummary=collectShoppingSummary(ideas,state.filter);renderShoppingSummary();renderAll();$('shoppingSummaryStatus').textContent='';
+  shoppingSummary=collectShoppingSummary(shoppingRecords(),state.filter);renderShoppingSummary();renderAll();$('shoppingSummaryStatus').textContent='';
 }
 function persistShoppingGroups(chosen,done){
   const refs=chosen.flatMap(g=>g.refs),sourceIds=new Set(refs.map(r=>r.source.id));
-  for(const ref of refs){const idea=ideas.find(x=>x.id===ref.source.id),item=idea?.list?.items?.[ref.index];if(!idea||JSON.stringify(idea.list)!==ref.source.fingerprint||!item||item.text!==ref.text||!!item.done===done||(item.id??null)!==ref.itemId){$('shoppingSummaryStatus').textContent='Jedna ze źródłowych list zmieniła się lub została usunięta. Niczego nie zapisano. Wczytaj aktualne listy i zaznacz produkty ponownie.';$('shoppingSummaryRefresh').hidden=false;return false}}
-  const before=ideas,next=structuredClone(ideas);
-  try{PlannerData.assertWritable();for(const ref of refs){const item=next.find(x=>x.id===ref.source.id).list.items[ref.index];setShoppingBought(item,done)}for(const id of sourceIds)historyAdd(next.find(x=>x.id===id),'manual',(done?'Zakupy zbiorcze: oznaczono jako kupione ':'Zakupy: przywrócono ')+refs.filter(r=>r.source.id===id).map(r=>r.text).join(', '));ideas=next;saveIdeas();}catch(error){ideas=before;$('shoppingSummaryStatus').textContent='Nie udało się zapisać zmian. '+error.message;return false}
+  for(const ref of refs){const idea=shoppingRecords().find(x=>x.id===ref.source.id),item=idea?.list?.items?.[ref.index];if(!idea||JSON.stringify(idea.list)!==ref.source.fingerprint||!item||item.text!==ref.text||!!item.done===done||(item.id??null)!==ref.itemId){$('shoppingSummaryStatus').textContent='Jedna ze źródłowych list zmieniła się lub została usunięta. Niczego nie zapisano. Wczytaj aktualne listy i zaznacz produkty ponownie.';$('shoppingSummaryRefresh').hidden=false;return false}}
+  const next=structuredClone(shoppingRecords());
+  try{PlannerData.assertWritable();for(const ref of refs){const item=next.find(x=>x.id===ref.source.id).list.items[ref.index];setShoppingBought(item,done)}for(const id of sourceIds)historyAdd(next.find(x=>x.id===id),'manual',(done?'Zakupy zbiorcze: oznaczono jako kupione ':'Zakupy: przywrócono ')+refs.filter(r=>r.source.id===id).map(r=>r.text).join(', '));saveShoppingRecords(next);}catch(error){$('shoppingSummaryStatus').textContent='Nie udało się zapisać zmian. '+error.message;return false}
   return true;
 }
 const shoppingPrivatePrefix='okti-shopping:'+location.pathname.replace(/index\.html$/,'')+':';
 let shoppingOwner=false, shoppingSyncBusy=false, shoppingSyncAgain=false, shoppingCreated=false;
 const shoppingStore=k=>localStorage.getItem(shoppingPrivatePrefix+k);
 const saveShopping=(k,v)=>localStorage.setItem(shoppingPrivatePrefix+k,v);
+const shoppingTitleKey=()=>legacyShoppingActive?'title':'private-title';
 async function shoppingRequest(action,body,token){
   const headers={'Content-Type':'application/json'};
   if(token)headers.Authorization='Bearer '+token;
@@ -2335,7 +2367,7 @@ function initializeShoppingName(){
   const edit=$('shoppingNameEdit'),form=$('shoppingNameForm'),input=$('shoppingNameInput');
   edit.onclick=()=>{
     if(edit.disabled)return;
-    input.value=shoppingStore('title')||defaultShoppingTitle;
+    input.value=shoppingStore(shoppingTitleKey())||defaultShoppingTitle;
     form.hidden=false;edit.setAttribute('aria-expanded','true');input.focus();input.select();
   };
   form.onsubmit=e=>{
@@ -2343,7 +2375,7 @@ function initializeShoppingName(){
     const name=input.value.trim();
     if(!shoppingOwner||titleRecording)return;
     if(!name||name.length>80){$('shoppingNameStatus').textContent='Wpisz nazwę od 1 do 80 znaków.';input.focus();return}
-    try{saveShopping('title',name)}catch{ $('shoppingNameStatus').textContent='Nie udało się zapisać nazwy.';return}
+    try{saveShopping(shoppingTitleKey(),name)}catch{ $('shoppingNameStatus').textContent='Nie udało się zapisać nazwy.';return}
     closeShoppingName();shoppingOwnerButtons();edit.focus();syncSharedShopping();
   };
   $('shoppingNameCancel').onclick=()=>{closeShoppingName();edit.focus()};
@@ -2356,11 +2388,13 @@ function shoppingOwnerButtons(){
   const all=shoppingOwner && shoppingSummary && !shoppingSummary.range.from && !shoppingSummary.range.to;
   $('shoppingNameEdit').disabled=!all;
   $('shoppingNamePencil').hidden=!all;
-  const title=(shoppingOwner&&shoppingStore('title'))||defaultShoppingTitle;
+  const title=(shoppingOwner&&shoppingStore(shoppingTitleKey()))||defaultShoppingTitle;
   if($('shoppingNameText').textContent!==title)$('shoppingNameText').textContent=title;
   $('shoppingOwnerActions').hidden=!all;
-  $('shoppingCardActions').hidden=!(shoppingSummary && !shoppingSummary.range.from && !shoppingSummary.range.to);
-  $('shoppingResumeLegacy').hidden=shoppingCreated || !shoppingStore('id');
+  $('shoppingCardActions').hidden=legacyShoppingActive||!(shoppingSummary && !shoppingSummary.range.from && !shoppingSummary.range.to);
+  $('shoppingResumeLegacy').hidden=!shoppingStore('id');
+  $('shoppingResumeLegacy').textContent=legacyShoppingActive?'Wróć do listy prywatnej':'Dotychczasowa lista wspólna';
+  $('shoppingLegacyAdd').hidden=!legacyShoppingActive;
   $('shoppingSendShared').hidden=!shoppingCreated;
   $('shoppingAccess').hidden=!(all&&shoppingCreated);
   $('shoppingSharedLabel').hidden=!(all&&shoppingCreated);
@@ -2372,7 +2406,7 @@ function setShoppingBought(item,done){
 }
 function shoppingLocalRows(){
   const rows=new Map();
-  for(const idea of ideas){
+  for(const idea of legacyShoppingRecords){
     if(idea.list?.type!=='shopping')continue;
     const repeats=new Map();
     for(const item of idea.list.items||[]){
@@ -2380,7 +2414,7 @@ function shoppingLocalRows(){
       const stable=item.id==null?['text',item.text]:['id',item.id];
       const key=JSON.stringify([idea.id,...stable]),n=repeats.get(key)||0;
       repeats.set(key,n+1);
-      rows.set(JSON.stringify([key,n]),item);
+      rows.set(item.shoppingLegacyKey||JSON.stringify([key,n]),item);
     }
   }
   return rows;
@@ -2389,7 +2423,7 @@ function shoppingSnapshot(refs){
   return [...refs].map(([key,item])=>({key,text:item.text,done:!!item.done,by:item.done?item.shoppingBuyer||'':''}));
 }
 async function renderSyncedShopping(changes,previous){
-  const state=shoppingSummary;if(!state)return;
+  const state=shoppingSummary;if(!state||!legacyShoppingActive)return;
   const active=instantShopping(state)&&!shoppingInkBusy&&!document.hidden&&!shoppingPaperMotion&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const moves=[];
   if(active){
@@ -2411,7 +2445,7 @@ async function renderSyncedShopping(changes,previous){
     if(shoppingSummary!==state)return;
     for(const m of moves)m.start=shoppingInk.capture(m.row.querySelector('.shopping-product-name'),shoppingDisplayParts(m.change.text).name);
     const checked=new Set(state.groups.filter(g=>g.checked).map(g=>g.guestKey||g.text));
-    shoppingSummary=collectShoppingSummary(ideas,state.filter);
+    shoppingSummary=collectShoppingSummary(shoppingRecords(),state.filter);
     for(const group of shoppingSummary.groups)group.checked=checked.has(group.guestKey||group.text);
     if(moves.some(m=>m.change.done))shoppingPurchasedOpen=true;
     renderShoppingSummary();
@@ -2422,44 +2456,40 @@ async function renderSyncedShopping(changes,previous){
     }));
   }finally{if(moves.length)shoppingInkBusy=false}
 }
-function importGuestShopping(id,rows,previous){
-  const sourceId='shared-shopping-'+id,source=ideas.find(idea=>idea.id===sourceId);
-  const remote=new Map(rows.filter(row=>row.addedId).map(row=>[row.addedId,row]));
-  if(!remote.size&&!source)return false;
-  const entry=source?structuredClone(source):normalizeIdea({id:sourceId,text:'Dopisane do wspólnych zakupów',createdAt:new Date().toISOString(),list:{type:'shopping',items:[]}});
-  // The server owns the lifetime of imported items. Locally created rows in this note stay local.
-  entry.list.items=entry.list.items.filter(item=>!item.shoppingGuestKey||remote.has(item.id));
-  const items=new Map(entry.list.items.map(item=>[item.id,item]));
-  for(const row of remote.values()){
-    let item=items.get(row.addedId);
-    if(!item){
-      if(previous.has(row.key))continue;
-      item={id:row.addedId,text:row.text,done:row.done,shoppingBuyer:row.by,createdAt:new Date().toISOString()};
-      entry.list.items.push(item);
-    }
-    Object.assign(item,{shoppingGuestKey:row.key,shoppingAuthorMark:row.authorMark,shoppingAuthorName:row.authorName});
+function importLegacyShopping(id,rows,previous){
+  const sourceId='shared-shopping-'+id;
+  const entry=legacyShoppingRecords.find(idea=>idea.id===sourceId)||
+    normalizeIdea({id:sourceId,text:'Dotychczasowa lista wspólna',createdAt:new Date().toISOString(),list:{type:'shopping',items:[]}});
+  const refs=shoppingLocalRows(),remote=new Set(rows.map(r=>r.key));
+  const deleted=new Set([...refs].filter(([key])=>previous.has(key)&&!remote.has(key)).map(([,item])=>item));
+  for(const record of legacyShoppingRecords){
+    if(record!==entry&&deleted.size)record.list.items=record.list.items.filter(item=>!deleted.has(item));
   }
-  if(source && JSON.stringify(entry.list)===JSON.stringify(source.list))return false;
-  if(!source && !entry.list.items.length)return false;
-  PlannerData.assertWritable();
-  const before=ideas;
-  ideas=source?ideas.map(idea=>idea===source?entry:idea):[entry,...ideas];
-  try{saveIdeas()}catch(error){ideas=before;throw error}
+  const items=entry.list.items.filter(item=>!deleted.has(item));
+  for(const row of rows){
+    if(refs.has(row.key)||previous.has(row.key))continue;
+    items.push({id:row.addedId||crypto.randomUUID(),shoppingLegacyKey:row.key,text:row.text,done:row.done,shoppingBuyer:row.by,
+      ...(row.addedId?{shoppingGuestKey:row.key,shoppingAuthorMark:row.authorMark,shoppingAuthorName:row.authorName}:{})});
+  }
+  if(!deleted.size&&items.length===entry.list.items.length)return false;
+  entry.list.items=items;
+  if(!legacyShoppingRecords.includes(entry))legacyShoppingRecords.push(entry);
   return true;
 }
 async function syncSharedShopping(){
-  if(!shoppingOwner)return;
+  if(!shoppingOwner||!legacyShoppingActive)return;
   if(shoppingSyncBusy){shoppingSyncAgain=true;return}
   const id=shoppingStore('id');
   if(!id)return;
   shoppingSyncBusy=true;
   try{
-    const base=JSON.parse(shoppingStore('base')||'null');
+    const base=legacyShoppingBase;
     let remote={revision:0,rows:[]};
-    try{remote=await shoppingRequest('read',{id},shoppingStore('owner'))}catch(e){if(e.status!==404||base)throw e}
+    try{remote=await shoppingRequest('read',{id},shoppingStore('owner'))}catch(e){if(e.status!==404||base.length)throw e}
+    if(!legacyShoppingActive||id!==legacyShoppingId)return;
     updateShoppingInvitations(remote);
     const previous=new Map((base||[]).map(r=>[r.key,r]));
-    const imported=remote.revision && importGuestShopping(id,remote.rows,previous);
+    const imported=remote.revision && importLegacyShopping(id,remote.rows,previous);
     const local=shoppingSnapshot(shoppingLocalRows());
     if(imported){await renderSyncedShopping([],previous);renderAll()}
     const server=new Map(remote.rows.map(r=>[r.key,r]));
@@ -2489,7 +2519,7 @@ async function syncSharedShopping(){
         const next=current.get(local[i].key);
         if(next&&(next.done!==local[i].done||next.by!==local[i].by))previous.set(next.key,merged[i]);
       }
-      saveShopping('base',JSON.stringify([...previous.values()]));
+      legacyShoppingBase=[...previous.values()];saveLegacyShoppingCache(legacyShoppingRecords,legacyShoppingBase);
       shoppingSyncAgain=true;
       return;
     }
@@ -2498,12 +2528,12 @@ async function syncSharedShopping(){
       PlannerData.assertWritable();
       const undo=changes.map(r=>({...refs.get(r.key)}));
       for(const r of changes)Object.assign(refs.get(r.key),{done:r.done,shoppingBuyer:r.by});
-      try{saveIdeas()}catch(e){changes.forEach((r,i)=>Object.assign(refs.get(r.key),{done:undo[i].done,shoppingBuyer:undo[i].shoppingBuyer}));throw e}
+      try{saveLegacyShoppingCache(legacyShoppingRecords,legacyShoppingBase)}catch(e){changes.forEach((r,i)=>Object.assign(refs.get(r.key),{done:undo[i].done,shoppingBuyer:undo[i].shoppingBuyer}));throw e}
       await renderSyncedShopping(changes,new Map(local.map(row=>[row.key,row])));
       renderAll();
     }
-    saveShopping('base',JSON.stringify(merged));
-    shoppingCreated=true;
+    legacyShoppingBase=merged;saveLegacyShoppingCache(legacyShoppingRecords,merged);
+    shoppingCreated=legacyShoppingActive;
     shoppingOwnerButtons();
     $('shoppingShareStatus').textContent='';
   }catch(e){$('shoppingShareStatus').textContent=e.status===409?'Aktualizowanie listy…':'Wspólna lista: '+e.message}
@@ -2522,7 +2552,7 @@ async function setupShoppingOwner(pastedToken){
     shoppingOwner=true;
     const activateButton=$('shoppingActivateDevice');
     if(activateButton)activateButton.hidden=true;
-    shoppingCreated=!!shoppingStore('base');shoppingOwnerButtons();
+    shoppingOwnerButtons();
     if(!alreadyActive&&shoppingSummary){shoppingSummary.keepStaged=shoppingPending();renderShoppingSummary()}
     if(activation&&!shoppingSummary)openShoppingSummary();
     openShoppingAccessFromLink();
@@ -3018,7 +3048,11 @@ function setupShoppingCards() {
     input.focus();
   }
 
-  const guestOrigin = 'https://okti-zaproszenie-zakupy.oakgait2.chatgpt.site';
+  const productionPlanner = location.origin === 'https://2ntb8nys8z-max.github.io' &&
+    /^\/Moj-planer\/(?:index\.html)?$/.test(location.pathname);
+  const guestOrigin = productionPlanner
+    ? 'https://okti-wspolne-zakupy.oakgait2.chatgpt.site'
+    : 'https://okti-zaproszenie-zakupy.oakgait2.chatgpt.site';
   let refreshTimer = null;
   let refreshing = false;
   async function api(action,card,data={}) {
@@ -3289,13 +3323,20 @@ function initializeShoppingSummary(){
   initializeShoppingName();
   initializeShoppingAccess();
   ownerShoppingCards=setupShoppingCards();
-  $('shoppingResumeLegacy').onclick=syncSharedShopping;
+  $('shoppingResumeLegacy').onclick=()=>legacyShoppingActive?openShoppingSummary():openLegacyShopping();
+  $('shoppingLegacyAdd').onclick=()=>{
+    if(!legacyShoppingActive)return;
+    const text=window.prompt('Jaki produkt dopisać do wspólnej listy?')?.trim();
+    if(!text||text.length>160)return;
+    saveShoppingRecords([...legacyShoppingRecords,normalizeIdea({text:'Zakupy',list:{type:'shopping',items:[text]}})]);
+    shoppingSummary=collectShoppingSummary(shoppingRecords());renderShoppingSummary();
+  };
   $('shoppingSendShared').onclick=openShoppingInvitations;
   $('shoppingPrepareInvite').onclick=prepareShoppingInvite;
   $('shoppingShareInvite').onclick=sendShoppingLink;
   $('shoppingInviteClose').onclick=()=>$('shoppingInviteDialog').close();
   setupShoppingOwner();
-  $('openShoppingSummary').onclick=()=>openShoppingSummary();$('closeShoppingSummary').onclick=()=>closeShoppingSummary();$('shoppingSummaryUpdate').onclick=()=>instantShopping()?closeShoppingSummary():updateShoppingSources();$('shoppingSummaryInfo').onclick=()=>setShoppingHelp($('shoppingSummaryHelp').hidden);$('shoppingPurchasedToggle').onclick=()=>setShoppingPurchasedOpen(!shoppingPurchasedOpen);$('shoppingSummaryRefresh').onclick=()=>{if(shoppingPending()&&!confirm('Odświeżyć i odrzucić niezapisane zaznaczenia?'))return;const filter=shoppingSummary.filter;shoppingSummary=collectShoppingSummary(ideas,filter);renderShoppingSummary();$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='Wczytano aktualne listy. Zaznacz produkty ponownie.'};$('shoppingModal').onclick=e=>{if(e.target===$('shoppingModal'))closeShoppingSummary();else if(!e.target.closest('.shopping-help-wrap'))setShoppingHelp(false)};
+  $('openShoppingSummary').onclick=()=>openShoppingSummary();$('closeShoppingSummary').onclick=()=>closeShoppingSummary();$('shoppingSummaryUpdate').onclick=()=>instantShopping()?closeShoppingSummary():updateShoppingSources();$('shoppingSummaryInfo').onclick=()=>setShoppingHelp($('shoppingSummaryHelp').hidden);$('shoppingPurchasedToggle').onclick=()=>setShoppingPurchasedOpen(!shoppingPurchasedOpen);$('shoppingSummaryRefresh').onclick=()=>{if(shoppingPending()&&!confirm('Odświeżyć i odrzucić niezapisane zaznaczenia?'))return;const filter=shoppingSummary.filter;shoppingSummary=collectShoppingSummary(shoppingRecords(),filter);renderShoppingSummary();$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='Wczytano aktualne listy. Zaznacz produkty ponownie.'};$('shoppingModal').onclick=e=>{if(e.target===$('shoppingModal'))closeShoppingSummary();else if(!e.target.closest('.shopping-help-wrap'))setShoppingHelp(false)};
   document.addEventListener('keydown',e=>{if($('shoppingModal').classList.contains('hidden')||$('shoppingInviteDialog').open||$('shoppingAccessDialog').open)return;if(e.key==='Escape'){e.preventDefault();if(!$('shoppingSummaryHelp').hidden){setShoppingHelp(false);$('shoppingSummaryInfo').focus()}else closeShoppingSummary()}if(e.key==='Tab'){const nodes=[...$('shoppingModal').querySelectorAll('button:not(:disabled),input')].filter(n=>n.getClientRects().length),first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}});
 }
 // END SHOPPING SUMMARY

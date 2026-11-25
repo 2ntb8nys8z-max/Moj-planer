@@ -234,7 +234,11 @@ function setupShoppingCards() {
     input.focus();
   }
 
-  const guestOrigin = 'https://okti-zaproszenie-zakupy.oakgait2.chatgpt.site';
+  const productionPlanner = location.origin === 'https://2ntb8nys8z-max.github.io' &&
+    /^\/Moj-planer\/(?:index\.html)?$/.test(location.pathname);
+  const guestOrigin = productionPlanner
+    ? 'https://okti-wspolne-zakupy.oakgait2.chatgpt.site'
+    : 'https://okti-zaproszenie-zakupy.oakgait2.chatgpt.site';
   let refreshTimer = null;
   let refreshing = false;
   async function api(action,card,data={}) {

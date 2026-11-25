@@ -132,7 +132,9 @@ export default {async fetch(request,env){
   if(url.pathname.startsWith('/shopping/')){
     const action=url.pathname.slice('/shopping/'.length);
     if(!ownerActions.has(action)&&!guestActions.has(action))return json({error:'Nieznana operacja.'},404);
-    if(origin && origin!==url.origin && !ownerOrigins.has(origin))return json({error:'Niedozwolone pochodzenie.'},403);
+    const production = url.origin === 'https://okti-wspolne-zakupy.oakgait2.chatgpt.site';
+    const allowedOwner = production ? origin === 'https://2ntb8nys8z-max.github.io' : ownerOrigins.has(origin);
+    if(origin && origin!==url.origin && !allowedOwner)return json({error:'Niedozwolone pochodzenie.'},403);
     if(origin)headers['Access-Control-Allow-Origin']=origin;
     headers['Access-Control-Allow-Methods']='POST, OPTIONS';
     headers['Access-Control-Allow-Headers']='Content-Type, Authorization';

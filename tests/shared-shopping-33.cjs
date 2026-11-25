@@ -18,16 +18,29 @@ function page(file,hash,stored){
  return run;
 }
 async function wait(f){for(let i=0;i<100;i++){if(f())return;await new Promise(r=>setTimeout(r,30))}throw Error('condition failed: '+f)}
-async function seedLegacyList(owner){
+async function seedLegacyList(owner,products,{inviteOnly=false}={}){
  const id=require('node:crypto').randomUUID();
- await owner("shoppingRequest('publish',"+JSON.stringify({id,revision:0,rows:[]})+",shoppingStore('owner'))");
+ await owner("shoppingRequest('publish',"+JSON.stringify({id,revision:0,inviteOnly,rows:products.map(text=>({key:crypto.randomUUID(),text,done:false,by:''}))})+",shoppingStore('owner'))");
  owner("saveShopping('id',"+JSON.stringify(id)+")");
 }
 try{
  const o=page('index.html','#lista-roberta='+token);
- await wait(()=>o('shoppingOwner'));await seedLegacyList(o);
- o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['mleko','chleb','ser']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingResumeLegacy').click()");
+ await wait(()=>o('shoppingOwner'));await seedLegacyList(o,['mleko','chleb','ser']);
+ o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['Produkt prywatny']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingResumeLegacy').click()");
  await wait(()=>o('shoppingCreated'));
+ assert.equal(o('shoppingLocalRows().size'),3);
+ assert.deepEqual(JSON.parse(o('JSON.stringify(ideas[0].list.items.map(item=>item.text))')),['Produkt prywatny']);
+ const stored=JSON.parse(o('JSON.stringify(localStorage)'));
+ // An installed 33.370 planner already has owner credentials, an ID and a published baseline.
+ delete stored[o("shoppingPrivatePrefix+'legacy-cache:'+shoppingStore('id')")];
+ stored[o("shoppingPrivatePrefix+'base'")]=o('JSON.stringify(legacyShoppingBase)');
+ const upgraded=page('index.html','',stored);
+ await wait(()=>upgraded('shoppingOwner'));
+ await upgraded("openShoppingSummary();addIdea({text:'Nowe zakupy',list:{type:'shopping',items:['Tylko dla mnie']}});syncSharedShopping()");
+ assert.match(upgraded("$('shoppingSummaryRows').textContent"),/Produkt prywatny/);
+ assert.doesNotMatch(upgraded("$('shoppingSummaryRows').textContent"),/mleko/);
+ const remoteBefore=await upgraded("shoppingRequest('read',{id:shoppingStore('id')},shoppingStore('owner'))");
+ assert.deepEqual(Array.from(remoteBefore.rows,r=>r.text),['mleko','chleb','ser']);
  const installed=page('index.html','');
  installed("ideas=[normalizeIdea({text:'Moje dotychczasowe zakupy',list:{type:'shopping',items:['masło']}})];saveIdeas();window.closeCount=0;document.body.append(shoppingDeviceActivation(()=>++window.closeCount));window.prompt=()=>location.href.replace(/#.*$/,'')+'#lista-roberta=test-only-shopping-owner';$('shoppingActivateDevice').click()");
  await wait(()=>installed('shoppingOwner && window.closeCount===1'));
@@ -56,7 +69,7 @@ try{
  o("$('shoppingNameEdit').click();$('shoppingNameInput').value='Zakupy na sobotę';$('shoppingNameSave').click()");
  await wait(()=>JSON.parse(db.prepare('SELECT content FROM shared_shopping').get().content).title==='Zakupy na sobotę');
  await g('refresh()');assert.equal(g("$('listTitle').textContent"),'Zakupy na sobotę');
- o("closeShoppingSummary(true);openShoppingSummary()");
+ o("closeShoppingSummary(true);openLegacyShopping()");
  assert.equal(o("$('shoppingNameText').textContent"),'Zakupy na sobotę');
  // The same display name from a second browser cannot undo the first buyer's mark.
  const owned=(guest,label)=>guest("[...$('bought').children].find(b=>b.querySelector('span').textContent==="+JSON.stringify(label)+").disabled");
@@ -114,7 +127,7 @@ try{
  // Each invitation is independent, with a browser-bound membership and per-person write permissions.
  const host=installed;
  // Resume a previously allocated invitation-only list, as a 33.370 installation would.
- host("saveShopping('id',crypto.randomUUID())");
+ await seedLegacyList(host,['woda','sok'],{inviteOnly:true});
  assert.equal(host("$('shoppingLimitInvite')"),null);
  host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingResumeLegacy').click()");
  await wait(()=>host('shoppingCreated'));
@@ -470,7 +483,7 @@ try{
  assert.equal(moving("$('status').textContent"),'Brak połączenia');
  // Exercise actual taps on the installed owner sheet, including sync and reverse moves.
  const phone=page('index.html','#lista-roberta='+token);
- await wait(()=>phone('shoppingOwner'));await seedLegacyList(phone);
+ await wait(()=>phone('shoppingOwner'));await seedLegacyList(phone,['Gruszki 2 kg','Kawa']);
  phone(`ideas=[normalizeIdea({text:'Zakupy',list:{type:'shopping',items:['Gruszki 2 kg','Kawa']}})];
    saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingResumeLegacy').click();`);
  await wait(()=>phone('shoppingCreated && !shoppingSyncBusy'));
@@ -519,7 +532,7 @@ try{
  await wait(()=>phone('!shoppingInkBusy && !shoppingSyncBusy'));
  await recipient('refresh()');
  assert.ok(recipient("$('pending').textContent.includes('Gruszki 2 kg')"));
- assert.ok(phone("!ideas[0].list.items[0].done"));
+ assert.ok(phone("!ideas[0].list.items[0].done && !legacyShoppingRecords[0].list.items[0].done"));
  console.log('Independent invitations, forwarding, browser return, guest additions, permissions, revocation, legacy lists and signed purchases passed.');
 }finally{windows.forEach(w=>w.close())}
 })().catch(e=>{console.error(e);process.exitCode=1});

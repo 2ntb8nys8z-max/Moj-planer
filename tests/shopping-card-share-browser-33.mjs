@@ -5,8 +5,9 @@ import { shoppingFixture } from './shopping-card-service-fixture.mjs';
 const require = createRequire(import.meta.url);
 const {chromium} = require(process.env.PLANNER_PLAYWRIGHT || 'playwright');
 const {dismissInitialPermissions} = require('./permission-fixture.cjs');
-const ownerOrigin='https://okti-wybierz-produkty.oakgait2.chatgpt.site';
-const guestOrigin='https://okti-zaproszenie-zakupy.oakgait2.chatgpt.site';
+const ownerOrigin='https://2ntb8nys8z-max.github.io';
+const plannerPath='/Moj-planer/';
+const guestOrigin='https://okti-wspolne-zakupy.oakgait2.chatgpt.site';
 const service=await shoppingFixture();
 const browser=await chromium.launch(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{});
 const mobile={viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce',serviceWorkers:'block'};
@@ -15,8 +16,8 @@ async function serve(route) {
   if(url.origin===guestOrigin){
     const response=await service.fetch(new Request(url,{method:req.method(),headers:await req.allHeaders(),body:req.postDataBuffer()}));
     await route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body:Buffer.from(await response.arrayBuffer())});
-  } else if(url.origin===ownerOrigin){
-    await route.fulfill({path:path.resolve('.'+url.pathname)});
+  } else if(url.origin===ownerOrigin && url.pathname.startsWith(plannerPath)){
+    await route.fulfill({path:path.resolve(url.pathname.slice(plannerPath.length)||'index.html')});
   } else await route.fulfill({json:{}});
 }
 try {
@@ -24,7 +25,7 @@ try {
   await owner.route('**/*',serve);
   await owner.addInitScript(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
   const page=await owner.newPage();
-  await page.goto(ownerOrigin+'/index.html');
+  await page.goto(ownerOrigin+plannerPath);
   await dismissInitialPermissions(page);
   await page.evaluate(async()=>{
     const db=await new Promise((resolve,reject)=>{
