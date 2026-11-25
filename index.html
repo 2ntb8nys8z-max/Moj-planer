@@ -2275,9 +2275,9 @@ function openShoppingSummary(filter={},legacy=false){
   if(entryRecording){toast('Najpierw zapisz lub anuluj nagranie.');return}
   if(shoppingPending()&&!confirm('Odrzucić zaznaczenia i otworzyć nowe zestawienie?'))return;
   closeShoppingName();
-  const alreadyOpen=!$('shoppingModal').classList.contains('hidden');
+  const switchingSheets=legacyShoppingActive!==legacy && !$('shoppingModal').matches('.hidden,.shopping-modal-closing');
   legacyShoppingActive=legacy;shoppingCreated=legacy && !!legacyShoppingBase.length;
-  const state=collectShoppingSummary(shoppingRecords(),filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');if(!alreadyOpen)animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
+  const state=collectShoppingSummary(shoppingRecords(),filter);if(activeIdea)closeIdeaActions();if($('shoppingModal').classList.contains('hidden'))shoppingReturnFocus=$('phoneShopping')?.getClientRects().length?$('phoneShopping'):$('openShoppingSummary');shoppingSummary=state;shoppingPurchasedOpen=false;$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='';setShoppingHelp(false);renderShoppingSummary();$('shoppingModal').classList.remove('hidden');if(!switchingSheets)animateShoppingPaper();document.body.classList.add('entry-open');document.querySelector('.app').inert=true;$('closeShoppingSummary').focus();return shoppingSummary;
 }
 function updateShoppingSources(){
   const state=shoppingSummary;if(!state||!shoppingPending())return;
