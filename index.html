@@ -236,7 +236,7 @@ body.okti-weather-open{overflow:hidden}
 </head>
 <body>
 <div class="app">
-<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.372-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer</h1><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.373-integration · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -344,7 +344,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.372-integration',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.373-integration',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -3075,7 +3075,12 @@ function setupShoppingCards() {
     saving=task;
     actions.inert=content.inert=true;
     message.textContent='Łączenie z listą…';
-    Promise.resolve().then(task).then(card=>{if(page===here)next(card);}).catch(error=>{
+    Promise.resolve().then(task).then(card=>{
+      if(page!==here||saving!==task)return;
+      saving=false;
+      actions.inert=content.inert=false;
+      next(card);
+    }).catch(error=>{
       if(page===here)message.textContent=error instanceof TypeError?'Brak połączenia z listą. Spróbuj ponownie.':error.message;
     }).finally(()=>{if(saving===task){saving=false;actions.inert=content.inert=false;}});
   }
@@ -3101,57 +3106,94 @@ function setupShoppingCards() {
       if(share.next?.invite===next.invite){share.invite=next.invite;delete share.next;}
     });
   }
-  function countPeople(card,more=false) {
-    view(more?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
-    if(more&&card.share.remaining>0&&card.share.open)
-      content.append(element('p','Wolne miejsca: '+card.share.remaining+'. Poprzedni link przestanie działać dla nowych osób. Wyślij nowy link również tym, którzy jeszcze nie dołączyli.'));
-    let count=more?1:3;
+  function countPeople(card,additional=false) {
+    const share=card.share;
+    const ready=!!share?.ready;
+    const remaining=ready&&share.open ? share.remaining : 0;
+    const adding=ready&&(additional||remaining===0);
+    const pending=share?.next || (share&&!ready ? share : null);
+    view(adding?'Ile kolejnych osób chcesz zaprosić?':'Ile osób chcesz zaprosić?');
+    if(ready){
+      content.append(element('p','Zajęte miejsca: '+share.used+' · Wolne miejsca: '+share.remaining));
+    }
+    let count=pending?.seats ?? (adding?1:ready?Math.min(3,remaining):3);
     const counter=element('div',undefined,'shopping-card-counter');
-    const minus=button(counter,'−',()=>change(-1)),value=element('output',String(count));
+    const minus=button(counter,'−',()=>change(-1)),value=element('output');
     counter.append(value);
     const plus=button(counter,'+',()=>change(1));
-    minus.setAttribute('aria-label','Mniej osób');plus.setAttribute('aria-label','Więcej osób');
+    minus.setAttribute('aria-label','Mniej osób');
+    plus.setAttribute('aria-label','Więcej osób');
     value.setAttribute('aria-live','polite');
-    function change(delta){count=Math.max(1,Math.min(200,count+delta));value.textContent=String(count);minus.disabled=count===1;plus.disabled=count===200;}
-    change(0);content.append(counter);
-    button(actions,more?'Zwiększ liczbę miejsc i utwórz link':'Przygotuj link',
-      ()=>runShare(()=>more?extend(card,count):prepareFirst(card.id,count),sendView));
+    const notice=element('p');
+    content.append(counter,notice);
+    const extraSeats=()=>adding?count:Math.max(0,count-remaining);
+    const send=button(actions,'Wyślij zaproszenie',()=>{
+      if(!ready)runShare(()=>prepareFirst(card.id,count),deliver);
+      else if(extraSeats()>0)runShare(()=>extend(card,extraSeats()),deliver);
+      else deliver(card);
+    });
+    function change(delta){
+      count=Math.max(1,Math.min(200,count+delta));
+      value.textContent=String(count);
+      minus.disabled=!!pending||count===1;
+      plus.disabled=!!pending||count===200;
+      if(!ready)notice.textContent=pending?'Dokończ wysyłkę z wcześniej wybraną liczbą osób.':'';
+      else if(!extraSeats())notice.textContent='Wyślesz ten sam link. Liczba dostępnych miejsc się nie zmieni.';
+      else {
+        notice.textContent='Dodatkowe miejsca: '+extraSeats()+'.';
+        if(remaining>0)notice.textContent+=' Poprzedni link przestanie działać dla nowych osób. Wyślij nowy link również tym, którzy jeszcze nie dołączyli.';
+      }
+      send.textContent=ready&&extraSeats()>0?'Dodaj miejsca i wyślij':'Wyślij zaproszenie';
+    }
+    change(0);
     button(actions,'Anuluj',()=>showCard(card));
   }
+
   function inviteUrl(card) {
     const link=new URL('/',guestOrigin);
     link.hash=new URLSearchParams({lista:card.id,zaproszenie:card.share.invite}).toString();
     return link.href;
   }
-  function sendView(card) {
-    if(!card.share?.open||card.share.next){participants(card);return;}
-    view('Udostępnij listę');
-    content.append(element('p',card.title+' · Pozostałe miejsca: '+card.share.remaining));
+
+  function deliveryOptions(card,retry) {
+    view('Wyślij zaproszenie');
+    if(retry)button(actions,'Wyślij zaproszenie',()=>deliver(card,true));
     const url=inviteUrl(card);
-    const field=element('input');field.type='text';field.readOnly=true;field.value=url;field.setAttribute('aria-label','Link do tej listy');
+    const field=element('input');
+    field.type='text';field.readOnly=true;field.value=url;
+    field.setAttribute('aria-label','Link do tej listy');
     field.onclick=()=>field.select();
+    field.hidden=retry;
     content.append(field);
-    if(navigator.share)button(actions,'Wyślij link',async()=>{
-      if(saving)return;
-      const here=page;const lock={};saving=lock;
-      try{
-        await navigator.share({title:card.title,url});
-        if(page!==here)return;
-        showCard(card);
-        try{
-          if(localStorage.getItem('okti.shopping.animationSounds')!=='off'){
-            const audio=new Audio('shopping-flyby-glide.m4a');audio.play().catch(()=>{});
-          }
-        }catch{}
-        $('shoppingModal').classList.add('shopping-modal-closing');startShoppingPaper(true,true);
-      }catch(e){if(page===here&&e.name!=='AbortError'){field.select();message.textContent='Skopiuj link i wyślij go w komunikatorze.';}}
-      finally{if(saving===lock)saving=false;}
-    });
     button(actions,'Kopiuj link',async()=>{
       try{await navigator.clipboard.writeText(url);message.textContent='Link skopiowany.';}
-      catch{field.focus();field.select();message.textContent='Zaznaczony link możesz skopiować ręcznie.';}
+      catch{field.hidden=false;field.focus();field.select();message.textContent='Zaznaczony link możesz skopiować ręcznie.';}
     });
     button(actions,'Wróć do kartki',()=>showCard(card));
+  }
+
+  async function deliver(card,retried=false) {
+    if(saving)return;
+    if(!card.share?.open||card.share.next||!card.share.remaining){participants(card);return;}
+    if(typeof navigator.share!=='function'){deliveryOptions(card,false);return;}
+    const here=page,lock={};
+    saving=lock;
+    try{
+      await navigator.share({title:card.title,url:inviteUrl(card)});
+      if(page!==here)return;
+      showCard(card);
+      try{
+        if(localStorage.getItem('okti.shopping.animationSounds')!=='off'){
+          const audio=new Audio('shopping-flyby-glide.m4a');audio.play().catch(()=>{});
+        }
+      }catch{}
+      $('shoppingModal').classList.add('shopping-modal-closing');startShoppingPaper(true,true);
+    }catch(error){
+      if(page!==here)return;
+      if(error.name==='AbortError'){showCard(card);return;}
+      // Some browsers require a fresh tap after the server creates an invitation.
+      deliveryOptions(card,error.name==='NotAllowedError'&&!retried);
+    }finally{if(saving===lock)saving=false;}
   }
   function participants(card) {
     view('Uczestnicy');
@@ -3165,20 +3207,16 @@ function setupShoppingCards() {
         runShare(async()=>remember(card.id,await api(member.revoked?'restore-access':'revoke',card,{member:member.id})),participants);
       });content.append(row);
     }
-    button(actions,s.next?'Dokończ przygotowanie linku':'Zaproś kolejne osoby',()=>s.next
-      ?runShare(()=>extend(card,s.next.seats),sendView):countPeople(card,true));
+    button(actions,s.next?'Dokończ wysyłkę':'Zaproś kolejne osoby',()=>countPeople(card,true));
     if(s.open&&!s.next)button(actions,'Zablokuj dołączanie',()=>{
       if(confirm('Zablokować dołączanie nowych osób przez ten link?'))runShare(async()=>remember(card.id,await api('close-joining',card)),participants);
     });
     button(actions,'Wróć do kartki',()=>showCard(card));
   }
   function startSharing(card) {
-    if(!card.share){countPeople(card);return;}
-    if(!card.share.ready){runShare(()=>prepareFirst(card.id,card.share.seats),sendView);return;}
-    runShare(async()=>remember(card.id,await api('owner-read',card)),fresh=>{
-      if(fresh.share.open&&fresh.share.remaining>0&&!fresh.share.next)sendView(fresh);
-      else participants(fresh);
-    });
+    if(!card.share?.ready){countPeople(card);return;}
+    runShare(async()=>remember(card.id,await api('owner-read',card)),
+      fresh=>countPeople(fresh,!!fresh.share.next));
   }
 
   function shoppers(card) {

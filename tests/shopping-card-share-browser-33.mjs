@@ -22,6 +22,7 @@ async function serve(route) {
 try {
   const owner=await browser.newContext(mobile);
   await owner.route('**/*',serve);
+  await owner.addInitScript(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
   const page=await owner.newPage();
   await page.goto(ownerOrigin+'/index.html');
   await dismissInitialPermissions(page);
@@ -48,8 +49,12 @@ try {
   const button=name=>panel.getByRole('button',{name,exact:true});
   await panel.getByRole('button',{name:/Wyjazd/}).click();
   await button('Udostępnij').click();
+  await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
   assert.equal(await panel.locator('output').textContent(),'3');
-  await button('Przygotuj link').click();
+  await button('Więcej osób').click();
+  assert.equal(await panel.locator('output').textContent(),'4');
+  await button('Mniej osób').click();
+  await button('Wyślij zaproszenie').click();
   const field=panel.getByRole('textbox',{name:'Link do tej listy'});
   await field.waitFor();
   const url=await field.inputValue();
@@ -78,23 +83,72 @@ try {
   await gp.reload();
   await gp.getByRole('heading',{name:'Wyjazd'}).waitFor();
   assert.equal(await gp.locator('#joinNick').isVisible(),false);
+  // The ordinary Share button must ask even when the invitation already exists.
+  await button('Udostępnij').click();
+  await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
+  assert.equal(await panel.locator('output').textContent(),'2');
+  await button('Więcej osób').click();
+  await panel.getByText(/Dodatkowe miejsca: 1.*Poprzedni link przestanie działać/).waitFor();
+  await button('Mniej osób').click();
+  await button('Mniej osób').click();
+  assert.equal(await button('Mniej osób').isDisabled(),true);
+  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{
+    window.sentUrl=data.url;
+  }}));
+  await button('Wyślij zaproszenie').click();
+  await page.waitForFunction(()=>document.getElementById('shoppingModal').classList.contains('hidden'));
+  assert.equal(await page.evaluate(()=>window.sentUrl),url);
+  await page.locator('#phoneShopping').click();
+  await page.locator('#shoppingCardCatalog').click();
+  await panel.getByRole('button',{name:/Wyjazd/}).click();
   await button('Uczestnicy').click();
   await panel.getByText(/Aktywni goście: 1.*Zajęte miejsca: 1.*Wolne: 2/).waitFor();
   await button('Zaproś kolejne osoby').click();
   await panel.getByText(/Poprzedni link przestanie działać/).waitFor();
-  await button('Zwiększ liczbę miejsc i utwórz link').click();
+  await panel.getByRole('heading',{name:'Ile kolejnych osób chcesz zaprosić?'}).waitFor();
+  assert.equal(await panel.locator('output').textContent(),'1');
+  // The share sheet may disallow an async call, or be unavailable even after a fresh tap.
+  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{
+    throw new DOMException('Share unavailable','NotAllowedError');
+  }}));
+  await button('Dodaj miejsca i wyślij').click();
+  await button('Wyślij zaproszenie').waitFor();
+  assert.equal(await field.isVisible(),false);
+  await button('Wyślij zaproszenie').click();
   await field.waitFor();
-  assert.notEqual(await field.inputValue(),url);
+  const expandedLink=await field.inputValue();
+  assert.notEqual(expandedLink,url);
+  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
+  await button('Wróć do kartki').click();
+  await button('Udostępnij').click();
+  await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
+  assert.equal(await panel.locator('output').textContent(),'3');
+  await button('Więcej osób').click();
+  await button('Dodaj miejsca i wyślij').click();
+  await field.waitFor();
+  assert.notEqual(await field.inputValue(),expandedLink);
+  await button('Wróć do kartki').click();
+  await button('Uczestnicy').click();
+  await panel.getByText(/Zajęte miejsca: 1.*Wolne: 4/).waitFor();
   await button('Wróć do kartki').click();
   await button('Moje listy wspólne').click();
   await button('Utwórz listę wspólną').click();
   await button('Nie, utwórz pustą listę').click();
   await button('Udostępnij').click();
-  await button('Przygotuj link').click();
-  await field.waitFor();
-  await gp.goto(await field.inputValue());
+  await panel.getByRole('heading',{name:'Ile osób chcesz zaprosić?'}).waitFor();
+  await button('Mniej osób').click();
+  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{
+    window.newInvite=data.url;
+    throw new DOMException('Dismissed','AbortError');
+  }}));
+  await button('Wyślij zaproszenie').click();
+  await panel.getByRole('heading',{name:'Lista wspólna'}).waitFor();
+  assert.equal(await field.count(),0);
+  await button('Uczestnicy').click();
+  await panel.getByText(/Zajęte miejsca: 0.*Wolne: 2/).waitFor();
+  await gp.goto(await page.evaluate(()=>window.newInvite));
   await gp.locator('#joinNick').waitFor();
   assert.equal(await gp.locator('#joinNick').inputValue(),'');
   assert.equal(await gp.locator('#pending').textContent(),'');
-  console.log('Mobile browser: saved 33.371 card → invitation → separate guest joins, shops and returns; owner sees changes, rotates link; new list asks for a blank nickname.');
+  console.log('Mobile browser: saved 33.371 card → invitation → separate guest joins, shops and returns; owner sees changes, rotates link; first send honours the selected count, resending uses free places and expansion adds only the difference; each card has a separate guest identity.');
 } finally { await browser.close(); await service.close(); }
