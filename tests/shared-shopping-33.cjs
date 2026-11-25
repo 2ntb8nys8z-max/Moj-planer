@@ -26,7 +26,7 @@ async function seedLegacyList(owner){
 try{
  const o=page('index.html','#lista-roberta='+token);
  await wait(()=>o('shoppingOwner'));await seedLegacyList(o);
- o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['mleko','chleb','ser']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingCreateShared').click()");
+ o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['mleko','chleb','ser']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingResumeLegacy').click()");
  await wait(()=>o('shoppingCreated'));
  const installed=page('index.html','');
  installed("ideas=[normalizeIdea({text:'Moje dotychczasowe zakupy',list:{type:'shopping',items:['masło']}})];saveIdeas();window.closeCount=0;document.body.append(shoppingDeviceActivation(()=>++window.closeCount));window.prompt=()=>location.href.replace(/#.*$/,'')+'#lista-roberta=test-only-shopping-owner';$('shoppingActivateDevice').click()");
@@ -113,8 +113,10 @@ try{
  assert.equal(o('launchCount'),1);assert.equal(o('shoppingSummary'),null);
  // Each invitation is independent, with a browser-bound membership and per-person write permissions.
  const host=installed;
+ // Resume a previously allocated invitation-only list, as a 33.370 installation would.
+ host("saveShopping('id',crypto.randomUUID())");
  assert.equal(host("$('shoppingLimitInvite')"),null);
- host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingCreateShared').click()");
+ host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingResumeLegacy').click()");
  await wait(()=>host('shoppingCreated'));
  assert.ok(host('shoppingInviteState.inviteOnly'));
  await assert.rejects(host("shoppingRequest('read',{id:shoppingStore('id')})"),e=>e.status===403);
@@ -470,7 +472,7 @@ try{
  const phone=page('index.html','#lista-roberta='+token);
  await wait(()=>phone('shoppingOwner'));await seedLegacyList(phone);
  phone(`ideas=[normalizeIdea({text:'Zakupy',list:{type:'shopping',items:['Gruszki 2 kg','Kawa']}})];
-   saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingCreateShared').click();`);
+   saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingResumeLegacy').click();`);
  await wait(()=>phone('shoppingCreated && !shoppingSyncBusy'));
  const recipient=page('wspolne-zakupy.html','#'+phone("shoppingStore('id')"));
  await wait(()=>recipient('revision')>0);
