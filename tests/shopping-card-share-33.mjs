@@ -62,5 +62,17 @@ try {
   assert.deepEqual(pair.sort(),[200,409]);
   await call('close-joining',{id:id2},owner2);
   await call('join',{id:id2,invite:invite2,actor:uid(),nick:'Borys'},undefined,403);
+  await call('edit',{change:{type:'remove',id:row}},undefined,403);
+  const removed=await call('edit',{change:{type:'remove',id:row}},owner);
+  assert.ok(!removed.rows.some(r=>r.id===row));
+  const archived=await call('edit',{change:{type:'archive'}},owner);
+  assert.equal(archived.archived,true);
+  assert.equal(archived.open,false);
+  assert.equal((await call('owner-read',{},owner)).archived,true);
+  assert.equal((await call('edit',{change:{type:'archive'}},owner)).revision,archived.revision);
+  await call('edit',{change:{type:'add',id:uid(),text:'Test'}},owner,403);
+  await call('add',{actor:guest,text:'Test'},undefined,403);
+  await call('join',{invite:next,actor:uid(),nick:'X'},undefined,403);
+  assert.equal((await call('owner-read',{id:id2},owner2)).archived,false);
   console.log('Invitations: owner credential, independent cards, pre-join privacy, Unicode names, capacity under concurrency, reserved seats, rotation and member access passed.');
 } finally { await service.close(); }

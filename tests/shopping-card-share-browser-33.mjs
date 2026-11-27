@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { shoppingFixture } from './shopping-card-service-fixture.mjs';
 const require = createRequire(import.meta.url);
 const {chromium} = require(process.env.PLANNER_PLAYWRIGHT || 'playwright');
+const {openSourceShopping}=require('./shopping-source-fixture.cjs');
 const {dismissInitialPermissions} = require('./permission-fixture.cjs');
 const ownerOrigin='https://2ntb8nys8z-max.github.io';
 const plannerPath='/Moj-planer/';
@@ -46,7 +47,7 @@ try {
   });
   await page.reload();
   await dismissInitialPermissions(page);
-  await page.locator('#phoneShopping').click();
+  await openSourceShopping(page);
   await page.locator('#shoppingCardCatalog').click();
   const panel=page.locator('#shoppingCardPanel');
   const button=name=>panel.getByRole('button',{name,exact:true});
@@ -118,7 +119,7 @@ try {
   await button('Wyślij zaproszenie').click();
   await page.waitForFunction(()=>document.getElementById('shoppingModal').classList.contains('hidden'));
   assert.equal(await page.evaluate(()=>window.sentUrl),url);
-  await page.locator('#phoneShopping').click();
+  await openSourceShopping(page);
   await page.locator('#shoppingCardCatalog').click();
   await panel.getByRole('button',{name:/Wyjazd/}).click();
   await button('Uczestnicy').click();

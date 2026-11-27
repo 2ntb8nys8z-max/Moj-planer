@@ -37,8 +37,8 @@ function setupShoppingCards() {
     });
   }
 
-  function addCard(texts) {
-    const card = {id:crypto.randomUUID(), title:'Lista wspólna', createdAt:new Date().toISOString(),
+  function addCard(texts, title='Lista wspólna') {
+    const card = {id:crypto.randomUUID(), title, createdAt:new Date().toISOString(),
       items:texts.map(text => ({id:crypto.randomUUID(), text, done:false}))};
     return transaction('readwrite', (store, finish) => { store.add(card); finish(card); });
   }
@@ -50,7 +50,7 @@ function setupShoppingCards() {
       get.onsuccess = () => {
         const latest = get.result;
         if (!latest) { store.transaction.abort(); return; }
-        change(latest);
+        try { change(latest); } catch (error) { store.transaction.abort(); return; }
         store.put(latest);
         finish(latest);
       };
@@ -211,11 +211,11 @@ function setupShoppingCards() {
       });
       if (page !== expectedPage) return;
       cards.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      for (const card of cards) {
+      for (const card of cards.filter(card=>!card.archived)) {
         const entry = button(content, card.title, () => showCard(card));
         entry.append(element('small', 'Do kupienia: ' + card.items.filter(item => !item.done).length));
       }
-      if (!cards.length) content.append(element('p','Nie masz jeszcze nowych wspólnych kartek.'));
+      if (!cards.some(card=>!card.archived)) content.append(element('p','Nie masz jeszcze nowych wspólnych kartek.'));
     } catch {
       if (page === expectedPage) message.textContent = 'Nie udało się wczytać kartek z tego urządzenia.';
     }
@@ -256,6 +256,7 @@ function setupShoppingCards() {
       if((latest.share.revision||0)>remote.revision)return;
       latest.title=remote.title;
       latest.items=remote.rows;
+      latest.archived=!!remote.archived;
       Object.assign(latest.share,{ready:true,revision:remote.revision,generation:remote.generation,
         used:remote.used,active:remote.active,remaining:remote.remaining,open:remote.open,members:remote.members});
     });
@@ -282,7 +283,10 @@ function setupShoppingCards() {
   }
   async function changeProduct(id,change) {
     const latest=await editCard(id,card=>{
+      if(card.archived)throw Error('Ta lista została zamknięta.');
       if(card.share)return;
+      if(change.type==='remove')card.items=card.items.filter(item=>item.id!==change.id);
+      if(change.type==='archive')card.archived=true;
       if(change.type==='add')card.items.push({id:change.id,text:change.text,done:false});
       if(change.type==='rename')card.title=change.title;
       if(change.type==='mark'){const row=card.items.find(i=>i.id===change.id);if(row)row.done=change.done;}
@@ -421,6 +425,7 @@ function setupShoppingCards() {
     try{
       await navigator.share({title:card.title,url:inviteUrl(card)});
       if(page!==here)return;
+      returningToPaper=null;
       showCard(card);
       try{
         if(localStorage.getItem('okti.shopping.animationSounds')!=='off'){
@@ -462,7 +467,14 @@ function setupShoppingCards() {
     return names.length?'Razem kupują: '+new Intl.ListFormat('pl').format(['Robert',...names]):'Listę udostępnia Robert';
   }
 
+  let returningToPaper=null;
   function showCard(card) {
+    if(returningToPaper===card.id){
+      returningToPaper=null;
+      closeShoppingSummary(true);
+      openOwnerPaper(card.id);
+      return;
+    }
     view(card.title);
     if(card.share?.ready){
       message.textContent=shoppers(card);
@@ -517,5 +529,51 @@ function setupShoppingCards() {
   panel.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); if (!saving) close(); }
   });
-  return {close};
+  function storedCards() {
+    return transaction('readonly',(store,finish)=>{
+      const request=store.getAll();
+      request.onsuccess=()=>finish(request.result.sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id)));
+    });
+  }
+
+  async function loadCard(id) {
+    const card=await transaction('readonly',(store,finish)=>{
+      const request=store.get(id);
+      request.onsuccess=()=>finish(request.result);
+    });
+    if(!card)throw Error('Nie znaleziono kartki.');
+    return card;
+  }
+
+  return {close, storedCards, privateItems, changeProduct,
+    async create(title,selected) {
+      const current=privateItems();
+      const texts=selected.map(({key,text,done})=>{
+        const item=current.get(key);
+        if(!item || item.text!==text || item.done!==done)throw Error('Prywatna lista się zmieniła. Wybierz produkty ponownie.');
+        return item.text;
+      });
+      return addCard(texts,title);
+    },
+    async refresh(id) {
+      const card=await loadCard(id);
+      if(card.share?.ready && !card.archived)return remember(id,await api('owner-read',card));
+      return card;
+    },
+    async controls(id,mode) {
+      const card=await loadCard(id);
+      if(card.archived)throw Error('Ta lista została zamknięta.');
+      exitOwnerPaper();
+      openShoppingSummary();
+      returningToPaper=id;
+      if(mode==='members' && card.share?.ready){
+        participants(card);
+        const here=page;
+        api('owner-read',card).then(remote=>remember(id,remote)).then(fresh=>{
+          if(page===here && !saving)participants(fresh);
+        }).catch(()=>{if(page===here)message.textContent='Brak połączenia. Spróbuj ponownie.';});
+      } else startSharing(card);
+    },
+    resetReturn(){returningToPaper=null;}
+  };
 }
