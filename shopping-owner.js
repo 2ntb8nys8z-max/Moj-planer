@@ -62,9 +62,11 @@ async function markItem(c,item,button){
 }
 function render(){
   const c=card();
+  data.activate(c.id);
   const hadPurchases=$('bought').childElementCount>0;
   const hadPending=!!$('rows').querySelector('.row');
-  $('title').textContent=c.title;$('people').textContent=peopleLabel(c);$('people').disabled=c.private||c.archived;
+  $('title').textContent=c.title;$('people').textContent=peopleLabel(c);$('people').disabled=!!(c.private||c.archived||c.loading);
+  $('add').disabled=$('share').disabled=!!c.loading;
   $('rows').replaceChildren();$('bought').replaceChildren();let count=0;
   for(const item of c.items){
     const b=node('button',undefined,'row'+(item.done?' done':''));
@@ -84,7 +86,7 @@ function render(){
     b.onclick=()=>run(()=>markItem(c,item,b));
     (item.done?$('bought'):$('rows')).append(b);if(item.done)count++;
   }
-  if(!c.items.length)$('rows').append(node('p','Lista jest pusta.','blank'));
+  if(c.error || !c.items.length)$('rows').append(node('p',c.error||(c.loading?'Wczytywanie listy…':'Lista jest pusta.'),'blank'));
   // Rows to buy come first in the same scroll area. Purchases use the space
   // below them, including when the title or an individual row wraps.
   const finished=$('finished');
@@ -116,6 +118,7 @@ function settle() {
   motion = [];
   deck.querySelector('.departing')?.remove();
   deck.inert = false;
+  if(card()?.legacy)queueMicrotask(refresh);
 }
 
 function layers() {
@@ -296,11 +299,10 @@ function choose(archived=false){
   if(archived&&!lists.some(c=>c.archived))$('body').append(node('p','Archiwum jest puste.','note'));
   lists.forEach((c,i)=>{
     if(!!c.archived!==archived)return;
-    action(c.title,()=>select(i),{sub:c.private?'Prywatna':c.archived?'Zamknięta':peopleLabel(c),tail:i===active?'✓':''});
+    action(c.title,()=>select(i),{sub:c.private?'Prywatna':c.archived?'Zamknięta':c.legacy&&c.title!=='Dotychczasowa lista wspólna'?'Dotychczasowa lista wspólna':peopleLabel(c),tail:i===active?'✓':''});
   });
   if(archived){action('Wybierz listę',()=>choose());return;}
   action('＋ Nowa lista wspólna',create);
-  if(data.legacyAvailable())action('Dotychczasowa lista wspólna',()=>data.source(true));
   action('Archiwum',()=>choose(true));
 }
 function form(title,label,initial,accept,max,onSubmit){
@@ -350,8 +352,8 @@ function more(){
     panel('Usuń produkt');if(!c.items.length)$('body').append(node('p','Lista jest pusta.','note'));
     for(const item of c.items)action(item.text,()=>run(()=>mutate({type:'remove',id:item.id,fingerprint:item.fingerprint})));
   });
-  if(c.private)action('Zestawienie list źródłowych',()=>data.source(false));
-  else action('Zamknij listę',()=>{
+  if(c.private)action('Zestawienie list źródłowych',()=>data.source());
+  else if(!c.legacy)action('Zamknij listę',()=>{
     panel('Zamknąć listę?');
     $('body').append(node('p','Zakupy i podpisy trafią do archiwum. Zaproszenia wygasną, a uczestnicy zakończą zakupy na tej liście.','note'));
     action('Zamknij i przenieś do archiwum',()=>run(async()=>{
@@ -366,7 +368,7 @@ async function refresh(){
   const id=card().id,version=changeVersion;
   refreshing=true;
   try{
-    if(card().shared&&!card().archived)await data.refresh(id);
+    if(card().shared&&!card().legacy&&!card().archived)await data.refresh(id);
     const fresh=await data.list();
     if(version===changeVersion&&!busy&&!pull&&!deck.inert&&!$('panel').open&&card().id===id&&JSON.stringify(fresh)!==before){
       const old=card().members||[];
@@ -377,6 +379,7 @@ async function refresh(){
   }catch{if(card()?.shared)notice('Brak połączenia. Spróbuję ponownie.');}
   finally{refreshing=false;}
 }
+window.addEventListener('legacy-shopping-updated',()=>{if(card()?.legacy)refresh();});
 $('choose').onclick=()=>choose();$('more').onclick=more;$('people').onclick=members;
 $('share').onclick=share;$('exit').onclick=()=>data.close();$('add').onclick=()=>form('Dodaj produkt','Nazwa produktu','','Dodaj',160,text=>mutate({type:'add',id:crypto.randomUUID(),text}));
 $('dismiss').onclick=close;$('panel').addEventListener('click',e=>{if(e.target===$('panel'))close();});
@@ -390,7 +393,7 @@ async function start(){
   } catch {
     panel('Nie udało się wczytać kartek');
     action('Spróbuj ponownie',()=>{close();start();});
-    if(data)action('Otwórz zestawienie zakupów',()=>data.source(false));
+    if(data)action('Otwórz zestawienie zakupów',()=>data.source());
   }
 }
 start();

@@ -1,12 +1,7 @@
-const fs=require('node:fs'),vm=require('node:vm'),{JSDOM}=require('jsdom'),{DatabaseSync}=require('node:sqlite'),assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),{JSDOM}=require('jsdom'),assert=require('node:assert/strict');
 (async()=>{
-const token='test-only-shopping-owner';
-const digest=require('node:crypto').createHash('sha256').update('Bearer '+token).digest('hex');
-const source=fs.readFileSync('worker.js','utf8').replace(/const SHOP_OWNER_DIGEST = '[a-f0-9]{64}'/, "const SHOP_OWNER_DIGEST = '"+digest+"'");
-const worker=(await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))).default;
-const db=new DatabaseSync(':memory:');
-function query(sql,args=[]){const stmt=db.prepare(sql);return{bind:(...x)=>query(sql,x),first:async()=>stmt.get(...args),all:async()=>({results:stmt.all(...args)}),run:async()=>({meta:stmt.run(...args)})}}
-const env={API_LIMITS_DB:{prepare:query}},site='https://2ntb8nys8z-max.github.io/Moj-planer/';
+const {worker,db,env,token}=await require('./legacy-shopping-worker-fixture.cjs').legacyShoppingWorker();
+const site='https://2ntb8nys8z-max.github.io/Moj-planer/';
 const windows=[];
 function page(file,hash,stored){
  const dom=new JSDOM(fs.readFileSync(file,'utf8'),{url:site+file+hash,runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,run=s=>vm.runInContext(s,dom.getInternalVMContext());
@@ -26,7 +21,7 @@ async function seedLegacyList(owner,products,{inviteOnly=false}={}){
 try{
  const o=page('index.html','#lista-roberta='+token);
  await wait(()=>o('shoppingOwner'));await seedLegacyList(o,['mleko','chleb','ser']);
- o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['Produkt prywatny']}})];saveIdeas();openShoppingSummary();document.getElementById('shoppingResumeLegacy').click()");
+ o("ideas=[normalizeIdea({title:'Lista',text:'Lista',list:{type:'shopping',items:['Produkt prywatny']}})];saveIdeas();openShoppingSummary();openLegacyShopping()");
  await wait(()=>o('shoppingCreated'));
  assert.equal(o('shoppingLocalRows().size'),3);
  assert.deepEqual(JSON.parse(o('JSON.stringify(ideas[0].list.items.map(item=>item.text))')),['Produkt prywatny']);
@@ -129,7 +124,7 @@ try{
  // Resume a previously allocated invitation-only list, as a 33.370 installation would.
  await seedLegacyList(host,['woda','sok'],{inviteOnly:true});
  assert.equal(host("$('shoppingLimitInvite')"),null);
- host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();$('shoppingResumeLegacy').click()");
+ host("ideas=[normalizeIdea({text:'Wyjazd',list:{type:'shopping',items:['woda','sok']}})];saveIdeas();openShoppingSummary();openLegacyShopping()");
  await wait(()=>host('shoppingCreated'));
  assert.ok(host('shoppingInviteState.inviteOnly'));
  await assert.rejects(host("shoppingRequest('read',{id:shoppingStore('id')})"),e=>e.status===403);
@@ -504,7 +499,7 @@ try{
  const phone=page('index.html','#lista-roberta='+token);
  await wait(()=>phone('shoppingOwner'));await seedLegacyList(phone,['Gruszki 2 kg','Kawa']);
  phone(`ideas=[normalizeIdea({text:'Zakupy',list:{type:'shopping',items:['Gruszki 2 kg','Kawa']}})];
-   saveIdeas();openShoppingSummary();cancelShoppingPaper();$('shoppingResumeLegacy').click();`);
+   saveIdeas();openShoppingSummary();cancelShoppingPaper();openLegacyShopping();`);
  await wait(()=>phone('shoppingCreated && !shoppingSyncBusy'));
  const recipient=page('wspolne-zakupy.html','#'+phone("shoppingStore('id')"));
  await wait(()=>recipient('revision')>0);
