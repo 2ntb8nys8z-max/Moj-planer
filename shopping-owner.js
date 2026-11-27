@@ -62,6 +62,8 @@ async function markItem(c,item,button){
 }
 function render(){
   const c=card();
+  const hadPurchases=$('bought').childElementCount>0;
+  const hadPending=!!$('rows').querySelector('.row');
   $('title').textContent=c.title;$('people').textContent=peopleLabel(c);$('people').disabled=c.private||c.archived;
   $('rows').replaceChildren();$('bought').replaceChildren();let count=0;
   for(const item of c.items){
@@ -83,6 +85,11 @@ function render(){
     (item.done?$('bought'):$('rows')).append(b);if(item.done)count++;
   }
   if(!c.items.length)$('rows').append(node('p','Lista jest pusta.','blank'));
+  // Rows to buy come first in the same scroll area. Purchases use the space
+  // below them, including when the title or an individual row wraps.
+  const finished=$('finished');
+  if(!count)finished.open=false;
+  else if(!hadPurchases || (hadPending && count===c.items.length))finished.open=true;
   $('boughtLabel').textContent='Kupione ('+count+')';$('foot').hidden=!!c.archived;$('closed').hidden=!c.archived;
 }
 const deck = $('deck');
@@ -190,7 +197,7 @@ function select(index, placingNew=false, interactive=false) {
   const wasExpanded = $('finished').open;
   const previousOrder = stackOrder;
   active = index;
-  $('finished').open = false;
+  $('finished').open = true;
   render();
   layers();
   content.scrollTop = 0;
