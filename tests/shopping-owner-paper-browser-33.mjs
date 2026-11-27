@@ -50,7 +50,9 @@ try{
   const size=await sheet.evaluate(e=>[e.offsetWidth,e.offsetHeight]);
   assert.ok(size[1]>size[0]);assert.equal(await paper.locator('.underlay').count(),0);
   await button('Dodaj').click();await paper.getByLabel('Nazwa produktu').fill('Mleko');await paper.locator('form button').click();
-  await paper.locator('#rows').getByText('Mleko').click();await paper.locator('#boughtLabel').click();await paper.locator('#bought').getByText('Mleko').waitFor();
+  await paper.locator('#rows').getByText('Mleko').click();
+  await paper.locator('#bought .row').waitFor({state:'attached'});
+  assert.equal(await paper.locator('#bought').getByText('Mleko').isVisible(),true,'first purchase is shown automatically');
   await menu();await button('＋ Nowa lista wspólna').click();await paper.getByLabel('Nazwa listy').fill('Na weekend');
   await button('Dalej').click();await paper.getByLabel(/Herbata/).check();await button('Utwórz z zaznaczonymi').click();
   await paper.getByRole('heading',{name:'Na weekend'}).waitFor();
@@ -83,6 +85,45 @@ try{
   await paper.locator('#closed').waitFor();
   assert.ok(await paper.locator('#add').isHidden());
   await button('Zamknij zakupy').click();assert.ok(await page.locator('#ownerPaperDialog').isHidden());
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.evaluate(()=>{
+    const items=Array.from({length:24},(_,i)=>({id:crypto.randomUUID(),text:'Produkt '+(i+1),done:true}));
+    ideas=[normalizeIdea({title:'Dom',text:'Zakupy',list:{type:'shopping',items}})];saveIdeas();
+  });
+  await page.locator('#phoneShopping').tap();
+  await paper.locator('#bought').getByText('Produkt 1',{exact:true}).waitFor();
+  const visibleBought=()=>paper.locator('#paperContent').evaluate(el=>{
+    const view=el.getBoundingClientRect();
+    return [...el.querySelectorAll('#bought .row')].filter(row=>{
+      const rect=row.getBoundingClientRect();
+      return rect.height>0 && rect.top>=view.top && rect.bottom<=view.bottom;
+    }).length;
+  });
+  const initiallyVisible=await visibleBought();
+  assert.ok(initiallyVisible>3 && initiallyVisible<24,'long bought-only list uses the available space');
+  const last=paper.locator('#bought .row').last();
+  await last.scrollIntoViewIfNeeded();
+  assert.ok(await last.evaluate(row=>row.getBoundingClientRect().bottom<=document.getElementById('paperContent').getBoundingClientRect().bottom+2));
+  await paper.locator('#paperContent').evaluate(el=>el.scrollTop=0);
+  for(let i=1;i<=3;i++){
+    await paper.locator('#bought').getByText('Produkt '+i,{exact:true}).click();
+    await paper.locator('#rows').getByText('Produkt '+i,{exact:true}).waitFor();
+  }
+  const mixedVisible=await visibleBought();
+  assert.equal(mixedVisible,initiallyVisible-3,'three pending rows take the space of three purchased rows');
+  assert.equal(await paper.locator('#boughtLabel').textContent(),'Kupione (21)');
+  await page.setViewportSize({width:390,height:650});
+  assert.ok(await visibleBought()<mixedVisible,'shorter viewport shows fewer bought rows');
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await visibleBought(),mixedVisible);
+  await paper.locator('#boughtLabel').click();
+  await paper.locator('#rows').getByText('Produkt 1',{exact:true}).click();
+  await paper.locator('#boughtLabel').getByText('Kupione (22)').waitFor();
+  assert.ok(await paper.locator('#bought').isHidden(),'manual fold survives a mixed-list update');
+  for(let i=2;i<=3;i++)await paper.locator('#rows').getByText('Produkt '+i,{exact:true}).click();
+  await paper.locator('#boughtLabel').getByText('Kupione (24)').waitFor();
+  assert.equal(await visibleBought(),initiallyVisible,'finishing the last pending row shows purchases again');
+  assert.deepEqual(await sheet.evaluate(e=>[e.offsetWidth,e.offsetHeight]),size);
   assert.deepEqual(errors,[]);
   console.log('Owner shopping sheet: private writes, selected copy, fixed portrait dimensions, layers, menu and pointer page turn, real invitation handler, archive and reload passed.');
 } finally{await browser.close();await service.close();}
