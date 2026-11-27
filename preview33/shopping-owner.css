@@ -61,3 +61,15 @@ html,body{overflow-x:clip}
 #notice{pointer-events:none}body[aria-busy="true"]{cursor:progress}
 
 .inking{text-decoration:line-through}.flying-product{position:fixed;pointer-events:none;z-index:6;font:inherit;color:var(--ink)}
+
+#sheet:focus, #dialogTitle:focus { outline: none; }
+:is(#choose, #exit, #dismiss) {
+  -webkit-appearance: none;
+  appearance: none;
+}
+:is(#choose, #exit, #dismiss):focus { outline: none; }
+:is(#choose, #exit, #dismiss):focus-visible {
+  text-decoration: underline;
+  text-underline-offset: .18em;
+  text-decoration-thickness: 2px;
+}

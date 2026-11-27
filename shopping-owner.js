@@ -378,7 +378,7 @@ async function start(){
   try{
     update(await data.list());
     active=Math.max(0,lists.findIndex(c=>c.id===window.frameElement.dataset.initialId));
-    render();arrive();$('choose').focus({preventScroll:true});
+    render();arrive();sheet.focus({preventScroll:true});
     setInterval(refresh,4000);if(card().shared)refresh();
   } catch {
     panel('Nie udało się wczytać kartek');
