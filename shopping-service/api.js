@@ -17,8 +17,8 @@ function countSeats(state) {
   return {used,active:Object.values(state.invites).filter(s=>!s.revoked).length,remaining:state.limit-used,limit:state.limit,open:!!state.invite};
 }
 function ownerView(state,revision) {
-  return {revision,generation:state.generation||0,title:state.title, ...countSeats(state),
-    members:Object.entries(state.invites).map(([id,s])=>({id,nick:state.participants[s.actor],revoked:!!s.revoked})),
+  return {revision,archived:!!state.archived,generation:state.generation||0,title:state.title, ...countSeats(state),
+    members:Object.entries(state.invites).map(([id,s])=>({id,nick:state.participants[s.actor],revoked:state.archived ? !!s.revokedBeforeArchive : !!s.revoked})),
     rows:state.rows.map(({key,text,done,by,buyer})=>({
       id:key,text,done,by,authorName:state.participants[state.authors?.[key]] ?? SHOP_OWNER_NAME,
       canUndo:!done||buyer==='owner'
@@ -36,6 +36,20 @@ function validateSeats(value) {
 }
 function edit(state,body) {
   const op=body.change;
+  if(op?.type==='archive'){
+    state.archived=true;
+    state.invite=null;
+    for(const member of Object.values(state.invites)){
+      member.revokedBeforeArchive=!!member.revoked;
+      member.revoked=true;
+    }
+    return;
+  }
+  if(op?.type==='remove' && typeof op.id==='string'){
+    state.rows=state.rows.filter(row=>row.key!==op.id);
+    if(state.authors)delete state.authors[op.id];
+    return;
+  }
   if(op?.type==='rename' && validText(op.title,80)){state.title=op.title.trim();return;}
   if(op?.type==='add' && shoppingUuid(op.id) && validText(op.text,160)){
     if(state.rows.some(row=>row.key===op.id))return;
@@ -90,6 +104,11 @@ async function handle(request,env,action,json) {
     const revision=record.revision;
     const readGuest=()=>applySharedShoppingAction({action:'read',body,owner:false,db,json:guestJson});
     if(action==='owner-read'||action==='create')return json(ownerView(state,revision));
+    if(state.archived){
+      if(action==='invite-info')return json({available:false,used:true});
+      if(owner && action==='edit' && body.change?.type==='archive')return json(ownerView(state,revision));
+      fail('Ta lista została zamknięta.',403);
+    }
     if(action==='invite-info')return json({available:!!invitation&&invitation===state.invite&&countSeats(state).remaining>0&&!(actor&&Object.values(state.invites).some(s=>s.actor===actor&&s.revoked)),used:!!invitation&&invitation===state.invite&&countSeats(state).remaining===0});
     if(action==='join'){
       if(!actor)deny();

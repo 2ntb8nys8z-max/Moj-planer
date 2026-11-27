@@ -1,0 +1,63 @@
+@font-face{font-family:Kalam;src:url(fonts/kalam-regular.ttf) format('truetype');font-display:swap}
+*{box-sizing:border-box}html{background:#886547;color:#21436a}body{
+  /* A rotated corner projects onto the opposite axis. Reserve that distance
+     once, plus the exposed edges of the pile, for every sheet. */
+  --turn-x:calc(2px + 1.7vh);
+  --turn-x:calc(2px + 1.7dvh);
+  --turn-y:calc(2px + min(1.7vw, 0.96vh));
+  --turn-y:calc(2px + min(1.7vw, 0.96dvh));
+  display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);
+  height:100vh;height:100dvh;margin:0;overflow:clip;
+  padding:calc(env(safe-area-inset-top,0px) + var(--turn-y))
+          calc(env(safe-area-inset-right,0px) + var(--turn-x) + 15px)
+          calc(env(safe-area-inset-bottom,0px) + var(--turn-y) + 19px)
+          calc(env(safe-area-inset-left,0px) + var(--turn-x));
+  isolation:isolate;background:linear-gradient(115deg,#ffe1c21f,transparent 52%,#34251c29),url(shopping-wood-table.webp) center / max(960px,100vw) auto fixed;font:1.125rem/1.35 Kalam,"Bradley Hand",cursive}
+:root{--paper-texture:url(shopping-paper-top.webp) center top/100% 68px no-repeat,url(shopping-paper-bottom.webp) center bottom/100% 66px no-repeat,url(shopping-paper-body.webp) center/100% calc(100% - 105px) no-repeat;--ink:#21436a;--red:#953939;--rule:#719bb457}button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:transparent;padding:0;min-height:44px;-webkit-tap-highlight-color:transparent}button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid #436e9c;outline-offset:2px}
+.paper{position:relative;isolation:isolate;margin:0;padding:16px clamp(18px,4vw,38px) 18px;filter:drop-shadow(2px 7px 5px #39241357)}
+.paper::before,.underlay::before,dialog article::before{content:"";pointer-events:none;position:absolute;inset:0;z-index:-1;background:var(--paper-texture)}
+nav,footer,.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:10px}nav{border-bottom:1px solid #69869c59}nav button{display:inline-flex;align-items:center;gap:9px;font-size:.98rem}.stack{width:14px;height:16px;border:1.4px solid;border-radius:1px;transform:rotate(-5deg);box-shadow:-3px 3px #f5f0e6,-4px 4px currentColor;margin:0 3px}.down{width:7px;height:7px;border:solid currentColor;border-width:0 1.4px 1.4px 0;transform:rotate(45deg);margin:-4px 2px 0}:is(#more,.snapshot-more){min-width:44px;justify-content:center;font-family:system-ui;font-size:15px;letter-spacing:2px}header{padding:13px 0 7px}h1,h2,p{margin:0}h1{font-weight:400;font-size:1.88rem;font-style:italic;line-height:1.28;overflow-wrap:anywhere}h1:after{display:block;content:"";height:2px;width:73px;background:#355981b0;border-radius:60% 30% 70% 60%;transform:rotate(-1.3deg);margin:0 0 3px 2px}:is(#people,.snapshot-people){display:block;text-align:left;font-size:.97rem;min-height:32px;overflow-wrap:anywhere}:is(#people,.snapshot-people):disabled{cursor:default}
+.row{min-height:44px;display:flex;align-items:center;gap:9px;width:100%;border-bottom:1px solid var(--rule);text-align:left;overflow-wrap:anywhere;font-size:1.125rem;line-height:1.24}.row .box{width:21px;height:22px;flex:none;transform:rotate(-2deg)}.box path{stroke:var(--ink);fill:none;stroke-linecap:round;stroke-linejoin:round}.box .tick{display:none}.done .tick{display:block}.row .name{margin-top:3px}.done .name{text-decoration:line-through;text-decoration-color:#38546db0}.sig{font-size:.85rem;font-style:italic;color:var(--red);margin:4px 0 0 auto;text-align:right;max-width:36%;line-height:1.15}.row:disabled{opacity:1;cursor:default}.row:active:not(:disabled){background:#6b91af10}
+details{margin-top:6px}summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-size:1.05rem;list-style:none}summary::-webkit-details-marker{display:none}summary::before{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(-45deg)}details[open] summary::before{transform:rotate(45deg)}footer{border-top:1px solid var(--rule);padding-top:9px}footer button{font-size:1rem;display:inline-flex;align-items:center;gap:7px}:is(#add,.snapshot-add){color:#294798;font-size:1.06rem}:is(#add,.snapshot-add) img{object-fit:contain}:is(#share,.snapshot-share) svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linejoin:round}:is(#closed,.snapshot-closed){font-size:.98rem;padding:10px 0}
+dialog{padding:0;border:0;background:transparent;color:inherit;width:min(368px,calc(100% - 26px));max-height:88dvh;overflow-y:auto;filter:drop-shadow(2px 6px 7px #281d1655)}dialog::backdrop{background:#251e174d}dialog article{position:relative;isolation:isolate;padding:17px 26px 26px}h2{font-size:1.45rem;line-height:1.25;font-weight:400}.dialog-head{padding:1px 0 4px;border-bottom:1px solid var(--rule)}#dismiss{min-width:40px;font-size:1.55rem}.choice{display:flex;width:100%;align-items:center;justify-content:space-between;gap:9px;text-align:left;min-height:48px;border-bottom:1px solid var(--rule);padding:7px 0}.choice small{display:block;font-size:.82rem;color:#546678}.choice.danger{color:var(--red)}.note{font-size:.98rem;margin:12px 0 4px}.minor{font-size:.88rem;color:#566274}.formline{display:flex;align-items:center;gap:8px;margin:12px 0}.formline input{min-width:0;width:100%;padding:9px 5px;background:transparent;border:0;border-bottom:1px solid #647d96;border-radius:0}.check{display:flex;gap:9px;align-items:center;min-height:40px}.number{display:flex;align-items:center;justify-content:center;gap:17px;margin:9px}.number button{width:44px;font-size:1.6rem}.number output{font-size:1.6rem}.blank{font-size:1rem;padding:13px 0}#notice{position:fixed;z-index:5;bottom:16px;left:50%;transform:translateX(-50%);border-radius:5px;padding:6px 13px;background:#fffaed;box-shadow:0 3px 12px #1c28313c;font-size:15px;display:none;width:max-content;max-width:calc(100% - 26px);text-align:center}#notice.on{display:block}[hidden]{display:none!important}
+/* Each exposed edge uses the torn-paper artwork of the actual shopping sheet. */
+html,body{overflow-x:clip}
+/* The grid track is the available viewport inside the safe areas. */
+.deck{
+  position:relative;isolation:isolate;justify-self:center;
+  height:100%;min-height:0;min-width:0;max-width:100%;aspect-ratio:9/16;
+}
+.deck .paper{width:100%;height:100%;margin:0;display:flex;flex-direction:column;transform-origin:center}
+.paper::before,.underlay::before{inset-inline:-3%}
+.paper > nav,.paper > footer,.paper > p{flex:none}
+.paper-content{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:#5e728566 transparent}
+.paper-content:focus-visible{outline:2px solid #436e9c;outline-offset:2px}
+#sheet{z-index:2}
+.underlays,.underlay{position:absolute;inset:0;pointer-events:none}
+.underlays{z-index:0}
+.underlay{transform-origin:center;isolation:isolate;filter:brightness(var(--paper-shade,1)) drop-shadow(1px 3px 2px #36221172)}
+.deck .departing{position:absolute;inset:0 auto auto 0;z-index:3;width:100%;pointer-events:none}
+.deck .under-new{z-index:1}
+
+@media (orientation:landscape) and (max-height:500px){
+  .paper{padding:9px 12px}
+  .stack{display:none}
+  footer button{gap:4px}
+  :is(#add,.snapshot-add) img{width:26px;height:26px}
+  :is(#share,.snapshot-share) svg{width:16px}
+}
+.deck .paper-turn{height:100%;transform-origin:center}
+.turn-front,.turn-shadow,.turn-back,.turn-light{position:absolute;inset:0;pointer-events:none}
+.turn-front{z-index:0}
+.turn-shadow{z-index:1}
+.turn-back{transform-origin:0 0;isolation:isolate}
+.turn-back::before{content:"";position:absolute;inset:0 -3%;background:var(--paper-texture)}
+.turn-light{mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);border-radius:1.5%}
+.corner-grip{position:absolute;z-index:4;bottom:0;left:0;width:46px;height:46px;touch-action:none;cursor:grab;clip-path:polygon(0 0,0 100%,100% 100%)}
+.corner-grip:active{cursor:grabbing}
+
+.nav-actions{display:flex;align-items:center}.nav-actions button{justify-content:center;min-width:40px}
+#exit,.snapshot-exit{font-size:1.65rem}.row .buyer{color:#953939}
+#notice{pointer-events:none}body[aria-busy="true"]{cursor:progress}
+
+.inking{text-decoration:line-through}.flying-product{position:fixed;pointer-events:none;z-index:6;font:inherit;color:var(--ink)}

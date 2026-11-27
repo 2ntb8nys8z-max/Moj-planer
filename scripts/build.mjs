@@ -3,8 +3,8 @@ import {buildSync} from 'esbuild';
 import {createHash} from 'node:crypto';
 
 const CHECK=process.argv.includes('--check');
-const APP_VERSION='2026.11.25.33.376-integration';
-const PREVIEW_VERSION='2026.11.25.33.376-test';
+const APP_VERSION='2026.11.27.33.377-integration';
+const PREVIEW_VERSION='2026.11.27.33.377-test';
 const PREVIEW_LABEL=PREVIEW_VERSION.split('.').slice(3).join('.').replace('-test','');
 const WORKER_VERSION='2026.11.25.33.69-test';
 const WORKER_LABEL='Worker 33.69-test';
@@ -181,7 +181,7 @@ output('preview33/wspolne-zakupy.html',fs.readFileSync('wspolne-zakupy.html','ut
 output('release.json',release);
 output('preview33/release.json',release);
 for(const file of ['octi-glass-key-33-309.webp','fonts/nunito-latin-variable.woff2','fonts/OFL-Nunito.txt','fonts/kalam-regular.ttf','fonts/OFL-Kalam.txt','manifest.webmanifest','app-icon-180.png','app-icon-512.png','header-sky.webp','header-sailboat.webp','octi-liquid-rim-33-181.png','octi-liquid-sphere-33-182.png','octi-glass-33-184.png','octi-caustic-33-196.svg','octi-water-glass.webp','octi-water-mascot.webp','octi-water-motion.mp4','octi-water-motion.webp','octi-water-motion-poster.webp','shopping-paper-top.webp','shopping-paper-body.webp','shopping-paper-bottom.webp','shopping-update-button.webp','shopping-close-x-v2.webp','shopping-purchased-note-v3.webp','weather-moon-33-219.webp','weather-icons-33-221.webp','header-autumn.webp','header-glass-lens-33-262.webp','header-glass-lens-33-263.webp','header-glass-lens-33-264.webp'])output('preview33/'+file,fs.readFileSync(file),false);
-for(const file of ['shopping-access-sw.js','shopping-add-blue-pen.webp','shopping-plane-arrival.webp','shopping-paper-turn.m4a','shopping-wood-table.webp'])output('preview33/'+file,fs.readFileSync(file),false);
+for(const file of ['shopping-owner.html','shopping-owner.css','shopping-owner.js','shopping-page-turn.js','shopping-access-sw.js','shopping-add-blue-pen.webp','shopping-plane-arrival.webp','shopping-paper-turn.m4a','shopping-wood-table.webp'])output('preview33/'+file,fs.readFileSync(file),false);
 for(const file of ['octi-listening.js',...listeningAssets])output('preview33/'+file,fs.readFileSync(file),false);
 output('worker-code.html',workerPage);
 console.log(`${CHECK?'Checked':'Built'} ${PREVIEW_VERSION}; frontend ${frontendBuildId}; Worker ${workerBuildId}`);

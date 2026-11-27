@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const {chromium} = require(process.env.PLANNER_PLAYWRIGHT || 'playwright');
+const {openSourceShopping}=require('./shopping-source-fixture.cjs');
 const {dismissInitialPermissions} = require('./permission-fixture.cjs');
 
 async function check() {
@@ -36,7 +37,7 @@ async function check() {
       await title('Czy chcesz dodać produkty ze swojej listy?');
     };
     const privateList = () => button('Wróć do zakupów').click();
-    const openPrivate = () => page.locator('#phoneShopping').click();
+    const openPrivate = () => openSourceShopping(page);
 
     await openPrivate();
     await ask();

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mój Planer — test integracji 33.376</title>
+<title>Mój Planer — test integracji 33.377</title>
 <meta name="theme-color" content="#52051d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -233,10 +233,12 @@ body.okti-weather-open{overflow:hidden}
 @media(max-width:359px){#dayWeatherModal header{gap:7px;padding-right:28px}#dayWeatherModal h2{font-size:20px}#dayWeatherModal .okti-weather-date{font-size:12px}#dayWeatherModal .okti-weather-summary{gap:15px;margin-top:10px}#dayWeatherModal .okti-weather-hero{margin:0;gap:5px}#dayWeatherModal .okti-weather-comfort{gap:12px;font-size:11px}#dayWeatherModal .okti-weather-comfort b{font-size:13px}}
 @media(prefers-reduced-motion:reduce){#dayWeatherModal *{animation:none!important;transition:none!important}}
 </style>
-</head>
+<style>
+#ownerPaperDialog[open]{position:fixed;inset:0;width:100%;height:100%;height:100dvh;max-width:none;max-height:none;padding:0;margin:0;border:0;background:#89684c;overflow:hidden}#ownerPaperDialog iframe{display:block;width:100%;height:100%;border:0}
+</style></head>
 <body>
 <div class="app">
-<h1>Mój Planer — test 33.376</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.376</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.25.33.376-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
+<h1>Mój Planer — test 33.377</h1><div class="card" style="margin-top:14px;border:2px solid #246bfd" role="note"><strong>Test integracji 33.377</strong><p>Pełny Planer generowany automatycznie z kanonicznego frontendu gałęzi integration/conversation33. Dane tej strony są odseparowane od zwykłego Planera. Google Calendar nie jest izolowany — do testów używaj konta lub kalendarza testowego.</p><a href="../">Wróć do zwykłego planera</a> · <a href="../preview32/">Wróć do testu 32.4</a></div><div class="subtitle">Twój dzień pod kontrolą</div><div id="appVersion" style="color:#667085;font-size:12px;margin-top:6px">Aplikacja: 2026.11.27.33.377-test · Synchronizacja: ładowanie…</div><div id="workerVersion" style="color:#667085;font-size:12px">Worker: wersja zostanie sprawdzona przy połączeniu z AI</div>
 <div class="tabs"><button id="tabDay" class="active">Dzień</button><button id="tabWeek">Tydzień</button><button id="tabMonth">Miesiąc</button><button id="tabEntries">Wpisy</button></div><button id="ideasShortcut" class="secondary" type="button" style="width:100%;margin:0 0 16px;padding:14px">Wpisy</button>
 <div class="card voice-area"><div id="voiceCountdown" class="voice-countdown"></div><div class="voice-controls"><button id="voice" class="voice-button" type="button">🎙️</button><button id="recordCancel" class="voice-cancel hidden" type="button" aria-label="Skasuj nagranie">Skasuj</button></div><div id="voiceHint">Naciśnij mikrofon i powiedz, co dodać do Planera</div><div class="row" style="justify-content:center;margin-top:12px"><button id="apiAccessButton" class="secondary" type="button">Kod dostępu do AI</button><button id="apiUsageButton" class="secondary" type="button">Sprawdź limit AI</button></div><div id="apiUsageStatus" style="color:#667085;font-size:13px;margin-top:8px"></div><div id="aiPreview" class="preview hidden"><div id="previewType" class="preview-type"></div><div id="previewTitle" class="preview-title"></div><div id="previewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmVoice" class="primary">✓ Potwierdź</button><button id="correctVoice" class="secondary">🎤 Popraw głosem</button><button id="cancelVoice" class="danger">🗑 Usuń</button></div></div></div>
 <div id="manualCard" class="card"><h2>Dodaj wydarzenie</h2><form id="form"><div class="row"><div class="field"><label>Co chcesz zrobić?</label><input id="title" placeholder="Np. dentysta"></div><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Od</label><input id="time" type="time"></div><div class="field"><label>Do</label><input id="endTime" type="time"></div><div class="field"><label>Kategoria</label><select id="category"><option>Osobiste</option><option>Praca</option><option>Zdrowie</option><option>Zakupy</option><option>Inne</option></select></div></div><div class="field" style="margin-top:10px"><label>Lokalizacja / adres (opcjonalnie)</label><input id="newLocation" placeholder="Np. Dresden, Hauptstraße 15"></div><button class="primary" type="submit" style="margin-top:12px">Dodaj wydarzenie</button></form></div>
@@ -268,6 +270,7 @@ body.okti-weather-open{overflow:hidden}
 <div id="historyModal" class="modal-backdrop hidden"><div class="action-card"><button id="closeHistory" class="close-x">×</button><h2>📄 Historia wpisu</h2><div id="historyList" class="history-list"></div></div></div>
 <div id="eventRecurrencePreview" class="modal-backdrop hidden"><div class="action-card"><button id="closeEventRecurrencePreview" class="close-x">×</button><h2>Potwierdź zmianę</h2><div id="eventRecurrencePreviewTitle" class="preview-title"></div><div id="eventRecurrencePreviewInfo" class="preview-info"></div><div class="preview-actions"><button id="confirmEventRecurrence" class="primary">✓ Potwierdź</button><button id="correctEventRecurrence" class="secondary">🎤 Popraw głosem</button><button id="cancelEventRecurrence" class="danger">Anuluj</button></div></div></div>
 <template id="shoppingInkPen"><svg class="shopping-check-mark" viewBox="0 0 28 28" aria-hidden="true"><path class="outline" d="M4 5.4 21.8 5l.3 18-18.6.5Z"/><path class="ink" pathLength="1" d="M6.8 14.6Q9 15.6 12.3 20.2Q15.3 14.8 18.7 10.7T25.2 4.1"/></svg></template>
+<dialog id="ownerPaperDialog" aria-label="Listy zakupów" oncancel="event.preventDefault();exitOwnerPaper()"></dialog>
 <div id="shoppingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shoppingNameText"><div class="shopping-paper-stage"><section class="shopping-sheet"><div class="shopping-paper-scroll"><span class="shopping-paper-surface" aria-hidden="true"><span class="shopping-paper-piece shopping-paper-body"></span><img class="shopping-paper-piece shopping-paper-top" src="shopping-paper-top.webp?v=366c717e483c4ff6" alt=""><img class="shopping-paper-piece shopping-paper-bottom" src="shopping-paper-bottom.webp?v=1e6376677dd7bcea" alt=""></span><span class="shopping-paper-ruling" aria-hidden="true"></span><header><div><h2 id="shoppingSummaryTitle"><button type="button" id="shoppingNameEdit" disabled aria-label="Zmień nazwę kartki" aria-controls="shoppingNameForm" aria-expanded="false"><span id="shoppingNameText">Do kupienia</span><small id="shoppingNamePencil" hidden aria-hidden="true"> ✎</small></button><img class="shopping-title-underline" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%228%22%20viewBox%3D%220%200%20240%208%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22ink%22%3E%3Cstop%20offset%3D%2266%25%22%20stop-color%3D%22%23153f76%22%2F%3E%3Cstop%20offset%3D%2282%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.82%22%2F%3E%3Cstop%20offset%3D%2294%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%22.39%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23174477%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23ink%29%22%20d%3D%22M0%204.4%2031.2%202.4%2074.4%203.52%20117.6%201.44%20156%202.56%20189.6%20.96%20218.4%202.32%20240%204.48%20218.4%205.52%20187.2%204.24%20153.6%206.08%20115.2%204.8%2074.4%206.8%2033.6%205.28%202.4%208Z%22%2F%3E%3C%2Fsvg%3E" alt="" aria-hidden="true"></h2><div id="shoppingSharedLabel" class="shopping-summary-meta shopping-variable" aria-live="polite" hidden></div><div id="shoppingSummaryMeta" class="shopping-summary-meta"></div></div><button type="button" id="shoppingAccess" aria-haspopup="dialog" aria-controls="shoppingAccessDialog" hidden>Uczestnicy</button><button id="closeShoppingSummary" aria-label="Zamknij listę zakupów"><img class="shopping-close-art" src="shopping-close-x-v2.webp?v=44c7c0451b35e525" alt="" aria-hidden="true"></button></header><form id="shoppingNameForm" hidden><label for="shoppingNameInput">Zmień nazwę kartki</label><input id="shoppingNameInput" maxlength="80" required><div><button type="button" id="shoppingNameVoice"><img src="octi-actor-poster.webp?v=9b20c4f5b0d17977" alt=""> <span id="shoppingNameVoiceLabel">Dyktuj</span></button><button type="submit" id="shoppingNameSave">Zapisz</button><button type="button" id="shoppingNameCancel">Anuluj</button></div><small id="shoppingNameStatus" role="status"></small></form><div id="shoppingSummaryRows" class="shopping-summary-scroll"></div><section class="shopping-purchased-section" aria-label="Kupione produkty"><div class="shopping-purchased-note"><div class="shopping-help-wrap"><button id="shoppingSummaryInfo" class="shopping-info-button" aria-label="Jak działa aktualizacja list" aria-controls="shoppingSummaryHelp" aria-expanded="false">i</button><div id="shoppingSummaryHelp" class="shopping-summary-help" role="tooltip" hidden>Zaznacz kupione produkty. „Zaktualizuj listy” zapisze odhaczenia we wszystkich listach, z których pochodzą.</div></div><button id="shoppingPurchasedToggle" class="shopping-purchased-toggle" type="button" aria-controls="shoppingSummaryPurchased" aria-expanded="false"><span class="shopping-purchased-arrow" aria-hidden="true">›</span><span aria-hidden="true">✓</span><span id="shoppingPurchasedLabel">Kupione<span class="shopping-variable"> · 0</span></span></button></div><div id="shoppingSummaryPurchased" class="shopping-summary-purchased-slot" hidden></div></section><footer><div id="shoppingCardActions"><button type="button" id="shoppingCreateShared">Utwórz listę wspólną</button><button type="button" id="shoppingCardCatalog">Moje listy wspólne</button></div><div id="shoppingOwnerActions" hidden><button type="button" id="shoppingResumeLegacy">Dotychczasowa lista wspólna</button><button type="button" id="shoppingLegacyAdd" hidden>Dodaj produkt</button><button type="button" id="shoppingSendShared" hidden>Udostępnij</button><small id="shoppingShareStatus" role="status"></small></div><p id="shoppingSummaryStatus" class="shopping-summary-status" role="status"></p><div class="row"><button id="shoppingSummaryRefresh" class="secondary" hidden>Wczytaj ponownie</button><button id="shoppingSummaryUpdate" class="primary">Zaktualizuj listy</button></div></footer>
 <section id="shoppingCardPanel" hidden aria-labelledby="shoppingCardTitle">
   <header><div><h2 id="shoppingCardTitle" tabindex="-1"></h2></div></header>
@@ -348,7 +351,7 @@ const PlannerData=(()=>{
   }
   function failureDetails(error,stage,payload){
     if(!error)return latestDiagnostic;
-    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.25.33.376-test',at:new Date().toISOString()};
+    latestDiagnostic={stage:String(stage||'unknown'),name:String(error.name||'Error').slice(0,80),message:String(error.message||error).slice(0,240),payloadBytes:typeof payload==='string'?new Blob([payload]).size:null,appVersion:'2026.11.27.33.377-test',at:new Date().toISOString()};
     return latestDiagnostic;
   }
   function fail(message,error=null,stage='unknown',payload=null){
@@ -2080,6 +2083,7 @@ function startShoppingPaper(closing=false,plane=false){
 }
 function finishShoppingSummaryClose(){
   shoppingShareAttempt=null;
+  ownerShoppingCards?.resetReturn();
   ownerShoppingCards?.close();
   cancelShoppingPaper();const modal=$('shoppingModal');modal.classList.add('hidden');modal.classList.remove('shopping-modal-closing');shoppingSummary=null;legacyShoppingActive=false;shoppingCreated=false;shoppingPurchasedOpen=false;document.body.classList.remove('entry-open');document.querySelector('.app').inert=false;shoppingReturnFocus?.focus?.();
 }
@@ -2210,7 +2214,7 @@ function shoppingCheck(group,row,done){
   };
   control.append(check,$('shoppingInkPen').content.cloneNode(true));return control;
 }
-function deletePlannerShoppingProduct(group){
+function removePlannerShoppingGroup(group){
   const edits=new Map();
   for(const ref of group.refs){
     const source=shoppingRecords().find(idea=>idea.id===ref.source.id);
@@ -2225,6 +2229,9 @@ function deletePlannerShoppingProduct(group){
     return {...idea,list:{...idea.list,items:idea.list.items.filter((_,i)=>!indices.has(i))}};
   });
   saveShoppingRecords(next);
+}
+function deletePlannerShoppingProduct(group){
+  removePlannerShoppingGroup(group);
   shoppingSummary=collectShoppingSummary(shoppingRecords(),shoppingSummary.filter);
   renderShoppingSummary();renderAll();
 }
@@ -2897,8 +2904,8 @@ function setupShoppingCards() {
     });
   }
 
-  function addCard(texts) {
-    const card = {id:crypto.randomUUID(), title:'Lista wspólna', createdAt:new Date().toISOString(),
+  function addCard(texts, title='Lista wspólna') {
+    const card = {id:crypto.randomUUID(), title, createdAt:new Date().toISOString(),
       items:texts.map(text => ({id:crypto.randomUUID(), text, done:false}))};
     return transaction('readwrite', (store, finish) => { store.add(card); finish(card); });
   }
@@ -2910,7 +2917,7 @@ function setupShoppingCards() {
       get.onsuccess = () => {
         const latest = get.result;
         if (!latest) { store.transaction.abort(); return; }
-        change(latest);
+        try { change(latest); } catch (error) { store.transaction.abort(); return; }
         store.put(latest);
         finish(latest);
       };
@@ -3071,11 +3078,11 @@ function setupShoppingCards() {
       });
       if (page !== expectedPage) return;
       cards.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      for (const card of cards) {
+      for (const card of cards.filter(card=>!card.archived)) {
         const entry = button(content, card.title, () => showCard(card));
         entry.append(element('small', 'Do kupienia: ' + card.items.filter(item => !item.done).length));
       }
-      if (!cards.length) content.append(element('p','Nie masz jeszcze nowych wspólnych kartek.'));
+      if (!cards.some(card=>!card.archived)) content.append(element('p','Nie masz jeszcze nowych wspólnych kartek.'));
     } catch {
       if (page === expectedPage) message.textContent = 'Nie udało się wczytać kartek z tego urządzenia.';
     }
@@ -3116,6 +3123,7 @@ function setupShoppingCards() {
       if((latest.share.revision||0)>remote.revision)return;
       latest.title=remote.title;
       latest.items=remote.rows;
+      latest.archived=!!remote.archived;
       Object.assign(latest.share,{ready:true,revision:remote.revision,generation:remote.generation,
         used:remote.used,active:remote.active,remaining:remote.remaining,open:remote.open,members:remote.members});
     });
@@ -3142,7 +3150,10 @@ function setupShoppingCards() {
   }
   async function changeProduct(id,change) {
     const latest=await editCard(id,card=>{
+      if(card.archived)throw Error('Ta lista została zamknięta.');
       if(card.share)return;
+      if(change.type==='remove')card.items=card.items.filter(item=>item.id!==change.id);
+      if(change.type==='archive')card.archived=true;
       if(change.type==='add')card.items.push({id:change.id,text:change.text,done:false});
       if(change.type==='rename')card.title=change.title;
       if(change.type==='mark'){const row=card.items.find(i=>i.id===change.id);if(row)row.done=change.done;}
@@ -3281,6 +3292,7 @@ function setupShoppingCards() {
     try{
       await navigator.share({title:card.title,url:inviteUrl(card)});
       if(page!==here)return;
+      returningToPaper=null;
       showCard(card);
       try{
         if(localStorage.getItem('okti.shopping.animationSounds')!=='off'){
@@ -3322,7 +3334,14 @@ function setupShoppingCards() {
     return names.length?'Razem kupują: '+new Intl.ListFormat('pl').format(['Robert',...names]):'Listę udostępnia Robert';
   }
 
+  let returningToPaper=null;
   function showCard(card) {
+    if(returningToPaper===card.id){
+      returningToPaper=null;
+      closeShoppingSummary(true);
+      openOwnerPaper(card.id);
+      return;
+    }
     view(card.title);
     if(card.share?.ready){
       message.textContent=shoppers(card);
@@ -3377,10 +3396,119 @@ function setupShoppingCards() {
   panel.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); if (!saving) close(); }
   });
-  return {close};
+  function storedCards() {
+    return transaction('readonly',(store,finish)=>{
+      const request=store.getAll();
+      request.onsuccess=()=>finish(request.result.sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id)));
+    });
+  }
+
+  async function loadCard(id) {
+    const card=await transaction('readonly',(store,finish)=>{
+      const request=store.get(id);
+      request.onsuccess=()=>finish(request.result);
+    });
+    if(!card)throw Error('Nie znaleziono kartki.');
+    return card;
+  }
+
+  return {close, storedCards, privateItems, changeProduct,
+    async create(title,selected) {
+      const current=privateItems();
+      const texts=selected.map(({key,text,done})=>{
+        const item=current.get(key);
+        if(!item || item.text!==text || item.done!==done)throw Error('Prywatna lista się zmieniła. Wybierz produkty ponownie.');
+        return item.text;
+      });
+      return addCard(texts,title);
+    },
+    async refresh(id) {
+      const card=await loadCard(id);
+      if(card.share?.ready && !card.archived)return remember(id,await api('owner-read',card));
+      return card;
+    },
+    async controls(id,mode) {
+      const card=await loadCard(id);
+      if(card.archived)throw Error('Ta lista została zamknięta.');
+      exitOwnerPaper();
+      openShoppingSummary();
+      returningToPaper=id;
+      if(mode==='members' && card.share?.ready){
+        participants(card);
+        const here=page;
+        api('owner-read',card).then(remote=>remember(id,remote)).then(fresh=>{
+          if(page===here && !saving)participants(fresh);
+        }).catch(()=>{if(page===here)message.textContent='Brak połączenia. Spróbuj ponownie.';});
+      } else startSharing(card);
+    },
+    resetReturn(){returningToPaper=null;}
+  };
 }
 // END OWNER SHOPPING CARDS
 let ownerShoppingCards;
+let ownerPaperFocus=null;
+function openOwnerPaper(initialId='private'){
+  if(entryRecording){toast('Najpierw zapisz lub anuluj nagranie.');return;}
+  const dialog=$('ownerPaperDialog');
+  if(dialog.open)return;
+  ownerShoppingCards.resetReturn();
+  ownerPaperFocus=document.activeElement;
+  const frame=document.createElement('iframe');
+  frame.title='Kartki zakupów';
+  frame.dataset.initialId=initialId;
+  frame.src='shopping-owner.html?v=377';
+  dialog.replaceChildren(frame);
+  dialog.showModal();
+}
+function exitOwnerPaper(){
+  const dialog=$('ownerPaperDialog');
+  if(dialog.open)dialog.close();
+  dialog.replaceChildren();
+  if(ownerPaperFocus?.isConnected)ownerPaperFocus.focus({preventScroll:true});
+}
+function privatePaperGroups(){
+  return [false,true].flatMap(done=>collectShoppingSummary(ideas,{},today(),done).groups.map(group=>({
+    group,done,id:JSON.stringify([group.text,group.buyer,group.guestKey||'',done]),
+    fingerprint:JSON.stringify(group.refs.map(r=>[r.source.id,r.source.fingerprint,r.index]))
+  })));
+}
+window.ownerPaperData={
+  close:exitOwnerPaper,
+  async list(){
+    const groups=privatePaperGroups();
+    const privateCard={id:'private',title:shoppingStore('private-title')||'Moja lista',private:true,
+      items:groups.map(({group,done,id,fingerprint})=>({id,fingerprint,text:group.text,done,by:group.buyer,
+        canUndo:!done||!group.buyer||group.buyer==='Robert'}))};
+    const cards=await ownerShoppingCards.storedCards();
+    return [privateCard,...cards.map(({id,title,items,share,archived})=>({id,title,items,archived:!!archived,
+      shared:!!share?.ready,members:share?.members||[]}))];
+  },
+  choices(){return [...ownerShoppingCards.privateItems()].map(([key,item])=>({key,...item}));},
+  create:(title,selected)=>ownerShoppingCards.create(title,selected).then(card=>card.id),
+  refresh:id=>ownerShoppingCards.refresh(id).then(()=>undefined),
+  controls:(id,mode)=>ownerShoppingCards.controls(id,mode),
+  legacyAvailable:()=>!!(shoppingOwner&&shoppingStore('id')),
+  source(legacy){exitOwnerPaper();if(legacy)openLegacyShopping();else openShoppingSummary();},
+  async change(id,change){
+    if(id!=='private'){await ownerShoppingCards.changeProduct(id,change);return;}
+    PlannerData.assertWritable();
+    if(change.type==='rename'){saveShopping('private-title',change.title);return;}
+    if(change.type==='add'){
+      addIdea({text:'Zakupy',list:{type:'shopping',items:[change.text]}});
+    } else {
+      const current=privatePaperGroups().find(entry=>entry.id===change.id);
+      if(!current||current.fingerprint!==change.fingerprint)throw Error('Lista się zmieniła. Wybierz produkt ponownie.');
+      if(change.type==='mark'){
+        if(current.done && current.group.buyer && current.group.buyer!=='Robert')throw Error('Możesz przywrócić tylko swoje zakupy.');
+        if(!persistShoppingGroups([current.group],change.done))throw Error($('shoppingSummaryStatus').textContent);
+      } else if(change.type==='remove'){
+        removePlannerShoppingGroup(current.group);
+      } else throw Error('Nieznana zmiana kartki.');
+    }
+    renderAll();
+  }
+};
+
 function initializeShoppingSummary(){
   initializeShoppingName();
   initializeShoppingAccess();
@@ -3400,7 +3528,7 @@ function initializeShoppingSummary(){
   $('shoppingShareInvite').onclick=sendShoppingLink;
   $('shoppingInviteClose').onclick=()=>$('shoppingInviteDialog').close();
   setupShoppingOwner();
-  $('openShoppingSummary').onclick=()=>openShoppingSummary();$('closeShoppingSummary').onclick=()=>closeShoppingSummary();$('shoppingSummaryUpdate').onclick=()=>instantShopping()?closeShoppingSummary():updateShoppingSources();$('shoppingSummaryInfo').onclick=()=>setShoppingHelp($('shoppingSummaryHelp').hidden);$('shoppingPurchasedToggle').onclick=()=>setShoppingPurchasedOpen(!shoppingPurchasedOpen);$('shoppingSummaryRefresh').onclick=()=>{if(shoppingPending()&&!confirm('Odświeżyć i odrzucić niezapisane zaznaczenia?'))return;const filter=shoppingSummary.filter;shoppingSummary=collectShoppingSummary(shoppingRecords(),filter);renderShoppingSummary();$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='Wczytano aktualne listy. Zaznacz produkty ponownie.'};$('shoppingModal').onclick=e=>{if(e.target===$('shoppingModal'))closeShoppingSummary();else if(!e.target.closest('.shopping-help-wrap'))setShoppingHelp(false)};
+  $('openShoppingSummary').onclick=()=>openOwnerPaper();$('closeShoppingSummary').onclick=()=>closeShoppingSummary();$('shoppingSummaryUpdate').onclick=()=>instantShopping()?closeShoppingSummary():updateShoppingSources();$('shoppingSummaryInfo').onclick=()=>setShoppingHelp($('shoppingSummaryHelp').hidden);$('shoppingPurchasedToggle').onclick=()=>setShoppingPurchasedOpen(!shoppingPurchasedOpen);$('shoppingSummaryRefresh').onclick=()=>{if(shoppingPending()&&!confirm('Odświeżyć i odrzucić niezapisane zaznaczenia?'))return;const filter=shoppingSummary.filter;shoppingSummary=collectShoppingSummary(shoppingRecords(),filter);renderShoppingSummary();$('shoppingSummaryRefresh').hidden=true;$('shoppingSummaryStatus').textContent='Wczytano aktualne listy. Zaznacz produkty ponownie.'};$('shoppingModal').onclick=e=>{if(e.target===$('shoppingModal'))closeShoppingSummary();else if(!e.target.closest('.shopping-help-wrap'))setShoppingHelp(false)};
   document.addEventListener('keydown',e=>{if($('shoppingModal').classList.contains('hidden')||$('shoppingInviteDialog').open||$('shoppingAccessDialog').open)return;if(e.key==='Escape'){e.preventDefault();if(!$('shoppingSummaryHelp').hidden){setShoppingHelp(false);$('shoppingSummaryInfo').focus()}else closeShoppingSummary()}if(e.key==='Tab'){const nodes=[...$('shoppingModal').querySelectorAll('button:not(:disabled),input')].filter(n=>n.getClientRects().length),first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}});
 }
 // END SHOPPING SUMMARY
@@ -4526,7 +4654,7 @@ function initializePhoneSkin(){
  window.addEventListener('pageshow',()=>OktiLocalWeather.refresh());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')OktiLocalWeather.refresh()});
  setInterval(()=>OktiLocalWeather.refresh(),15*60*1000);
 
- const shoppingButton=document.createElement('button');shoppingButton.id='phoneShopping';shoppingButton.type='button';shoppingButton.setAttribute('aria-haspopup','dialog');shoppingButton.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6M9 20h.01M18 20h.01"/></svg></span><span>Zakupy</span><b class="shopping-count">0</b>';shoppingButton.onclick=()=>openShoppingSummary();notebook.insertBefore(shoppingButton,$('phoneEntries'));gear.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span><span>Ustawienia</span>';notebook.insertBefore(gear,$('phoneCalendar'));updateShoppingBadge();
+ const shoppingButton=document.createElement('button');shoppingButton.id='phoneShopping';shoppingButton.type='button';shoppingButton.setAttribute('aria-haspopup','dialog');shoppingButton.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6M9 20h.01M18 20h.01"/></svg></span><span>Zakupy</span><b class="shopping-count">0</b>';shoppingButton.onclick=()=>openOwnerPaper();notebook.insertBefore(shoppingButton,$('phoneEntries'));gear.innerHTML='<span class="phone-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span><span>Ustawienia</span>';notebook.insertBefore(gear,$('phoneCalendar'));updateShoppingBadge();
  const actions=document.createElement('div');actions.className='phone-actions';$('recordMemo').textContent='🎙 Nagraj notatkę';actions.append($('createPhotoNote'),$('recordMemo'));app.append(actions,voiceArea);
  const memoControls=document.createElement('div');memoControls.className='row';for(const id of ['stopMemo','cancelMemo','memoHint','photoNoteStatus'])memoControls.append($(id));voiceArea.before(memoControls);settings.append($('photoNoteLocation').closest('label'));settings.append($('toolsArea'));
  const manual=$('manualCard');manual.classList.add('hidden');const closeManual=entryButton('Zamknij formularz',()=>manual.classList.add('hidden'),'secondary');manual.prepend(closeManual);
