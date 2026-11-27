@@ -7,7 +7,7 @@ const service=await shoppingFixture();
 const browser=await chromium.launch(process.env.PLANNER_CHROMIUM?{executablePath:process.env.PLANNER_CHROMIUM}:{});
 const origin='https://2ntb8nys8z-max.github.io';
 const guest='https://okti-wspolne-zakupy.oakgait2.chatgpt.site';
-const page=await browser.newPage({viewport:{width:390,height:844},serviceWorkers:'block',reducedMotion:'reduce'});
+const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block',reducedMotion:'reduce'});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
@@ -27,7 +27,26 @@ try{
   const paper=page.frameLocator('#ownerPaperDialog iframe'),button=name=>paper.getByRole('button',{name,exact:true});
   const sheet=paper.locator('#sheet'),menu=()=>paper.locator('#choose').click();
   const more=()=>paper.locator('#more').click();
-  await page.locator('#phoneShopping').click();await paper.locator('#rows').getByText('Herbata').waitFor();
+  await page.locator('#phoneShopping').tap();await paper.locator('#rows').getByText('Herbata').waitFor();
+  const focused=()=>sheet.evaluate(el=>el.ownerDocument.activeElement.id);
+  async function checkKeyboardIndicator(id){
+    await page.keyboard.press('Tab');
+    assert.equal(await focused(),id);
+    const style=await paper.locator('#'+id).evaluate(el=>{
+      const css=getComputedStyle(el);
+      return [css.outlineStyle,css.textDecorationLine];
+    });
+    assert.deepEqual(style,['none','underline']);
+  }
+  assert.equal(await focused(),'sheet');
+  await checkKeyboardIndicator('choose');
+  await page.keyboard.press('Tab');
+  await checkKeyboardIndicator('exit');
+  await paper.locator('#choose').tap();
+  assert.equal(await focused(),'dialogTitle');
+  await checkKeyboardIndicator('dismiss');
+  await paper.locator('#dismiss').tap();
+  assert.ok(await paper.locator('#panel').isHidden());
   const size=await sheet.evaluate(e=>[e.offsetWidth,e.offsetHeight]);
   assert.ok(size[1]>size[0]);assert.equal(await paper.locator('.underlay').count(),0);
   await button('Dodaj').click();await paper.getByLabel('Nazwa produktu').fill('Mleko');await paper.locator('form button').click();
